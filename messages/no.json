@@ -1,0 +1,183 @@
+{
+  "common": {
+    "appName": "MOTOOS",
+    "version": "v3.0",
+    "signOut": "Logg ut",
+    "admin": "Administrator",
+    "user": "Bruker"
+  },
+  "navigation": {
+    "dashboard": "Dashbord",
+    "inventory": "Beholdning",
+    "purchaseOrders": "Innkjøpsordre",
+    "salesPipeline": "Salgspipeline",
+    "customers": "Kunder",
+    "invoices": "Fakturaer",
+    "documents": "Dokumenter",
+    "analytics": "Analyse",
+    "settings": "Innstillinger",
+    "users": "Brukere",
+    "auditLog": "Revisjonslogg"
+  },
+  "login": {
+    "title": "Velkommen tilbake",
+    "subtitle": "Logg inn på MotoOS-kontoen din",
+    "signInWithBankID": "Logg inn med BankID",
+    "recommended": "Anbefalt — Ingen passord nødvendig",
+    "or": "eller",
+    "emailAddress": "E-postadresse",
+    "password": "Passord",
+    "rememberDevice": "Husk denne enheten",
+    "forgotPassword": "Glemt passord?",
+    "signIn": "Logg inn",
+    "noAccount": "Har du ikke en konto?",
+    "signUp": "Registrer deg",
+    "security": "256-bit SSL-kryptert • GDPR-kompatibel",
+    "branding": {
+      "tagline": "Forhandler intelligensplattform",
+      "zeroInput": "Null manuell inndata",
+      "zeroInputDesc": "AI håndterer datainnføring slik at du kan selge",
+      "secured": "BankID-sikret",
+      "securedDesc": "Svensk standard for digital identitet",
+      "analytics": "Sanntidsanalyse",
+      "analyticsDesc": "Live dashbord og AI-innsikt",
+      "dealers": "Bygget for MC-forhandlere",
+      "dealersDesc": "Fokusert på svenske motorsykkelforhandlere",
+      "copyright": "© 2026 MotoOS — AVA MC. Alle rettigheter reservert.",
+      "security": "256-bit kryptert • GDPR-kompatibel • Svensk hosting"
+    }
+  },
+  "redirecting": "Omdirigerer til pålogging...",
+  "newLead": {
+    "breadcrumb": {
+      "sales": "Salg",
+      "newLead": "Ny Lead"
+    },
+    "title": "Opprett Ny Lead",
+    "identifyCustomer": "Identifiser kunde",
+    "identifyCustomerDesc": "Velg hvordan du vil identifisere kunden",
+    "tabs": {
+      "bankid": "BankID (anbefalt)",
+      "manual": "Manuelt",
+      "phone": "Telefonoppslag"
+    },
+    "successBanner": "Identifisert via BankID — {name} ({personalNumber})",
+    "fields": {
+      "name": "Navn",
+      "address": "Adresse",
+      "email": "E-post",
+      "phone": "Telefon",
+      "source": "Kilde",
+      "notes": "Notater",
+      "interest": "Interesse"
+    },
+    "badges": {
+      "bankid": "BankID",
+      "registration": "Folkeregistrering",
+      "manual": "Manuell"
+    },
+    "sourceOptions": {
+      "walkin": "Walk-in",
+      "phone": "Telefon",
+      "website": "Nettside",
+      "referral": "Henvisning"
+    },
+    "placeholders": {
+      "email": "lars@example.no",
+      "phone": "976-12 345",
+      "notes": "Interessert i sportssykler, budsjett ~90-150k",
+      "interest": "Kawasaki Ninja ZX-6R"
+    },
+    "autoFilled": "80% auto-utfylt",
+    "submitButton": "Opprett Lead",
+    "sidebar": {
+      "title": "BankID + Roaring.io Enrichment",
+      "bankidInfo": "BankID → Navn + personnummer (verifisert)",
+      "roaringInfo": "Roaring.io → Adresse, postnummer, by, kjønn (SPAR)",
+      "manualInfo": "Manuell → E-post, telefon (spør kunden)",
+      "existingCustomer": "Eksisterende kunde: Nei (ny i systemet)",
+      "protectedIdentity": "Beskyttet identitet: Nei",
+      "highIntent": "Walk-in + BankID = 92% høy intensjon",
+      "matchingVehicles": "Matchende kjøretøy",
+      "basedOn": "Basert på budsjett 90-150k og sportinteresse",
+      "testEnv": "BankID Testmiljø"
+    }
+  },
+  "dashboard": {
+    "loading": "Laster...",
+    "welcome": "Velkommen tilbake, {name}!",
+    "subtitle": "Her er hva som skjer med forhandleren din i dag.",
+    "stats": {
+      "activeLeads": "Aktive Leads",
+      "inventory": "Beholdning",
+      "revenue": "Inntekter",
+      "customers": "Kunder",
+      "new": "nye",
+      "today": "i dag",
+      "thisMonth": "Denne måneden",
+      "percentIncrease": "+{percent}%"
+    },
+    "quickActions": {
+      "title": "Hurtighandlinger",
+      "newLead": "Ny Lead",
+      "newLeadDesc": "Opprett kundelead",
+      "addInventory": "Legg til beholdning",
+      "addInventoryDesc": "Registrer nytt kjøretøy",
+      "purchaseOrder": "Innkjøpsordre",
+      "purchaseOrderDesc": "Opprett ny innkjøpsordre"
+    },
+    "recentLeads": {
+      "title": "Siste Leads",
+      "hot": "Het",
+      "warm": "Varm",
+      "cold": "Kald",
+      "hoursAgo": "{hours} timer siden",
+      "daysAgo": "{days} dag siden"
+    },
+    "topSelling": {
+      "title": "Mest solgte sykler",
+      "sales": "{count} salg"
+    }
+  },
+  "signup": {
+    "title": "Opprett din konto",
+    "subtitle": "Bli med i MotoOS og effektiviser forhandleren din",
+    "signUpWithBankID": "Registrer deg med BankID",
+    "recommended": "Anbefalt — Umiddelbar verifisering",
+    "or": "eller",
+    "fullName": "Fullt navn",
+    "emailAddress": "E-postadresse",
+    "dealershipName": "Forhandlernavn",
+    "password": "Passord",
+    "confirmPassword": "Bekreft passord",
+    "passwordMinLength": "Minimum 8 tegn",
+    "passwordsMatch": "✅ Passordene stemmer!",
+    "passwordsDoNotMatch": "❌ Passordene stemmer ikke",
+    "agreeToTerms": "Jeg godtar",
+    "termsOfService": "Tjenestevilkårene",
+    "and": "og",
+    "privacyPolicy": "Personvernreglene",
+    "createAccount": "Opprett konto",
+    "security": "🔒 256-bit SSL-kryptert • GDPR-kompatibel",
+    "alreadyHaveAccount": "Har du allerede en konto?",
+    "signIn": "Logg inn",
+    "branding": {
+      "tagline": "Forhandler intelligensplattform",
+      "getStartedFree": "Kom i gang gratis",
+      "getStartedFreeDesc": "Ingen kredittkort nødvendig",
+      "setupQuick": "Oppsett på 2 minutter",
+      "setupQuickDesc": "Rask registrering med BankID",
+      "dealers": "Bygget for MC-forhandlere",
+      "dealersDesc": "Fokusert på svenske motorsykkelforhandlere",
+      "secureCompliant": "Sikker og kompatibel",
+      "secureCompliantDesc": "GDPR-kompatibel med svensk hosting",
+      "copyright": "© 2026 MotoOS — AVA MC. Alle rettigheter reservert.",
+      "security": "256-bit kryptert • GDPR-kompatibel • Svensk hosting"
+    },
+    "alerts": {
+      "passwordsDontMatch": "Passordene stemmer ikke!",
+      "passwordTooShort": "Passordet må være minst 8 tegn langt!",
+      "mustAgreeToTerms": "Du må godta tjenestevilkårene og personvernreglene!"
+    }
+  }
+}

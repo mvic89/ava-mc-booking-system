@@ -1,0 +1,183 @@
+{
+  "common": {
+    "appName": "MOTOOS",
+    "version": "v3.0",
+    "signOut": "Sign Out",
+    "admin": "Admin",
+    "user": "User"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "inventory": "Inventory",
+    "purchaseOrders": "Purchase Orders",
+    "salesPipeline": "Sales Pipeline",
+    "customers": "Customers",
+    "invoices": "Invoices",
+    "documents": "Documents",
+    "analytics": "Analytics",
+    "settings": "Settings",
+    "users": "Users",
+    "auditLog": "Audit Log"
+  },
+  "login": {
+    "title": "Welcome Back",
+    "subtitle": "Sign in to your MotoOS account",
+    "signInWithBankID": "Sign in with BankID",
+    "recommended": "Recommended — No password needed",
+    "or": "or",
+    "emailAddress": "Email Address",
+    "password": "Password",
+    "rememberDevice": "Remember this device",
+    "forgotPassword": "Forgot Password?",
+    "signIn": "Sign In",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up",
+    "security": "256-bit SSL encrypted • GDPR compliant",
+    "branding": {
+      "tagline": "Dealership Intelligence Platform",
+      "zeroInput": "Zero Manual Input",
+      "zeroInputDesc": "AI handles data entry so you can sell",
+      "secured": "BankID Secured",
+      "securedDesc": "Swedish-standard digital identity",
+      "analytics": "Real-time Analytics",
+      "analyticsDesc": "Live dashboards and AI insights",
+      "dealers": "Built for MC Dealers",
+      "dealersDesc": "Swedish motorcycle dealership focused",
+      "copyright": "© 2026 MotoOS — AVA MC. All rights reserved.",
+      "security": "256-bit encrypted • GDPR compliant • Swedish hosting"
+    }
+  },
+  "redirecting": "Redirecting to login...",
+  "newLead": {
+    "breadcrumb": {
+      "sales": "Sales",
+      "newLead": "New Lead"
+    },
+    "title": "Create New Lead",
+    "identifyCustomer": "Identify Customer",
+    "identifyCustomerDesc": "Choose how you want to identify the customer",
+    "tabs": {
+      "bankid": "BankID (recommended)",
+      "manual": "Manual",
+      "phone": "Phone Lookup"
+    },
+    "successBanner": "Identified via BankID — {name} ({personalNumber})",
+    "fields": {
+      "name": "Name",
+      "address": "Address",
+      "email": "Email",
+      "phone": "Phone",
+      "source": "Source",
+      "notes": "Notes",
+      "interest": "Interest"
+    },
+    "badges": {
+      "bankid": "BankID",
+      "registration": "Registration",
+      "manual": "Manual"
+    },
+    "sourceOptions": {
+      "walkin": "Walk-in",
+      "phone": "Phone",
+      "website": "Website",
+      "referral": "Referral"
+    },
+    "placeholders": {
+      "email": "lars@example.se",
+      "phone": "076-123 4567",
+      "notes": "Interested in sport bikes, budget ~90-150k",
+      "interest": "Kawasaki Ninja ZX-6R"
+    },
+    "autoFilled": "80% auto-filled",
+    "submitButton": "Create Lead",
+    "sidebar": {
+      "title": "BankID + Roaring.io Enrichment",
+      "bankidInfo": "BankID → Name + personal number (verified)",
+      "roaringInfo": "Roaring.io → Address, postal code, city, gender (SPAR)",
+      "manualInfo": "Manual → Email, phone (ask customer)",
+      "existingCustomer": "Existing customer: No (new in system)",
+      "protectedIdentity": "Protected identity: No",
+      "highIntent": "Walk-in + BankID = 92% high intent",
+      "matchingVehicles": "Matching Vehicles",
+      "basedOn": "Based on budget 90-150k and sport interest",
+      "testEnv": "BankID Test Environment"
+    }
+  },
+  "dashboard": {
+    "loading": "Loading...",
+    "welcome": "Welcome back, {name}!",
+    "subtitle": "Here's what's happening with your dealership today.",
+    "stats": {
+      "activeLeads": "Active Leads",
+      "inventory": "Inventory",
+      "revenue": "Revenue",
+      "customers": "Customers",
+      "new": "new",
+      "today": "today",
+      "thisMonth": "This month",
+      "percentIncrease": "+{percent}%"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "newLead": "New Lead",
+      "newLeadDesc": "Create customer lead",
+      "addInventory": "Add Inventory",
+      "addInventoryDesc": "Register new vehicle",
+      "purchaseOrder": "Purchase Order",
+      "purchaseOrderDesc": "Create new PO"
+    },
+    "recentLeads": {
+      "title": "Recent Leads",
+      "hot": "Hot",
+      "warm": "Warm",
+      "cold": "Cold",
+      "hoursAgo": "{hours} hours ago",
+      "daysAgo": "{days} day ago"
+    },
+    "topSelling": {
+      "title": "Top Selling Bikes",
+      "sales": "{count} sales"
+    }
+  },
+  "signup": {
+    "title": "Create Your Account",
+    "subtitle": "Join MotoOS and streamline your dealership",
+    "signUpWithBankID": "Sign up with BankID",
+    "recommended": "Recommended — Instant verification",
+    "or": "or",
+    "fullName": "Full Name",
+    "emailAddress": "Email Address",
+    "dealershipName": "Dealership Name",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "passwordMinLength": "Minimum 8 characters",
+    "passwordsMatch": "✅ Passwords match!",
+    "passwordsDoNotMatch": "❌ Passwords do not match",
+    "agreeToTerms": "I agree to the",
+    "termsOfService": "Terms of Service",
+    "and": "and",
+    "privacyPolicy": "Privacy Policy",
+    "createAccount": "Create Account",
+    "security": "🔒 256-bit SSL encrypted • GDPR compliant",
+    "alreadyHaveAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "branding": {
+      "tagline": "Dealership Intelligence Platform",
+      "getStartedFree": "Get Started Free",
+      "getStartedFreeDesc": "No credit card required",
+      "setupQuick": "Setup in 2 Minutes",
+      "setupQuickDesc": "Quick registration with BankID",
+      "dealers": "Built for MC Dealers",
+      "dealersDesc": "Swedish motorcycle dealership focused",
+      "secureCompliant": "Secure & Compliant",
+      "secureCompliantDesc": "GDPR compliant with Swedish hosting",
+      "copyright": "© 2026 MotoOS — AVA MC. All rights reserved.",
+      "security": "256-bit encrypted • GDPR compliant • Swedish hosting"
+    },
+    "alerts": {
+      "passwordsDontMatch": "Passwords do not match!",
+      "passwordTooShort": "Password must be at least 8 characters long!",
+      "mustAgreeToTerms": "You must agree to the Terms of Service and Privacy Policy!"
+    }
+  }
+}

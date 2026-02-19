@@ -1,0 +1,183 @@
+{
+  "common": {
+    "appName": "MOTOOS",
+    "version": "v3.0",
+    "signOut": "تسجيل الخروج",
+    "admin": "مسؤول",
+    "user": "مستخدم"
+  },
+  "navigation": {
+    "dashboard": "لوحة القيادة",
+    "inventory": "المخزون",
+    "purchaseOrders": "أوامر الشراء",
+    "salesPipeline": "خط المبيعات",
+    "customers": "العملاء",
+    "invoices": "الفواتير",
+    "documents": "المستندات",
+    "analytics": "التحليلات",
+    "settings": "الإعدادات",
+    "users": "المستخدمون",
+    "auditLog": "سجل المراجعة"
+  },
+  "login": {
+    "title": "مرحباً بعودتك",
+    "subtitle": "قم بتسجيل الدخول إلى حساب MotoOS الخاص بك",
+    "signInWithBankID": "تسجيل الدخول باستخدام BankID",
+    "recommended": "موصى به — لا حاجة لكلمة مرور",
+    "or": "أو",
+    "emailAddress": "عنوان البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "rememberDevice": "تذكر هذا الجهاز",
+    "forgotPassword": "هل نسيت كلمة المرور؟",
+    "signIn": "تسجيل الدخول",
+    "noAccount": "ليس لديك حساب؟",
+    "signUp": "سجل الآن",
+    "security": "مشفر SSL 256 بت • متوافق مع GDPR",
+    "branding": {
+      "tagline": "منصة الذكاء للوكلاء",
+      "zeroInput": "صفر إدخال يدوي",
+      "zeroInputDesc": "الذكاء الاصطناعي يتعامل مع إدخال البيانات حتى تتمكن من البيع",
+      "secured": "محمي بـ BankID",
+      "securedDesc": "المعيار السويدي للهوية الرقمية",
+      "analytics": "تحليلات في الوقت الفعلي",
+      "analyticsDesc": "لوحات معلومات مباشرة ورؤى الذكاء الاصطناعي",
+      "dealers": "مصمم لتجار الدراجات النارية",
+      "dealersDesc": "مركز على وكلاء الدراجات النارية السويدية",
+      "copyright": "© 2026 MotoOS — AVA MC. جميع الحقوق محفوظة.",
+      "security": "مشفر 256 بت • متوافق مع GDPR • استضافة سويدية"
+    }
+  },
+  "redirecting": "إعادة التوجيه إلى تسجيل الدخول...",
+  "newLead": {
+    "breadcrumb": {
+      "sales": "المبيعات",
+      "newLead": "عميل محتمل جديد"
+    },
+    "title": "إنشاء عميل محتمل جديد",
+    "identifyCustomer": "تحديد هوية العميل",
+    "identifyCustomerDesc": "اختر كيفية تحديد هوية العميل",
+    "tabs": {
+      "bankid": "BankID (موصى به)",
+      "manual": "يدوي",
+      "phone": "البحث عبر الهاتف"
+    },
+    "successBanner": "تم التعرف عليه عبر BankID — {name} ({personalNumber})",
+    "fields": {
+      "name": "الاسم",
+      "address": "العنوان",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "source": "المصدر",
+      "notes": "ملاحظات",
+      "interest": "الاهتمام"
+    },
+    "badges": {
+      "bankid": "BankID",
+      "registration": "التسجيل",
+      "manual": "يدوي"
+    },
+    "sourceOptions": {
+      "walkin": "زيارة مباشرة",
+      "phone": "هاتف",
+      "website": "الموقع الإلكتروني",
+      "referral": "إحالة"
+    },
+    "placeholders": {
+      "email": "lars@example.sa",
+      "phone": "05-123-4567",
+      "notes": "مهتم بالدراجات الرياضية، الميزانية ~90-150 ألف",
+      "interest": "كاواساكي نينجا ZX-6R"
+    },
+    "autoFilled": "تم ملء 80% تلقائيًا",
+    "submitButton": "إنشاء عميل محتمل",
+    "sidebar": {
+      "title": "إثراء BankID + Roaring.io",
+      "bankidInfo": "BankID ← الاسم + الرقم الشخصي (تم التحقق منه)",
+      "roaringInfo": "Roaring.io ← العنوان، الرمز البريدي، المدينة، الجنس (SPAR)",
+      "manualInfo": "يدوي ← البريد الإلكتروني، الهاتف (اسأل العميل)",
+      "existingCustomer": "عميل موجود: لا (جديد في النظام)",
+      "protectedIdentity": "هوية محمية: لا",
+      "highIntent": "زيارة مباشرة + BankID = 92% نية عالية",
+      "matchingVehicles": "المركبات المطابقة",
+      "basedOn": "بناءً على الميزانية 90-150 ألف واهتمام رياضي",
+      "testEnv": "بيئة اختبار BankID"
+    }
+  },
+  "dashboard": {
+    "loading": "جارٍ التحميل...",
+    "welcome": "مرحباً بعودتك، {name}!",
+    "subtitle": "إليك ما يحدث مع وكالتك اليوم.",
+    "stats": {
+      "activeLeads": "العملاء المحتملون النشطون",
+      "inventory": "المخزون",
+      "revenue": "الإيرادات",
+      "customers": "العملاء",
+      "new": "جديد",
+      "today": "اليوم",
+      "thisMonth": "هذا الشهر",
+      "percentIncrease": "+{percent}%"
+    },
+    "quickActions": {
+      "title": "إجراءات سريعة",
+      "newLead": "عميل محتمل جديد",
+      "newLeadDesc": "إنشاء عميل محتمل",
+      "addInventory": "إضافة مخزون",
+      "addInventoryDesc": "تسجيل مركبة جديدة",
+      "purchaseOrder": "أمر شراء",
+      "purchaseOrderDesc": "إنشاء أمر شراء جديد"
+    },
+    "recentLeads": {
+      "title": "أحدث العملاء المحتملين",
+      "hot": "ساخن",
+      "warm": "دافئ",
+      "cold": "بارد",
+      "hoursAgo": "منذ {hours} ساعات",
+      "daysAgo": "منذ {days} يوم"
+    },
+    "topSelling": {
+      "title": "الدراجات الأكثر مبيعاً",
+      "sales": "{count} مبيعات"
+    }
+  },
+  "signup": {
+    "title": "إنشاء حسابك",
+    "subtitle": "انضم إلى MotoOS وسهّل عمل وكالتك",
+    "signUpWithBankID": "التسجيل باستخدام BankID",
+    "recommended": "موصى به — تحقق فوري",
+    "or": "أو",
+    "fullName": "الاسم الكامل",
+    "emailAddress": "عنوان البريد الإلكتروني",
+    "dealershipName": "اسم الوكالة",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "passwordMinLength": "8 أحرف على الأقل",
+    "passwordsMatch": "✅ كلمات المرور متطابقة!",
+    "passwordsDoNotMatch": "❌ كلمات المرور غير متطابقة",
+    "agreeToTerms": "أوافق على",
+    "termsOfService": "شروط الخدمة",
+    "and": "و",
+    "privacyPolicy": "سياسة الخصوصية",
+    "createAccount": "إنشاء حساب",
+    "security": "🔒 مشفر SSL 256 بت • متوافق مع GDPR",
+    "alreadyHaveAccount": "هل لديك حساب بالفعل؟",
+    "signIn": "تسجيل الدخول",
+    "branding": {
+      "tagline": "منصة الذكاء للوكلاء",
+      "getStartedFree": "ابدأ مجاناً",
+      "getStartedFreeDesc": "لا حاجة لبطاقة ائتمان",
+      "setupQuick": "الإعداد في دقيقتين",
+      "setupQuickDesc": "تسجيل سريع باستخدام BankID",
+      "dealers": "مصمم لتجار الدراجات النارية",
+      "dealersDesc": "مركز على وكلاء الدراجات النارية السويدية",
+      "secureCompliant": "آمن ومتوافق",
+      "secureCompliantDesc": "متوافق مع GDPR مع استضافة سويدية",
+      "copyright": "© 2026 MotoOS — AVA MC. جميع الحقوق محفوظة.",
+      "security": "مشفر 256 بت • متوافق مع GDPR • استضافة سويدية"
+    },
+    "alerts": {
+      "passwordsDontMatch": "كلمات المرور غير متطابقة!",
+      "passwordTooShort": "يجب أن تكون كلمة المرور 8 أحرف على الأقل!",
+      "mustAgreeToTerms": "يجب أن توافق على شروط الخدمة وسياسة الخصوصية!"
+    }
+  }
+}

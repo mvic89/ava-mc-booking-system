@@ -1,13 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
 import BankIDModal from '@/components/bankIdModel';
-import type { BankIDResult } from '@/types';
+import type { BankIDResult, Demo } from '@/types';
+import DemoCard from '@/components/DemoCard';
+import Field from '@/components/Field';
 
 type TabType = 'bankid' | 'manual' | 'phone';
 
-export default function NewLeadPage() {
+const NewLeadPage = () => {
+  const t = useTranslations();
+
   const [activeTab, setActiveTab] = useState<TabType>('bankid');
   const [showBankID, setShowBankID] = useState(false);
   const [bankIDData, setBankIDData] = useState<BankIDResult | null>(null);
@@ -58,21 +63,23 @@ export default function NewLeadPage() {
       <Sidebar />
 
       {/* Main Content */}
-      <div className="ml-[230px] flex-1 flex">
+      <div className="ml-57.5 flex-1 flex">
         {/* Center Content */}
-        <div className="flex-1 p-8 max-w-[900px]">
+        <div className="flex-1 p-8 max-w-225">
           {/* Breadcrumb */}
           <div className="text-sm text-slate-500 mb-4">
-            Sales → <span className="text-slate-700">New Lead</span>
+            {t('newLead.breadcrumb.sales')} → <span className="text-slate-700">{t('newLead.breadcrumb.newLead')}</span>
           </div>
 
           {/* Title */}
-          <h1 className="text-3xl font-bold text-slate-900 mb-6">Create New Lead</h1>
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-3xl font-bold text-slate-900">{t('newLead.title')}</h1>
+          </div>
 
           {/* Identification Method Tabs */}
           <div className="bg-white rounded-lg border border-slate-200 p-6 mb-6">
-            <h2 className="text-lg font-semibold text-slate-900 mb-2">Identifiera kund</h2>
-            <p className="text-sm text-slate-500 mb-4">Välj hur du vill identifiera kunden</p>
+            <h2 className="text-lg font-semibold text-slate-900 mb-2">{t('newLead.identifyCustomer')}</h2>
+            <p className="text-sm text-slate-500 mb-4">{t('newLead.identifyCustomerDesc')}</p>
 
             <div className="flex gap-3 mb-6">
               <button
@@ -80,33 +87,30 @@ export default function NewLeadPage() {
                   setActiveTab('bankid');
                   setShowBankID(true);
                 }}
-                className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  activeTab === 'bankid'
+                className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${activeTab === 'bankid'
                     ? 'bg-[#235971] text-white'
                     : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
-                }`}
+                  }`}
               >
-                🔒 BankID (rekommenderat)
+                🔒 {t('newLead.tabs.bankid')}
               </button>
               <button
                 onClick={() => setActiveTab('manual')}
-                className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  activeTab === 'manual'
+                className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${activeTab === 'manual'
                     ? 'bg-[#235971] text-white'
                     : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
-                }`}
+                  }`}
               >
-                ✏️ Manuellt
+                ✏️ {t('newLead.tabs.manual')}
               </button>
               <button
                 onClick={() => setActiveTab('phone')}
-                className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  activeTab === 'phone'
+                className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${activeTab === 'phone'
                     ? 'bg-[#235971] text-white'
                     : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
-                }`}
+                  }`}
               >
-                📞 Telefonuppslag
+                📞 {t('newLead.tabs.phone')}
               </button>
             </div>
 
@@ -117,7 +121,10 @@ export default function NewLeadPage() {
                   <span className="text-green-600 text-xl">✅</span>
                   <div>
                     <p className="text-sm font-semibold text-green-900">
-                      Identifierad via BankID — {bankIDData.user.name} ({bankIDData.user.personalNumber.replace(/(\d{8})(\d{4})/, '$1-$2')})
+                      {t('newLead.successBanner', {
+                        name: bankIDData.user.name,
+                        personalNumber: bankIDData.user.personalNumber.replace(/(\d{8})(\d{4})/, '$1-$2')
+                      })}
                     </p>
                   </div>
                 </div>
@@ -130,10 +137,10 @@ export default function NewLeadPage() {
                 {/* Name Field */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                    Namn
+                    {t('newLead.fields.name')}
                     {bankIDData && (
                       <span className="ml-2 text-xs bg-blue-600 text-white px-2 py-0.5 rounded font-semibold">
-                        BankID
+                        {t('newLead.badges.bankid')}
                       </span>
                     )}
                   </label>
@@ -142,11 +149,10 @@ export default function NewLeadPage() {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     disabled={!!bankIDData}
-                    className={`w-full px-3 py-2.5 rounded-lg border text-sm ${
-                      bankIDData
+                    className={`w-full px-3 py-2.5 rounded-lg border text-sm ${bankIDData
                         ? 'bg-slate-50 border-slate-200 text-slate-600'
                         : 'bg-white border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none'
-                    }`}
+                      }`}
                     required
                   />
                 </div>
@@ -154,10 +160,10 @@ export default function NewLeadPage() {
                 {/* Address Field */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                    Adress
+                    {t('newLead.fields.address')}
                     {bankIDData?.roaring && (
                       <span className="ml-2 text-xs bg-green-600 text-white px-2 py-0.5 rounded font-semibold">
-                        Folkbokföring
+                        {t('newLead.badges.registration')}
                       </span>
                     )}
                   </label>
@@ -166,11 +172,10 @@ export default function NewLeadPage() {
                     value={formData.address}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     disabled={!!bankIDData?.roaring}
-                    className={`w-full px-3 py-2.5 rounded-lg border text-sm ${
-                      bankIDData?.roaring
+                    className={`w-full px-3 py-2.5 rounded-lg border text-sm ${bankIDData?.roaring
                         ? 'bg-green-50 border-green-200 text-slate-600'
                         : 'bg-white border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none'
-                    }`}
+                      }`}
                     required
                   />
                 </div>
@@ -178,9 +183,9 @@ export default function NewLeadPage() {
                 {/* Email Field */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                    E-post *
+                    {t('newLead.fields.email')} *
                     <span className="ml-2 text-xs bg-orange-500 text-white px-2 py-0.5 rounded font-semibold">
-                      Manuell
+                      {t('newLead.badges.manual')}
                     </span>
                   </label>
                   <input
@@ -188,7 +193,7 @@ export default function NewLeadPage() {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                    placeholder="lars@example.se"
+                    placeholder={t('newLead.placeholders.email')}
                     required
                   />
                 </div>
@@ -196,9 +201,9 @@ export default function NewLeadPage() {
                 {/* Phone Field */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                    Telefon *
+                    {t('newLead.fields.phone')} *
                     <span className="ml-2 text-xs bg-orange-500 text-white px-2 py-0.5 rounded font-semibold">
-                      Manuell
+                      {t('newLead.badges.manual')}
                     </span>
                   </label>
                   <input
@@ -206,7 +211,7 @@ export default function NewLeadPage() {
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                    placeholder="076-123 4567"
+                    placeholder={t('newLead.placeholders.phone')}
                     required
                   />
                 </div>
@@ -214,15 +219,15 @@ export default function NewLeadPage() {
                 {/* Source Field */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                    Källa
+                    {t('newLead.fields.source')}
                     <span className="ml-2 text-xs bg-blue-600 text-white px-2 py-0.5 rounded font-semibold">
-                      BankID
+                      {t('newLead.badges.bankid')}
                     </span>
                     <span className="ml-2 text-xs bg-green-600 text-white px-2 py-0.5 rounded font-semibold">
-                      Folkbokföring
+                      {t('newLead.badges.registration')}
                     </span>
                     <span className="ml-2 text-xs bg-orange-500 text-white px-2 py-0.5 rounded font-semibold">
-                      Manuell
+                      {t('newLead.badges.manual')}
                     </span>
                   </label>
                   <select
@@ -230,35 +235,35 @@ export default function NewLeadPage() {
                     onChange={(e) => setFormData({ ...formData, source: e.target.value })}
                     className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-white"
                   >
-                    <option>Walk-in</option>
-                    <option>Phone</option>
-                    <option>Website</option>
-                    <option>Referral</option>
+                    <option>{t('newLead.sourceOptions.walkin')}</option>
+                    <option>{t('newLead.sourceOptions.phone')}</option>
+                    <option>{t('newLead.sourceOptions.website')}</option>
+                    <option>{t('newLead.sourceOptions.referral')}</option>
                   </select>
-                  <p className="text-xs text-slate-500 mt-1">• 80% auto-ifyllt</p>
+                  <p className="text-xs text-slate-500 mt-1">• {t('newLead.autoFilled')}</p>
                 </div>
 
                 {/* Notes Field */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Anteckningar</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('newLead.fields.notes')}</label>
                   <textarea
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-y"
-                    placeholder="Intresserad av sportcyklar, budget ~90-150k"
+                    placeholder={t('newLead.placeholders.notes')}
                     rows={3}
                   />
                 </div>
 
                 {/* Interest Field */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Intresse</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('newLead.fields.interest')}</label>
                   <input
                     type="text"
                     value={formData.interest}
                     onChange={(e) => setFormData({ ...formData, interest: e.target.value })}
                     className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                    placeholder="Kawasaki Ninja ZX-6R"
+                    placeholder={t('newLead.placeholders.interest')}
                   />
                 </div>
 
@@ -267,7 +272,7 @@ export default function NewLeadPage() {
                   type="submit"
                   className="w-full bg-[#FF6B2C] text-white py-3 rounded-lg font-semibold hover:bg-[#e55a1f] transition-colors"
                 >
-                  Create Lead
+                  {t('newLead.submitButton')}
                 </button>
               </div>
             </form>
@@ -275,25 +280,25 @@ export default function NewLeadPage() {
         </div>
 
         {/* Right Sidebar - Matching Vehicles */}
-        <div className="w-[360px] p-8 bg-white border-l border-slate-200">
+        <div className="w-90 p-8 bg-white border-l border-slate-200">
           {/* BankID + Roaring Info */}
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
             <h3 className="text-sm font-bold text-green-900 mb-2">
-              🔒 BankID + Roaring.io Enrichment
+              🔒 {t('newLead.sidebar.title')}
             </h3>
             <ul className="text-xs text-green-800 space-y-1">
-              <li>🔵 BankID → Namn + personnummer (verifierat)</li>
-              <li>🟢 Roaring.io → Adress, postnr, ort, kön (SPAR)</li>
-              <li>🟠 Manuell → E-post, telefon (fråga kunden)</li>
-              <li>📊 Befintlig kund: Nej (ny i systemet)</li>
-              <li>🛡️ Skyddad identitet: Nej</li>
-              <li>🎯 Walk-in + BankID = 92% hög avsikt</li>
+              <li>🔵 {t('newLead.sidebar.bankidInfo')}</li>
+              <li>🟢 {t('newLead.sidebar.roaringInfo')}</li>
+              <li>🟠 {t('newLead.sidebar.manualInfo')}</li>
+              <li>📊 {t('newLead.sidebar.existingCustomer')}</li>
+              <li>🛡️ {t('newLead.sidebar.protectedIdentity')}</li>
+              <li>🎯 {t('newLead.sidebar.highIntent')}</li>
             </ul>
           </div>
 
           {/* Matching Vehicles */}
           <div>
-            <h3 className="text-lg font-bold text-slate-900 mb-4">🏍 Matchande fordon</h3>
+            <h3 className="text-lg font-bold text-slate-900 mb-4">🏍 {t('newLead.sidebar.matchingVehicles')}</h3>
             <div className="space-y-3">
               {matchingVehicles.map((vehicle) => (
                 <div
@@ -305,11 +310,10 @@ export default function NewLeadPage() {
                       <h4 className="font-semibold text-sm text-slate-900">{vehicle.name}</h4>
                       <p className="text-xs text-slate-600">{vehicle.price}</p>
                     </div>
-                    <div className={`text-lg font-bold ${
-                      vehicle.match >= 90 ? 'text-green-600' :
-                      vehicle.match >= 80 ? 'text-blue-600' :
-                      'text-slate-600'
-                    }`}>
+                    <div className={`text-lg font-bold ${vehicle.match >= 90 ? 'text-green-600' :
+                        vehicle.match >= 80 ? 'text-blue-600' :
+                          'text-slate-600'
+                      }`}>
                       {vehicle.match}%
                     </div>
                   </div>
@@ -317,9 +321,12 @@ export default function NewLeadPage() {
               ))}
             </div>
 
-            <p className="text-xs text-slate-500 mt-4">
-              Baserat på budget 90-150k och sportintresse
+            <p className="text-xs text-slate-500 m-4">
+              {t('newLead.sidebar.basedOn')}
             </p>
+            <a href="/bankid-test" className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+              🔒 {t('newLead.sidebar.testEnv')}
+            </a>
           </div>
         </div>
       </div>
@@ -336,3 +343,5 @@ export default function NewLeadPage() {
     </div>
   );
 }
+
+export default NewLeadPage;
