@@ -1,0 +1,1462 @@
+{
+	"info": {
+		"_postman_id": "6c646d99-030d-471d-bd2b-55f0e98dad54",
+		"name": "Order Management",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "GET Order",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)",
+							"{",
+							"   if (httpMethod == 'GET' || !requestBody) {",
+							"        requestBody = ''; ",
+							"    } ",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");",
+							"    console.log(\"signatureData: \"+ signatureRawData);",
+							"    var hash = CryptoJS.SHA512(signatureRawData);",
+							"    ",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");",
+							"   ",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);",
+							"    ",
+							"    return hashInBase64;",
+							"}",
+							"",
+							"var date = new Date();",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();",
+							"",
+							"var httpMethod = \"GET\";",
+							"var secret = pm.environment.get(\"checkoutSecret\");",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);",
+							"",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"value": "{{timestamp}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Svea-CorrelationId",
+						"type": "text",
+						"value": "1a002799-2b92-4891-9e4c-46a364e19f79"
+					}
+				],
+				"url": {
+					"raw": "{{externalApi}}/api/v1/orders/9273723",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"9273723"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DeliverOrder",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)\r",
+							"{\r",
+							"   if (httpMethod == 'GET' || !requestBody) {\r",
+							"        requestBody = ''; \r",
+							"    } \r",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");\r",
+							"    console.log(\"signatureData: \"+ signatureRawData);\r",
+							"    var hash = CryptoJS.SHA512(signatureRawData);\r",
+							"    \r",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");\r",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");\r",
+							"   \r",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);\r",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);\r",
+							"    \r",
+							"    return hashInBase64;\r",
+							"}\r",
+							"\r",
+							"var date = new Date();\r",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();\r",
+							"\r",
+							"var httpMethod = \"POST\";\r",
+							"var secret = pm.environment.get(\"checkoutSecret\");\r",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);\r",
+							"\r",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);\r",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)\r",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"type": "text",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"type": "text",
+						"value": "{{timestamp}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"OrderRowIds\": []\r\n}"
+				},
+				"url": {
+					"raw": "{{externalApi}}/api/v1/orders/9124479/deliveries",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"9124479",
+						"deliveries"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Deliver order with lower amount",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)\r",
+							"{\r",
+							"   if (httpMethod == 'GET' || !requestBody) {\r",
+							"        requestBody = ''; \r",
+							"    } \r",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");\r",
+							"    console.log(\"signatureData: \"+ signatureRawData);\r",
+							"    var hash = CryptoJS.SHA512(signatureRawData);\r",
+							"    \r",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");\r",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");\r",
+							"   \r",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);\r",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);\r",
+							"    \r",
+							"    return hashInBase64;\r",
+							"}\r",
+							"\r",
+							"var date = new Date();\r",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();\r",
+							"\r",
+							"var httpMethod = \"POST\";\r",
+							"var secret = pm.environment.get(\"checkoutSecret\");\r",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);\r",
+							"\r",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);\r",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)\r",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"type": "text",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"type": "text",
+						"value": "{{timestamp}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"DeliveredAmount\": 1000\r\n}"
+				},
+				"url": {
+					"raw": "{{externalApi}}/api/v1/orders/2063621/deliveries/DeliverAndLowerAmount",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"2063621",
+						"deliveries",
+						"DeliverAndLowerAmount"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CancelOrder",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)",
+							"{",
+							"   if (httpMethod == 'GET' || !requestBody) {",
+							"        requestBody = ''; ",
+							"    } ",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");",
+							"    console.log(\"signatureData: \"+ signatureRawData);",
+							"    var hash = CryptoJS.SHA512(signatureRawData);",
+							"    ",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");",
+							"   ",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);",
+							"    ",
+							"    return hashInBase64;",
+							"}",
+							"",
+							"var date = new Date();",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();",
+							"",
+							"var httpMethod = \"PATCH\";",
+							"var secret = pm.environment.get(\"checkoutSecret\");",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);",
+							"",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"value": "{{timestamp}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{    \r\n    \"isCancelled\": true\r\n}"
+				},
+				"url": {
+					"raw": "{{externalApi}}/api/v1/orders/9126558",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"9126558"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CancelOrder by Amount",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)",
+							"{",
+							"   if (httpMethod == 'GET' || !requestBody) {",
+							"        requestBody = ''; ",
+							"    } ",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");",
+							"    console.log(\"signatureData: \"+ signatureRawData);",
+							"    var hash = CryptoJS.SHA512(signatureRawData);",
+							"    ",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");",
+							"   ",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);",
+							"    ",
+							"    return hashInBase64;",
+							"}",
+							"",
+							"var date = new Date();",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();",
+							"",
+							"var httpMethod = \"PATCH\";",
+							"var secret = pm.environment.get(\"checkoutSecret\");",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);",
+							"",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"value": "{{timestamp}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{    \r\n    \"CancelledAmount\": 10000\r\n}"
+				},
+				"url": {
+					"raw": "{{externalApi}}/api/v1/orders/9129875",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"9129875"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CancelOrder by Row",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)\r",
+							"{\r",
+							"   if (httpMethod == 'GET' || !requestBody) {\r",
+							"        requestBody = ''; \r",
+							"    } \r",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");\r",
+							"    console.log(\"signatureData: \"+ signatureRawData);\r",
+							"    var hash = CryptoJS.SHA512(signatureRawData);\r",
+							"    \r",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");\r",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");\r",
+							"   \r",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);\r",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);\r",
+							"    \r",
+							"    return hashInBase64;\r",
+							"}\r",
+							"\r",
+							"var date = new Date();\r",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();\r",
+							"\r",
+							"var httpMethod = \"PATCH\";\r",
+							"var secret = pm.environment.get(\"checkoutSecret\");\r",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);\r",
+							"\r",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);\r",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)\r",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"value": "{{timestamp}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"IsCancelled\": true\r\n}"
+				},
+				"url": {
+					"raw": "{{externalApi}}/api/v1/orders/9126645/rows/1/",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"9126645",
+						"rows",
+						"1",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CancelOrder by Rows",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)\r",
+							"{\r",
+							"   if (httpMethod == 'GET' || !requestBody) {\r",
+							"        requestBody = ''; \r",
+							"    } \r",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");\r",
+							"    console.log(\"signatureData: \"+ signatureRawData);\r",
+							"    var hash = CryptoJS.SHA512(signatureRawData);\r",
+							"    \r",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");\r",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");\r",
+							"   \r",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);\r",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);\r",
+							"    \r",
+							"    return hashInBase64;\r",
+							"}\r",
+							"\r",
+							"var date = new Date();\r",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();\r",
+							"\r",
+							"var httpMethod = \"PATCH\";\r",
+							"var secret = pm.environment.get(\"checkoutSecret\");\r",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);\r",
+							"\r",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);\r",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)\r",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"value": "{{timestamp}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"OrderRowIds\": [\r\n        \r\n    ]\r\n}"
+				},
+				"url": {
+					"raw": "{{externalApi}}/api/v1/orders/9127414/rows/cancelOrderRows/",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"9127414",
+						"rows",
+						"cancelOrderRows",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Credit Order Rows",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)",
+							"{",
+							"   if (httpMethod == 'GET' || !requestBody) {",
+							"        requestBody = ''; ",
+							"    } ",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");",
+							"    console.log(\"signatureData: \"+ signatureRawData);",
+							"    var hash = CryptoJS.SHA512(signatureRawData);",
+							"    ",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");",
+							"   ",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);",
+							"    ",
+							"    return hashInBase64;",
+							"}",
+							"",
+							"var date = new Date();",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();",
+							"",
+							"var httpMethod = \"POST\";",
+							"var secret = pm.environment.get(\"checkoutSecret\");",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);",
+							"",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"value": "{{timestamp}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Svea-CorrelationId",
+						"type": "text",
+						"value": "1a002799-2b92-4891-9e4c-46a364e19f79"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"CreditedAmount\": 0,\r\n  \"OrderRowIds\": [\r\n    0\r\n  ],\r\n  \"RowCreditingOptions\": [\r\n    {\r\n      \"OrderRowId\": 0,\r\n      \"Quantity\": 0\r\n    }\r\n  ]\r\n}"
+				},
+				"url": {
+					"raw": "{{externalApi}}/api/v1/orders/9124567/deliveries/587021001134/credits/",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"9124567",
+						"deliveries",
+						"587021001134",
+						"credits",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Credit Order - New Row",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)",
+							"{",
+							"   if (httpMethod == 'GET' || !requestBody) {",
+							"        requestBody = ''; ",
+							"    } ",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");",
+							"    console.log(\"signatureData: \"+ signatureRawData);",
+							"    var hash = CryptoJS.SHA512(signatureRawData);",
+							"    ",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");",
+							"   ",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);",
+							"    ",
+							"    return hashInBase64;",
+							"}",
+							"",
+							"var date = new Date();",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();",
+							"",
+							"var httpMethod = \"POST\";",
+							"var secret = pm.environment.get(\"checkoutSecret\");",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);",
+							"",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"value": "{{timestamp}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Svea-CorrelationId",
+						"type": "text",
+						"value": "1a002799-2b92-4891-9e4c-46a364e19f79"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"NewCreditOrderRow\": {        \r\n        \"Name\": \"Article 2\",        \r\n        \"UnitPrice\": 9000\r\n    }    \r\n}"
+				},
+				"url": {
+					"raw": "{{externalApi}}/api/v1/orders/9124567/deliveries/587021001134/credits/",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"9124567",
+						"deliveries",
+						"587021001134",
+						"credits",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Credit Order - New Row with Fee",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)",
+							"{",
+							"   if (httpMethod == 'GET' || !requestBody) {",
+							"        requestBody = ''; ",
+							"    } ",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");",
+							"    console.log(\"signatureData: \"+ signatureRawData);",
+							"    var hash = CryptoJS.SHA512(signatureRawData);",
+							"    ",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");",
+							"   ",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);",
+							"    ",
+							"    return hashInBase64;",
+							"}",
+							"",
+							"var date = new Date();",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();",
+							"",
+							"var httpMethod = \"POST\";",
+							"var secret = pm.environment.get(\"checkoutSecret\");",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);",
+							"",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"value": "{{timestamp}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Svea-CorrelationId",
+						"type": "text",
+						"value": "1a002799-2b92-4891-9e4c-46a364e19f79"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"OrderRowIds\": [\r\n    0\r\n  ],\r\n  \"Fee\": {\r\n    \"ArticleNumber\": \"string\",\r\n    \"Name\": \"string\",\r\n    \"UnitPrice\": 0,\r\n    \"VatPercent\": 0\r\n  },\r\n  \"RowCreditingOptions\": [\r\n    {\r\n      \"OrderRowId\": 0,\r\n      \"Quantity\": 0\r\n    }\r\n  ]\r\n}"
+				},
+				"url": {
+					"raw": "{{externalApi}}/api/v1/orders/9124732/deliveries/790211196406/credits/CreditWithFee",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"9124732",
+						"deliveries",
+						"790211196406",
+						"credits",
+						"CreditWithFee"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Credit Order Amount",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)",
+							"{",
+							"   if (httpMethod == 'GET' || !requestBody) {",
+							"        requestBody = ''; ",
+							"    } ",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");",
+							"    console.log(\"signatureData: \"+ signatureRawData);",
+							"    var hash = CryptoJS.SHA512(signatureRawData);",
+							"    ",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");",
+							"   ",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);",
+							"    ",
+							"    return hashInBase64;",
+							"}",
+							"",
+							"var date = new Date();",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();",
+							"",
+							"var httpMethod = \"POST\";",
+							"var secret = pm.environment.get(\"checkoutSecret\");",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);",
+							"",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"value": "{{timestamp}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Svea-CorrelationId",
+						"type": "text",
+						"value": "1a002799-2b92-4891-9e4c-46a364e19f79"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"CreditedAmount\": 100\r\n}"
+				},
+				"url": {
+					"raw": "{{externalApi}}/api/v1/orders/9123543/deliveries/790211196178/",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"9123543",
+						"deliveries",
+						"790211196178",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Order - Add Order Row",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)",
+							"{",
+							"   if (httpMethod == 'GET' || !requestBody) {",
+							"        requestBody = ''; ",
+							"    } ",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");",
+							"    console.log(\"signatureData: \"+ signatureRawData);",
+							"    var hash = CryptoJS.SHA512(signatureRawData);",
+							"    ",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");",
+							"   ",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);",
+							"    ",
+							"    return hashInBase64;",
+							"}",
+							"",
+							"var date = new Date();",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();",
+							"",
+							"var httpMethod = \"POST\";",
+							"var secret = pm.environment.get(\"checkoutSecret\");",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);",
+							"",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"value": "{{timestamp}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Svea-CorrelationId",
+						"value": "1a002799-2b92-4891-9e4c-46a364e19f79",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"ArticleNumber\": \"Artile 1\",\r\n    \"Name\": \"Aritcle Name 1\",\r\n    \"Quantity\": 1000,\r\n    \"UnitPrice\": 1000,\r\n    \"DiscountPercent\": 0,\r\n    \"DiscountAmount\": 0,\r\n    \"VatPercent\": 2500,\r\n    \"Unit\": \"st\"\r\n}"
+				},
+				"url": {
+					"raw": "{{externalApi}}/api/v1/orders/9128663/rows/",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"9128663",
+						"rows",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Order - Add Order Rows",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)",
+							"{",
+							"   if (httpMethod == 'GET' || !requestBody) {",
+							"        requestBody = ''; ",
+							"    } ",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");",
+							"    console.log(\"signatureData: \"+ signatureRawData);",
+							"    var hash = CryptoJS.SHA512(signatureRawData);",
+							"    ",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");",
+							"   ",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);",
+							"    ",
+							"    return hashInBase64;",
+							"}",
+							"",
+							"var date = new Date();",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();",
+							"",
+							"var httpMethod = \"POST\";",
+							"var secret = pm.environment.get(\"checkoutSecret\");",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);",
+							"",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"value": "{{timestamp}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Svea-CorrelationId",
+						"value": "1a002799-2b92-4891-9e4c-46a364e19f79",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"OrderRows\": [\r\n    {      \r\n      \"Name\": \"testItem5\",\r\n      \"Quantity\": 1000,\r\n      \"UnitPrice\": 2500\r\n    },\r\n    {      \r\n      \"Name\": \"testItem6\",\r\n      \"Quantity\": 1000,\r\n      \"UnitPrice\": 2500\r\n    }\r\n  ]\r\n}"
+				},
+				"url": {
+					"raw": "{{externalApi}}/api/v1/orders/9128058/rows/addOrderRows/",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"9128058",
+						"rows",
+						"addOrderRows",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Order - Update Order Row",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)",
+							"{",
+							"   if (httpMethod == 'GET' || !requestBody) {",
+							"        requestBody = ''; ",
+							"    } ",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");",
+							"    console.log(\"signatureData: \"+ signatureRawData);",
+							"    var hash = CryptoJS.SHA512(signatureRawData);",
+							"    ",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");",
+							"   ",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);",
+							"    ",
+							"    return hashInBase64;",
+							"}",
+							"",
+							"var date = new Date();",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();",
+							"",
+							"var httpMethod = \"POST\";",
+							"var secret = pm.environment.get(\"checkoutSecret\");",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);",
+							"",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"value": "{{timestamp}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Svea-CorrelationId",
+						"type": "text",
+						"value": "1a002799-2b92-4891-9e4c-46a364e19f79"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{            \r\n            \"ArticleNumber\": \"Fakturaavgift\",\r\n            \"Quantity\": 4000\r\n        }"
+				},
+				"url": {
+					"raw": "{{externalApi}}/api/v1/orders/9128058/rows/4",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"9128058",
+						"rows",
+						"4"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Order - Update Order Rows",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)",
+							"{",
+							"   if (httpMethod == 'GET' || !requestBody) {",
+							"        requestBody = ''; ",
+							"    } ",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");",
+							"    console.log(\"signatureData: \"+ signatureRawData);",
+							"    var hash = CryptoJS.SHA512(signatureRawData);",
+							"    ",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");",
+							"   ",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);",
+							"    ",
+							"    return hashInBase64;",
+							"}",
+							"",
+							"var date = new Date();",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();",
+							"",
+							"var httpMethod = \"POST\";",
+							"var secret = pm.environment.get(\"checkoutSecret\");",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);",
+							"",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"value": "{{timestamp}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Svea-CorrelationId",
+						"type": "text",
+						"value": "1a002799-2b92-4891-9e4c-46a364e19f79"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"OrderRows\": [\r\n    {\r\n      \"RowId\": 5,\r\n      \"Row\": {          \r\n        \"Quantity\": 100,\r\n        \"IsCancelled\": true\r\n      }\r\n    }\r\n  ]\r\n}"
+				},
+				"url": {
+					"raw": "{{externalApi}}/api/v1/orders/9128058/rows/updateOrderRows",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"9128058",
+						"rows",
+						"updateOrderRows"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Order - Replace Order Rows",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)",
+							"{",
+							"   if (httpMethod == 'GET' || !requestBody) {",
+							"        requestBody = ''; ",
+							"    } ",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");",
+							"    console.log(\"signatureData: \"+ signatureRawData);",
+							"    var hash = CryptoJS.SHA512(signatureRawData);",
+							"    ",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");",
+							"   ",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);",
+							"    ",
+							"    return hashInBase64;",
+							"}",
+							"",
+							"var date = new Date();",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();",
+							"",
+							"var httpMethod = \"POST\";",
+							"var secret = pm.environment.get(\"checkoutSecret\");",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);",
+							"",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"value": "{{timestamp}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Svea-CorrelationId",
+						"type": "text",
+						"value": "1a002799-2b92-4891-9e4c-46a364e19f79"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"OrderRows\": [\r\n    {\r\n      \"Name\": \"A-3\",\r\n      \"Quantity\": 100,\r\n      \"UnitPrice\": 1000\r\n    }\r\n  ]\r\n}"
+				},
+				"url": {
+					"raw": "{{externalApi}}/api/v1/orders/9128058/rows/replaceOrderRows",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"9128058",
+						"rows",
+						"replaceOrderRows"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Order - Extend Order Expiry Date",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)",
+							"{",
+							"   if (httpMethod == 'GET' || !requestBody) {",
+							"        requestBody = ''; ",
+							"    } ",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");",
+							"    console.log(\"signatureData: \"+ signatureRawData);",
+							"    var hash = CryptoJS.SHA512(signatureRawData);",
+							"    ",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");",
+							"   ",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);",
+							"    ",
+							"    return hashInBase64;",
+							"}",
+							"",
+							"var date = new Date();",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();",
+							"",
+							"var httpMethod = \"POST\";",
+							"var secret = pm.environment.get(\"checkoutSecret\");",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);",
+							"",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"value": "{{timestamp}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Svea-CorrelationId",
+						"type": "text",
+						"value": "1a002799-2b92-4891-9e4c-46a364e19f79"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{externalApi}}/api/v1/orders/9129718/extendOrder/2024-06-22/",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"9129718",
+						"extendOrder",
+						"2024-06-22",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get reconciliation report",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)",
+							"{",
+							"   if (httpMethod == 'GET' || !requestBody) {",
+							"        requestBody = ''; ",
+							"    } ",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");",
+							"    console.log(\"signatureData: \"+ signatureRawData);",
+							"    var hash = CryptoJS.SHA512(signatureRawData);",
+							"    ",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");",
+							"   ",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);",
+							"    ",
+							"    return hashInBase64;",
+							"}",
+							"",
+							"var date = new Date();",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();",
+							"",
+							"var httpMethod = \"GET\";",
+							"var secret = pm.environment.get(\"checkoutSecret\");",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);",
+							"",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"value": "{{timestamp}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Svea-CorrelationId",
+						"type": "text",
+						"value": "1a002799-2b92-4891-9e4c-46a364e19f79"
+					}
+				],
+				"url": {
+					"raw": "{{externalApi}}/api/v2/reports?date=2024-04-19&includeWithholding=True",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v2",
+						"reports"
+					],
+					"query": [
+						{
+							"key": "date",
+							"value": "2024-04-19"
+						},
+						{
+							"key": "includeWithholding",
+							"value": "True"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

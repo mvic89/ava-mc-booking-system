@@ -1,55 +1,58 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function EmailSentPage() {
+  const t = useTranslations('emailSent');
+
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       {/* Left Side - Branding */}
       <div className="hidden md:flex md:w-[45%] bg-[#0f1f2e] text-white p-8 lg:p-16 flex-col justify-between">
         <div>
           <h1 className="text-[#FF6B2C] text-4xl font-bold mb-4">BikeMeNow</h1>
-          <p className="text-slate-300 text-lg mb-12">Dealership Intelligence Platform</p>
+          <p className="text-slate-300 text-lg mb-12">{t('branding.tagline')}</p>
 
           <div className="space-y-8">
             <div className="flex items-start gap-4">
               <div className="text-3xl">📬</div>
               <div>
-                <h3 className="text-xl font-bold mb-2">Check Your Inbox</h3>
-                <p className="text-slate-400">Reset link sent to your email</p>
+                <h3 className="text-xl font-bold mb-2">{t('branding.checkInbox')}</h3>
+                <p className="text-slate-400">{t('branding.checkInboxDesc')}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-4">
               <div className="text-3xl">🕐</div>
               <div>
-                <h3 className="text-xl font-bold mb-2">Valid for 15 Minutes</h3>
-                <p className="text-slate-400">Click the link within 15 minutes</p>
+                <h3 className="text-xl font-bold mb-2">{t('branding.validFor')}</h3>
+                <p className="text-slate-400">{t('branding.validForDesc')}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-4">
               <div className="text-3xl">📁</div>
               <div>
-                <h3 className="text-xl font-bold mb-2">Check Spam Folder</h3>
-                <p className="text-slate-400">Email might be in spam/junk</p>
+                <h3 className="text-xl font-bold mb-2">{t('branding.checkSpam')}</h3>
+                <p className="text-slate-400">{t('branding.checkSpamDesc')}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-4">
               <div className="text-3xl">🔄</div>
               <div>
-                <h3 className="text-xl font-bold mb-2">Didn't Receive It?</h3>
-                <p className="text-slate-400">Request a new link after a few minutes</p>
+                <h3 className="text-xl font-bold mb-2">{t('branding.didntReceiveIt')}</h3>
+                <p className="text-slate-400">{t('branding.didntReceiveItDesc')}</p>
               </div>
             </div>
           </div>
         </div>
 
         <div className="text-sm text-slate-500">
-          <p>© 2026 BikeMeNow.com. All rights reserved.</p>
-          <p>256-bit encrypted • GDPR compliant • Swedish hosting</p>
+          <p>{t('branding.copyright')}</p>
+          <p>{t('branding.security')}</p>
         </div>
       </div>
 
@@ -67,29 +70,29 @@ export default function EmailSentPage() {
 
         <div className="w-full max-w-md text-center mt-12 md:mt-0">
           <div className="text-5xl md:text-7xl mb-4 md:mb-6">📧</div>
-          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">Check Your Email</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">{t('title')}</h2>
           <p className="text-slate-600 mb-8">
-            We've sent a password reset link to your email address. Click the link in the email to create a new password.
+            {t('subtitle')}
           </p>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-blue-800">
-              <strong>⏱️ Link expires in 15 minutes</strong>
+              <strong>{t('linkExpires')}</strong>
             </p>
             <p className="text-xs text-blue-600 mt-1">
-              For security reasons, the reset link will expire after 15 minutes
+              {t('linkExpiresDesc')}
             </p>
           </div>
 
           <div className="space-y-3">
             <p className="text-sm text-slate-600">
-              Didn't receive the email?
+              {t('didntReceive')}
             </p>
             <Link
               href="/auth/forgot-password"
               className="block w-full bg-slate-100 text-slate-700 py-3 rounded-lg font-semibold hover:bg-slate-200 transition-colors"
             >
-              Resend Email
+              {t('resendEmail')}
             </Link>
           </div>
 
@@ -98,12 +101,12 @@ export default function EmailSentPage() {
               href="/auth/login"
               className="text-sm text-blue-600 hover:underline flex items-center justify-center gap-1"
             >
-              <span>←</span> Back to Sign In
+              {t('backToSignIn')}
             </Link>
           </div>
 
           <p className="text-center text-sm text-slate-600 mt-8">
-            🔒 256-bit SSL encrypted • GDPR compliant
+            {t('security')}
           </p>
         </div>
       </div>

@@ -1,55 +1,58 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function ResetCompletePage() {
+  const t = useTranslations('resetComplete');
+
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       {/* Left Side - Branding */}
       <div className="hidden md:flex md:w-[45%] bg-[#0f1f2e] text-white p-8 lg:p-16 flex-col justify-between">
         <div>
           <h1 className="text-[#FF6B2C] text-4xl font-bold mb-4">BikeMeNow</h1>
-          <p className="text-slate-300 text-lg mb-12">Dealership Intelligence Platform</p>
+          <p className="text-slate-300 text-lg mb-12">{t('branding.tagline')}</p>
 
           <div className="space-y-8">
             <div className="flex items-start gap-4">
               <div className="text-3xl">✅</div>
               <div>
-                <h3 className="text-xl font-bold mb-2">Password Updated</h3>
-                <p className="text-slate-400">Your new password is now active</p>
+                <h3 className="text-xl font-bold mb-2">{t('branding.passwordUpdated')}</h3>
+                <p className="text-slate-400">{t('branding.passwordUpdatedDesc')}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-4">
               <div className="text-3xl">🔒</div>
               <div>
-                <h3 className="text-xl font-bold mb-2">Securely Encrypted</h3>
-                <p className="text-slate-400">256-bit encryption protects your password</p>
+                <h3 className="text-xl font-bold mb-2">{t('branding.securelyEncrypted')}</h3>
+                <p className="text-slate-400">{t('branding.securelyEncryptedDesc')}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-4">
               <div className="text-3xl">🚀</div>
               <div>
-                <h3 className="text-xl font-bold mb-2">Ready to Go</h3>
-                <p className="text-slate-400">Sign in with your new password</p>
+                <h3 className="text-xl font-bold mb-2">{t('branding.readyToGo')}</h3>
+                <p className="text-slate-400">{t('branding.readyToGoDesc')}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-4">
               <div className="text-3xl">🛡️</div>
               <div>
-                <h3 className="text-xl font-bold mb-2">Account Secure</h3>
-                <p className="text-slate-400">Old password is no longer valid</p>
+                <h3 className="text-xl font-bold mb-2">{t('branding.accountSecure')}</h3>
+                <p className="text-slate-400">{t('branding.accountSecureDesc')}</p>
               </div>
             </div>
           </div>
         </div>
 
         <div className="text-sm text-slate-500">
-          <p>© 2026 BikeMeNow.com. All rights reserved.</p>
-          <p>256-bit encrypted • GDPR compliant • Swedish hosting</p>
+          <p>{t('branding.copyright')}</p>
+          <p>{t('branding.security')}</p>
         </div>
       </div>
 
@@ -67,9 +70,9 @@ export default function ResetCompletePage() {
 
         <div className="w-full max-w-md text-center mt-12 md:mt-0">
           <div className="text-5xl md:text-7xl mb-4 md:mb-6">🎉</div>
-          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">Password Reset Complete!</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">{t('title')}</h2>
           <p className="text-slate-600 mb-8">
-            Your password has been successfully reset. You can now sign in with your new password.
+            {t('subtitle')}
           </p>
 
           <div className="bg-green-50 border border-green-200 rounded-lg p-5 mb-8">
@@ -77,12 +80,12 @@ export default function ResetCompletePage() {
               <span className="text-2xl">✅</span>
               <div className="text-left">
                 <p className="text-sm font-semibold text-green-900 mb-1">
-                  Password Successfully Updated
+                  {t('successTitle')}
                 </p>
                 <ul className="text-xs text-green-700 space-y-1">
-                  <li>• New password is now active</li>
-                  <li>• Old password has been invalidated</li>
-                  <li>• You can sign in immediately</li>
+                  <li>• {t('itemNewActive')}</li>
+                  <li>• {t('itemOldInvalidated')}</li>
+                  <li>• {t('itemCanSignIn')}</li>
                 </ul>
               </div>
             </div>
@@ -92,17 +95,17 @@ export default function ResetCompletePage() {
             href="/auth/login"
             className="block w-full bg-[#FF6B2C] text-white py-3 rounded-lg font-semibold hover:bg-[#e55a1f] transition-colors mb-4"
           >
-            Go to Sign In
+            {t('goToSignIn')}
           </Link>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
             <p className="text-xs text-blue-800">
-              <strong>💡 Tip:</strong> Keep your password safe and don't share it with anyone. For added security, consider using BankID for future logins.
+              {t('tip')}
             </p>
           </div>
 
           <p className="text-center text-sm text-slate-600 mt-8">
-            🔒 256-bit SSL encrypted • GDPR compliant
+            {t('security')}
           </p>
         </div>
       </div>

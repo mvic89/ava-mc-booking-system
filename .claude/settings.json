@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls /Users/andrewkalumba/Documents/2026internship/ava-mc-booking-system/*.lock* /Users/andrewkalumba/Documents/2026internship/ava-mc-booking-system/yarn.lock)",
+      "Bash(xargs cat)",
+      "Read(//Users/andrewkalumba/Documents/2026internship/ava-mc-booking-system/**)",
+      "Bash(done)",
+      "Bash(cat /Users/andrewkalumba/Documents/2026internship/ava-mc-booking-system/app/sales/leads/[id]/payment/page.tsx)"
+    ],
+    "additionalDirectories": [
+      "/Users/andrewkalumba/Documents/2026internship/ava-mc-booking-system",
+      "/Users/andrewkalumba/Documents/2026internship/ava-mc-booking-system/app/api/klarna/session",
+      "/Users/andrewkalumba/Documents/2026internship/ava-mc-booking-system/app/sales/leads/[id]/agreement"
+    ]
+  }
+}

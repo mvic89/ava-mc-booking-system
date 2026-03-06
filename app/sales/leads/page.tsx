@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
 
 type Status = 'hot' | 'warm' | 'cold';
@@ -20,14 +21,6 @@ interface Lead {
   initials: string;
 }
 
-const COLUMNS: { id: Stage; label: string; color: string; bg: string }[] = [
-  { id: 'new',         label: 'New',         color: '#FF6B2C', bg: '#fff5f0' },
-  { id: 'contacted',   label: 'Contacted',   color: '#f59e0b', bg: '#fffbeb' },
-  { id: 'testride',    label: 'Test Ride',   color: '#8b5cf6', bg: '#f5f3ff' },
-  { id: 'negotiating', label: 'Negotiating', color: '#3b82f6', bg: '#eff6ff' },
-  { id: 'closed',      label: 'Closed',      color: '#10b981', bg: '#f0fdf4' },
-];
-
 const INITIAL_LEADS: Lead[] = [
   { id: 1,  name: 'Lars Andersson',   bike: 'Ninja ZX-6R',   value: '150k kr',  time: '2h ago',  status: 'hot',  verified: true,  stage: 'new',         initials: 'LA' },
   { id: 2,  name: 'Maria Svensson',   bike: 'MT-07',          value: '90k kr',   time: '5h ago',  status: 'warm', verified: true,  stage: 'new',         initials: 'MS' },
@@ -42,14 +35,14 @@ const INITIAL_LEADS: Lead[] = [
   { id: 11, name: 'Tobias Strand',    bike: 'Ninja ZX-6R',    value: '155k kr',  time: '6d ago',  status: 'warm', verified: true,  stage: 'closed',      initials: 'TS' },
 ];
 
-const STATUS_CFG: Record<Status, { label: string; dot: string; text: string; bg: string }> = {
-  hot:  { label: 'Hot',  dot: 'bg-red-500',    text: 'text-red-700',    bg: 'bg-red-50' },
-  warm: { label: 'Warm', dot: 'bg-amber-400',  text: 'text-amber-700',  bg: 'bg-amber-50' },
-  cold: { label: 'Cold', dot: 'bg-blue-400',   text: 'text-blue-700',   bg: 'bg-blue-50' },
+const STATUS_STYLE: Record<Status, { dot: string; text: string; bg: string }> = {
+  hot:  { dot: 'bg-red-500',    text: 'text-red-700',    bg: 'bg-red-50' },
+  warm: { dot: 'bg-amber-400',  text: 'text-amber-700',  bg: 'bg-amber-50' },
+  cold: { dot: 'bg-blue-400',   text: 'text-blue-700',   bg: 'bg-blue-50' },
 };
 
-function LeadCard({ lead }: { lead: Lead }) {
-  const s = STATUS_CFG[lead.status];
+function LeadCard({ lead, statusLabel }: { lead: Lead; statusLabel: string }) {
+  const s = STATUS_STYLE[lead.status];
   return (
     <Link href={`/sales/leads/${lead.id}/agreement`} className="kanban-card bg-white rounded-xl border border-slate-100 p-4 block">
       {/* Header */}
@@ -72,7 +65,7 @@ function LeadCard({ lead }: { lead: Lead }) {
         </div>
         <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${s.bg} ${s.text}`}>
           <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${s.dot} ${lead.status === 'hot' ? 'animate-pulse-dot' : ''}`} />
-          {s.label}
+          {statusLabel}
         </span>
       </div>
 
@@ -87,13 +80,37 @@ function LeadCard({ lead }: { lead: Lead }) {
 
 export default function PipelinePage() {
   const router = useRouter();
+  const t = useTranslations('leads');
   const [ready, setReady] = useState(false);
-  const [leads] = useState<Lead[]>(INITIAL_LEADS);
+  const [leads, setLeads] = useState<Lead[]>(INITIAL_LEADS);
   const [search, setSearch] = useState('');
+
+  const COLUMNS: { id: Stage; label: string; color: string; bg: string }[] = [
+    { id: 'new',         label: t('columns.new'),         color: '#FF6B2C', bg: '#fff5f0' },
+    { id: 'contacted',   label: t('columns.contacted'),   color: '#f59e0b', bg: '#fffbeb' },
+    { id: 'testride',    label: t('columns.testRide'),    color: '#8b5cf6', bg: '#f5f3ff' },
+    { id: 'negotiating', label: t('columns.negotiating'), color: '#3b82f6', bg: '#eff6ff' },
+    { id: 'closed',      label: t('columns.closed'),      color: '#10b981', bg: '#f0fdf4' },
+  ];
+
+  const STATUS_LABELS: Record<Status, string> = {
+    hot:  t('status.hot'),
+    warm: t('status.warm'),
+    cold: t('status.cold'),
+  };
 
   useEffect(() => {
     const user = localStorage.getItem('user');
     if (!user) { router.replace('/auth/login'); return; }
+
+    // Merge any leads created via the New Lead form
+    try {
+      const custom: Lead[] = JSON.parse(localStorage.getItem('custom_leads') || '[]');
+      if (custom.length > 0) setLeads([...custom, ...INITIAL_LEADS]);
+    } catch {
+      // ignore parse errors
+    }
+
     setReady(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -125,21 +142,21 @@ export default function PipelinePage() {
         <div className="px-5 md:px-8 py-6 bg-white border-b border-slate-100 animate-fade-up">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold mb-1">Sales</p>
-              <h1 className="text-2xl font-bold text-slate-900">Pipeline</h1>
+              <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold mb-1">{t('breadcrumb.sales')}</p>
+              <h1 className="text-2xl font-bold text-slate-900">{t('breadcrumb.pipeline')}</h1>
             </div>
             <div className="flex items-center gap-3">
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Search leads…"
+                placeholder={t('searchPlaceholder')}
                 className="text-sm px-3 py-2 rounded-xl border border-slate-200 focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C] outline-none w-48"
               />
               <Link
                 href="/sales/leads/new"
                 className="flex items-center gap-2 bg-[#FF6B2C] hover:bg-[#e55a1f] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors whitespace-nowrap"
               >
-                ＋ New Lead
+                {t('newLead')}
               </Link>
             </div>
           </div>
@@ -157,7 +174,7 @@ export default function PipelinePage() {
               );
             })}
             <div className="ml-auto flex items-center gap-2 text-xs">
-              <span className="text-slate-400">Pipeline value</span>
+              <span className="text-slate-400">{t('pipelineValue')}</span>
               <span className="font-bold text-slate-900">
                 {(totalValue / 1_000_000).toFixed(1)}M kr
               </span>
@@ -204,10 +221,12 @@ export default function PipelinePage() {
                   <div className="flex flex-col gap-2.5">
                     {colLeads.length === 0 ? (
                       <div className="h-24 rounded-xl border-2 border-dashed border-slate-200 flex items-center justify-center">
-                        <span className="text-xs text-slate-300">No leads</span>
+                        <span className="text-xs text-slate-300">{t('noLeads')}</span>
                       </div>
                     ) : (
-                      colLeads.map(lead => <LeadCard key={lead.id} lead={lead} />)
+                      colLeads.map(lead => (
+                        <LeadCard key={lead.id} lead={lead} statusLabel={STATUS_LABELS[lead.status]} />
+                      ))
                     )}
                   </div>
 
@@ -217,7 +236,7 @@ export default function PipelinePage() {
                       href="/sales/leads/new"
                       className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 border-dashed border-slate-200 text-xs text-slate-400 hover:border-[#FF6B2C] hover:text-[#FF6B2C] transition-colors"
                     >
-                      ＋ Add lead
+                      {t('addLead')}
                     </Link>
                   )}
                 </div>

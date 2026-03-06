@@ -1,0 +1,16 @@
+{
+  "ava-mc": {
+    "dealerId": "ava-mc",
+    "dealerName": "AVA MC AB",
+    "enabledIntegrations": [],
+    "credentials": {},
+    "updatedAt": "2026-03-05T20:58:49.727Z"
+  },
+  "": {
+    "dealerId": "",
+    "dealerName": "",
+    "enabledIntegrations": [],
+    "credentials": {},
+    "updatedAt": "2026-03-06T01:22:10.839Z"
+  }
+}

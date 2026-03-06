@@ -1,11 +1,15 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
 import ComingSoon from '@/components/ComingSoon';
 
 export default function InvoicesPage() {
+  const t = useTranslations('pages');
   return (
     <ComingSoon
       icon="📧"
-      title="Invoices"
-      description="Create, send, and track invoices for sales and service work."
+      title={t('invoices.title')}
+      description={t('invoices.desc')}
     />
   );
 }

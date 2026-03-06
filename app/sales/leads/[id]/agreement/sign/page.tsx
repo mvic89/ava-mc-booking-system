@@ -47,13 +47,19 @@ export default function BankIDSigningPage() {
   };
 
   const handleDealerComplete = (result: BankIDResult) => {
-    setDealerRecord({
+    const dealerRec: SignRecord = {
       name: result.user.name,
       personalNumber: result.user.personalNumber.replace(/(\d{8})(\d{4})/, '$1-$2'),
       signedAt: now(),
-    });
+    };
+    setDealerRecord(dealerRec);
     setStep('complete');
-    setTimeout(() => router.push(`/sales/leads/${id}/agreement/complete`), 1200);
+    // Persist both signatures so the complete page can offer the signed PDF download
+    localStorage.setItem(
+      `agreement_signed_${id}`,
+      JSON.stringify({ customer: customerRecord, dealer: dealerRec }),
+    );
+    setTimeout(() => router.push(`/sales/leads/${id}/agreement/signed`), 1200);
   };
 
   if (!ready) return (

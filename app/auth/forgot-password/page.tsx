@@ -3,10 +3,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
+  const t = useTranslations('forgotPassword');
   const [email, setEmail] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -22,46 +24,46 @@ export default function ForgotPasswordPage() {
       <div className="hidden md:flex md:w-[45%] bg-[#0f1f2e] text-white p-8 lg:p-16 flex-col justify-between">
         <div>
           <h1 className="text-[#FF6B2C] text-4xl font-bold mb-4">BikeMeNow</h1>
-          <p className="text-slate-300 text-lg mb-12">Dealership Intelligence Platform</p>
+          <p className="text-slate-300 text-lg mb-12">{t('branding.tagline')}</p>
 
           <div className="space-y-8">
             <div className="flex items-start gap-4">
               <div className="text-3xl">🔐</div>
               <div>
-                <h3 className="text-xl font-bold mb-2">Secure Reset</h3>
-                <p className="text-slate-400">Industry-standard password recovery</p>
+                <h3 className="text-xl font-bold mb-2">{t('branding.secureReset')}</h3>
+                <p className="text-slate-400">{t('branding.secureResetDesc')}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-4">
               <div className="text-3xl">📧</div>
               <div>
-                <h3 className="text-xl font-bold mb-2">Email Verification</h3>
-                <p className="text-slate-400">Reset link sent to your registered email</p>
+                <h3 className="text-xl font-bold mb-2">{t('branding.emailVerification')}</h3>
+                <p className="text-slate-400">{t('branding.emailVerificationDesc')}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-4">
               <div className="text-3xl">⏱️</div>
               <div>
-                <h3 className="text-xl font-bold mb-2">15-Minute Expiry</h3>
-                <p className="text-slate-400">Link expires for security</p>
+                <h3 className="text-xl font-bold mb-2">{t('branding.expiry')}</h3>
+                <p className="text-slate-400">{t('branding.expiryDesc')}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-4">
               <div className="text-3xl">🛡️</div>
               <div>
-                <h3 className="text-xl font-bold mb-2">Protected Access</h3>
-                <p className="text-slate-400">No unauthorized password changes</p>
+                <h3 className="text-xl font-bold mb-2">{t('branding.protectedAccess')}</h3>
+                <p className="text-slate-400">{t('branding.protectedAccessDesc')}</p>
               </div>
             </div>
           </div>
         </div>
 
         <div className="text-sm text-slate-500">
-          <p>© 2026 BikeMeNow.com. All rights reserved.</p>
-          <p>256-bit encrypted • GDPR compliant • Swedish hosting</p>
+          <p>{t('branding.copyright')}</p>
+          <p>{t('branding.security')}</p>
         </div>
       </div>
 
@@ -80,23 +82,23 @@ export default function ForgotPasswordPage() {
         <div className="w-full max-w-md mt-12 md:mt-0">
           <div className="text-center mb-6 md:mb-8">
             <div className="text-4xl md:text-5xl mb-4">🔑</div>
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">Forgot Password?</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">{t('title')}</h2>
             <p className="text-sm md:text-base text-slate-600">
-              No worries! Enter your email address and we'll send you a reset link.
+              {t('subtitle')}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Email Address
+                {t('emailAddress')}
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
-                placeholder="namn@aterforsaljare.se"
+                placeholder={t('emailPlaceholder')}
                 required
               />
             </div>
@@ -105,7 +107,7 @@ export default function ForgotPasswordPage() {
               type="submit"
               className="w-full bg-[#FF6B2C] text-white py-3 rounded-lg font-semibold hover:bg-[#e55a1f] transition-colors"
             >
-              Send Reset Link
+              {t('sendButton')}
             </button>
           </form>
 
@@ -114,12 +116,12 @@ export default function ForgotPasswordPage() {
               href="/auth/login"
               className="text-sm text-blue-600 hover:underline flex items-center justify-center gap-1"
             >
-              <span>←</span> Back to Sign In
+              {t('backToSignIn')}
             </Link>
           </div>
 
           <p className="text-center text-sm text-slate-600 mt-8">
-            🔒 256-bit SSL encrypted • GDPR compliant
+            {t('security')}
           </p>
         </div>
       </div>

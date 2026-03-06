@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
 type Plan = 'starter' | 'professional' | 'enterprise';
@@ -46,6 +47,7 @@ function formatExpiry(v: string) {
 
 export default function SignupPage() {
   const router = useRouter();
+  const t = useTranslations('signup');
   const [step, setStep] = useState<Step>(0);
   const [selectedPlan, setSelectedPlan] = useState<Plan>('professional');
 
@@ -85,7 +87,7 @@ export default function SignupPage() {
         <nav className="flex items-center justify-between px-8 py-5 border-b border-slate-100 bg-white">
           <span className="text-[#FF6B2C] text-xl font-bold tracking-tight">BikeMeNow</span>
           <Link href="/auth/login" className="text-[#FF6B2C] text-sm font-medium hover:underline">
-            Already have an account? Sign in →
+            {t('alreadyHaveAccount')} {t('signIn')} →
           </Link>
         </nav>
 
@@ -202,7 +204,7 @@ export default function SignupPage() {
       <nav className="flex items-center justify-between px-8 py-4 border-b border-slate-100 bg-white">
         <span className="text-[#FF6B2C] text-lg font-bold tracking-tight">BikeMeNow</span>
         <Link href="/auth/login" className="text-slate-500 text-sm hover:text-slate-700">
-          Already have an account? <span className="text-[#FF6B2C] font-medium">Sign in →</span>
+          {t('alreadyHaveAccount')} <span className="text-[#FF6B2C] font-medium">{t('signIn')} →</span>
         </Link>
       </nav>
 
@@ -332,7 +334,7 @@ export default function SignupPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Full Name *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('fullName')} *</label>
                   <input
                     type="text"
                     value={admin.fullName}
@@ -342,7 +344,7 @@ export default function SignupPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Email Address *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('emailAddress')} *</label>
                   <input
                     type="email"
                     value={admin.email}
@@ -362,7 +364,7 @@ export default function SignupPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Password *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('password')} *</label>
                   <input
                     type="password"
                     value={admin.password}
@@ -370,10 +372,10 @@ export default function SignupPage() {
                     placeholder="••••••••"
                     className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C] outline-none text-sm"
                   />
-                  <p className="text-xs text-slate-400 mt-1">Must be at least 8 characters</p>
+                  <p className="text-xs text-slate-400 mt-1">{t('passwordMinLength')}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Confirm Password *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('confirmPassword')} *</label>
                   <input
                     type="password"
                     value={admin.confirmPassword}
@@ -383,7 +385,7 @@ export default function SignupPage() {
                   />
                   {admin.password && admin.confirmPassword && (
                     <p className={`text-xs mt-1 ${admin.password === admin.confirmPassword ? 'text-green-600' : 'text-red-500'}`}>
-                      {admin.password === admin.confirmPassword ? '✓ Passwords match' : '✗ Passwords do not match'}
+                      {admin.password === admin.confirmPassword ? t('passwordsMatch') : t('passwordsDoNotMatch')}
                     </p>
                   )}
                 </div>
@@ -396,10 +398,10 @@ export default function SignupPage() {
                     className="w-4 h-4 mt-0.5 rounded border-slate-300 accent-[#FF6B2C]"
                   />
                   <label htmlFor="terms" className="text-sm text-slate-600 leading-snug">
-                    I agree to the{' '}
-                    <Link href="/terms" className="text-[#FF6B2C] hover:underline">Terms of Service</Link>
-                    {' '}and{' '}
-                    <Link href="/privacy" className="text-[#FF6B2C] hover:underline">Privacy Policy</Link>
+                    {t('agreeToTerms')}{' '}
+                    <Link href="/terms" className="text-[#FF6B2C] hover:underline">{t('termsOfService')}</Link>
+                    {' '}{t('and')}{' '}
+                    <Link href="/privacy" className="text-[#FF6B2C] hover:underline">{t('privacyPolicy')}</Link>
                   </label>
                 </div>
               </div>

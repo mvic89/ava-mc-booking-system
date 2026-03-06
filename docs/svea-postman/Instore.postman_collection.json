@@ -1,0 +1,1319 @@
+{
+	"info": {
+		"_postman_id": "63e40a79-33d0-44a4-8a82-d2e9b1dd3158",
+		"name": "Instore",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create Instore Order",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if(pm.response.code == 200 || pm.response.code == 201){\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.collectionVariables.set(\"currentOrderId\", jsonData.OrderId);\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "100001",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"MerchantOrderNumber\": \"234234236-2\",\r\n    \"CountryCode\": \"SE\",\r\n    \"Currency\": \"SEK\",\r\n    \"MobilePhoneNumber\": \"+46700000000\",    \r\n    \r\n        \"OrderItems\": [\r\n            {\r\n                \"ArticleNumber\": \"123-456-789\",\r\n                \"Name\": \"Article1\",\r\n                \"Quantity\": 500,\r\n                \"UnitPrice\": 100,\r\n                \"DiscountPercent\": 0,\r\n                \"DiscountAmount\": 0,\r\n                \"VatPercent\": 0,\r\n                \"Unit\": \"st\",\r\n                \"RowNumber\": 1                \r\n            },\r\n            {\r\n                \"ArticleNumber\": \"123-asd-fgh\",\r\n                \"Name\": \"Article2\",\r\n                \"Quantity\": 500,\r\n                \"UnitPrice\": 100,\r\n                \"DiscountPercent\": 0,\r\n                \"DiscountAmount\": 0,\r\n                \"VatPercent\": 0,\r\n                \"Unit\": \"st\",\r\n                \"RowNumber\": 2\r\n            }\r\n        ],    \r\n    \"CallbackUri\": \"https://domain/order/[merchantOrderNumber]/callback\",\r\n    \"TermsUri\": \"http://domain/terms\",\r\n    \"DeferredDelivery\": false,\r\n    \"MinutesUntilLinkExpires\": 20,\r\n    \"MerchantName\": \"Demo Merchant\",\r\n    \"RequireElectronicIdAuthentication\": true\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{instoreApiUrl}}/api/v1/orders",
+					"host": [
+						"{{instoreApiUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Create Order SE",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Cart\": {\r\n        \"Items\": [\r\n            {\r\n                \"ArticleNumber\": \"1234\",\r\n                \"Name\": \"Testitem\",\r\n                \"Quantity\": 100,\r\n                \"UnitPrice\": 1010,\r\n                \"DiscountPercent\": 0,\r\n                \"VatPercent\": 0,\r\n                \"Unit\": \"st\",\r\n                \"RowNumber\": 1\r\n            }\r\n        ]\r\n    },\r\n    \"MerchantSettings\": {\r\n        \"PushUri\": \"http://localhost\",\r\n        \"TermsUri\": \"http://localhost\",\r\n        \"CheckoutUri\": \"http://localhost\",\r\n        \"ConfirmationUri\": \"http://localhost\"\r\n    },\r\n    \"Locale\": \"sv-se\",\r\n    \r\n    \"Currency\": \"SEK\",\r\n    \"CountryCode\": \"SE\",\r\n    \"ClientOrderNumber\": \"435363463563\",\r\n    \"SveaWillBuyOrder\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{checkoutApiUrl}}/api/orders",
+							"host": [
+								"{{checkoutApiUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-store, must-revalidate, no-cache"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Content-Length",
+							"value": "2228"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/10.0"
+						},
+						{
+							"key": "X-SourceFiles",
+							"value": "=?UTF-8?B?QzpcUHJvamVjdHNccmVwb3NcU3ZlYS5XZWJQYXkuQ2hlY2tvdXRcUHJvamVjdHNcU3ZlYUNoZWNrb3V0LldzXGFwaVxvcmRlcnM=?="
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 29 Sep 2020 06:31:23 GMT"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"MerchantSettings\": {\n        \"CheckoutValidationCallBackUri\": null,\n        \"PushUri\": \"http://localhost\",\n        \"TermsUri\": \"http://localhost\",\n        \"CheckoutUri\": \"http://localhost\",\n        \"ConfirmationUri\": \"http://localhost\",\n        \"ActivePartPaymentCampaigns\": [],\n        \"PromotedPartPaymentCampaign\": 0\n    },\n    \"Cart\": {\n        \"Items\": [\n            {\n                \"ArticleNumber\": \"1234\",\n                \"Name\": \"Testitem\",\n                \"Quantity\": 100,\n                \"UnitPrice\": 1010,\n                \"DiscountPercent\": 0,\n                \"DiscountAmount\": 0,\n                \"VatPercent\": 0,\n                \"Unit\": \"st\",\n                \"TemporaryReference\": null,\n                \"RowNumber\": 1,\n                \"MerchantData\": null\n            }\n        ]\n    },\n    \"Customer\": null,\n    \"ShippingAddress\": null,\n    \"BillingAddress\": null,\n    \"Gui\": {\n        \"Layout\": \"desktop\",\n        \"Snippet\": \"\\r\\n<div id=\\\"svea-checkout-container\\\" data-sco-sveacheckout=\\\"\\\" data-sco-sveacheckout-locale=\\\"sv-SE\\\" style=\\\"overflow-x: hidden; overflow-y: hidden;\\\">\\r\\n    <noscript> Please <a href=\\\"http://enable-javascript.com\\\">enable JavaScript</a>. </noscript>\\r\\n    <iframe id=\\\"svea-checkout-iframe\\\" name=\\\"svea-checkout-iframe\\\" data-sco-sveacheckout-iframeSrc=\\\"http://localhost:3000?orderId=557634&authToken=SveaCheckout+ICbeu1I3IqfCZ6ioZ7XndXu5aVg%3d&token=8F795AA2167CEB4A9377E6D6040EB437&locale=sv-SE&_637369650835479590\\\" scrolling=\\\"no\\\" frameborder=\\\"0\\\" style=\\\"display: none; width: 1px; min-width: 100%; max-width: 100%;\\\"></iframe>\\r\\n</div>\\r\\n\\r\\n<script type=\\\"text/javascript\\\" src=\\\"http://localhost:51898/merchantscript/build/index.js?v=597144ea8c8c71c7ecfb25e9023131fc\\\"></script>\\r\\n<script type=\\\"text/javascript\\\">!function(e){var t=e.document,n=t.querySelectorAll(\\\"[data-sco-sveacheckout]\\\");if(!n.length)throw new Error(\\\"No Svea checkout container exists on page\\\");function c(){return!!e.scoInitializeInjectedInstances&&(e.scoInitializeInjectedInstances(),!0)}if(!c()){var i=0,o=function(){i+=1,c()||(i<150?e.setTimeout(o,20):[].slice.call(n).forEach(function(e){var n=t.createElement(\\\"div\\\");n.innerHTML=\\\"Something went wrong, please refresh the page\\\",e.appendChild(n)}))};e.setTimeout(o,20)}}(window);</script>\\r\\n\\r\\n\"\n    },\n    \"Locale\": \"sv-se\",\n    \"Currency\": \"SEK\",\n    \"CountryCode\": \"SE\",\n    \"ClientOrderNumber\": \"435363463563\",\n    \"OrderId\": 557634,\n    \"EmailAddress\": null,\n    \"PhoneNumber\": null,\n    \"PaymentType\": null,\n    \"Payment\": null,\n    \"Status\": \"Created\",\n    \"CustomerReference\": null,\n    \"SveaWillBuyOrder\": null,\n    \"IdentityFlags\": null,\n    \"MerchantData\": null,\n    \"PeppolId\": null\n}"
+				},
+				{
+					"name": "Create Order DE",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Cart\": {\r\n        \"Items\": [\r\n            {\r\n                \"ArticleNumber\": \"1234\",\r\n                \"Name\": \"Testitem\",\r\n                \"Quantity\": 100,\r\n                \"UnitPrice\": 1010,\r\n                \"DiscountPercent\": 0,\r\n                \"VatPercent\": 0,\r\n                \"Unit\": \"st\",\r\n                \"RowNumber\": 1\r\n            }\r\n        ]\r\n    },\r\n    \"MerchantSettings\": {\r\n        \"PushUri\": \"http://localhost\",\r\n        \"TermsUri\": \"http://localhost\",\r\n        \"CheckoutUri\": \"http://localhost\",\r\n        \"ConfirmationUri\": \"http://localhost\"\r\n    },\r\n    \"Locale\": \"de-de\",\r\n    \"Currency\": \"EUR\",\r\n    \"CountryCode\": \"DE\",\r\n    \"ClientOrderNumber\": \"45346346346\",\r\n    \"SveaWillBuyOrder\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{checkoutApiUrl}}/api/orders",
+							"host": [
+								"{{checkoutApiUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-store, must-revalidate, no-cache"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Content-Length",
+							"value": "2229"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/10.0"
+						},
+						{
+							"key": "X-SVEACHECKOUT-ORDERID",
+							"value": "557641"
+						},
+						{
+							"key": "X-SourceFiles",
+							"value": "=?UTF-8?B?QzpcUHJvamVjdHNccmVwb3NcU3ZlYS5XZWJQYXkuQ2hlY2tvdXRcUHJvamVjdHNcU3ZlYUNoZWNrb3V0LldzXGFwaVxvcmRlcnM=?="
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 29 Sep 2020 06:57:26 GMT"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"MerchantSettings\": {\n        \"CheckoutValidationCallBackUri\": null,\n        \"PushUri\": \"http://localhost\",\n        \"TermsUri\": \"http://localhost\",\n        \"CheckoutUri\": \"http://localhost\",\n        \"ConfirmationUri\": \"http://localhost\",\n        \"ActivePartPaymentCampaigns\": [],\n        \"PromotedPartPaymentCampaign\": 0\n    },\n    \"Cart\": {\n        \"Items\": [\n            {\n                \"ArticleNumber\": \"1234\",\n                \"Name\": \"Testitem\",\n                \"Quantity\": 100,\n                \"UnitPrice\": 1010,\n                \"DiscountPercent\": 0,\n                \"DiscountAmount\": 0,\n                \"VatPercent\": 0,\n                \"Unit\": \"st\",\n                \"TemporaryReference\": null,\n                \"RowNumber\": 1,\n                \"MerchantData\": null\n            }\n        ]\n    },\n    \"Customer\": null,\n    \"ShippingAddress\": null,\n    \"BillingAddress\": null,\n    \"Gui\": {\n        \"Layout\": \"desktop\",\n        \"Snippet\": \"\\r\\n<div id=\\\"svea-checkout-container\\\" data-sco-sveacheckout=\\\"\\\" data-sco-sveacheckout-locale=\\\"de-DE\\\" style=\\\"overflow-x: hidden; overflow-y: hidden;\\\">\\r\\n    <noscript> Please <a href=\\\"http://enable-javascript.com\\\">enable JavaScript</a>. </noscript>\\r\\n    <iframe id=\\\"svea-checkout-iframe\\\" name=\\\"svea-checkout-iframe\\\" data-sco-sveacheckout-iframeSrc=\\\"http://localhost:3000?orderId=557641&authToken=SveaCheckout+koHg%2bvRr9pgNPGi3NicTTGSa1ck%3d&token=CCA8829BED47E343A0A14D8BC0BFA004&locale=de-DE&_637369666462443135\\\" scrolling=\\\"no\\\" frameborder=\\\"0\\\" style=\\\"display: none; width: 1px; min-width: 100%; max-width: 100%;\\\"></iframe>\\r\\n</div>\\r\\n\\r\\n<script type=\\\"text/javascript\\\" src=\\\"http://localhost:51898/merchantscript/build/index.js?v=597144ea8c8c71c7ecfb25e9023131fc\\\"></script>\\r\\n<script type=\\\"text/javascript\\\">!function(e){var t=e.document,n=t.querySelectorAll(\\\"[data-sco-sveacheckout]\\\");if(!n.length)throw new Error(\\\"No Svea checkout container exists on page\\\");function c(){return!!e.scoInitializeInjectedInstances&&(e.scoInitializeInjectedInstances(),!0)}if(!c()){var i=0,o=function(){i+=1,c()||(i<150?e.setTimeout(o,20):[].slice.call(n).forEach(function(e){var n=t.createElement(\\\"div\\\");n.innerHTML=\\\"Something went wrong, please refresh the page\\\",e.appendChild(n)}))};e.setTimeout(o,20)}}(window);</script>\\r\\n\\r\\n\"\n    },\n    \"Locale\": \"de-de\",\n    \"Currency\": \"EUR\",\n    \"CountryCode\": \"DE\",\n    \"ClientOrderNumber\": \"45346346346\",\n    \"OrderId\": 557641,\n    \"EmailAddress\": null,\n    \"PhoneNumber\": null,\n    \"PaymentType\": null,\n    \"Payment\": null,\n    \"Status\": \"Created\",\n    \"CustomerReference\": null,\n    \"SveaWillBuyOrder\": null,\n    \"IdentityFlags\": null,\n    \"MerchantData\": null,\n    \"PeppolId\": null\n}"
+				},
+				{
+					"name": "Create Order FI",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Cart\": {\r\n        \"Items\": [\r\n            {\r\n                \"ArticleNumber\": \"1234\",\r\n                \"Name\": \"Testitem\",\r\n                \"Quantity\": 100,\r\n                \"UnitPrice\": 1010,\r\n                \"DiscountPercent\": 0,\r\n                \"VatPercent\": 0,\r\n                \"Unit\": \"st\",\r\n                \"RowNumber\": 1\r\n            }\r\n        ]\r\n    },\r\n    \"MerchantSettings\": {\r\n        \"PushUri\": \"http://localhost\",\r\n        \"TermsUri\": \"http://localhost\",\r\n        \"CheckoutUri\": \"http://localhost\",\r\n        \"ConfirmationUri\": \"http://localhost\"\r\n    },\r\n    \"Locale\": \"fi-fi\",\r\n    \"Currency\": \"EUR\",\r\n    \"CountryCode\": \"FI\",\r\n    \"ClientOrderNumber\": \"435363463563\",\r\n    \"SveaWillBuyOrder\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{checkoutApiUrl}}/api/orders",
+							"host": [
+								"{{checkoutApiUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-store, must-revalidate, no-cache"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Content-Length",
+							"value": "2230"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/10.0"
+						},
+						{
+							"key": "X-SVEACHECKOUT-ORDERID",
+							"value": "557636"
+						},
+						{
+							"key": "X-SourceFiles",
+							"value": "=?UTF-8?B?QzpcUHJvamVjdHNccmVwb3NcU3ZlYS5XZWJQYXkuQ2hlY2tvdXRcUHJvamVjdHNcU3ZlYUNoZWNrb3V0LldzXGFwaVxvcmRlcnM=?="
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 29 Sep 2020 06:40:35 GMT"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"MerchantSettings\": {\n        \"CheckoutValidationCallBackUri\": null,\n        \"PushUri\": \"http://localhost\",\n        \"TermsUri\": \"http://localhost\",\n        \"CheckoutUri\": \"http://localhost\",\n        \"ConfirmationUri\": \"http://localhost\",\n        \"ActivePartPaymentCampaigns\": [],\n        \"PromotedPartPaymentCampaign\": 0\n    },\n    \"Cart\": {\n        \"Items\": [\n            {\n                \"ArticleNumber\": \"1234\",\n                \"Name\": \"Testitem\",\n                \"Quantity\": 100,\n                \"UnitPrice\": 1010,\n                \"DiscountPercent\": 0,\n                \"DiscountAmount\": 0,\n                \"VatPercent\": 0,\n                \"Unit\": \"st\",\n                \"TemporaryReference\": null,\n                \"RowNumber\": 1,\n                \"MerchantData\": null\n            }\n        ]\n    },\n    \"Customer\": null,\n    \"ShippingAddress\": null,\n    \"BillingAddress\": null,\n    \"Gui\": {\n        \"Layout\": \"desktop\",\n        \"Snippet\": \"\\r\\n<div id=\\\"svea-checkout-container\\\" data-sco-sveacheckout=\\\"\\\" data-sco-sveacheckout-locale=\\\"fi-FI\\\" style=\\\"overflow-x: hidden; overflow-y: hidden;\\\">\\r\\n    <noscript> Please <a href=\\\"http://enable-javascript.com\\\">enable JavaScript</a>. </noscript>\\r\\n    <iframe id=\\\"svea-checkout-iframe\\\" name=\\\"svea-checkout-iframe\\\" data-sco-sveacheckout-iframeSrc=\\\"http://localhost:3000?orderId=557636&authToken=SveaCheckout+OmccCMEvMI31BnZF8o62SRtjl%2fg%3d&token=8059C9192F9E3549951B1AF8BB1CBCE9&locale=fi-FI&_637369656354856464\\\" scrolling=\\\"no\\\" frameborder=\\\"0\\\" style=\\\"display: none; width: 1px; min-width: 100%; max-width: 100%;\\\"></iframe>\\r\\n</div>\\r\\n\\r\\n<script type=\\\"text/javascript\\\" src=\\\"http://localhost:51898/merchantscript/build/index.js?v=597144ea8c8c71c7ecfb25e9023131fc\\\"></script>\\r\\n<script type=\\\"text/javascript\\\">!function(e){var t=e.document,n=t.querySelectorAll(\\\"[data-sco-sveacheckout]\\\");if(!n.length)throw new Error(\\\"No Svea checkout container exists on page\\\");function c(){return!!e.scoInitializeInjectedInstances&&(e.scoInitializeInjectedInstances(),!0)}if(!c()){var i=0,o=function(){i+=1,c()||(i<150?e.setTimeout(o,20):[].slice.call(n).forEach(function(e){var n=t.createElement(\\\"div\\\");n.innerHTML=\\\"Something went wrong, please refresh the page\\\",e.appendChild(n)}))};e.setTimeout(o,20)}}(window);</script>\\r\\n\\r\\n\"\n    },\n    \"Locale\": \"fi-fi\",\n    \"Currency\": \"EUR\",\n    \"CountryCode\": \"FI\",\n    \"ClientOrderNumber\": \"435363463563\",\n    \"OrderId\": 557636,\n    \"EmailAddress\": null,\n    \"PhoneNumber\": null,\n    \"PaymentType\": null,\n    \"Payment\": null,\n    \"Status\": \"Created\",\n    \"CustomerReference\": null,\n    \"SveaWillBuyOrder\": null,\n    \"IdentityFlags\": null,\n    \"MerchantData\": null,\n    \"PeppolId\": null\n}"
+				},
+				{
+					"name": "Create Order DK",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Cart\": {\r\n        \"Items\": [\r\n            {\r\n                \"ArticleNumber\": \"1234\",\r\n                \"Name\": \"Testitem\",\r\n                \"Quantity\": 100,\r\n                \"UnitPrice\": 1010,\r\n                \"DiscountPercent\": 0,\r\n                \"VatPercent\": 0,\r\n                \"Unit\": \"st\",\r\n                \"RowNumber\": 1\r\n            }\r\n        ]\r\n    },\r\n    \"MerchantSettings\": {\r\n        \"PushUri\": \"http://localhost\",\r\n        \"TermsUri\": \"http://localhost\",\r\n        \"CheckoutUri\": \"http://localhost\",\r\n        \"ConfirmationUri\": \"http://localhost\"\r\n    },\r\n    \"Locale\": \"da-dk\",\r\n    \"Currency\": \"DKK\",\r\n    \"CountryCode\": \"DK\",\r\n    \"ClientOrderNumber\": \"45346346346\",\r\n    \"SveaWillBuyOrder\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{checkoutApiUrl}}/api/orders",
+							"host": [
+								"{{checkoutApiUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-store, must-revalidate, no-cache"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Content-Length",
+							"value": "2231"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/10.0"
+						},
+						{
+							"key": "X-SVEACHECKOUT-ORDERID",
+							"value": "557637"
+						},
+						{
+							"key": "X-SourceFiles",
+							"value": "=?UTF-8?B?QzpcUHJvamVjdHNccmVwb3NcU3ZlYS5XZWJQYXkuQ2hlY2tvdXRcUHJvamVjdHNcU3ZlYUNoZWNrb3V0LldzXGFwaVxvcmRlcnM=?="
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 29 Sep 2020 06:42:46 GMT"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"MerchantSettings\": {\n        \"CheckoutValidationCallBackUri\": null,\n        \"PushUri\": \"http://localhost\",\n        \"TermsUri\": \"http://localhost\",\n        \"CheckoutUri\": \"http://localhost\",\n        \"ConfirmationUri\": \"http://localhost\",\n        \"ActivePartPaymentCampaigns\": [],\n        \"PromotedPartPaymentCampaign\": 0\n    },\n    \"Cart\": {\n        \"Items\": [\n            {\n                \"ArticleNumber\": \"1234\",\n                \"Name\": \"Testitem\",\n                \"Quantity\": 100,\n                \"UnitPrice\": 1010,\n                \"DiscountPercent\": 0,\n                \"DiscountAmount\": 0,\n                \"VatPercent\": 0,\n                \"Unit\": \"st\",\n                \"TemporaryReference\": null,\n                \"RowNumber\": 1,\n                \"MerchantData\": null\n            }\n        ]\n    },\n    \"Customer\": null,\n    \"ShippingAddress\": null,\n    \"BillingAddress\": null,\n    \"Gui\": {\n        \"Layout\": \"desktop\",\n        \"Snippet\": \"\\r\\n<div id=\\\"svea-checkout-container\\\" data-sco-sveacheckout=\\\"\\\" data-sco-sveacheckout-locale=\\\"en-IE\\\" style=\\\"overflow-x: hidden; overflow-y: hidden;\\\">\\r\\n    <noscript> Please <a href=\\\"http://enable-javascript.com\\\">enable JavaScript</a>. </noscript>\\r\\n    <iframe id=\\\"svea-checkout-iframe\\\" name=\\\"svea-checkout-iframe\\\" data-sco-sveacheckout-iframeSrc=\\\"http://localhost:3000?orderId=557637&authToken=SveaCheckout+dVSJBM02wUceBoM1P1%2fhD%2foHkUo%3d&token=A82BB979939A2A43A2E4A61730A0E214&locale=en-IE&_637369657662392657\\\" scrolling=\\\"no\\\" frameborder=\\\"0\\\" style=\\\"display: none; width: 1px; min-width: 100%; max-width: 100%;\\\"></iframe>\\r\\n</div>\\r\\n\\r\\n<script type=\\\"text/javascript\\\" src=\\\"http://localhost:51898/merchantscript/build/index.js?v=597144ea8c8c71c7ecfb25e9023131fc\\\"></script>\\r\\n<script type=\\\"text/javascript\\\">!function(e){var t=e.document,n=t.querySelectorAll(\\\"[data-sco-sveacheckout]\\\");if(!n.length)throw new Error(\\\"No Svea checkout container exists on page\\\");function c(){return!!e.scoInitializeInjectedInstances&&(e.scoInitializeInjectedInstances(),!0)}if(!c()){var i=0,o=function(){i+=1,c()||(i<150?e.setTimeout(o,20):[].slice.call(n).forEach(function(e){var n=t.createElement(\\\"div\\\");n.innerHTML=\\\"Something went wrong, please refresh the page\\\",e.appendChild(n)}))};e.setTimeout(o,20)}}(window);</script>\\r\\n\\r\\n\"\n    },\n    \"Locale\": \"da-dk\",\n    \"Currency\": \"DKK\",\n    \"CountryCode\": \"DK\",\n    \"ClientOrderNumber\": \"45346346346\",\n    \"OrderId\": 557637,\n    \"EmailAddress\": null,\n    \"PhoneNumber\": null,\n    \"PaymentType\": null,\n    \"Payment\": null,\n    \"Status\": \"Created\",\n    \"CustomerReference\": null,\n    \"SveaWillBuyOrder\": null,\n    \"IdentityFlags\": null,\n    \"MerchantData\": null,\n    \"PeppolId\": null\n}"
+				},
+				{
+					"name": "Create Order NO",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Cart\": {\r\n        \"Items\": [\r\n            {\r\n                \"ArticleNumber\": \"1234\",\r\n                \"Name\": \"Testitem\",\r\n                \"Quantity\": 100,\r\n                \"UnitPrice\": 1010,\r\n                \"DiscountPercent\": 0,\r\n                \"VatPercent\": 0,\r\n                \"Unit\": \"st\",\r\n                \"RowNumber\": 1\r\n            }\r\n        ]\r\n    },\r\n    \"MerchantSettings\": {\r\n        \"PushUri\": \"http://localhost\",\r\n        \"TermsUri\": \"http://localhost\",\r\n        \"CheckoutUri\": \"http://localhost\",\r\n        \"ConfirmationUri\": \"http://localhost\"\r\n    },\r\n    \"Locale\": \"nn-no\",\r\n\r\n    \"Currency\": \"NOK\",\r\n    \"CountryCode\": \"NO\",\r\n    \"ClientOrderNumber\": \"435363463563\",\r\n    \"SveaWillBuyOrder\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{checkoutApiUrl}}/api/orders",
+							"host": [
+								"{{checkoutApiUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-store, must-revalidate, no-cache"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Content-Length",
+							"value": "2228"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/10.0"
+						},
+						{
+							"key": "X-SVEACHECKOUT-ORDERID",
+							"value": "557635"
+						},
+						{
+							"key": "X-SourceFiles",
+							"value": "=?UTF-8?B?QzpcUHJvamVjdHNccmVwb3NcU3ZlYS5XZWJQYXkuQ2hlY2tvdXRcUHJvamVjdHNcU3ZlYUNoZWNrb3V0LldzXGFwaVxvcmRlcnM=?="
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 29 Sep 2020 06:39:40 GMT"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"MerchantSettings\": {\n        \"CheckoutValidationCallBackUri\": null,\n        \"PushUri\": \"http://localhost\",\n        \"TermsUri\": \"http://localhost\",\n        \"CheckoutUri\": \"http://localhost\",\n        \"ConfirmationUri\": \"http://localhost\",\n        \"ActivePartPaymentCampaigns\": [],\n        \"PromotedPartPaymentCampaign\": 0\n    },\n    \"Cart\": {\n        \"Items\": [\n            {\n                \"ArticleNumber\": \"1234\",\n                \"Name\": \"Testitem\",\n                \"Quantity\": 100,\n                \"UnitPrice\": 1010,\n                \"DiscountPercent\": 0,\n                \"DiscountAmount\": 0,\n                \"VatPercent\": 0,\n                \"Unit\": \"st\",\n                \"TemporaryReference\": null,\n                \"RowNumber\": 1,\n                \"MerchantData\": null\n            }\n        ]\n    },\n    \"Customer\": null,\n    \"ShippingAddress\": null,\n    \"BillingAddress\": null,\n    \"Gui\": {\n        \"Layout\": \"desktop\",\n        \"Snippet\": \"\\r\\n<div id=\\\"svea-checkout-container\\\" data-sco-sveacheckout=\\\"\\\" data-sco-sveacheckout-locale=\\\"nn-NO\\\" style=\\\"overflow-x: hidden; overflow-y: hidden;\\\">\\r\\n    <noscript> Please <a href=\\\"http://enable-javascript.com\\\">enable JavaScript</a>. </noscript>\\r\\n    <iframe id=\\\"svea-checkout-iframe\\\" name=\\\"svea-checkout-iframe\\\" data-sco-sveacheckout-iframeSrc=\\\"http://localhost:3000?orderId=557635&authToken=SveaCheckout+6ryHK1NRcwqTApy4A7GWOTKZ8kk%3d&token=A81521B380557B4EB9A51D09A959F8E1&locale=nn-NO&_637369655804864175\\\" scrolling=\\\"no\\\" frameborder=\\\"0\\\" style=\\\"display: none; width: 1px; min-width: 100%; max-width: 100%;\\\"></iframe>\\r\\n</div>\\r\\n\\r\\n<script type=\\\"text/javascript\\\" src=\\\"http://localhost:51898/merchantscript/build/index.js?v=597144ea8c8c71c7ecfb25e9023131fc\\\"></script>\\r\\n<script type=\\\"text/javascript\\\">!function(e){var t=e.document,n=t.querySelectorAll(\\\"[data-sco-sveacheckout]\\\");if(!n.length)throw new Error(\\\"No Svea checkout container exists on page\\\");function c(){return!!e.scoInitializeInjectedInstances&&(e.scoInitializeInjectedInstances(),!0)}if(!c()){var i=0,o=function(){i+=1,c()||(i<150?e.setTimeout(o,20):[].slice.call(n).forEach(function(e){var n=t.createElement(\\\"div\\\");n.innerHTML=\\\"Something went wrong, please refresh the page\\\",e.appendChild(n)}))};e.setTimeout(o,20)}}(window);</script>\\r\\n\\r\\n\"\n    },\n    \"Locale\": \"nn-no\",\n    \"Currency\": \"NOK\",\n    \"CountryCode\": \"NO\",\n    \"ClientOrderNumber\": \"435363463563\",\n    \"OrderId\": 557635,\n    \"EmailAddress\": null,\n    \"PhoneNumber\": null,\n    \"PaymentType\": null,\n    \"Payment\": null,\n    \"Status\": \"Created\",\n    \"CustomerReference\": null,\n    \"SveaWillBuyOrder\": null,\n    \"IdentityFlags\": null,\n    \"MerchantData\": null,\n    \"PeppolId\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "Return Instore Order",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if(pm.response.code == 200 || pm.response.code == 201){\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.collectionVariables.set(\"currentOrderId\", jsonData.OrderId);\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "100001",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"returnedItems\": [\r\n    {\r\n      \"articleNumber\": \"abc1234\",\r\n      \"name\": \"Headphones4\",\r\n      \"quantity\": 100,\r\n      \"unitPrice\": 100,\r\n      \"discountPercent\": 0,\r\n      \"discountAmount\": 0,\r\n      \"vatPercent\": 0,\r\n      \"unit\": \"st\",\r\n      \"rowNumber\": 3,\r\n      \"merchantData\": \"Size: M\"\r\n    }\r\n  ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{instoreApiUrl}}/api/v1/orders/234234235-3/return",
+					"host": [
+						"{{instoreApiUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"234234235-3",
+						"return"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Create Order DK",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Cart\": {\r\n        \"Items\": [\r\n            {\r\n                \"ArticleNumber\": \"1234\",\r\n                \"Name\": \"Testitem\",\r\n                \"Quantity\": 100,\r\n                \"UnitPrice\": 1010,\r\n                \"DiscountPercent\": 0,\r\n                \"VatPercent\": 0,\r\n                \"Unit\": \"st\",\r\n                \"RowNumber\": 1\r\n            }\r\n        ]\r\n    },\r\n    \"MerchantSettings\": {\r\n        \"PushUri\": \"http://localhost\",\r\n        \"TermsUri\": \"http://localhost\",\r\n        \"CheckoutUri\": \"http://localhost\",\r\n        \"ConfirmationUri\": \"http://localhost\"\r\n    },\r\n    \"Locale\": \"da-dk\",\r\n    \"Currency\": \"DKK\",\r\n    \"CountryCode\": \"DK\",\r\n    \"ClientOrderNumber\": \"45346346346\",\r\n    \"SveaWillBuyOrder\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{checkoutApiUrl}}/api/orders",
+							"host": [
+								"{{checkoutApiUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-store, must-revalidate, no-cache"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Content-Length",
+							"value": "2231"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/10.0"
+						},
+						{
+							"key": "X-SVEACHECKOUT-ORDERID",
+							"value": "557637"
+						},
+						{
+							"key": "X-SourceFiles",
+							"value": "=?UTF-8?B?QzpcUHJvamVjdHNccmVwb3NcU3ZlYS5XZWJQYXkuQ2hlY2tvdXRcUHJvamVjdHNcU3ZlYUNoZWNrb3V0LldzXGFwaVxvcmRlcnM=?="
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 29 Sep 2020 06:42:46 GMT"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"MerchantSettings\": {\n        \"CheckoutValidationCallBackUri\": null,\n        \"PushUri\": \"http://localhost\",\n        \"TermsUri\": \"http://localhost\",\n        \"CheckoutUri\": \"http://localhost\",\n        \"ConfirmationUri\": \"http://localhost\",\n        \"ActivePartPaymentCampaigns\": [],\n        \"PromotedPartPaymentCampaign\": 0\n    },\n    \"Cart\": {\n        \"Items\": [\n            {\n                \"ArticleNumber\": \"1234\",\n                \"Name\": \"Testitem\",\n                \"Quantity\": 100,\n                \"UnitPrice\": 1010,\n                \"DiscountPercent\": 0,\n                \"DiscountAmount\": 0,\n                \"VatPercent\": 0,\n                \"Unit\": \"st\",\n                \"TemporaryReference\": null,\n                \"RowNumber\": 1,\n                \"MerchantData\": null\n            }\n        ]\n    },\n    \"Customer\": null,\n    \"ShippingAddress\": null,\n    \"BillingAddress\": null,\n    \"Gui\": {\n        \"Layout\": \"desktop\",\n        \"Snippet\": \"\\r\\n<div id=\\\"svea-checkout-container\\\" data-sco-sveacheckout=\\\"\\\" data-sco-sveacheckout-locale=\\\"en-IE\\\" style=\\\"overflow-x: hidden; overflow-y: hidden;\\\">\\r\\n    <noscript> Please <a href=\\\"http://enable-javascript.com\\\">enable JavaScript</a>. </noscript>\\r\\n    <iframe id=\\\"svea-checkout-iframe\\\" name=\\\"svea-checkout-iframe\\\" data-sco-sveacheckout-iframeSrc=\\\"http://localhost:3000?orderId=557637&authToken=SveaCheckout+dVSJBM02wUceBoM1P1%2fhD%2foHkUo%3d&token=A82BB979939A2A43A2E4A61730A0E214&locale=en-IE&_637369657662392657\\\" scrolling=\\\"no\\\" frameborder=\\\"0\\\" style=\\\"display: none; width: 1px; min-width: 100%; max-width: 100%;\\\"></iframe>\\r\\n</div>\\r\\n\\r\\n<script type=\\\"text/javascript\\\" src=\\\"http://localhost:51898/merchantscript/build/index.js?v=597144ea8c8c71c7ecfb25e9023131fc\\\"></script>\\r\\n<script type=\\\"text/javascript\\\">!function(e){var t=e.document,n=t.querySelectorAll(\\\"[data-sco-sveacheckout]\\\");if(!n.length)throw new Error(\\\"No Svea checkout container exists on page\\\");function c(){return!!e.scoInitializeInjectedInstances&&(e.scoInitializeInjectedInstances(),!0)}if(!c()){var i=0,o=function(){i+=1,c()||(i<150?e.setTimeout(o,20):[].slice.call(n).forEach(function(e){var n=t.createElement(\\\"div\\\");n.innerHTML=\\\"Something went wrong, please refresh the page\\\",e.appendChild(n)}))};e.setTimeout(o,20)}}(window);</script>\\r\\n\\r\\n\"\n    },\n    \"Locale\": \"da-dk\",\n    \"Currency\": \"DKK\",\n    \"CountryCode\": \"DK\",\n    \"ClientOrderNumber\": \"45346346346\",\n    \"OrderId\": 557637,\n    \"EmailAddress\": null,\n    \"PhoneNumber\": null,\n    \"PaymentType\": null,\n    \"Payment\": null,\n    \"Status\": \"Created\",\n    \"CustomerReference\": null,\n    \"SveaWillBuyOrder\": null,\n    \"IdentityFlags\": null,\n    \"MerchantData\": null,\n    \"PeppolId\": null\n}"
+				},
+				{
+					"name": "Create Order NO",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Cart\": {\r\n        \"Items\": [\r\n            {\r\n                \"ArticleNumber\": \"1234\",\r\n                \"Name\": \"Testitem\",\r\n                \"Quantity\": 100,\r\n                \"UnitPrice\": 1010,\r\n                \"DiscountPercent\": 0,\r\n                \"VatPercent\": 0,\r\n                \"Unit\": \"st\",\r\n                \"RowNumber\": 1\r\n            }\r\n        ]\r\n    },\r\n    \"MerchantSettings\": {\r\n        \"PushUri\": \"http://localhost\",\r\n        \"TermsUri\": \"http://localhost\",\r\n        \"CheckoutUri\": \"http://localhost\",\r\n        \"ConfirmationUri\": \"http://localhost\"\r\n    },\r\n    \"Locale\": \"nn-no\",\r\n\r\n    \"Currency\": \"NOK\",\r\n    \"CountryCode\": \"NO\",\r\n    \"ClientOrderNumber\": \"435363463563\",\r\n    \"SveaWillBuyOrder\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{checkoutApiUrl}}/api/orders",
+							"host": [
+								"{{checkoutApiUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-store, must-revalidate, no-cache"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Content-Length",
+							"value": "2228"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/10.0"
+						},
+						{
+							"key": "X-SVEACHECKOUT-ORDERID",
+							"value": "557635"
+						},
+						{
+							"key": "X-SourceFiles",
+							"value": "=?UTF-8?B?QzpcUHJvamVjdHNccmVwb3NcU3ZlYS5XZWJQYXkuQ2hlY2tvdXRcUHJvamVjdHNcU3ZlYUNoZWNrb3V0LldzXGFwaVxvcmRlcnM=?="
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 29 Sep 2020 06:39:40 GMT"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"MerchantSettings\": {\n        \"CheckoutValidationCallBackUri\": null,\n        \"PushUri\": \"http://localhost\",\n        \"TermsUri\": \"http://localhost\",\n        \"CheckoutUri\": \"http://localhost\",\n        \"ConfirmationUri\": \"http://localhost\",\n        \"ActivePartPaymentCampaigns\": [],\n        \"PromotedPartPaymentCampaign\": 0\n    },\n    \"Cart\": {\n        \"Items\": [\n            {\n                \"ArticleNumber\": \"1234\",\n                \"Name\": \"Testitem\",\n                \"Quantity\": 100,\n                \"UnitPrice\": 1010,\n                \"DiscountPercent\": 0,\n                \"DiscountAmount\": 0,\n                \"VatPercent\": 0,\n                \"Unit\": \"st\",\n                \"TemporaryReference\": null,\n                \"RowNumber\": 1,\n                \"MerchantData\": null\n            }\n        ]\n    },\n    \"Customer\": null,\n    \"ShippingAddress\": null,\n    \"BillingAddress\": null,\n    \"Gui\": {\n        \"Layout\": \"desktop\",\n        \"Snippet\": \"\\r\\n<div id=\\\"svea-checkout-container\\\" data-sco-sveacheckout=\\\"\\\" data-sco-sveacheckout-locale=\\\"nn-NO\\\" style=\\\"overflow-x: hidden; overflow-y: hidden;\\\">\\r\\n    <noscript> Please <a href=\\\"http://enable-javascript.com\\\">enable JavaScript</a>. </noscript>\\r\\n    <iframe id=\\\"svea-checkout-iframe\\\" name=\\\"svea-checkout-iframe\\\" data-sco-sveacheckout-iframeSrc=\\\"http://localhost:3000?orderId=557635&authToken=SveaCheckout+6ryHK1NRcwqTApy4A7GWOTKZ8kk%3d&token=A81521B380557B4EB9A51D09A959F8E1&locale=nn-NO&_637369655804864175\\\" scrolling=\\\"no\\\" frameborder=\\\"0\\\" style=\\\"display: none; width: 1px; min-width: 100%; max-width: 100%;\\\"></iframe>\\r\\n</div>\\r\\n\\r\\n<script type=\\\"text/javascript\\\" src=\\\"http://localhost:51898/merchantscript/build/index.js?v=597144ea8c8c71c7ecfb25e9023131fc\\\"></script>\\r\\n<script type=\\\"text/javascript\\\">!function(e){var t=e.document,n=t.querySelectorAll(\\\"[data-sco-sveacheckout]\\\");if(!n.length)throw new Error(\\\"No Svea checkout container exists on page\\\");function c(){return!!e.scoInitializeInjectedInstances&&(e.scoInitializeInjectedInstances(),!0)}if(!c()){var i=0,o=function(){i+=1,c()||(i<150?e.setTimeout(o,20):[].slice.call(n).forEach(function(e){var n=t.createElement(\\\"div\\\");n.innerHTML=\\\"Something went wrong, please refresh the page\\\",e.appendChild(n)}))};e.setTimeout(o,20)}}(window);</script>\\r\\n\\r\\n\"\n    },\n    \"Locale\": \"nn-no\",\n    \"Currency\": \"NOK\",\n    \"CountryCode\": \"NO\",\n    \"ClientOrderNumber\": \"435363463563\",\n    \"OrderId\": 557635,\n    \"EmailAddress\": null,\n    \"PhoneNumber\": null,\n    \"PaymentType\": null,\n    \"Payment\": null,\n    \"Status\": \"Created\",\n    \"CustomerReference\": null,\n    \"SveaWillBuyOrder\": null,\n    \"IdentityFlags\": null,\n    \"MerchantData\": null,\n    \"PeppolId\": null\n}"
+				},
+				{
+					"name": "Create Order FI",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Cart\": {\r\n        \"Items\": [\r\n            {\r\n                \"ArticleNumber\": \"1234\",\r\n                \"Name\": \"Testitem\",\r\n                \"Quantity\": 100,\r\n                \"UnitPrice\": 1010,\r\n                \"DiscountPercent\": 0,\r\n                \"VatPercent\": 0,\r\n                \"Unit\": \"st\",\r\n                \"RowNumber\": 1\r\n            }\r\n        ]\r\n    },\r\n    \"MerchantSettings\": {\r\n        \"PushUri\": \"http://localhost\",\r\n        \"TermsUri\": \"http://localhost\",\r\n        \"CheckoutUri\": \"http://localhost\",\r\n        \"ConfirmationUri\": \"http://localhost\"\r\n    },\r\n    \"Locale\": \"fi-fi\",\r\n    \"Currency\": \"EUR\",\r\n    \"CountryCode\": \"FI\",\r\n    \"ClientOrderNumber\": \"435363463563\",\r\n    \"SveaWillBuyOrder\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{checkoutApiUrl}}/api/orders",
+							"host": [
+								"{{checkoutApiUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-store, must-revalidate, no-cache"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Content-Length",
+							"value": "2230"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/10.0"
+						},
+						{
+							"key": "X-SVEACHECKOUT-ORDERID",
+							"value": "557636"
+						},
+						{
+							"key": "X-SourceFiles",
+							"value": "=?UTF-8?B?QzpcUHJvamVjdHNccmVwb3NcU3ZlYS5XZWJQYXkuQ2hlY2tvdXRcUHJvamVjdHNcU3ZlYUNoZWNrb3V0LldzXGFwaVxvcmRlcnM=?="
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 29 Sep 2020 06:40:35 GMT"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"MerchantSettings\": {\n        \"CheckoutValidationCallBackUri\": null,\n        \"PushUri\": \"http://localhost\",\n        \"TermsUri\": \"http://localhost\",\n        \"CheckoutUri\": \"http://localhost\",\n        \"ConfirmationUri\": \"http://localhost\",\n        \"ActivePartPaymentCampaigns\": [],\n        \"PromotedPartPaymentCampaign\": 0\n    },\n    \"Cart\": {\n        \"Items\": [\n            {\n                \"ArticleNumber\": \"1234\",\n                \"Name\": \"Testitem\",\n                \"Quantity\": 100,\n                \"UnitPrice\": 1010,\n                \"DiscountPercent\": 0,\n                \"DiscountAmount\": 0,\n                \"VatPercent\": 0,\n                \"Unit\": \"st\",\n                \"TemporaryReference\": null,\n                \"RowNumber\": 1,\n                \"MerchantData\": null\n            }\n        ]\n    },\n    \"Customer\": null,\n    \"ShippingAddress\": null,\n    \"BillingAddress\": null,\n    \"Gui\": {\n        \"Layout\": \"desktop\",\n        \"Snippet\": \"\\r\\n<div id=\\\"svea-checkout-container\\\" data-sco-sveacheckout=\\\"\\\" data-sco-sveacheckout-locale=\\\"fi-FI\\\" style=\\\"overflow-x: hidden; overflow-y: hidden;\\\">\\r\\n    <noscript> Please <a href=\\\"http://enable-javascript.com\\\">enable JavaScript</a>. </noscript>\\r\\n    <iframe id=\\\"svea-checkout-iframe\\\" name=\\\"svea-checkout-iframe\\\" data-sco-sveacheckout-iframeSrc=\\\"http://localhost:3000?orderId=557636&authToken=SveaCheckout+OmccCMEvMI31BnZF8o62SRtjl%2fg%3d&token=8059C9192F9E3549951B1AF8BB1CBCE9&locale=fi-FI&_637369656354856464\\\" scrolling=\\\"no\\\" frameborder=\\\"0\\\" style=\\\"display: none; width: 1px; min-width: 100%; max-width: 100%;\\\"></iframe>\\r\\n</div>\\r\\n\\r\\n<script type=\\\"text/javascript\\\" src=\\\"http://localhost:51898/merchantscript/build/index.js?v=597144ea8c8c71c7ecfb25e9023131fc\\\"></script>\\r\\n<script type=\\\"text/javascript\\\">!function(e){var t=e.document,n=t.querySelectorAll(\\\"[data-sco-sveacheckout]\\\");if(!n.length)throw new Error(\\\"No Svea checkout container exists on page\\\");function c(){return!!e.scoInitializeInjectedInstances&&(e.scoInitializeInjectedInstances(),!0)}if(!c()){var i=0,o=function(){i+=1,c()||(i<150?e.setTimeout(o,20):[].slice.call(n).forEach(function(e){var n=t.createElement(\\\"div\\\");n.innerHTML=\\\"Something went wrong, please refresh the page\\\",e.appendChild(n)}))};e.setTimeout(o,20)}}(window);</script>\\r\\n\\r\\n\"\n    },\n    \"Locale\": \"fi-fi\",\n    \"Currency\": \"EUR\",\n    \"CountryCode\": \"FI\",\n    \"ClientOrderNumber\": \"435363463563\",\n    \"OrderId\": 557636,\n    \"EmailAddress\": null,\n    \"PhoneNumber\": null,\n    \"PaymentType\": null,\n    \"Payment\": null,\n    \"Status\": \"Created\",\n    \"CustomerReference\": null,\n    \"SveaWillBuyOrder\": null,\n    \"IdentityFlags\": null,\n    \"MerchantData\": null,\n    \"PeppolId\": null\n}"
+				},
+				{
+					"name": "Create Order SE",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Cart\": {\r\n        \"Items\": [\r\n            {\r\n                \"ArticleNumber\": \"1234\",\r\n                \"Name\": \"Testitem\",\r\n                \"Quantity\": 100,\r\n                \"UnitPrice\": 1010,\r\n                \"DiscountPercent\": 0,\r\n                \"VatPercent\": 0,\r\n                \"Unit\": \"st\",\r\n                \"RowNumber\": 1\r\n            }\r\n        ]\r\n    },\r\n    \"MerchantSettings\": {\r\n        \"PushUri\": \"http://localhost\",\r\n        \"TermsUri\": \"http://localhost\",\r\n        \"CheckoutUri\": \"http://localhost\",\r\n        \"ConfirmationUri\": \"http://localhost\"\r\n    },\r\n    \"Locale\": \"sv-se\",\r\n    \r\n    \"Currency\": \"SEK\",\r\n    \"CountryCode\": \"SE\",\r\n    \"ClientOrderNumber\": \"435363463563\",\r\n    \"SveaWillBuyOrder\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{checkoutApiUrl}}/api/orders",
+							"host": [
+								"{{checkoutApiUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-store, must-revalidate, no-cache"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Content-Length",
+							"value": "2228"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/10.0"
+						},
+						{
+							"key": "X-SourceFiles",
+							"value": "=?UTF-8?B?QzpcUHJvamVjdHNccmVwb3NcU3ZlYS5XZWJQYXkuQ2hlY2tvdXRcUHJvamVjdHNcU3ZlYUNoZWNrb3V0LldzXGFwaVxvcmRlcnM=?="
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 29 Sep 2020 06:31:23 GMT"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"MerchantSettings\": {\n        \"CheckoutValidationCallBackUri\": null,\n        \"PushUri\": \"http://localhost\",\n        \"TermsUri\": \"http://localhost\",\n        \"CheckoutUri\": \"http://localhost\",\n        \"ConfirmationUri\": \"http://localhost\",\n        \"ActivePartPaymentCampaigns\": [],\n        \"PromotedPartPaymentCampaign\": 0\n    },\n    \"Cart\": {\n        \"Items\": [\n            {\n                \"ArticleNumber\": \"1234\",\n                \"Name\": \"Testitem\",\n                \"Quantity\": 100,\n                \"UnitPrice\": 1010,\n                \"DiscountPercent\": 0,\n                \"DiscountAmount\": 0,\n                \"VatPercent\": 0,\n                \"Unit\": \"st\",\n                \"TemporaryReference\": null,\n                \"RowNumber\": 1,\n                \"MerchantData\": null\n            }\n        ]\n    },\n    \"Customer\": null,\n    \"ShippingAddress\": null,\n    \"BillingAddress\": null,\n    \"Gui\": {\n        \"Layout\": \"desktop\",\n        \"Snippet\": \"\\r\\n<div id=\\\"svea-checkout-container\\\" data-sco-sveacheckout=\\\"\\\" data-sco-sveacheckout-locale=\\\"sv-SE\\\" style=\\\"overflow-x: hidden; overflow-y: hidden;\\\">\\r\\n    <noscript> Please <a href=\\\"http://enable-javascript.com\\\">enable JavaScript</a>. </noscript>\\r\\n    <iframe id=\\\"svea-checkout-iframe\\\" name=\\\"svea-checkout-iframe\\\" data-sco-sveacheckout-iframeSrc=\\\"http://localhost:3000?orderId=557634&authToken=SveaCheckout+ICbeu1I3IqfCZ6ioZ7XndXu5aVg%3d&token=8F795AA2167CEB4A9377E6D6040EB437&locale=sv-SE&_637369650835479590\\\" scrolling=\\\"no\\\" frameborder=\\\"0\\\" style=\\\"display: none; width: 1px; min-width: 100%; max-width: 100%;\\\"></iframe>\\r\\n</div>\\r\\n\\r\\n<script type=\\\"text/javascript\\\" src=\\\"http://localhost:51898/merchantscript/build/index.js?v=597144ea8c8c71c7ecfb25e9023131fc\\\"></script>\\r\\n<script type=\\\"text/javascript\\\">!function(e){var t=e.document,n=t.querySelectorAll(\\\"[data-sco-sveacheckout]\\\");if(!n.length)throw new Error(\\\"No Svea checkout container exists on page\\\");function c(){return!!e.scoInitializeInjectedInstances&&(e.scoInitializeInjectedInstances(),!0)}if(!c()){var i=0,o=function(){i+=1,c()||(i<150?e.setTimeout(o,20):[].slice.call(n).forEach(function(e){var n=t.createElement(\\\"div\\\");n.innerHTML=\\\"Something went wrong, please refresh the page\\\",e.appendChild(n)}))};e.setTimeout(o,20)}}(window);</script>\\r\\n\\r\\n\"\n    },\n    \"Locale\": \"sv-se\",\n    \"Currency\": \"SEK\",\n    \"CountryCode\": \"SE\",\n    \"ClientOrderNumber\": \"435363463563\",\n    \"OrderId\": 557634,\n    \"EmailAddress\": null,\n    \"PhoneNumber\": null,\n    \"PaymentType\": null,\n    \"Payment\": null,\n    \"Status\": \"Created\",\n    \"CustomerReference\": null,\n    \"SveaWillBuyOrder\": null,\n    \"IdentityFlags\": null,\n    \"MerchantData\": null,\n    \"PeppolId\": null\n}"
+				},
+				{
+					"name": "Create Order DE",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Cart\": {\r\n        \"Items\": [\r\n            {\r\n                \"ArticleNumber\": \"1234\",\r\n                \"Name\": \"Testitem\",\r\n                \"Quantity\": 100,\r\n                \"UnitPrice\": 1010,\r\n                \"DiscountPercent\": 0,\r\n                \"VatPercent\": 0,\r\n                \"Unit\": \"st\",\r\n                \"RowNumber\": 1\r\n            }\r\n        ]\r\n    },\r\n    \"MerchantSettings\": {\r\n        \"PushUri\": \"http://localhost\",\r\n        \"TermsUri\": \"http://localhost\",\r\n        \"CheckoutUri\": \"http://localhost\",\r\n        \"ConfirmationUri\": \"http://localhost\"\r\n    },\r\n    \"Locale\": \"de-de\",\r\n    \"Currency\": \"EUR\",\r\n    \"CountryCode\": \"DE\",\r\n    \"ClientOrderNumber\": \"45346346346\",\r\n    \"SveaWillBuyOrder\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{checkoutApiUrl}}/api/orders",
+							"host": [
+								"{{checkoutApiUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-store, must-revalidate, no-cache"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Content-Length",
+							"value": "2229"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/10.0"
+						},
+						{
+							"key": "X-SVEACHECKOUT-ORDERID",
+							"value": "557641"
+						},
+						{
+							"key": "X-SourceFiles",
+							"value": "=?UTF-8?B?QzpcUHJvamVjdHNccmVwb3NcU3ZlYS5XZWJQYXkuQ2hlY2tvdXRcUHJvamVjdHNcU3ZlYUNoZWNrb3V0LldzXGFwaVxvcmRlcnM=?="
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 29 Sep 2020 06:57:26 GMT"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"MerchantSettings\": {\n        \"CheckoutValidationCallBackUri\": null,\n        \"PushUri\": \"http://localhost\",\n        \"TermsUri\": \"http://localhost\",\n        \"CheckoutUri\": \"http://localhost\",\n        \"ConfirmationUri\": \"http://localhost\",\n        \"ActivePartPaymentCampaigns\": [],\n        \"PromotedPartPaymentCampaign\": 0\n    },\n    \"Cart\": {\n        \"Items\": [\n            {\n                \"ArticleNumber\": \"1234\",\n                \"Name\": \"Testitem\",\n                \"Quantity\": 100,\n                \"UnitPrice\": 1010,\n                \"DiscountPercent\": 0,\n                \"DiscountAmount\": 0,\n                \"VatPercent\": 0,\n                \"Unit\": \"st\",\n                \"TemporaryReference\": null,\n                \"RowNumber\": 1,\n                \"MerchantData\": null\n            }\n        ]\n    },\n    \"Customer\": null,\n    \"ShippingAddress\": null,\n    \"BillingAddress\": null,\n    \"Gui\": {\n        \"Layout\": \"desktop\",\n        \"Snippet\": \"\\r\\n<div id=\\\"svea-checkout-container\\\" data-sco-sveacheckout=\\\"\\\" data-sco-sveacheckout-locale=\\\"de-DE\\\" style=\\\"overflow-x: hidden; overflow-y: hidden;\\\">\\r\\n    <noscript> Please <a href=\\\"http://enable-javascript.com\\\">enable JavaScript</a>. </noscript>\\r\\n    <iframe id=\\\"svea-checkout-iframe\\\" name=\\\"svea-checkout-iframe\\\" data-sco-sveacheckout-iframeSrc=\\\"http://localhost:3000?orderId=557641&authToken=SveaCheckout+koHg%2bvRr9pgNPGi3NicTTGSa1ck%3d&token=CCA8829BED47E343A0A14D8BC0BFA004&locale=de-DE&_637369666462443135\\\" scrolling=\\\"no\\\" frameborder=\\\"0\\\" style=\\\"display: none; width: 1px; min-width: 100%; max-width: 100%;\\\"></iframe>\\r\\n</div>\\r\\n\\r\\n<script type=\\\"text/javascript\\\" src=\\\"http://localhost:51898/merchantscript/build/index.js?v=597144ea8c8c71c7ecfb25e9023131fc\\\"></script>\\r\\n<script type=\\\"text/javascript\\\">!function(e){var t=e.document,n=t.querySelectorAll(\\\"[data-sco-sveacheckout]\\\");if(!n.length)throw new Error(\\\"No Svea checkout container exists on page\\\");function c(){return!!e.scoInitializeInjectedInstances&&(e.scoInitializeInjectedInstances(),!0)}if(!c()){var i=0,o=function(){i+=1,c()||(i<150?e.setTimeout(o,20):[].slice.call(n).forEach(function(e){var n=t.createElement(\\\"div\\\");n.innerHTML=\\\"Something went wrong, please refresh the page\\\",e.appendChild(n)}))};e.setTimeout(o,20)}}(window);</script>\\r\\n\\r\\n\"\n    },\n    \"Locale\": \"de-de\",\n    \"Currency\": \"EUR\",\n    \"CountryCode\": \"DE\",\n    \"ClientOrderNumber\": \"45346346346\",\n    \"OrderId\": 557641,\n    \"EmailAddress\": null,\n    \"PhoneNumber\": null,\n    \"PaymentType\": null,\n    \"Payment\": null,\n    \"Status\": \"Created\",\n    \"CustomerReference\": null,\n    \"SveaWillBuyOrder\": null,\n    \"IdentityFlags\": null,\n    \"MerchantData\": null,\n    \"PeppolId\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "Cancel Instore Order",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if(pm.response.code == 200 || pm.response.code == 201){\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.collectionVariables.set(\"currentOrderId\", jsonData.OrderId);\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "100001",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{instoreApiUrl}}/api/v1/orders/234234235-7/cancel",
+					"host": [
+						"{{instoreApiUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"234234235-7",
+						"cancel"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Create Order SE",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Cart\": {\r\n        \"Items\": [\r\n            {\r\n                \"ArticleNumber\": \"1234\",\r\n                \"Name\": \"Testitem\",\r\n                \"Quantity\": 100,\r\n                \"UnitPrice\": 1010,\r\n                \"DiscountPercent\": 0,\r\n                \"VatPercent\": 0,\r\n                \"Unit\": \"st\",\r\n                \"RowNumber\": 1\r\n            }\r\n        ]\r\n    },\r\n    \"MerchantSettings\": {\r\n        \"PushUri\": \"http://localhost\",\r\n        \"TermsUri\": \"http://localhost\",\r\n        \"CheckoutUri\": \"http://localhost\",\r\n        \"ConfirmationUri\": \"http://localhost\"\r\n    },\r\n    \"Locale\": \"sv-se\",\r\n    \r\n    \"Currency\": \"SEK\",\r\n    \"CountryCode\": \"SE\",\r\n    \"ClientOrderNumber\": \"435363463563\",\r\n    \"SveaWillBuyOrder\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{checkoutApiUrl}}/api/orders",
+							"host": [
+								"{{checkoutApiUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-store, must-revalidate, no-cache"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Content-Length",
+							"value": "2228"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/10.0"
+						},
+						{
+							"key": "X-SourceFiles",
+							"value": "=?UTF-8?B?QzpcUHJvamVjdHNccmVwb3NcU3ZlYS5XZWJQYXkuQ2hlY2tvdXRcUHJvamVjdHNcU3ZlYUNoZWNrb3V0LldzXGFwaVxvcmRlcnM=?="
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 29 Sep 2020 06:31:23 GMT"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"MerchantSettings\": {\n        \"CheckoutValidationCallBackUri\": null,\n        \"PushUri\": \"http://localhost\",\n        \"TermsUri\": \"http://localhost\",\n        \"CheckoutUri\": \"http://localhost\",\n        \"ConfirmationUri\": \"http://localhost\",\n        \"ActivePartPaymentCampaigns\": [],\n        \"PromotedPartPaymentCampaign\": 0\n    },\n    \"Cart\": {\n        \"Items\": [\n            {\n                \"ArticleNumber\": \"1234\",\n                \"Name\": \"Testitem\",\n                \"Quantity\": 100,\n                \"UnitPrice\": 1010,\n                \"DiscountPercent\": 0,\n                \"DiscountAmount\": 0,\n                \"VatPercent\": 0,\n                \"Unit\": \"st\",\n                \"TemporaryReference\": null,\n                \"RowNumber\": 1,\n                \"MerchantData\": null\n            }\n        ]\n    },\n    \"Customer\": null,\n    \"ShippingAddress\": null,\n    \"BillingAddress\": null,\n    \"Gui\": {\n        \"Layout\": \"desktop\",\n        \"Snippet\": \"\\r\\n<div id=\\\"svea-checkout-container\\\" data-sco-sveacheckout=\\\"\\\" data-sco-sveacheckout-locale=\\\"sv-SE\\\" style=\\\"overflow-x: hidden; overflow-y: hidden;\\\">\\r\\n    <noscript> Please <a href=\\\"http://enable-javascript.com\\\">enable JavaScript</a>. </noscript>\\r\\n    <iframe id=\\\"svea-checkout-iframe\\\" name=\\\"svea-checkout-iframe\\\" data-sco-sveacheckout-iframeSrc=\\\"http://localhost:3000?orderId=557634&authToken=SveaCheckout+ICbeu1I3IqfCZ6ioZ7XndXu5aVg%3d&token=8F795AA2167CEB4A9377E6D6040EB437&locale=sv-SE&_637369650835479590\\\" scrolling=\\\"no\\\" frameborder=\\\"0\\\" style=\\\"display: none; width: 1px; min-width: 100%; max-width: 100%;\\\"></iframe>\\r\\n</div>\\r\\n\\r\\n<script type=\\\"text/javascript\\\" src=\\\"http://localhost:51898/merchantscript/build/index.js?v=597144ea8c8c71c7ecfb25e9023131fc\\\"></script>\\r\\n<script type=\\\"text/javascript\\\">!function(e){var t=e.document,n=t.querySelectorAll(\\\"[data-sco-sveacheckout]\\\");if(!n.length)throw new Error(\\\"No Svea checkout container exists on page\\\");function c(){return!!e.scoInitializeInjectedInstances&&(e.scoInitializeInjectedInstances(),!0)}if(!c()){var i=0,o=function(){i+=1,c()||(i<150?e.setTimeout(o,20):[].slice.call(n).forEach(function(e){var n=t.createElement(\\\"div\\\");n.innerHTML=\\\"Something went wrong, please refresh the page\\\",e.appendChild(n)}))};e.setTimeout(o,20)}}(window);</script>\\r\\n\\r\\n\"\n    },\n    \"Locale\": \"sv-se\",\n    \"Currency\": \"SEK\",\n    \"CountryCode\": \"SE\",\n    \"ClientOrderNumber\": \"435363463563\",\n    \"OrderId\": 557634,\n    \"EmailAddress\": null,\n    \"PhoneNumber\": null,\n    \"PaymentType\": null,\n    \"Payment\": null,\n    \"Status\": \"Created\",\n    \"CustomerReference\": null,\n    \"SveaWillBuyOrder\": null,\n    \"IdentityFlags\": null,\n    \"MerchantData\": null,\n    \"PeppolId\": null\n}"
+				},
+				{
+					"name": "Create Order DK",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Cart\": {\r\n        \"Items\": [\r\n            {\r\n                \"ArticleNumber\": \"1234\",\r\n                \"Name\": \"Testitem\",\r\n                \"Quantity\": 100,\r\n                \"UnitPrice\": 1010,\r\n                \"DiscountPercent\": 0,\r\n                \"VatPercent\": 0,\r\n                \"Unit\": \"st\",\r\n                \"RowNumber\": 1\r\n            }\r\n        ]\r\n    },\r\n    \"MerchantSettings\": {\r\n        \"PushUri\": \"http://localhost\",\r\n        \"TermsUri\": \"http://localhost\",\r\n        \"CheckoutUri\": \"http://localhost\",\r\n        \"ConfirmationUri\": \"http://localhost\"\r\n    },\r\n    \"Locale\": \"da-dk\",\r\n    \"Currency\": \"DKK\",\r\n    \"CountryCode\": \"DK\",\r\n    \"ClientOrderNumber\": \"45346346346\",\r\n    \"SveaWillBuyOrder\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{checkoutApiUrl}}/api/orders",
+							"host": [
+								"{{checkoutApiUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-store, must-revalidate, no-cache"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Content-Length",
+							"value": "2231"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/10.0"
+						},
+						{
+							"key": "X-SVEACHECKOUT-ORDERID",
+							"value": "557637"
+						},
+						{
+							"key": "X-SourceFiles",
+							"value": "=?UTF-8?B?QzpcUHJvamVjdHNccmVwb3NcU3ZlYS5XZWJQYXkuQ2hlY2tvdXRcUHJvamVjdHNcU3ZlYUNoZWNrb3V0LldzXGFwaVxvcmRlcnM=?="
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 29 Sep 2020 06:42:46 GMT"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"MerchantSettings\": {\n        \"CheckoutValidationCallBackUri\": null,\n        \"PushUri\": \"http://localhost\",\n        \"TermsUri\": \"http://localhost\",\n        \"CheckoutUri\": \"http://localhost\",\n        \"ConfirmationUri\": \"http://localhost\",\n        \"ActivePartPaymentCampaigns\": [],\n        \"PromotedPartPaymentCampaign\": 0\n    },\n    \"Cart\": {\n        \"Items\": [\n            {\n                \"ArticleNumber\": \"1234\",\n                \"Name\": \"Testitem\",\n                \"Quantity\": 100,\n                \"UnitPrice\": 1010,\n                \"DiscountPercent\": 0,\n                \"DiscountAmount\": 0,\n                \"VatPercent\": 0,\n                \"Unit\": \"st\",\n                \"TemporaryReference\": null,\n                \"RowNumber\": 1,\n                \"MerchantData\": null\n            }\n        ]\n    },\n    \"Customer\": null,\n    \"ShippingAddress\": null,\n    \"BillingAddress\": null,\n    \"Gui\": {\n        \"Layout\": \"desktop\",\n        \"Snippet\": \"\\r\\n<div id=\\\"svea-checkout-container\\\" data-sco-sveacheckout=\\\"\\\" data-sco-sveacheckout-locale=\\\"en-IE\\\" style=\\\"overflow-x: hidden; overflow-y: hidden;\\\">\\r\\n    <noscript> Please <a href=\\\"http://enable-javascript.com\\\">enable JavaScript</a>. </noscript>\\r\\n    <iframe id=\\\"svea-checkout-iframe\\\" name=\\\"svea-checkout-iframe\\\" data-sco-sveacheckout-iframeSrc=\\\"http://localhost:3000?orderId=557637&authToken=SveaCheckout+dVSJBM02wUceBoM1P1%2fhD%2foHkUo%3d&token=A82BB979939A2A43A2E4A61730A0E214&locale=en-IE&_637369657662392657\\\" scrolling=\\\"no\\\" frameborder=\\\"0\\\" style=\\\"display: none; width: 1px; min-width: 100%; max-width: 100%;\\\"></iframe>\\r\\n</div>\\r\\n\\r\\n<script type=\\\"text/javascript\\\" src=\\\"http://localhost:51898/merchantscript/build/index.js?v=597144ea8c8c71c7ecfb25e9023131fc\\\"></script>\\r\\n<script type=\\\"text/javascript\\\">!function(e){var t=e.document,n=t.querySelectorAll(\\\"[data-sco-sveacheckout]\\\");if(!n.length)throw new Error(\\\"No Svea checkout container exists on page\\\");function c(){return!!e.scoInitializeInjectedInstances&&(e.scoInitializeInjectedInstances(),!0)}if(!c()){var i=0,o=function(){i+=1,c()||(i<150?e.setTimeout(o,20):[].slice.call(n).forEach(function(e){var n=t.createElement(\\\"div\\\");n.innerHTML=\\\"Something went wrong, please refresh the page\\\",e.appendChild(n)}))};e.setTimeout(o,20)}}(window);</script>\\r\\n\\r\\n\"\n    },\n    \"Locale\": \"da-dk\",\n    \"Currency\": \"DKK\",\n    \"CountryCode\": \"DK\",\n    \"ClientOrderNumber\": \"45346346346\",\n    \"OrderId\": 557637,\n    \"EmailAddress\": null,\n    \"PhoneNumber\": null,\n    \"PaymentType\": null,\n    \"Payment\": null,\n    \"Status\": \"Created\",\n    \"CustomerReference\": null,\n    \"SveaWillBuyOrder\": null,\n    \"IdentityFlags\": null,\n    \"MerchantData\": null,\n    \"PeppolId\": null\n}"
+				},
+				{
+					"name": "Create Order DE",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Cart\": {\r\n        \"Items\": [\r\n            {\r\n                \"ArticleNumber\": \"1234\",\r\n                \"Name\": \"Testitem\",\r\n                \"Quantity\": 100,\r\n                \"UnitPrice\": 1010,\r\n                \"DiscountPercent\": 0,\r\n                \"VatPercent\": 0,\r\n                \"Unit\": \"st\",\r\n                \"RowNumber\": 1\r\n            }\r\n        ]\r\n    },\r\n    \"MerchantSettings\": {\r\n        \"PushUri\": \"http://localhost\",\r\n        \"TermsUri\": \"http://localhost\",\r\n        \"CheckoutUri\": \"http://localhost\",\r\n        \"ConfirmationUri\": \"http://localhost\"\r\n    },\r\n    \"Locale\": \"de-de\",\r\n    \"Currency\": \"EUR\",\r\n    \"CountryCode\": \"DE\",\r\n    \"ClientOrderNumber\": \"45346346346\",\r\n    \"SveaWillBuyOrder\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{checkoutApiUrl}}/api/orders",
+							"host": [
+								"{{checkoutApiUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-store, must-revalidate, no-cache"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Content-Length",
+							"value": "2229"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/10.0"
+						},
+						{
+							"key": "X-SVEACHECKOUT-ORDERID",
+							"value": "557641"
+						},
+						{
+							"key": "X-SourceFiles",
+							"value": "=?UTF-8?B?QzpcUHJvamVjdHNccmVwb3NcU3ZlYS5XZWJQYXkuQ2hlY2tvdXRcUHJvamVjdHNcU3ZlYUNoZWNrb3V0LldzXGFwaVxvcmRlcnM=?="
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 29 Sep 2020 06:57:26 GMT"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"MerchantSettings\": {\n        \"CheckoutValidationCallBackUri\": null,\n        \"PushUri\": \"http://localhost\",\n        \"TermsUri\": \"http://localhost\",\n        \"CheckoutUri\": \"http://localhost\",\n        \"ConfirmationUri\": \"http://localhost\",\n        \"ActivePartPaymentCampaigns\": [],\n        \"PromotedPartPaymentCampaign\": 0\n    },\n    \"Cart\": {\n        \"Items\": [\n            {\n                \"ArticleNumber\": \"1234\",\n                \"Name\": \"Testitem\",\n                \"Quantity\": 100,\n                \"UnitPrice\": 1010,\n                \"DiscountPercent\": 0,\n                \"DiscountAmount\": 0,\n                \"VatPercent\": 0,\n                \"Unit\": \"st\",\n                \"TemporaryReference\": null,\n                \"RowNumber\": 1,\n                \"MerchantData\": null\n            }\n        ]\n    },\n    \"Customer\": null,\n    \"ShippingAddress\": null,\n    \"BillingAddress\": null,\n    \"Gui\": {\n        \"Layout\": \"desktop\",\n        \"Snippet\": \"\\r\\n<div id=\\\"svea-checkout-container\\\" data-sco-sveacheckout=\\\"\\\" data-sco-sveacheckout-locale=\\\"de-DE\\\" style=\\\"overflow-x: hidden; overflow-y: hidden;\\\">\\r\\n    <noscript> Please <a href=\\\"http://enable-javascript.com\\\">enable JavaScript</a>. </noscript>\\r\\n    <iframe id=\\\"svea-checkout-iframe\\\" name=\\\"svea-checkout-iframe\\\" data-sco-sveacheckout-iframeSrc=\\\"http://localhost:3000?orderId=557641&authToken=SveaCheckout+koHg%2bvRr9pgNPGi3NicTTGSa1ck%3d&token=CCA8829BED47E343A0A14D8BC0BFA004&locale=de-DE&_637369666462443135\\\" scrolling=\\\"no\\\" frameborder=\\\"0\\\" style=\\\"display: none; width: 1px; min-width: 100%; max-width: 100%;\\\"></iframe>\\r\\n</div>\\r\\n\\r\\n<script type=\\\"text/javascript\\\" src=\\\"http://localhost:51898/merchantscript/build/index.js?v=597144ea8c8c71c7ecfb25e9023131fc\\\"></script>\\r\\n<script type=\\\"text/javascript\\\">!function(e){var t=e.document,n=t.querySelectorAll(\\\"[data-sco-sveacheckout]\\\");if(!n.length)throw new Error(\\\"No Svea checkout container exists on page\\\");function c(){return!!e.scoInitializeInjectedInstances&&(e.scoInitializeInjectedInstances(),!0)}if(!c()){var i=0,o=function(){i+=1,c()||(i<150?e.setTimeout(o,20):[].slice.call(n).forEach(function(e){var n=t.createElement(\\\"div\\\");n.innerHTML=\\\"Something went wrong, please refresh the page\\\",e.appendChild(n)}))};e.setTimeout(o,20)}}(window);</script>\\r\\n\\r\\n\"\n    },\n    \"Locale\": \"de-de\",\n    \"Currency\": \"EUR\",\n    \"CountryCode\": \"DE\",\n    \"ClientOrderNumber\": \"45346346346\",\n    \"OrderId\": 557641,\n    \"EmailAddress\": null,\n    \"PhoneNumber\": null,\n    \"PaymentType\": null,\n    \"Payment\": null,\n    \"Status\": \"Created\",\n    \"CustomerReference\": null,\n    \"SveaWillBuyOrder\": null,\n    \"IdentityFlags\": null,\n    \"MerchantData\": null,\n    \"PeppolId\": null\n}"
+				},
+				{
+					"name": "Create Order NO",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Cart\": {\r\n        \"Items\": [\r\n            {\r\n                \"ArticleNumber\": \"1234\",\r\n                \"Name\": \"Testitem\",\r\n                \"Quantity\": 100,\r\n                \"UnitPrice\": 1010,\r\n                \"DiscountPercent\": 0,\r\n                \"VatPercent\": 0,\r\n                \"Unit\": \"st\",\r\n                \"RowNumber\": 1\r\n            }\r\n        ]\r\n    },\r\n    \"MerchantSettings\": {\r\n        \"PushUri\": \"http://localhost\",\r\n        \"TermsUri\": \"http://localhost\",\r\n        \"CheckoutUri\": \"http://localhost\",\r\n        \"ConfirmationUri\": \"http://localhost\"\r\n    },\r\n    \"Locale\": \"nn-no\",\r\n\r\n    \"Currency\": \"NOK\",\r\n    \"CountryCode\": \"NO\",\r\n    \"ClientOrderNumber\": \"435363463563\",\r\n    \"SveaWillBuyOrder\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{checkoutApiUrl}}/api/orders",
+							"host": [
+								"{{checkoutApiUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-store, must-revalidate, no-cache"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Content-Length",
+							"value": "2228"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/10.0"
+						},
+						{
+							"key": "X-SVEACHECKOUT-ORDERID",
+							"value": "557635"
+						},
+						{
+							"key": "X-SourceFiles",
+							"value": "=?UTF-8?B?QzpcUHJvamVjdHNccmVwb3NcU3ZlYS5XZWJQYXkuQ2hlY2tvdXRcUHJvamVjdHNcU3ZlYUNoZWNrb3V0LldzXGFwaVxvcmRlcnM=?="
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 29 Sep 2020 06:39:40 GMT"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"MerchantSettings\": {\n        \"CheckoutValidationCallBackUri\": null,\n        \"PushUri\": \"http://localhost\",\n        \"TermsUri\": \"http://localhost\",\n        \"CheckoutUri\": \"http://localhost\",\n        \"ConfirmationUri\": \"http://localhost\",\n        \"ActivePartPaymentCampaigns\": [],\n        \"PromotedPartPaymentCampaign\": 0\n    },\n    \"Cart\": {\n        \"Items\": [\n            {\n                \"ArticleNumber\": \"1234\",\n                \"Name\": \"Testitem\",\n                \"Quantity\": 100,\n                \"UnitPrice\": 1010,\n                \"DiscountPercent\": 0,\n                \"DiscountAmount\": 0,\n                \"VatPercent\": 0,\n                \"Unit\": \"st\",\n                \"TemporaryReference\": null,\n                \"RowNumber\": 1,\n                \"MerchantData\": null\n            }\n        ]\n    },\n    \"Customer\": null,\n    \"ShippingAddress\": null,\n    \"BillingAddress\": null,\n    \"Gui\": {\n        \"Layout\": \"desktop\",\n        \"Snippet\": \"\\r\\n<div id=\\\"svea-checkout-container\\\" data-sco-sveacheckout=\\\"\\\" data-sco-sveacheckout-locale=\\\"nn-NO\\\" style=\\\"overflow-x: hidden; overflow-y: hidden;\\\">\\r\\n    <noscript> Please <a href=\\\"http://enable-javascript.com\\\">enable JavaScript</a>. </noscript>\\r\\n    <iframe id=\\\"svea-checkout-iframe\\\" name=\\\"svea-checkout-iframe\\\" data-sco-sveacheckout-iframeSrc=\\\"http://localhost:3000?orderId=557635&authToken=SveaCheckout+6ryHK1NRcwqTApy4A7GWOTKZ8kk%3d&token=A81521B380557B4EB9A51D09A959F8E1&locale=nn-NO&_637369655804864175\\\" scrolling=\\\"no\\\" frameborder=\\\"0\\\" style=\\\"display: none; width: 1px; min-width: 100%; max-width: 100%;\\\"></iframe>\\r\\n</div>\\r\\n\\r\\n<script type=\\\"text/javascript\\\" src=\\\"http://localhost:51898/merchantscript/build/index.js?v=597144ea8c8c71c7ecfb25e9023131fc\\\"></script>\\r\\n<script type=\\\"text/javascript\\\">!function(e){var t=e.document,n=t.querySelectorAll(\\\"[data-sco-sveacheckout]\\\");if(!n.length)throw new Error(\\\"No Svea checkout container exists on page\\\");function c(){return!!e.scoInitializeInjectedInstances&&(e.scoInitializeInjectedInstances(),!0)}if(!c()){var i=0,o=function(){i+=1,c()||(i<150?e.setTimeout(o,20):[].slice.call(n).forEach(function(e){var n=t.createElement(\\\"div\\\");n.innerHTML=\\\"Something went wrong, please refresh the page\\\",e.appendChild(n)}))};e.setTimeout(o,20)}}(window);</script>\\r\\n\\r\\n\"\n    },\n    \"Locale\": \"nn-no\",\n    \"Currency\": \"NOK\",\n    \"CountryCode\": \"NO\",\n    \"ClientOrderNumber\": \"435363463563\",\n    \"OrderId\": 557635,\n    \"EmailAddress\": null,\n    \"PhoneNumber\": null,\n    \"PaymentType\": null,\n    \"Payment\": null,\n    \"Status\": \"Created\",\n    \"CustomerReference\": null,\n    \"SveaWillBuyOrder\": null,\n    \"IdentityFlags\": null,\n    \"MerchantData\": null,\n    \"PeppolId\": null\n}"
+				},
+				{
+					"name": "Create Order FI",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Cart\": {\r\n        \"Items\": [\r\n            {\r\n                \"ArticleNumber\": \"1234\",\r\n                \"Name\": \"Testitem\",\r\n                \"Quantity\": 100,\r\n                \"UnitPrice\": 1010,\r\n                \"DiscountPercent\": 0,\r\n                \"VatPercent\": 0,\r\n                \"Unit\": \"st\",\r\n                \"RowNumber\": 1\r\n            }\r\n        ]\r\n    },\r\n    \"MerchantSettings\": {\r\n        \"PushUri\": \"http://localhost\",\r\n        \"TermsUri\": \"http://localhost\",\r\n        \"CheckoutUri\": \"http://localhost\",\r\n        \"ConfirmationUri\": \"http://localhost\"\r\n    },\r\n    \"Locale\": \"fi-fi\",\r\n    \"Currency\": \"EUR\",\r\n    \"CountryCode\": \"FI\",\r\n    \"ClientOrderNumber\": \"435363463563\",\r\n    \"SveaWillBuyOrder\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{checkoutApiUrl}}/api/orders",
+							"host": [
+								"{{checkoutApiUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-store, must-revalidate, no-cache"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Content-Length",
+							"value": "2230"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "Server",
+							"value": "Microsoft-IIS/10.0"
+						},
+						{
+							"key": "X-SVEACHECKOUT-ORDERID",
+							"value": "557636"
+						},
+						{
+							"key": "X-SourceFiles",
+							"value": "=?UTF-8?B?QzpcUHJvamVjdHNccmVwb3NcU3ZlYS5XZWJQYXkuQ2hlY2tvdXRcUHJvamVjdHNcU3ZlYUNoZWNrb3V0LldzXGFwaVxvcmRlcnM=?="
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 29 Sep 2020 06:40:35 GMT"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"MerchantSettings\": {\n        \"CheckoutValidationCallBackUri\": null,\n        \"PushUri\": \"http://localhost\",\n        \"TermsUri\": \"http://localhost\",\n        \"CheckoutUri\": \"http://localhost\",\n        \"ConfirmationUri\": \"http://localhost\",\n        \"ActivePartPaymentCampaigns\": [],\n        \"PromotedPartPaymentCampaign\": 0\n    },\n    \"Cart\": {\n        \"Items\": [\n            {\n                \"ArticleNumber\": \"1234\",\n                \"Name\": \"Testitem\",\n                \"Quantity\": 100,\n                \"UnitPrice\": 1010,\n                \"DiscountPercent\": 0,\n                \"DiscountAmount\": 0,\n                \"VatPercent\": 0,\n                \"Unit\": \"st\",\n                \"TemporaryReference\": null,\n                \"RowNumber\": 1,\n                \"MerchantData\": null\n            }\n        ]\n    },\n    \"Customer\": null,\n    \"ShippingAddress\": null,\n    \"BillingAddress\": null,\n    \"Gui\": {\n        \"Layout\": \"desktop\",\n        \"Snippet\": \"\\r\\n<div id=\\\"svea-checkout-container\\\" data-sco-sveacheckout=\\\"\\\" data-sco-sveacheckout-locale=\\\"fi-FI\\\" style=\\\"overflow-x: hidden; overflow-y: hidden;\\\">\\r\\n    <noscript> Please <a href=\\\"http://enable-javascript.com\\\">enable JavaScript</a>. </noscript>\\r\\n    <iframe id=\\\"svea-checkout-iframe\\\" name=\\\"svea-checkout-iframe\\\" data-sco-sveacheckout-iframeSrc=\\\"http://localhost:3000?orderId=557636&authToken=SveaCheckout+OmccCMEvMI31BnZF8o62SRtjl%2fg%3d&token=8059C9192F9E3549951B1AF8BB1CBCE9&locale=fi-FI&_637369656354856464\\\" scrolling=\\\"no\\\" frameborder=\\\"0\\\" style=\\\"display: none; width: 1px; min-width: 100%; max-width: 100%;\\\"></iframe>\\r\\n</div>\\r\\n\\r\\n<script type=\\\"text/javascript\\\" src=\\\"http://localhost:51898/merchantscript/build/index.js?v=597144ea8c8c71c7ecfb25e9023131fc\\\"></script>\\r\\n<script type=\\\"text/javascript\\\">!function(e){var t=e.document,n=t.querySelectorAll(\\\"[data-sco-sveacheckout]\\\");if(!n.length)throw new Error(\\\"No Svea checkout container exists on page\\\");function c(){return!!e.scoInitializeInjectedInstances&&(e.scoInitializeInjectedInstances(),!0)}if(!c()){var i=0,o=function(){i+=1,c()||(i<150?e.setTimeout(o,20):[].slice.call(n).forEach(function(e){var n=t.createElement(\\\"div\\\");n.innerHTML=\\\"Something went wrong, please refresh the page\\\",e.appendChild(n)}))};e.setTimeout(o,20)}}(window);</script>\\r\\n\\r\\n\"\n    },\n    \"Locale\": \"fi-fi\",\n    \"Currency\": \"EUR\",\n    \"CountryCode\": \"FI\",\n    \"ClientOrderNumber\": \"435363463563\",\n    \"OrderId\": 557636,\n    \"EmailAddress\": null,\n    \"PhoneNumber\": null,\n    \"PaymentType\": null,\n    \"Payment\": null,\n    \"Status\": \"Created\",\n    \"CustomerReference\": null,\n    \"SveaWillBuyOrder\": null,\n    \"IdentityFlags\": null,\n    \"MerchantData\": null,\n    \"PeppolId\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "Get Order Status",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var currentMerchant = \"SE\";\r",
+							"var merchantId = 124842;\r",
+							"var secretKey = \"1NDxpT2WQ4PW6Ud95rLWKD98xVr45Q8O9Vd52nomC7U9B18jp7lHCu7nsiTJO1NWXjSx26vE41jJ4rul7FUP1cGKXm4wakxt3iF7k63ayleb1xX9Di2wW46t9felsSPW\";\r",
+							"console.log(merchantId);\r",
+							"console.log(secretKey);\r",
+							" \r",
+							"var message = pm.request.body ? pm.request.body.toString() : \"\";\r",
+							" \r",
+							"var hashString = CryptoJS.SHA512(`${message}${secretKey}`).toString();\r",
+							"hashString = hashString.replace(/\\-/, \"\");\r",
+							"pm.request.addHeader({\r",
+							"    name: \"Authorization\",\r",
+							"    key: \"Authorization\",\r",
+							"    value: \"Svea \" + btoa(`${merchantId}:${hashString}`)\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "100001",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{instoreApiUrl}}/api/v1/orders/234234236-1/status",
+					"host": [
+						"{{instoreApiUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"234234236-1",
+						"status"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "currentOrderId",
+			"value": ""
+		}
+	]
+}

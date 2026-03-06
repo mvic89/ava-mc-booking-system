@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
 import BankIDModal from '@/components/bankIdModel';
@@ -18,6 +19,7 @@ const NewLeadPage = () => {
   const [showBankID, setShowBankID] = useState(false);
   const [bankIDData, setBankIDData] = useState<BankIDResult | null>(null);
   const [user, setUser] = useState<any>(null);
+  const [gdprConsent, setGdprConsent] = useState(false);
 
   useEffect(() => {
     // Check if user is logged in
@@ -62,8 +64,33 @@ const NewLeadPage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Creating lead:', formData);
+
+    // Build initials from name
+    const parts = formData.name.trim().split(/\s+/);
+    const initials = parts.length >= 2
+      ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+      : formData.name.slice(0, 2).toUpperCase();
+
+    const newLead = {
+      id: Date.now(),
+      name: formData.name,
+      bike: formData.interest || '—',
+      value: '—',
+      time: 'Just now',
+      status: 'warm' as const,
+      verified: !!bankIDData,
+      stage: 'new' as const,
+      initials,
+      email: formData.email,
+      phone: formData.phone,
+    };
+
+    // Persist to localStorage so the pipeline page can display it
+    const existing = JSON.parse(localStorage.getItem('custom_leads') || '[]');
+    localStorage.setItem('custom_leads', JSON.stringify([newLead, ...existing]));
+
     toast.success('Lead created successfully!');
+    router.push('/sales/leads');
   };
 
   const matchingVehicles = [
@@ -335,10 +362,27 @@ const NewLeadPage = () => {
                   />
                 </div>
 
+                {/* GDPR Consent */}
+                <label className="flex items-start gap-2 cursor-pointer mt-3">
+                  <input
+                    type="checkbox"
+                    checked={gdprConsent}
+                    onChange={e => setGdprConsent(e.target.checked)}
+                    className="mt-0.5 accent-[#FF6B2C] shrink-0"
+                  />
+                  <span className="text-xs text-slate-500 leading-relaxed">
+                    {t('newLead.gdprConsent')}{' '}
+                    <Link href="/privacy" className="text-[#FF6B2C] underline hover:no-underline" target="_blank">
+                      {t('newLead.privacyPolicyLink')}
+                    </Link>
+                  </span>
+                </label>
+
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  className="w-full bg-[#FF6B2C] text-white py-3 rounded-lg font-semibold hover:bg-[#e55a1f] transition-colors"
+                  disabled={!gdprConsent}
+                  className="w-full bg-[#FF6B2C] text-white py-3 rounded-lg font-semibold hover:bg-[#e55a1f] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {t('newLead.submitButton')}
                 </button>

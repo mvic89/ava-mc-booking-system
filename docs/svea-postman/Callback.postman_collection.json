@@ -1,0 +1,403 @@
+{
+	"info": {
+		"_postman_id": "de696c15-4d18-4ec2-a87b-d7db7f8b24b9",
+		"name": "Callback",
+		"description": "Payments Callback Service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Add Subscription",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)",
+							"{",
+							"   if (httpMethod == 'GET' || !requestBody) {",
+							"        requestBody = ''; ",
+							"    } ",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");",
+							"    console.log(\"signatureData: \"+ signatureRawData);",
+							"    var hash = CryptoJS.SHA512(signatureRawData);",
+							"    ",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");",
+							"   ",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);",
+							"    ",
+							"    return hashInBase64;",
+							"}",
+							"",
+							"var date = new Date();",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();",
+							"",
+							"var httpMethod = \"POST\";",
+							"var secret = pm.environment.get(\"checkoutSecret\");",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);",
+							"",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"value": "{{timestamp}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Svea-CorrelationId",
+						"type": "text",
+						"value": "1a002799-2b92-4891-9e4c-46a364e19f79"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"CallbackUri\": \"https://webhook.site/4039e5db-a3cf-4ad0-94b8-5064f48741d7\",\r\n    \"Events\": [\"CheckoutOrder.Created\"]\r\n}"
+				},
+				"url": {
+					"raw": "{{externalApi}}/api/v2/callbacks/subscriptions",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v2",
+						"callbacks",
+						"subscriptions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET Subscription",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)",
+							"{",
+							"   if (httpMethod == 'GET' || !requestBody) {",
+							"        requestBody = ''; ",
+							"    } ",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");",
+							"    console.log(\"signatureData: \"+ signatureRawData);",
+							"    var hash = CryptoJS.SHA512(signatureRawData);",
+							"    ",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");",
+							"   ",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);",
+							"    ",
+							"    return hashInBase64;",
+							"}",
+							"",
+							"var date = new Date();",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();",
+							"",
+							"var httpMethod = \"GET\";",
+							"var secret = pm.environment.get(\"checkoutSecret\");",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);",
+							"",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"value": "{{timestamp}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Svea-CorrelationId",
+						"type": "text",
+						"value": "1a002799-2b92-4891-9e4c-46a364e19f79"
+					}
+				],
+				"url": {
+					"raw": "{{externalApi}}/api/v2/callbacks/subscriptions/F85B2067-0E6E-42B9-D823-08DC8479B2D9",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v2",
+						"callbacks",
+						"subscriptions",
+						"F85B2067-0E6E-42B9-D823-08DC8479B2D9"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Verify Subscription",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)",
+							"{",
+							"   if (httpMethod == 'GET' || !requestBody) {",
+							"        requestBody = ''; ",
+							"    } ",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");",
+							"    console.log(\"signatureData: \"+ signatureRawData);",
+							"    var hash = CryptoJS.SHA512(signatureRawData);",
+							"    ",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");",
+							"   ",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);",
+							"    ",
+							"    return hashInBase64;",
+							"}",
+							"",
+							"var date = new Date();",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();",
+							"",
+							"var httpMethod = \"POST\";",
+							"var secret = pm.environment.get(\"checkoutSecret\");",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);",
+							"",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"value": "{{timestamp}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Svea-CorrelationId",
+						"type": "text",
+						"value": "1a002799-2b92-4891-9e4c-46a364e19f79"
+					}
+				],
+				"url": {
+					"raw": "{{externalApi}}/api/v2/callbacks/subscriptions/f85b2067-0e6e-42b9-d823-08dc8479b2d9/verify",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v2",
+						"callbacks",
+						"subscriptions",
+						"f85b2067-0e6e-42b9-d823-08dc8479b2d9",
+						"verify"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Subscription",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)",
+							"{",
+							"   if (httpMethod == 'GET' || !requestBody) {",
+							"        requestBody = ''; ",
+							"    } ",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");",
+							"    console.log(\"signatureData: \"+ signatureRawData);",
+							"    var hash = CryptoJS.SHA512(signatureRawData);",
+							"    ",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");",
+							"   ",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);",
+							"    ",
+							"    return hashInBase64;",
+							"}",
+							"",
+							"var date = new Date();",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();",
+							"",
+							"var httpMethod = \"PUT\";",
+							"var secret = pm.environment.get(\"checkoutSecret\");",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);",
+							"",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"value": "{{timestamp}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Svea-CorrelationId",
+						"type": "text",
+						"value": "1a002799-2b92-4891-9e4c-46a364e19f79"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"CallbackUri\": \"https://webhook.site/3bb8cfc6-1d42-4b75-9999-2766f41be553\",\r\n    \"Events\": [\"CheckoutOrder.Created\",\"CheckoutOrder.Delivered\",\"CheckoutOrder.CreditSucceeded\", \"CheckoutOrder.CreditFailed\", \"CheckoutOrder.Closed\", \"CheckoutOrder.Updated\"]\r\n}"
+				},
+				"url": {
+					"raw": "{{externalApi}}/api/v2/callbacks/subscriptions/D50F6AAE-E317-4ED2-618F-08DC95D4683D",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v2",
+						"callbacks",
+						"subscriptions",
+						"D50F6AAE-E317-4ED2-618F-08DC95D4683D"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DELETE Subscription",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function createHash(requestBody, timestamp, secret)",
+							"{",
+							"   if (httpMethod == 'GET' || !requestBody) {",
+							"        requestBody = ''; ",
+							"    } ",
+							"    var signatureRawData = [requestBody, secret, timestamp].join(\"\");",
+							"    console.log(\"signatureData: \"+ signatureRawData);",
+							"    var hash = CryptoJS.SHA512(signatureRawData);",
+							"    ",
+							"    var checkoutMerchantId = pm.environment.get(\"checkoutMerchantId\");",
+							"    var j = [checkoutMerchantId, ':', hash.toString()].join(\"\");",
+							"   ",
+							"    var words  = CryptoJS.enc.Utf8.parse(j);",
+							"    var hashInBase64 =  CryptoJS.enc.Base64.stringify(words);",
+							"    ",
+							"    return hashInBase64;",
+							"}",
+							"",
+							"var date = new Date();",
+							"var formattedDate = date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate()+' '+date.getUTCHours() + \":\" + date.getMinutes();",
+							"",
+							"var httpMethod = \"DELETE\";",
+							"var secret = pm.environment.get(\"checkoutSecret\");",
+							"pm.globals.set(\"timestamp\", \"\" + formattedDate);",
+							"",
+							"var hmac = createHash(pm.request.body, formattedDate, secret);",
+							"console.log(\" requestBody: \"+ '(empty)' +\" time: \"+ formattedDate+\" secret: \"+ secret)",
+							"pm.globals.set(\"HMAC\", \"\" + hmac); "
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Svea {{HMAC}}"
+					},
+					{
+						"key": "Timestamp",
+						"value": "{{timestamp}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "X-Svea-CorrelationId",
+						"type": "text",
+						"value": "1a002799-2b92-4891-9e4c-46a364e19f79"
+					}
+				],
+				"url": {
+					"raw": "{{externalApi}}/api/v2/callbacks/subscriptions/499B2F39-33FB-44CF-8AF5-08DC845F0E5C",
+					"host": [
+						"{{externalApi}}"
+					],
+					"path": [
+						"api",
+						"v2",
+						"callbacks",
+						"subscriptions",
+						"499B2F39-33FB-44CF-8AF5-08DC845F0E5C"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -5,45 +5,98 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Sidebar from '@/components/Sidebar';
 
-const CASCADE_ACTIONS = [
-  { label: 'Invoice auto-generated: FAK-2024-0365 (133,280 kr)', delay: 300 },
-  { label: 'Payment schedule: 36 × 4,092 kr/mo created', delay: 400 },
-  { label: 'Delivery checklist activated (58 items)', delay: 500 },
-  { label: 'Vehicle status: Available → Reserved', delay: 600 },
-  { label: 'Registration initiated via Transportstyrelsen API', delay: 800 },
-  { label: 'Customer profile: Lead → Full Customer', delay: 900 },
-  { label: 'Team notified: Service, Delivery, Accounting', delay: 1000 },
-  { label: 'Fortnox accounting synced', delay: 1200 },
-  { label: 'Blocket listing removed', delay: 1500 },
-  { label: 'Commission calculated: Monica — 2,846 kr', delay: 1800 },
-];
+interface SelectedPayment {
+  id:       string;
+  name:     string;
+  icon:     string;
+  category: string;
+}
+
+interface SignRecord {
+  name:           string;
+  personalNumber: string;
+  signedAt:       string;
+}
+
+interface SignedAgreement {
+  customer: SignRecord;
+  dealer:   SignRecord;
+}
+
+function buildCascadeActions(pm: SelectedPayment | null) {
+  const paymentLabel = pm
+    ? `${pm.icon} Betalning initierad via ${pm.name}`
+    : 'Betalningsplan: 36 × 4,092 kr/mån skapad';
+
+  return [
+    { label: 'Faktura auto-genererad: FAK-2024-0365 (133,280 kr)', delay: 300 },
+    { label: paymentLabel,                                          delay: 400 },
+    { label: 'Leveranskontroll aktiverad (58 punkter)',             delay: 500 },
+    { label: 'Fordonsstatus: Tillgänglig → Reserverad',            delay: 600 },
+    { label: 'Registrering initierad via Transportstyrelsen API',  delay: 800 },
+    { label: 'Kundprofil: Lead → Kund',                            delay: 900 },
+    { label: 'Team notifierat: Service, Leverans, Ekonomi',        delay: 1000 },
+    { label: 'Fortnox bokföring synkad',                           delay: 1200 },
+    { label: 'Blocket-annons borttagen',                           delay: 1500 },
+    { label: 'Provision beräknad: Monica — 2,846 kr',              delay: 1800 },
+  ];
+}
 
 export default function AgreementCompletePage() {
   const router = useRouter();
   const params = useParams();
   const id = (params?.id as string) || 'default';
 
-  const [ready, setReady] = useState(false);
+  const [ready, setReady]               = useState(false);
   const [completedCount, setCompletedCount] = useState(0);
-  const [allDone, setAllDone] = useState(false);
+  const [allDone, setAllDone]           = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<SelectedPayment | null>(null);
+  const [signatures, setSignatures]     = useState<SignedAgreement | null>(null);
 
   useEffect(() => {
     const user = localStorage.getItem('user');
     if (!user) { router.replace('/auth/login'); return; }
-    setReady(true);
-  }, [router]);
 
-  // Cascade animation
+    // Read which payment method the salesperson selected on the /payment page
+    try {
+      const pm = JSON.parse(sessionStorage.getItem('selectedPaymentMethod') ?? 'null');
+      setPaymentMethod(pm);
+    } catch {
+      // ignore parse errors
+    }
+    sessionStorage.removeItem('selectedPaymentMethod');
+
+    // Read signature records saved by the sign page
+    try {
+      const sig = JSON.parse(localStorage.getItem(`agreement_signed_${id}`) ?? 'null');
+      if (sig) setSignatures(sig);
+    } catch {
+      // ignore parse errors
+    }
+
+    setReady(true);
+  }, [router, id]);
+
+  const handleDownloadPDF = () => {
+    const original = document.title;
+    document.title = 'Purchase-Agreement-AGR-2024-0089-SIGNED';
+    window.print();
+    document.title = original;
+  };
+
+  // Cascade animation — starts once ready + payment method resolved
   useEffect(() => {
     if (!ready) return;
-    CASCADE_ACTIONS.forEach((action, i) => {
+    const actions = buildCascadeActions(paymentMethod);
+    actions.forEach((action, i) => {
       setTimeout(() => {
-        setCompletedCount(prev => prev + 1);
-        if (i === CASCADE_ACTIONS.length - 1) {
+        setCompletedCount((prev) => prev + 1);
+        if (i === actions.length - 1) {
           setTimeout(() => setAllDone(true), 200);
         }
       }, action.delay);
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready]);
 
   if (!ready) return (
@@ -52,8 +105,85 @@ export default function AgreementCompletePage() {
     </div>
   );
 
+  const cascadeActions = buildCascadeActions(paymentMethod);
+
   return (
     <div className="flex min-h-screen bg-[#f5f7fa]">
+      {/* Print styles — only the signed agreement card is visible when printing */}
+      <style>{`
+        @media print {
+          body * { visibility: hidden !important; }
+          #signed-agreement-doc, #signed-agreement-doc * { visibility: visible !important; }
+          #signed-agreement-doc {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100% !important;
+            padding: 32px !important;
+            background: white !important;
+            box-shadow: none !important;
+            border: none !important;
+          }
+        }
+      `}</style>
+
+      {/* Hidden signed agreement — rendered for print only */}
+      <div id="signed-agreement-doc" className="hidden">
+        <div style={{ fontFamily: 'sans-serif', fontSize: 13, color: '#1e293b' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24, paddingBottom: 12, borderBottom: '1px solid #e2e8f0' }}>
+            <span style={{ fontSize: 18, fontWeight: 800, color: '#FF6B2C' }}>MOTOOS</span>
+            <span style={{ fontSize: 11, color: '#94a3b8' }}>AVA MC AB • Org.nr 556123-4567</span>
+          </div>
+          <div style={{ textAlign: 'center', marginBottom: 20 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>Purchase Agreement</div>
+            <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>AGR-2024-0089 • Date: Feb 10, 2026</div>
+          </div>
+          <hr style={{ margin: '16px 0', borderColor: '#e2e8f0' }} />
+          {[
+            { label: 'SELLER',        value: 'AVA MC AB, Kista, Stockholm' },
+            { label: 'BUYER',         value: 'Lars Bergman, Sveavägen 42, Stockholm' },
+            { label: 'VEHICLE',       value: 'Kawasaki Ninja ZX-6R 2024, VIN: JKBZXR636PA012345' },
+            { label: 'ACCESSORIES',   value: 'Akrapovic, Tank Pad, Crash Protectors (15,280 kr)' },
+            { label: 'TRADE-IN',      value: 'Kawasaki Ninja 300 2020 — Credit: 32,000 kr' },
+            { label: 'TOTAL PRICE',   value: '133,280 kr (incl. VAT 26,656 kr)' },
+            { label: 'FINANCING',     value: '36 months × 4,092 kr/mo at 4.9% APR' },
+            { label: 'WARRANTY',      value: '2 years manufacturer + 1 year dealer' },
+            { label: 'RETURN POLICY', value: '14 days per Swedish Consumer Purchase Act' },
+            { label: 'DELIVERY',      value: 'Estimated Feb 14, 2026 at AVA MC, Kista' },
+          ].map(row => (
+            <div key={row.label} style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
+              <span style={{ width: 110, flexShrink: 0, fontWeight: 600, fontSize: 11, color: '#94a3b8', paddingTop: 2 }}>{row.label}:</span>
+              <span>{row.value}</span>
+            </div>
+          ))}
+          <hr style={{ margin: '20px 0', borderColor: '#e2e8f0' }} />
+          <div style={{ marginBottom: 8 }}>
+            <div style={{ fontSize: 11, color: '#64748b', marginBottom: 4 }}>Customer Signature (BankID):</div>
+            {signatures ? (
+              <div>
+                <div style={{ fontWeight: 600 }}>{signatures.customer.name} &nbsp; {signatures.customer.personalNumber}</div>
+                <div style={{ fontSize: 11, color: '#64748b' }}>{signatures.customer.signedAt}</div>
+              </div>
+            ) : (
+              <div style={{ borderBottom: '1px solid #cbd5e1', height: 24, width: 280 }} />
+            )}
+          </div>
+          <div style={{ marginTop: 16 }}>
+            <div style={{ fontSize: 11, color: '#64748b', marginBottom: 4 }}>Dealer Signature (BankID):</div>
+            {signatures ? (
+              <div>
+                <div style={{ fontWeight: 600 }}>{signatures.dealer.name} &nbsp; {signatures.dealer.personalNumber}</div>
+                <div style={{ fontSize: 11, color: '#64748b' }}>{signatures.dealer.signedAt}</div>
+              </div>
+            ) : (
+              <div style={{ borderBottom: '1px solid #cbd5e1', height: 24, width: 280 }} />
+            )}
+          </div>
+          <p style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center', marginTop: 28 }}>
+            This agreement is governed by Swedish law. Signed electronically via BankID.
+          </p>
+        </div>
+      </div>
+
       <Sidebar />
 
       <div className="lg:ml-64 flex-1 flex flex-col min-w-0">
@@ -70,9 +200,12 @@ export default function AgreementCompletePage() {
               </svg>
             </div>
             <div>
-              <h1 className="text-lg font-bold text-green-800">Agreement Signed by Both Parties! 🎉</h1>
+              <h1 className="text-lg font-bold text-green-800">Avtal signerat av båda parter! 🎉</h1>
               <p className="text-sm text-green-600 mt-0.5">
                 AGR-2024-0089 • Lars Bergman + AVA MC • Ninja ZX-6R • 133,280 kr
+                {paymentMethod && (
+                  <> • {paymentMethod.icon} <strong>{paymentMethod.name}</strong></>
+                )}
               </p>
             </div>
           </div>
@@ -83,13 +216,13 @@ export default function AgreementCompletePage() {
             {/* Cascade header */}
             <div className="bg-[#FF6B2C] px-6 py-3 flex items-center justify-center gap-2">
               <span className="text-white font-bold text-sm tracking-widest">
-                ⚡ AUTOMATION CASCADE — 10 ACTIONS IN 2 SECONDS ⚡
+                ⚡ AUTOMATION CASCADE — 10 ÅTGÄRDER PÅ 2 SEKUNDER ⚡
               </span>
             </div>
 
             {/* Actions list */}
             <div className="p-6 space-y-3">
-              {CASCADE_ACTIONS.map((action, i) => {
+              {cascadeActions.map((action, i) => {
                 const done = i < completedCount;
                 const timeSec = (action.delay / 1000).toFixed(1);
                 return (
@@ -108,7 +241,7 @@ export default function AgreementCompletePage() {
                     </div>
                     <span className="flex-1 text-sm text-slate-700">{action.label}</span>
                     {done && (
-                      <span className="text-xs text-green-500 font-semibold shrink-0">{timeSec} sec</span>
+                      <span className="text-xs text-green-500 font-semibold shrink-0">{timeSec} sek</span>
                     )}
                   </div>
                 );
@@ -120,12 +253,12 @@ export default function AgreementCompletePage() {
               <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-3">
                 <div
                   className="h-full bg-green-500 rounded-full transition-all duration-300"
-                  style={{ width: `${(completedCount / CASCADE_ACTIONS.length) * 100}%` }}
+                  style={{ width: `${(completedCount / cascadeActions.length) * 100}%` }}
                 />
               </div>
               {allDone && (
                 <p className="text-sm font-bold text-green-700 text-center animate-fade-in">
-                  All 10 actions completed in 1.8 seconds total
+                  Alla 10 åtgärder klara på 1.8 sekunder totalt
                 </p>
               )}
             </div>
@@ -135,7 +268,7 @@ export default function AgreementCompletePage() {
           <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-4 py-3 mt-4 animate-fade-up">
             <span className="text-red-500">✗</span>
             <p className="text-sm text-red-700">
-              In DL Prime, these 10 actions require 30+ minutes of manual work across 4 different screens
+              I DL Prime kräver dessa 10 åtgärder 30+ minuters manuellt arbete fördelat på 4 olika skärmar
             </p>
           </div>
 
@@ -145,17 +278,26 @@ export default function AgreementCompletePage() {
               href="/sales/leads"
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:border-slate-300 transition-colors"
             >
-              ← Back to Pipeline
+              ← Tillbaka till pipeline
             </Link>
-            <div className="flex-1" />
-            <button className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:border-slate-300 transition-colors">
-              View Delivery →
+            <button
+              onClick={handleDownloadPDF}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:border-slate-300 transition-colors"
+            >
+              ⬇ Download Signed Agreement
             </button>
+            <div className="flex-1" />
+            <Link
+              href={`/sales/leads/${id}/delivery`}
+              className="px-5 py-2.5 rounded-xl bg-[#FF6B2C] hover:bg-[#e55a1f] text-white text-sm font-bold transition-colors"
+            >
+              Visa leverans →
+            </Link>
             <Link
               href="/invoices"
               className="px-5 py-2.5 rounded-xl bg-[#1d4ed8] hover:bg-[#1a44c4] text-white text-sm font-semibold transition-colors"
             >
-              View Invoice →
+              Visa faktura →
             </Link>
           </div>
         </div>

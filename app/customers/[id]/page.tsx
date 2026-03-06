@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
+import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
 
 type ProfileTab = 'overview' | 'vehicles' | 'invoices' | 'documents' | 'timeline' | 'gdpr';
@@ -450,12 +452,132 @@ export default function CustomerProfilePage() {
             </div>
           )}
 
-          {/* ── DOCUMENTS / GDPR ── */}
-          {(tab === 'documents' || tab === 'gdpr') && (
+          {/* ── DOCUMENTS ── */}
+          {tab === 'documents' && (
             <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center max-w-md mx-auto">
-              <div className="text-4xl mb-3">{tab === 'gdpr' ? '🔐' : '📄'}</div>
-              <h3 className="text-lg font-bold text-slate-900 mb-1">{tab === 'gdpr' ? t('profile.tabs.gdpr') : t('profile.tabs.documents')}</h3>
+              <div className="text-4xl mb-3">📄</div>
+              <h3 className="text-lg font-bold text-slate-900 mb-1">{t('profile.tabs.documents')}</h3>
               <p className="text-sm text-slate-500">{t('profile.underDevelopment')}</p>
+            </div>
+          )}
+
+          {/* ── GDPR ── */}
+          {tab === 'gdpr' && (
+            <div>
+              <h2 className="text-base font-bold text-slate-900 mb-4">{t('profile.gdprTab.title')}</h2>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                {/* Left — registered data + legal basis */}
+                <div className="space-y-4">
+                  {/* Registered data */}
+                  <div className="bg-white rounded-2xl border border-slate-100 p-6">
+                    <h3 className="text-sm font-bold text-slate-900 mb-3">{t('profile.gdprTab.dataTitle')}</h3>
+                    <div className="space-y-1">
+                      {[
+                        { label: t('profile.gdprTab.name'),    src: t('profile.gdprTab.sourceBankID'),  ok: !!c.personnummer },
+                        { label: t('profile.gdprTab.address'), src: t('profile.gdprTab.sourceSPAR'),    ok: !!c.address },
+                        { label: t('profile.gdprTab.contact'), src: t('profile.gdprTab.sourceManual'),  ok: !!c.email },
+                        { label: t('profile.gdprTab.purchases', { n: c.invoices.length }),   src: 'System',                          ok: c.invoices.length > 0 },
+                        { label: t('profile.gdprTab.bankidLogs', { n: c.bankidHistory.length }), src: t('profile.gdprTab.sourceBankID'), ok: c.bankidHistory.length > 0 },
+                      ].map(row => (
+                        <div key={row.label} className="flex items-center justify-between py-1.5 border-b border-slate-50 last:border-0">
+                          <span className="text-sm text-slate-700">{row.label}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-slate-400">{row.src}</span>
+                            <span className={`text-xs font-bold ${row.ok ? 'text-green-600' : 'text-slate-400'}`}>
+                              {row.ok ? '✓' : '—'}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Legal basis */}
+                  <div className="bg-white rounded-2xl border border-slate-100 p-6">
+                    <h3 className="text-sm font-bold text-slate-900 mb-3">{t('profile.gdprTab.legalBasisTitle')}</h3>
+                    <div className="space-y-2">
+                      {[
+                        t('profile.gdprTab.legalBasis1'),
+                        t('profile.gdprTab.legalBasis2'),
+                        t('profile.gdprTab.legalBasis3'),
+                      ].map(basis => (
+                        <div key={basis} className="flex items-start gap-2">
+                          <span className="text-green-500 text-xs mt-0.5 shrink-0">✓</span>
+                          <span className="text-xs text-slate-600 leading-relaxed">{basis}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right — 3 action cards */}
+                <div className="space-y-4">
+                  {/* Access & portability */}
+                  <div className="bg-white rounded-2xl border border-slate-100 p-6">
+                    <h3 className="text-sm font-bold text-slate-900 mb-1">{t('profile.gdprTab.accessTitle')}</h3>
+                    <p className="text-xs text-slate-500 mb-3">{t('profile.gdprTab.accessDesc')}</p>
+                    <button
+                      onClick={() => {
+                        const data = {
+                          name: `${c.firstName} ${c.lastName}`,
+                          personnummer: c.personnummer,
+                          address: c.address,
+                          email: c.email,
+                          phone: c.phone,
+                          birthDate: c.birthDate,
+                          gender: c.gender,
+                          invoices: c.invoices,
+                          bankidHistory: c.bankidHistory,
+                          exportedAt: new Date().toISOString(),
+                        };
+                        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `gdpr-export-${c.id}.json`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-[#0f1923] hover:bg-[#1a2a3a] text-white text-xs font-semibold transition-colors"
+                    >
+                      {t('profile.gdprTab.exportBtn')}
+                    </button>
+                  </div>
+
+                  {/* Rectification */}
+                  <div className="bg-white rounded-2xl border border-slate-100 p-6">
+                    <h3 className="text-sm font-bold text-slate-900 mb-1">{t('profile.gdprTab.rectifyTitle')}</h3>
+                    <p className="text-xs text-slate-500 mb-3">{t('profile.gdprTab.rectifyDesc')}</p>
+                    <a
+                      href={`mailto:privacy@avamc.se?subject=Rättelse — ${c.firstName} ${c.lastName}`}
+                      className="inline-block px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:border-slate-300 transition-colors"
+                    >
+                      {t('profile.gdprTab.rectifyBtn')} →
+                    </a>
+                  </div>
+
+                  {/* Erasure */}
+                  <div className="bg-white rounded-2xl border border-slate-100 p-6">
+                    <h3 className="text-sm font-bold text-slate-900 mb-1">{t('profile.gdprTab.deleteTitle')}</h3>
+                    <p className="text-xs text-slate-500 mb-3">{t('profile.gdprTab.deleteDesc')}</p>
+                    <button
+                      onClick={() => toast.success(t('profile.gdprTab.deleteSuccess'))}
+                      className="px-4 py-2 rounded-xl border border-red-200 text-red-600 text-xs font-semibold hover:bg-red-50 transition-colors"
+                    >
+                      {t('profile.gdprTab.deleteBtn')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="mt-4 text-xs text-slate-400">
+                {t('profile.gdprTab.imy')} ·{' '}
+                <Link href="/privacy" className="text-[#FF6B2C] hover:underline">
+                  {t('profile.gdprTab.privacyLink')}
+                </Link>
+              </div>
             </div>
           )}
         </div>

@@ -36,7 +36,6 @@ export default function Sidebar() {
         { icon: '📈', label: t('navigation.analytics'),  href: '/analytics' },
         { icon: '📄', label: t('navigation.documents'),  href: '/documents' },
         { icon: '⚙',  label: t('navigation.settings'),  href: '/settings' },
-        { icon: '👤', label: t('navigation.users'),      href: '/users' },
         { icon: '📜', label: t('navigation.auditLog'),   href: '/audit-log' },
       ],
     },
@@ -93,7 +92,7 @@ export default function Sidebar() {
             </div>
             <div>
               <h1 className="text-white font-bold text-lg leading-none tracking-tight">BikeMeNow</h1>
-              <p className="text-[10px] text-slate-500 mt-0.5 font-semibold tracking-widest uppercase">bikenow.com</p>
+              <p className="text-[10px] text-slate-500 mt-0.5 font-semibold tracking-widest uppercase">BikeMe.Now</p>
             </div>
           </Link>
           {/* Subscriber dealer badge — shows the current tenant's dealership name */}
@@ -152,6 +151,21 @@ export default function Sidebar() {
         {/* Language */}
         <div className="px-4 py-3 border-t border-white/5 shrink-0">
           <LanguageSwitcher variant="default" />
+        </div>
+
+        {/* Legal footer */}
+        <div className="px-4 pb-2 shrink-0">
+          <div className="flex items-center gap-2 text-[10px] text-slate-600 flex-wrap">
+            <Link href="/privacy" className="hover:text-slate-300 transition-colors">
+              {t('common.privacyPolicy')}
+            </Link>
+            <span>·</span>
+            <Link href="/terms" className="hover:text-slate-300 transition-colors">
+              {t('common.terms')}
+            </Link>
+            <span>·</span>
+            <span>556123-4567</span>
+          </div>
         </div>
 
         {/* User */}

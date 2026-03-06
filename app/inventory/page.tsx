@@ -1,11 +1,15 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
 import ComingSoon from '@/components/ComingSoon';
 
 export default function InventoryPage() {
+  const t = useTranslations('pages');
   return (
     <ComingSoon
       icon="🏍"
-      title="Inventory"
-      description="Browse and manage your motorcycle stock, add new vehicles, and track availability."
+      title={t('inventory.title')}
+      description={t('inventory.desc')}
     />
   );
 }

@@ -12,7 +12,9 @@
     "dateOfBirth": "Födelsedatum",
     "gender": "Kön",
     "protectedIdentity": "Skyddad identitet",
-    "protectedIdentityYes": "Ja — hantera med försiktighet"
+    "protectedIdentityYes": "Ja — hantera med försiktighet",
+    "privacyPolicy": "Integritetspolicy",
+    "terms": "Villkor"
   },
   "navigation": {
     "dashboard": "Instrumentpanel",
@@ -110,6 +112,8 @@
       "interest": "Kawasaki Ninja ZX-6R"
     },
     "autoFilled": "80% auto-ifyllt",
+    "gdprConsent": "Kunden samtycker till behandling av personuppgifter enligt vår",
+    "privacyPolicyLink": "integritetspolicy",
     "submitButton": "Skapa Lead",
     "sidebar": {
       "title": "BankID + Roaring.io Enrichment",
@@ -425,6 +429,34 @@
       "noVehicles": "Inga registrerade fordon",
       "noInvoices": "Inga fakturor",
       "underDevelopment": "Denna sektion är under utveckling.",
+      "gdprTab": {
+        "title": "GDPR — Personuppgiftshantering",
+        "dataTitle": "Registrerade uppgifter",
+        "name": "Namn & personnummer",
+        "address": "Adress, kön, födelsedag",
+        "contact": "E-post & telefon",
+        "purchases": "Köphistorik ({n} fakturor)",
+        "bankidLogs": "BankID-verifieringar ({n} st)",
+        "sourceBankID": "BankID",
+        "sourceSPAR": "Folkbokföring",
+        "sourceManual": "Manuell",
+        "legalBasisTitle": "Rättslig grund",
+        "legalBasis1": "Avtal (köpeavtalet) — GDPR Art. 6.1b",
+        "legalBasis2": "Bokföringslagen (7 år) — GDPR Art. 6.1c",
+        "legalBasis3": "Berättigat intresse (kundrelation) — GDPR Art. 6.1f",
+        "accessTitle": "Tillgång & portabilitet",
+        "accessDesc": "Du har rätt att få ut alla dina uppgifter i maskinläsbart format.",
+        "exportBtn": "Exportera som JSON",
+        "rectifyTitle": "Rättelse",
+        "rectifyDesc": "Kontakta oss för att rätta felaktiga uppgifter.",
+        "rectifyBtn": "Kontakta oss",
+        "deleteTitle": "Radering",
+        "deleteDesc": "Uppgifter kopplade till köpeavtal sparas i 7 år per Bokföringslagen och kan ej raderas dessförinnan.",
+        "deleteBtn": "Skicka begäran",
+        "deleteSuccess": "Begäran mottagen. Vi återkommer inom 30 dagar.",
+        "imy": "Klagomål kan riktas till Integritetsskyddsmyndigheten (IMY) — imy.se",
+        "privacyLink": "Fullständig integritetspolicy"
+      },
       "fields": {
         "firstName": "Förnamn",
         "lastName": "Efternamn",
@@ -466,5 +498,272 @@
       "notFound": "Kunden hittades inte",
       "backToCustomers": "← Tillbaka till kunder"
     }
+  },
+  "forgotPassword": {
+    "title": "Glömt lösenordet?",
+    "subtitle": "Inga problem! Ange din e-postadress så skickar vi en återställningslänk.",
+    "emailAddress": "E-postadress",
+    "emailPlaceholder": "namn@aterforsaljare.se",
+    "sendButton": "Skicka återställningslänk",
+    "backToSignIn": "← Tillbaka till inloggning",
+    "security": "🔒 256-bitars SSL-krypterad • GDPR-kompatibel",
+    "branding": {
+      "tagline": "Återförsäljares intelligensplattform",
+      "secureReset": "Säker återställning",
+      "secureResetDesc": "Branschstandard för lösenordsåterställning",
+      "emailVerification": "E-postverifiering",
+      "emailVerificationDesc": "Återställningslänk skickad till din registrerade e-post",
+      "expiry": "15 minuters giltighetstid",
+      "expiryDesc": "Länken upphör för säkerhetens skull",
+      "protectedAccess": "Skyddad åtkomst",
+      "protectedAccessDesc": "Inga obehöriga lösenordsändringar",
+      "copyright": "© 2026 BikeMeNow.com. Alla rättigheter förbehållna.",
+      "security": "256-bitars krypterad • GDPR-kompatibel • Svensk hosting"
+    }
+  },
+  "emailSent": {
+    "title": "Kontrollera din e-post",
+    "subtitle": "Vi har skickat en återställningslänk till din e-postadress. Klicka på länken i e-postmeddelandet för att skapa ett nytt lösenord.",
+    "linkExpires": "⏱️ Länken upphör om 15 minuter",
+    "linkExpiresDesc": "Av säkerhetsskäl upphör återställningslänken efter 15 minuter",
+    "didntReceive": "Fick du inte e-postmeddelandet?",
+    "resendEmail": "Skicka om e-post",
+    "backToSignIn": "← Tillbaka till inloggning",
+    "security": "🔒 256-bitars SSL-krypterad • GDPR-kompatibel",
+    "branding": {
+      "tagline": "Återförsäljares intelligensplattform",
+      "checkInbox": "Kontrollera din inkorg",
+      "checkInboxDesc": "Återställningslänk skickad till din e-post",
+      "validFor": "Giltig i 15 minuter",
+      "validForDesc": "Klicka på länken inom 15 minuter",
+      "checkSpam": "Kontrollera skräppostmappen",
+      "checkSpamDesc": "E-postmeddelandet kan finnas i skräppost",
+      "didntReceiveIt": "Fick du det inte?",
+      "didntReceiveItDesc": "Begär en ny länk efter några minuter",
+      "copyright": "© 2026 BikeMeNow.com. Alla rättigheter förbehållna.",
+      "security": "256-bitars krypterad • GDPR-kompatibel • Svensk hosting"
+    }
+  },
+  "resetComplete": {
+    "title": "Lösenordsåterställning klar!",
+    "subtitle": "Ditt lösenord har återställts. Du kan nu logga in med ditt nya lösenord.",
+    "successTitle": "Lösenordet har uppdaterats",
+    "itemNewActive": "Nytt lösenord är nu aktivt",
+    "itemOldInvalidated": "Gammalt lösenord har inaktiverats",
+    "itemCanSignIn": "Du kan logga in omedelbart",
+    "goToSignIn": "Gå till inloggning",
+    "security": "🔒 256-bitars SSL-krypterad • GDPR-kompatibel",
+    "tip": "💡 Tips: Håll ditt lösenord säkert och dela det inte med någon. För extra säkerhet, överväg att använda BankID för framtida inloggningar.",
+    "branding": {
+      "tagline": "Återförsäljares intelligensplattform",
+      "passwordUpdated": "Lösenord uppdaterat",
+      "passwordUpdatedDesc": "Ditt nya lösenord är nu aktivt",
+      "securelyEncrypted": "Säkert krypterat",
+      "securelyEncryptedDesc": "256-bitars kryptering skyddar ditt lösenord",
+      "readyToGo": "Redo att köra",
+      "readyToGoDesc": "Logga in med ditt nya lösenord",
+      "accountSecure": "Konto säkrat",
+      "accountSecureDesc": "Gammalt lösenord är inte längre giltigt",
+      "copyright": "© 2026 BikeMeNow.com. Alla rättigheter förbehållna.",
+      "security": "256-bitars krypterad • GDPR-kompatibel • Svensk hosting"
+    }
+  },
+  "leads": {
+    "breadcrumb": {
+      "sales": "Försäljning",
+      "pipeline": "Pipeline"
+    },
+    "searchPlaceholder": "Sök leads…",
+    "newLead": "＋ Ny Lead",
+    "pipelineValue": "Pipelinevärde",
+    "noLeads": "Inga leads",
+    "addLead": "＋ Lägg till lead",
+    "columns": {
+      "new": "Ny",
+      "contacted": "Kontaktad",
+      "testRide": "Provkörning",
+      "negotiating": "Förhandling",
+      "closed": "Avslutad"
+    },
+    "status": {
+      "hot": "Het",
+      "warm": "Varm",
+      "cold": "Kall"
+    }
+  },
+  "settings": {
+    "breadcrumb": "Admin / Inställningar",
+    "title": "Inställningar",
+    "subtitle": "Konfigurera din återförsäljarprofil, integrationer och systeminställningar.",
+    "comingSoon": "Kommer snart",
+    "sections": {
+      "payments": {
+        "title": "Betalningsleverantörer",
+        "desc": "Konfigurera Svea, Klarna, Swish, Nets och alla andra betalningsmetoder för din återförsäljare.",
+        "badge": "20 leverantörer"
+      },
+      "profile": {
+        "title": "Återförsäljarprofil",
+        "desc": "Redigera ditt företagsnamn, adress, org-nummer, logotyp och kontaktuppgifter."
+      },
+      "users": {
+        "title": "Användare och behörigheter",
+        "desc": "Hantera personalkonton, roller (admin, försäljning, service) och åtkomstnivåer.",
+        "badge": "Aktiv"
+      },
+      "notifications": {
+        "title": "Notifikationer",
+        "desc": "Ställ in e-post- och SMS-notifikationer för nya leads, signerade avtal och betalningar."
+      },
+      "integrations": {
+        "title": "Integrationer",
+        "desc": "Anslut Fortnox, Blocket, Transportstyrelsen och försäkringsleverantörer.",
+        "badge": "5 integrationer"
+      },
+      "billing": {
+        "title": "Prenumeration och fakturering",
+        "desc": "Hantera ditt AVA MC-systemplan, fakturor och betalningsmetod."
+      }
+    }
+  },
+  "pages": {
+    "analytics": {
+      "title": "Analys",
+      "desc": "Djupgående rapporter om försäljningsprestanda, lageromsättning och konvertering av leads."
+    },
+    "auditLog": {
+      "title": "Revisionslogg",
+      "desc": "Fullständig aktivitetshistorik — varje inloggning, redigering och transaktion i din återförsäljare."
+    },
+    "documents": {
+      "title": "Dokument",
+      "desc": "Lagra och hantera avtal, serviceprotokoll och efterlevnadsdokument."
+    },
+    "inventory": {
+      "title": "Lager",
+      "desc": "Bläddra och hantera ditt motorcykellager, lägg till nya fordon och spåra tillgänglighet."
+    },
+    "invoices": {
+      "title": "Fakturor",
+      "desc": "Skapa, skicka och spåra fakturor för försäljning och servicearbete."
+    },
+    "purchaseOrders": {
+      "title": "Inköpsorder",
+      "desc": "Hantera leverantörsbeställningar, spåra leveranser och hantera inköp för din återförsäljare."
+    },
+    "users": {
+      "title": "Användare",
+      "desc": "Hantera personalkonton, roller och behörigheter för din återförsäljare."
+    }
+  },
+  "agreement": {
+    "breadcrumb": {
+      "sales": "Försäljning",
+      "agreement": "Avtal"
+    },
+    "title": "Skapa köpeavtal",
+    "editingBadge": "Redigerar",
+    "autopopulated": "Alla fält är automatiskt ifyllda från accepterat erbjudande {offerNumber} — ingen manuell inmatning krävs",
+    "sections": {
+      "details": "Avtalsdetaljer",
+      "legal": "Juridisk efterlevnad",
+      "security": "Dokumentsäkerhet"
+    },
+    "fields": {
+      "agreementNumber": "Avtalsnr:",
+      "customer": "Kund:",
+      "vehicle": "Fordon:",
+      "vin": "VIN:",
+      "accessories": "Tillbehör:",
+      "tradeIn": "Inbytesbil:",
+      "totalPrice": "Totalpris:",
+      "financing": "Finansiering:",
+      "totalCreditCost": "Total kreditkostnad"
+    },
+    "badges": {
+      "auto": "Auto",
+      "fromOffer": "Från erbjudande",
+      "calculated": "Beräknat"
+    },
+    "placeholders": {
+      "fullName": "Fullständigt namn",
+      "personnummer": "Personnummer",
+      "vehicleModel": "År Märke Modell",
+      "vin": "17-tecken VIN",
+      "accessories": "t.ex. Akrapovic + Tankskydd",
+      "vehicleMakeModel": "Fordonsmärke/-modell"
+    },
+    "legal": {
+      "consumerAct": "Konsumentköplagen",
+      "returnPolicy": "14 dagars ångerrätt ingår",
+      "gdpr": "GDPR-klausul för datahantering",
+      "vat": "Moms korrekt tillämpat (25%)",
+      "fskattebevis": "F-skattebevis referens",
+      "warranty": "Garantivillkor ingår"
+    },
+    "docSecurity": {
+      "beforeSigning": "Före signering:",
+      "afterBankID": "Efter BankID:",
+      "auditTrail": "Revisionsspår:",
+      "retention": "Bevaringstid:",
+      "editable": "Redigerbar",
+      "locked": "Låst & oföränderlig",
+      "everyChange": "Varje ändring loggad",
+      "encrypted": "7 år krypterat"
+    },
+    "unsavedChanges": "Ändringar ej sparade",
+    "vatNote": "inkl. 25% moms",
+    "actions": {
+      "saveChanges": "Spara ändringar",
+      "cancel": "Avbryt",
+      "editAgreement": "Redigera avtal",
+      "proceedToSigning": "Fortsätt till signering"
+    }
+  },
+  "privacy": {
+    "title": "Integritetspolicy",
+    "subtitle": "Hur AVA MC AB hanterar dina personuppgifter",
+    "lastUpdated": "Senast uppdaterad: 6 mars 2026",
+    "s1title": "Personuppgiftsansvarig",
+    "s1body": "AVA MC AB, org.nr 556123-4567, Kista, Stockholm. Kontakt för dataskyddsfrågor: privacy@avamc.se",
+    "s2title": "Vilka uppgifter samlar vi in?",
+    "s2body": "BankID: namn, personnummer, signaturtidpunkt, OCSP-verifiering. Roaring.io/SPAR (Statens personadressregister): folkbokförd adress, kön, födelsedag, skyddad identitet. Manuell inmatning: e-postadress, telefonnummer. Köphistorik: avtal, fakturor, fordon (märke, modell, VIN, registreringsnummer).",
+    "s3title": "Rättslig grund (GDPR art. 6)",
+    "s3body": "Fullgörande av avtal (6.1b): behandling krävs för att fullgöra ett köpeavtal. Rättslig förpliktelse (6.1c): bokföring (Bokföringslagen 7 år), penningtvättskontroller. Berättigat intresse (6.1f): hantering av kundrelation, kreditbedömning. Samtycke (6.1a): marknadsföringskommunikation — kan återkallas när som helst.",
+    "s4title": "Hur länge sparas uppgifterna?",
+    "s4body": "Transaktionsdata (avtal, fakturor): 7 år (Bokföringslagen). Kundprofil: under kundrelationen + 3 år. BankID-loggar: 5 år. Leads utan köp: 1 år.",
+    "s5title": "Vilka delar vi uppgifterna med?",
+    "s5body": "BankID AB (Bankgirot) — identitetsverifiering. Roaring Technologies AB — SPAR-uppslag (folkbokföring). Betaltjänstleverantörer: Svea, Klarna, Swish, Nets m.fl. beroende på vald betalmetod. Fortnox AB — bokföringsintegration. Transportstyrelsen — ägarbyte av fordon.",
+    "s6title": "Dina rättigheter",
+    "s6body": "Du har rätt till: tillgång till dina uppgifter, rättelse av felaktiga uppgifter, radering (begränsas av Bokföringslagens 7-åriga bevarandekrav), begränsning av behandling, dataportabilitet (export i maskinläsbart format), invändning mot behandling som grundas på berättigat intresse. Skicka begäran till: privacy@avamc.se",
+    "s7title": "Automatiserade beslut",
+    "s7body": "BankID:s riskklassificering (Låg/Medium/Hög) används som rådgivande indikator. Den är inte rättsligt bindande och kan ifrågasättas genom att kontakta oss.",
+    "s8title": "Cookies",
+    "s8body": "Vi använder endast nödvändiga cookies: en sessionscookie för autentisering och en locale-cookie för språkpreferens. Inga spårnings- eller marknadsföringscookies används.",
+    "s9title": "Klagomål",
+    "s9body": "Om du har synpunkter på hur vi hanterar dina uppgifter kan du lämna in ett klagomål till Integritetsskyddsmyndigheten (IMY), Box 8114, 104 20 Stockholm, www.imy.se.",
+    "s10title": "Kontakt",
+    "s10body": "privacy@avamc.se · AVA MC AB · Org.nr 556123-4567 · Kista, Stockholm"
+  },
+  "terms": {
+    "title": "Användarvillkor",
+    "subtitle": "BikeMeNow — Återförsäljarplattform av AVA MC AB",
+    "lastUpdated": "Senast uppdaterad: 6 mars 2026",
+    "s1title": "Tjänsten",
+    "s1body": "BikeMeNow är en SaaS-plattform för motorcykelåterförsäljare registrerade i Sverige med giltigt F-skattebevis. Tjänsten omfattar CRM, leadhantering, köpeavtal och betalningsintegrationer.",
+    "s2title": "Behörighet",
+    "s2body": "Användning kräver ett registrerat organisationsnummer, giltigt F-skattebevis och att minst en administratör identifierat sig via BankID. Genom att prenumerera bekräftar du att dessa krav uppfylls.",
+    "s3title": "Konton och säkerhet",
+    "s3body": "Prenumeranten ansvarar för all aktivitet under sina kontouppgifter. BankID-autentisering krävs för administratörsåtgärder. Meddela oss omedelbart vid obehörig åtkomst.",
+    "s4title": "Prenumeration och betalning",
+    "s4body": "Alla priser inkluderar 25% moms. En 14-dagars kostnadsfri prövotid erbjuds utan betalningskrav. Debitering sker månadsvis eller årsvis. Uppsägning måste ske senast 30 dagar före nästa faktureringsperiod. Återbetalning sker ej för påbörjad period.",
+    "s5title": "Immateriella rättigheter",
+    "s5body": "Mjukvaran och designen tillhör AVA MC AB. Kunddata ägs av prenumeranten och kan exporteras vid uppsägning.",
+    "s6title": "Ansvarsbegränsning",
+    "s6body": "AVA MC AB ansvarar inte för indirekta skador, utebliven vinst eller systemfel. Maxansvar begränsas till 3 månaders prenumerationsavgift.",
+    "s7title": "Tillämplig lag och tvister",
+    "s7body": "Detta avtal regleras av svensk lag. Tvist avgörs i första hand av Allmänna Reklamationsnämnden (ARN, www.arn.se). Om ARN inte lämnar rekommendation avgörs tvisten av Stockholms tingsrätt.",
+    "s8title": "Kontakt",
+    "s8body": "info@avamc.se · AVA MC AB · Org.nr 556123-4567 · Kista, Stockholm"
   }
 }

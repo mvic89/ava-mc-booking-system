@@ -12,7 +12,9 @@
     "dateOfBirth": "Date of Birth",
     "gender": "Gender",
     "protectedIdentity": "Protected Identity",
-    "protectedIdentityYes": "Yes — handle with care"
+    "protectedIdentityYes": "Yes — handle with care",
+    "privacyPolicy": "Privacy Policy",
+    "terms": "Terms"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -110,6 +112,8 @@
       "interest": "Kawasaki Ninja ZX-6R"
     },
     "autoFilled": "80% auto-filled",
+    "gdprConsent": "The customer consents to personal data processing per our",
+    "privacyPolicyLink": "privacy policy",
     "submitButton": "Create Lead",
     "sidebar": {
       "title": "BankID + Roaring.io Enrichment",
@@ -425,6 +429,34 @@
       "noVehicles": "No registered vehicles",
       "noInvoices": "No invoices",
       "underDevelopment": "This section is under development.",
+      "gdprTab": {
+        "title": "GDPR — Personal Data Management",
+        "dataTitle": "Registered data",
+        "name": "Name & personal identity number",
+        "address": "Address, gender, date of birth",
+        "contact": "Email & phone",
+        "purchases": "Purchase history ({n} invoices)",
+        "bankidLogs": "BankID verifications ({n})",
+        "sourceBankID": "BankID",
+        "sourceSPAR": "Population Register",
+        "sourceManual": "Manual",
+        "legalBasisTitle": "Legal basis",
+        "legalBasis1": "Contract (purchase agreement) — GDPR Art. 6.1b",
+        "legalBasis2": "Bookkeeping Act (7 years) — GDPR Art. 6.1c",
+        "legalBasis3": "Legitimate interests (customer relationship) — GDPR Art. 6.1f",
+        "accessTitle": "Access & portability",
+        "accessDesc": "You have the right to receive all your data in a machine-readable format.",
+        "exportBtn": "Export as JSON",
+        "rectifyTitle": "Rectification",
+        "rectifyDesc": "Contact us to correct inaccurate data.",
+        "rectifyBtn": "Contact us",
+        "deleteTitle": "Erasure",
+        "deleteDesc": "Data related to purchase agreements is retained for 7 years under the Bookkeeping Act and cannot be deleted before that period.",
+        "deleteBtn": "Submit request",
+        "deleteSuccess": "Request received. We will respond within 30 days.",
+        "imy": "Complaints can be directed to the Swedish Data Protection Authority (IMY) — imy.se",
+        "privacyLink": "Full privacy policy"
+      },
       "fields": {
         "firstName": "First name",
         "lastName": "Last name",
@@ -466,5 +498,272 @@
       "notFound": "Customer not found",
       "backToCustomers": "← Back to customers"
     }
+  },
+  "forgotPassword": {
+    "title": "Forgot Password?",
+    "subtitle": "No worries! Enter your email address and we'll send you a reset link.",
+    "emailAddress": "Email Address",
+    "emailPlaceholder": "namn@aterforsaljare.se",
+    "sendButton": "Send Reset Link",
+    "backToSignIn": "← Back to Sign In",
+    "security": "🔒 256-bit SSL encrypted • GDPR compliant",
+    "branding": {
+      "tagline": "Dealership Intelligence Platform",
+      "secureReset": "Secure Reset",
+      "secureResetDesc": "Industry-standard password recovery",
+      "emailVerification": "Email Verification",
+      "emailVerificationDesc": "Reset link sent to your registered email",
+      "expiry": "15-Minute Expiry",
+      "expiryDesc": "Link expires for security",
+      "protectedAccess": "Protected Access",
+      "protectedAccessDesc": "No unauthorized password changes",
+      "copyright": "© 2026 BikeMeNow.com. All rights reserved.",
+      "security": "256-bit encrypted • GDPR compliant • Swedish hosting"
+    }
+  },
+  "emailSent": {
+    "title": "Check Your Email",
+    "subtitle": "We've sent a password reset link to your email address. Click the link in the email to create a new password.",
+    "linkExpires": "⏱️ Link expires in 15 minutes",
+    "linkExpiresDesc": "For security reasons, the reset link will expire after 15 minutes",
+    "didntReceive": "Didn't receive the email?",
+    "resendEmail": "Resend Email",
+    "backToSignIn": "← Back to Sign In",
+    "security": "🔒 256-bit SSL encrypted • GDPR compliant",
+    "branding": {
+      "tagline": "Dealership Intelligence Platform",
+      "checkInbox": "Check Your Inbox",
+      "checkInboxDesc": "Reset link sent to your email",
+      "validFor": "Valid for 15 Minutes",
+      "validForDesc": "Click the link within 15 minutes",
+      "checkSpam": "Check Spam Folder",
+      "checkSpamDesc": "Email might be in spam/junk",
+      "didntReceiveIt": "Didn't Receive It?",
+      "didntReceiveItDesc": "Request a new link after a few minutes",
+      "copyright": "© 2026 BikeMeNow.com. All rights reserved.",
+      "security": "256-bit encrypted • GDPR compliant • Swedish hosting"
+    }
+  },
+  "resetComplete": {
+    "title": "Password Reset Complete!",
+    "subtitle": "Your password has been successfully reset. You can now sign in with your new password.",
+    "successTitle": "Password Successfully Updated",
+    "itemNewActive": "New password is now active",
+    "itemOldInvalidated": "Old password has been invalidated",
+    "itemCanSignIn": "You can sign in immediately",
+    "goToSignIn": "Go to Sign In",
+    "security": "🔒 256-bit SSL encrypted • GDPR compliant",
+    "tip": "💡 Tip: Keep your password safe and don't share it with anyone. For added security, consider using BankID for future logins.",
+    "branding": {
+      "tagline": "Dealership Intelligence Platform",
+      "passwordUpdated": "Password Updated",
+      "passwordUpdatedDesc": "Your new password is now active",
+      "securelyEncrypted": "Securely Encrypted",
+      "securelyEncryptedDesc": "256-bit encryption protects your password",
+      "readyToGo": "Ready to Go",
+      "readyToGoDesc": "Sign in with your new password",
+      "accountSecure": "Account Secure",
+      "accountSecureDesc": "Old password is no longer valid",
+      "copyright": "© 2026 BikeMeNow.com. All rights reserved.",
+      "security": "256-bit encrypted • GDPR compliant • Swedish hosting"
+    }
+  },
+  "leads": {
+    "breadcrumb": {
+      "sales": "Sales",
+      "pipeline": "Pipeline"
+    },
+    "searchPlaceholder": "Search leads…",
+    "newLead": "＋ New Lead",
+    "pipelineValue": "Pipeline value",
+    "noLeads": "No leads",
+    "addLead": "＋ Add lead",
+    "columns": {
+      "new": "New",
+      "contacted": "Contacted",
+      "testRide": "Test Ride",
+      "negotiating": "Negotiating",
+      "closed": "Closed"
+    },
+    "status": {
+      "hot": "Hot",
+      "warm": "Warm",
+      "cold": "Cold"
+    }
+  },
+  "settings": {
+    "breadcrumb": "Admin / Settings",
+    "title": "Settings",
+    "subtitle": "Configure your dealership profile, integrations, and system preferences.",
+    "comingSoon": "Coming soon",
+    "sections": {
+      "payments": {
+        "title": "Payment Providers",
+        "desc": "Configure Svea, Klarna, Swish, Nets and all other payment methods for your dealership.",
+        "badge": "20 providers"
+      },
+      "profile": {
+        "title": "Dealership Profile",
+        "desc": "Edit your company name, address, org number, logotype, and contact details."
+      },
+      "users": {
+        "title": "Users & Permissions",
+        "desc": "Manage staff accounts, roles (admin, sales, service) and access levels.",
+        "badge": "Live"
+      },
+      "notifications": {
+        "title": "Notifications",
+        "desc": "Set up email and SMS notifications for new leads, signed agreements, and payments."
+      },
+      "integrations": {
+        "title": "Integrations",
+        "desc": "Connect Fortnox, Blocket, Transportstyrelsen, and insurance providers.",
+        "badge": "5 integrations"
+      },
+      "billing": {
+        "title": "Subscription & Billing",
+        "desc": "Manage your AVA MC system plan, invoices, and payment method."
+      }
+    }
+  },
+  "pages": {
+    "analytics": {
+      "title": "Analytics",
+      "desc": "Deep-dive reports on sales performance, inventory turnover, and lead conversion."
+    },
+    "auditLog": {
+      "title": "Audit Log",
+      "desc": "Full activity history — every login, edit, and transaction across your dealership."
+    },
+    "documents": {
+      "title": "Documents",
+      "desc": "Store and manage contracts, service records, and compliance documents."
+    },
+    "inventory": {
+      "title": "Inventory",
+      "desc": "Browse and manage your motorcycle stock, add new vehicles, and track availability."
+    },
+    "invoices": {
+      "title": "Invoices",
+      "desc": "Create, send, and track invoices for sales and service work."
+    },
+    "purchaseOrders": {
+      "title": "Purchase Orders",
+      "desc": "Manage supplier orders, track deliveries, and handle procurement for your dealership."
+    },
+    "users": {
+      "title": "Users",
+      "desc": "Manage staff accounts, roles, and permissions for your dealership."
+    }
+  },
+  "agreement": {
+    "breadcrumb": {
+      "sales": "Sales",
+      "agreement": "Agreement"
+    },
+    "title": "Create Purchase Agreement",
+    "editingBadge": "Editing",
+    "autopopulated": "All fields auto-populated from accepted offer {offerNumber} — zero manual entry required",
+    "sections": {
+      "details": "Agreement Details",
+      "legal": "Legal Compliance",
+      "security": "Document Security"
+    },
+    "fields": {
+      "agreementNumber": "Agreement #:",
+      "customer": "Customer:",
+      "vehicle": "Vehicle:",
+      "vin": "VIN:",
+      "accessories": "Accessories:",
+      "tradeIn": "Trade-In:",
+      "totalPrice": "Total Price:",
+      "financing": "Financing:",
+      "totalCreditCost": "Total cost of credit"
+    },
+    "badges": {
+      "auto": "Auto",
+      "fromOffer": "From offer",
+      "calculated": "Calculated"
+    },
+    "placeholders": {
+      "fullName": "Full name",
+      "personnummer": "Personnummer",
+      "vehicleModel": "Year Make Model",
+      "vin": "17-character VIN",
+      "accessories": "e.g. Akrapovic + Tank Pad",
+      "vehicleMakeModel": "Vehicle make/model"
+    },
+    "legal": {
+      "consumerAct": "Swedish Consumer Purchase Act",
+      "returnPolicy": "14-day return policy included",
+      "gdpr": "GDPR data handling clause",
+      "vat": "VAT correctly applied (25%)",
+      "fskattebevis": "F-skattebevis reference",
+      "warranty": "Warranty terms included"
+    },
+    "docSecurity": {
+      "beforeSigning": "Before signing:",
+      "afterBankID": "After BankID:",
+      "auditTrail": "Audit trail:",
+      "retention": "Retention:",
+      "editable": "Editable",
+      "locked": "Locked & immutable",
+      "everyChange": "Every change logged",
+      "encrypted": "7 years encrypted"
+    },
+    "unsavedChanges": "Changes not saved yet",
+    "vatNote": "incl. 25% VAT",
+    "actions": {
+      "saveChanges": "Save Changes",
+      "cancel": "Cancel",
+      "editAgreement": "Edit Agreement",
+      "proceedToSigning": "Proceed to Signing"
+    }
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "subtitle": "How AVA MC AB handles your personal data",
+    "lastUpdated": "Last updated: 6 March 2026",
+    "s1title": "Data Controller",
+    "s1body": "AVA MC AB, org.nr 556123-4567, Kista, Stockholm. Contact for data protection queries: privacy@avamc.se",
+    "s2title": "What data do we collect?",
+    "s2body": "BankID: name, personal identity number, signature timestamp, OCSP verification. Roaring.io / SPAR (Swedish Population Register): registered address, gender, date of birth, protected identity flag. Manual: email address, telephone number. Purchase history: contracts, invoices, vehicles (make, model, VIN, registration number).",
+    "s3title": "Legal basis (GDPR Art. 6)",
+    "s3body": "Performance of contract (6.1b): processing needed to fulfil a purchase agreement. Legal obligation (6.1c): bookkeeping (Bokföringslagen 7 years), anti-money-laundering checks. Legitimate interests (6.1f): customer relationship management, credit assessment. Consent (6.1a): marketing communications — withdrawable at any time.",
+    "s4title": "How long do we keep your data?",
+    "s4body": "Transaction data (contracts, invoices): 7 years (Bokföringslagen). Customer profile: for the duration of the customer relationship + 3 years. BankID logs: 5 years. Leads without purchase: 1 year.",
+    "s5title": "Who do we share data with?",
+    "s5body": "BankID AB (Bankgirot) — identity verification. Roaring Technologies AB — SPAR population register lookups. Payment service providers: Svea, Klarna, Swish, Nets and others depending on chosen payment method. Fortnox AB — accounting integration. Transportstyrelsen (Swedish Transport Agency) — vehicle ownership registration.",
+    "s6title": "Your rights",
+    "s6body": "You have the right to: access your data, rectify inaccurate data, erasure (subject to Bokföringslagen 7-year retention), restrict processing, data portability (export in machine-readable format), object to processing based on legitimate interest. Submit requests to: privacy@avamc.se",
+    "s7title": "Automated decisions",
+    "s7body": "BankID risk classification (Low/Medium/High) is used as an advisory indicator only. It is not legally binding and can be challenged by contacting us.",
+    "s8title": "Cookies",
+    "s8body": "We use only strictly necessary cookies: a session cookie for authentication and a locale cookie for language preference. No tracking or marketing cookies are used.",
+    "s9title": "Complaints",
+    "s9body": "If you have concerns about how we handle your data, you have the right to lodge a complaint with the Swedish Data Protection Authority (Integritetsskyddsmyndigheten, IMY), Box 8114, 104 20 Stockholm, www.imy.se.",
+    "s10title": "Contact",
+    "s10body": "privacy@avamc.se · AVA MC AB · Org.nr 556123-4567 · Kista, Stockholm"
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "subtitle": "BikeMeNow — Dealership Platform by AVA MC AB",
+    "lastUpdated": "Last updated: 6 March 2026",
+    "s1title": "The Service",
+    "s1body": "BikeMeNow is a SaaS platform for motorcycle dealerships registered in Sweden with a valid F-tax certificate (F-skattebevis). The service includes CRM, lead management, purchase agreements, and payment integrations.",
+    "s2title": "Eligibility",
+    "s2body": "Use requires a registered organisation number, a valid F-tax certificate, and at least one administrator identified via BankID. By subscribing you confirm compliance with these requirements.",
+    "s3title": "Accounts and security",
+    "s3body": "The subscriber is responsible for all activity under their account credentials. BankID authentication is required for administrative actions. Notify us immediately of any unauthorised access.",
+    "s4title": "Subscription and payment",
+    "s4body": "All prices include 25% VAT. A 14-day free trial is available with no payment required. Billing is monthly or annually. Cancellation must be submitted at least 30 days before the next billing period. No refunds for a period already started.",
+    "s5title": "Intellectual property",
+    "s5body": "The software and design belong to AVA MC AB. Customer data is owned by the subscriber and can be exported upon termination.",
+    "s6title": "Limitation of liability",
+    "s6body": "AVA MC AB is not liable for indirect damages, loss of profit, or system failures. Maximum liability is limited to 3 months' subscription fee.",
+    "s7title": "Governing law and disputes",
+    "s7body": "This agreement is governed by Swedish law. Disputes are in the first instance referred to the Swedish National Board for Consumer Disputes (ARN, www.arn.se). Failing resolution, disputes are settled by Stockholm District Court.",
+    "s8title": "Contact",
+    "s8body": "info@avamc.se · AVA MC AB · Org.nr 556123-4567 · Kista, Stockholm"
   }
 }
