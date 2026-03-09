@@ -1,0 +1,171 @@
+import { PurchaseOrder } from '@/utils/types'
+
+/**
+ * Historical purchase orders only (Approved / Sent / Received).
+ *
+ * Draft and Pending-Approval POs are auto-generated at runtime by
+ * generateAutoPOs() inside InventoryContext — they are NOT stored here.
+ * This keeps vendor names automatically in sync with the inventory files.
+ */
+export const historicalPOs: PurchaseOrder[] = [
+    {
+        id: 'PO-2024-001',
+        vendor: 'Yamaha Motor Malaysia Sdn Bhd',
+        date: 'Feb 3, 2026',
+        eta: '—',
+        status: 'Received',
+        notes: 'MT-07 batch received in full. No discrepancies noted.',
+        totalCost: 18600,
+        items: [
+            {
+                inventoryId: 'MC-003',
+                name: 'MT-07 – Midnight Black (2024)',
+                articleNumber: 'YAM-MT07-2024',
+                orderQty: 3,
+                unitCost: 6200,
+                lineTotal: 18600,
+            },
+        ],
+    },
+    {
+        id: 'PO-2024-002',
+        vendor: 'Michelin Tyre PLC Malaysia',
+        date: 'Jan 28, 2026',
+        eta: '—',
+        status: 'Received',
+        notes: 'Full tyre shipment received. 2 units damaged on arrival — credit note requested.',
+        totalCost: 1720,
+        items: [
+            {
+                inventoryId: 'SP-020',
+                name: 'Pilot Road 5 Front Tyre 120/70 ZR17',
+                articleNumber: 'TYR-PR5-F-120',
+                orderQty: 8,
+                unitCost: 95,
+                lineTotal: 760,
+            },
+            {
+                inventoryId: 'SP-021',
+                name: 'Pilot Road 5 Rear Tyre 180/55 ZR17',
+                articleNumber: 'TYR-PR5-R-180',
+                orderQty: 8,
+                unitCost: 120,
+                lineTotal: 960,
+            },
+        ],
+    },
+    {
+        id: 'PO-2024-003',
+        vendor: 'Alpinestars S.p.A.',
+        date: 'Jan 22, 2026',
+        eta: '—',
+        status: 'Received',
+        notes: 'Gloves and jackets received. All items inspected and shelved.',
+        totalCost: 3235,
+        items: [
+            {
+                inventoryId: 'ACC-006',
+                name: 'GP Tech V3 Leather Gloves – L',
+                articleNumber: 'GLV-GPT3-BLK-L',
+                orderQty: 12,
+                unitCost: 55,
+                lineTotal: 660,
+                size: 'L',
+            },
+            {
+                inventoryId: 'ACC-007',
+                name: 'GP Tech V3 Leather Gloves – M',
+                articleNumber: 'GLV-GPT3-BLK-M',
+                orderQty: 15,
+                unitCost: 55,
+                lineTotal: 825,
+                size: 'M',
+            },
+            {
+                inventoryId: 'ACC-012',
+                name: 'GP Plus R V4 Leather Jacket – XL',
+                articleNumber: 'JKT-GPR4-BLK-XL',
+                orderQty: 5,
+                unitCost: 350,
+                lineTotal: 1750,
+                size: 'XL',
+            },
+        ],
+    },
+    {
+        id: 'PO-2024-004',
+        vendor: 'Honda Motor Distributors Sdn Bhd',
+        date: 'Feb 10, 2026',
+        eta: 'Mar 3, 2026',
+        status: 'Sent',
+        notes: 'PO sent to Honda. Awaiting dispatch confirmation.',
+        totalCost: 17000,
+        items: [
+            {
+                inventoryId: 'MC-001',
+                name: 'CBR 600RR – Repsol Red / White (2024)',
+                articleNumber: 'HON-CBR600RR-2024',
+                orderQty: 2,
+                unitCost: 8500,
+                lineTotal: 17000,
+            },
+        ],
+    },
+    {
+        id: 'PO-2024-005',
+        vendor: 'Kawasaki Motors (M) Sdn Bhd',
+        date: 'Feb 12, 2026',
+        eta: 'Mar 5, 2026',
+        status: 'Sent',
+        notes: 'Versys 650 PO sent. Kawasaki confirmed dispatch for early March.',
+        totalCost: 11200,
+        items: [
+            {
+                inventoryId: 'MC-006',
+                name: 'Versys 650 – Candy Lime Green (2023)',
+                articleNumber: 'KAW-VER650-2023',
+                orderQty: 2,
+                unitCost: 5600,
+                lineTotal: 11200,
+            },
+        ],
+    },
+    {
+        id: 'PO-2024-006',
+        vendor: 'NGK Spark Plugs (Malaysia) Sdn Bhd',
+        date: 'Feb 15, 2026',
+        eta: 'Mar 8, 2026',
+        status: 'Approved',
+        notes: 'Approved. Awaiting submission to NGK supplier portal.',
+        totalCost: 240,
+        items: [
+            {
+                inventoryId: 'SP-002',
+                name: 'Iridium Spark Plug (Set of 4)',
+                articleNumber: 'IGN-PLUG-NGK-IR4',
+                orderQty: 20,
+                unitCost: 12,
+                lineTotal: 240,
+            },
+        ],
+    },
+    {
+        id: 'PO-2024-007',
+        vendor: 'EBC Brakes Distribution Asia',
+        date: 'Feb 18, 2026',
+        eta: 'Mar 10, 2026',
+        status: 'Approved',
+        notes: 'Approved. To be submitted to EBC distributor portal this week.',
+        totalCost: 330,
+        items: [
+            {
+                inventoryId: 'SP-006',
+                name: 'Front Brake Pad Set',
+                articleNumber: 'BRK-PAD-F-EBC-001',
+                orderQty: 15,
+                unitCost: 22,
+                lineTotal: 330,
+            },
+        ],
+    },
+]
