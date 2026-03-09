@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
-import { InventoryProvider } from "@/context/InventoryContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Bikeme.now",
-  description: "Motorcycle Management System",
+  title: "BikeMenuNow",
+  description: "Motorcycle enterprise booking system",
 };
 
 export default function RootLayout({
@@ -26,13 +25,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex h-screen overflow-hidden bg-gray-50`}>
-        <InventoryProvider>
-          <Sidebar />
-          <main className="flex-1 overflow-auto">
-            {children}
-          </main>
-        </InventoryProvider>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <div className="flex min-h-screen">
+          <aside className="w-52 border-r border-neutral-800 bg-neutral-950 p-4">
+            <p className="text-xs text-neutral-500 uppercase tracking-widest font-mono mb-4">Clients</p>
+            <nav className="flex flex-col gap-1">
+              <Link href="/ava-mc" className="text-sm text-neutral-300 hover:text-white px-3 py-2 rounded hover:bg-neutral-800 transition-colors">
+                AVA MC
+              </Link>
+              <Link href="/bikemenow" className="text-sm text-neutral-300 hover:text-white px-3 py-2 rounded hover:bg-neutral-800 transition-colors">
+                BikeMenuNow
+              </Link>
+            </nav>
+          </aside>
+          <main className="flex-1 bg-neutral-900">{children}</main>
+        </div>
       </body>
     </html>
   );
