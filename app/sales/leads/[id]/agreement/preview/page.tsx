@@ -33,8 +33,8 @@ interface AgreementData {
 const MOCK_AGREEMENT: AgreementData = {
   agreementNumber: 'AGR-2024-0089',
   date: 'Feb 10, 2026',
-  sellerName: 'AVA MC AB',
-  sellerAddress: 'Kista, Stockholm',
+  sellerName: '',
+  sellerAddress: '',
   buyerName: 'Lars Bergman',
   buyerAddress: 'Sveavägen 42, Stockholm',
   personnummer: '197506123456',
@@ -52,7 +52,7 @@ const MOCK_AGREEMENT: AgreementData = {
   warrantyManufacturer: 3,
   warrantyDealer: 1,
   deliveryDate: 'Feb 14, 2026',
-  deliveryLocation: 'AVA MC, Kista',
+  deliveryLocation: '',
 };
 
 export default function AgreementPreviewPage() {
@@ -60,10 +60,23 @@ export default function AgreementPreviewPage() {
   const params = useParams();
   const id = (params?.id as string) || 'default';
   const [ready, setReady] = useState(false);
+  const [dealer, setDealer] = useState({ name: '', orgNr: '', city: '', email: '' });
 
   useEffect(() => {
-    const user = localStorage.getItem('user');
-    if (!user) { router.replace('/auth/login'); return; }
+    const raw = localStorage.getItem('user');
+    if (!raw) { router.replace('/auth/login'); return; }
+    const user = JSON.parse(raw);
+    try {
+      const p = JSON.parse(localStorage.getItem('dealership_profile') || '{}');
+      setDealer({
+        name:  p.name  || user.dealershipName || user.dealership || 'My Dealership',
+        orgNr: p.orgNr || '—',
+        city:  p.city  ? `${p.city}${p.county ? ', ' + p.county : ''}` : '—',
+        email: p.email || '—',
+      });
+    } catch {
+      setDealer({ name: user.dealershipName || 'My Dealership', orgNr: '—', city: '—', email: '—' });
+    }
     setReady(true);
   }, [router]);
 
@@ -132,8 +145,8 @@ export default function AgreementPreviewPage() {
               <div className="flex items-start justify-between mb-6 pb-4 border-b border-slate-100">
                 <span className="text-xl font-extrabold tracking-tight text-[#FF6B2C]">MOTOOS</span>
                 <div className="text-right">
-                  <p className="text-xs text-slate-500">AVA MC AB • Org.nr 556123-4567</p>
-                  <p className="text-xs text-slate-400">Kista, Stockholm • info@avamc.se</p>
+                  <p className="text-xs text-slate-500">{dealer.name} • Org.nr {dealer.orgNr}</p>
+                  <p className="text-xs text-slate-400">{dealer.city} • {dealer.email}</p>
                 </div>
               </div>
 
@@ -153,7 +166,7 @@ export default function AgreementPreviewPage() {
               {/* Data fields — Swedish labels */}
               <div className="space-y-2.5 text-sm">
                 {[
-                  { label: 'SÄLJARE', value: `${agr.sellerName}, ${agr.sellerAddress} • Org.nr 556123-4567` },
+                  { label: 'SÄLJARE', value: `${dealer.name}, ${dealer.city} • Org.nr ${dealer.orgNr}` },
                   { label: 'KÖPARE', value: `${agr.buyerName}, ${agr.buyerAddress} • Personnr: ${agr.personnummer}` },
                   { label: 'FORDON', value: agr.vehicle },
                   { label: 'VIN', value: agr.vin },
@@ -181,7 +194,7 @@ export default function AgreementPreviewPage() {
                 {[
                   {
                     para: '§ 1 PARTER',
-                    body: `Säljare: ${agr.sellerName}, org.nr 556123-4567, ${agr.sellerAddress}. Köpare: ${agr.buyerName}, personnr ${agr.personnummer}, ${agr.buyerAddress}.`,
+                    body: `Säljare: ${dealer.name}, org.nr ${dealer.orgNr}, ${dealer.city}. Köpare: ${agr.buyerName}, personnr ${agr.personnummer}, ${agr.buyerAddress}.`,
                   },
                   {
                     para: '§ 2 FORDON',
@@ -213,11 +226,11 @@ export default function AgreementPreviewPage() {
                   },
                   {
                     para: '§ 9 REKLAMATION',
-                    body: 'Fel i fordonet ska reklameras inom skälig tid från det att köparen märkt eller borde ha märkt felet. Reklamation görs skriftligen till info@avamc.se. Vid tvist hänvisas i första hand till Allmänna Reklamationsnämnden (ARN, www.arn.se).',
+                    body: `Fel i fordonet ska reklameras inom skälig tid från det att köparen märkt eller borde ha märkt felet. Reklamation görs skriftligen till ${dealer.email}. Vid tvist hänvisas i första hand till Allmänna Reklamationsnämnden (ARN, www.arn.se).`,
                   },
                   {
                     para: '§ 10 PERSONUPPGIFTER',
-                    body: 'Personuppgifter behandlas i enlighet med GDPR (EU 2016/679) och AVA MC ABs integritetspolicy (avamc.se/privacy). Uppgifterna sparas i 7 år per Bokföringslagen (1999:1078). Köparen har rätt till tillgång, rättelse, radering och portabilitet av sina uppgifter.',
+                    body: `Personuppgifter behandlas i enlighet med GDPR (EU 2016/679) och ${dealer.name}s integritetspolicy. Uppgifterna sparas i 7 år per Bokföringslagen (1999:1078). Köparen har rätt till tillgång, rättelse, radering och portabilitet av sina uppgifter.`,
                   },
                   {
                     para: '§ 11 TILLÄMPLIG LAG OCH TVIST',

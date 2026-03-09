@@ -35,19 +35,19 @@ const SWEDISH_COUNTIES = [
 ];
 
 const DEFAULTS: DealershipProfile = {
-  name:        'AVA MC AB',
-  orgNr:       '556123-4567',
-  vatNr:       'SE556123456701',
+  name:        '',
+  orgNr:       '',
+  vatNr:       '',
   fSkatt:      true,
-  street:      'Knarrarnäsgatan 7',
-  postalCode:  '164 40',
-  city:        'Kista',
+  street:      '',
+  postalCode:  '',
+  city:        '',
   county:      'Stockholm',
-  phone:       '08-123 456 78',
-  email:       'info@avamc.se',
-  website:     'https://avamc.se',
-  bankgiro:    '1234-5678',
-  swish:       '1231234567',
+  phone:       '',
+  email:       '',
+  website:     '',
+  bankgiro:    '',
+  swish:       '',
   logoDataUrl:       '',
   coverImageDataUrl: '',
 };
@@ -224,8 +224,14 @@ export default function DealershipProfilePage() {
     if (!raw) { router.replace('/auth/login'); return; }
 
     try {
+      const user = JSON.parse(raw);
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-      if (saved.name) setProfile({ ...DEFAULTS, ...saved });
+      if (saved.name) {
+        setProfile({ ...DEFAULTS, ...saved });
+      } else {
+        // Pre-fill name from signup data so the form isn't blank
+        setProfile({ ...DEFAULTS, name: user.dealershipName || user.dealership || '' });
+      }
     } catch {
       // use defaults
     }

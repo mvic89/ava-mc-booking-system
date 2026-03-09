@@ -9,7 +9,22 @@ import { useAutoRefresh } from '@/lib/realtime';
 
 // ─── Print helper ─────────────────────────────────────────────────────────────
 
+function getDealerInfo() {
+  try {
+    const p = JSON.parse(localStorage.getItem('dealership_profile') || '{}');
+    const u = JSON.parse(localStorage.getItem('user') || '{}');
+    const name    = p.name    || u.dealershipName || u.dealership || 'My Dealership';
+    const orgNr   = p.orgNr   || '—';
+    const city    = p.city    ? `${p.city}${p.county ? ', ' + p.county : ''}` : '—';
+    const email   = p.email   || '—';
+    return { name, orgNr, city, email };
+  } catch {
+    return { name: 'My Dealership', orgNr: '—', city: '—', email: '—' };
+  }
+}
+
 function openInvoicePrintWindow(inv: Invoice, labels: Record<string, string>) {
+  const dealer = getDealerInfo();
   const fmt = (n: number) => n.toLocaleString('sv-SE');
   const fmtDate = (iso: string) =>
     new Date(iso).toLocaleDateString('sv-SE', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -48,8 +63,8 @@ function openInvoicePrintWindow(inv: Invoice, labels: Record<string, string>) {
 <body>
   <div class="header">
     <div>
-      <div class="logo">AVA <span>MC</span></div>
-      <p style="font-size:12px;color:#64748b;margin-top:4px">AVA MC AB • Org.nr 556123-4567<br>Kista, Stockholm • info@avamc.se</p>
+      <div class="logo">${dealer.name}</div>
+      <p style="font-size:12px;color:#64748b;margin-top:4px">${dealer.name} • Org.nr ${dealer.orgNr}<br>${dealer.city} • ${dealer.email}</p>
     </div>
     <div class="inv-num">
       <h1>${labels.title} ${inv.id}</h1>

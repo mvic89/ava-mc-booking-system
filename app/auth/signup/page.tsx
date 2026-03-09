@@ -31,10 +31,10 @@ const PLANS = {
 };
 
 const QUICK_START = [
-  { title: '1. Add your first motorcycle', desc: 'Get started with inventory management' },
-  { title: '2. Invite your team', desc: 'Collaborate with sales and service staff' },
-  { title: '3. Connect integrations', desc: 'Link Blocket and other platforms' },
-  { title: '4. Create your first lead', desc: 'Start managing your sales pipeline' },
+  { key: 'motorcycle',    icon: '🏍', title: '1. Add your first motorcycle',  desc: 'Get started with inventory management',                                    href: '/inventory' },
+  { key: 'team',          icon: '👥', title: '2. Invite your team',           desc: 'Collaborate with sales and service staff',                                 href: '/settings/users' },
+  { key: 'integrations',  icon: '🔌', title: '3. Connect integrations',       desc: 'Configure payment modules (Klarna, Svea, Swish, BankID) in Settings',     href: '/settings' },
+  { key: 'lead',          icon: '💰', title: '4. Create your first lead',      desc: 'Start managing your sales pipeline',                                       href: '/sales/leads/new' },
 ];
 
 function formatCardNumber(v: string) {
@@ -50,14 +50,33 @@ export default function SignupPage() {
   const t = useTranslations('signup');
   const [step, setStep] = useState<Step>(0);
   const [selectedPlan, setSelectedPlan] = useState<Plan>('professional');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [skipped, setSkipped] = useState<Set<string>>(new Set());
 
   // Redirect if already logged in
   useEffect(() => {
     const user = localStorage.getItem('user');
-    if (user) {
-      router.replace('/dashboard');
-    }
+    if (user) router.replace('/dashboard');
   }, [router]);
+
+  // Load skipped items from localStorage
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('quickstart_skipped') || '[]');
+      setSkipped(new Set(saved));
+    } catch {}
+  }, []);
+
+  // Warn before leaving mid-signup (steps 1-3)
+  useEffect(() => {
+    if (step === 0 || step === 4) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [step]);
 
   const [business, setBusiness] = useState({
     dealershipName: '', orgNumber: '', streetAddress: '',
@@ -71,6 +90,64 @@ export default function SignupPage() {
     cardNumber: '', expiry: '', cvc: '',
     cardholderName: '', billingSameAsBusiness: true,
   });
+
+  // ── Validation ──────────────────────────────────────────────────────────────
+
+  function validateStep1(): boolean {
+    const e: Record<string, string> = {};
+    if (!business.dealershipName.trim()) e.dealershipName = 'Required';
+    if (!business.orgNumber.trim())      e.orgNumber      = 'Required';
+    if (!business.streetAddress.trim())  e.streetAddress  = 'Required';
+    if (!business.postalCode.trim())     e.postalCode     = 'Required';
+    if (!business.city.trim())           e.city           = 'Required';
+    if (!business.phone.trim())          e.phone          = 'Required';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  }
+
+  function validateStep2(): boolean {
+    const e: Record<string, string> = {};
+    if (!admin.fullName.trim())     e.fullName = 'Required';
+    if (!admin.email.trim())        e.email    = 'Required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(admin.email)) e.email = 'Invalid email address';
+    if (!admin.mobile.trim())       e.mobile   = 'Required';
+    if (!admin.password)            e.password = 'Required';
+    else if (admin.password.length < 8) e.password = 'Minimum 8 characters';
+    if (!admin.confirmPassword)     e.confirmPassword = 'Required';
+    else if (admin.password !== admin.confirmPassword) e.confirmPassword = 'Passwords do not match';
+    if (!admin.agreeToTerms)        e.agreeToTerms = 'You must agree to the terms to continue';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  }
+
+  function validateStep3(): boolean {
+    const e: Record<string, string> = {};
+    const cleanCard = payment.cardNumber.replace(/\s/g, '');
+    if (cleanCard.length < 16)          e.cardNumber     = 'Enter a valid 16-digit card number';
+    if (payment.expiry.length < 5)      e.expiry         = 'Enter a valid expiry date (MM/YY)';
+    if (payment.cvc.length < 3)         e.cvc            = 'Enter a valid 3-digit CVC';
+    if (!payment.cardholderName.trim()) e.cardholderName = 'Required';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  }
+
+  // ── Quick Start helpers ──────────────────────────────────────────────────────
+
+  function handleSkip(key: string) {
+    const updated = new Set(skipped);
+    updated.add(key);
+    setSkipped(updated);
+    localStorage.setItem('quickstart_skipped', JSON.stringify([...updated]));
+  }
+
+  // Helper: field class with red outline when there's an error
+  function fc(field: string) {
+    return `w-full px-4 py-3 rounded-lg border ${
+      errors[field]
+        ? 'border-red-400 focus:ring-red-400 bg-red-50'
+        : 'border-slate-300 focus:border-[#FF6B2C] focus:ring-[#FF6B2C]'
+    } focus:ring-1 outline-none text-sm`;
+  }
 
   // 14-day trial end date
   const trialEnd = new Date();
@@ -238,30 +315,33 @@ export default function SignupPage() {
                   <input
                     type="text"
                     value={business.dealershipName}
-                    onChange={e => setBusiness({ ...business, dealershipName: e.target.value })}
+                    onChange={e => { setBusiness({ ...business, dealershipName: e.target.value }); setErrors(p => ({ ...p, dealershipName: '' })); }}
                     placeholder="e.g., Stockholm Motorcycles AB"
-                    className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C] outline-none text-sm"
+                    className={fc('dealershipName')}
                   />
+                  {errors.dealershipName && <p className="text-xs text-red-500 mt-1">{errors.dealershipName}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Organization Number *</label>
                   <input
                     type="text"
                     value={business.orgNumber}
-                    onChange={e => setBusiness({ ...business, orgNumber: e.target.value })}
+                    onChange={e => { setBusiness({ ...business, orgNumber: e.target.value }); setErrors(p => ({ ...p, orgNumber: '' })); }}
                     placeholder="XXXXXX-XXXX"
-                    className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C] outline-none text-sm"
+                    className={fc('orgNumber')}
                   />
+                  {errors.orgNumber && <p className="text-xs text-red-500 mt-1">{errors.orgNumber}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Street Address *</label>
                   <input
                     type="text"
                     value={business.streetAddress}
-                    onChange={e => setBusiness({ ...business, streetAddress: e.target.value })}
+                    onChange={e => { setBusiness({ ...business, streetAddress: e.target.value }); setErrors(p => ({ ...p, streetAddress: '' })); }}
                     placeholder="Street name and number"
-                    className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C] outline-none text-sm"
+                    className={fc('streetAddress')}
                   />
+                  {errors.streetAddress && <p className="text-xs text-red-500 mt-1">{errors.streetAddress}</p>}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -269,20 +349,22 @@ export default function SignupPage() {
                     <input
                       type="text"
                       value={business.postalCode}
-                      onChange={e => setBusiness({ ...business, postalCode: e.target.value })}
+                      onChange={e => { setBusiness({ ...business, postalCode: e.target.value }); setErrors(p => ({ ...p, postalCode: '' })); }}
                       placeholder="XXX XX"
-                      className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C] outline-none text-sm"
+                      className={fc('postalCode')}
                     />
+                    {errors.postalCode && <p className="text-xs text-red-500 mt-1">{errors.postalCode}</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">City *</label>
                     <input
                       type="text"
                       value={business.city}
-                      onChange={e => setBusiness({ ...business, city: e.target.value })}
+                      onChange={e => { setBusiness({ ...business, city: e.target.value }); setErrors(p => ({ ...p, city: '' })); }}
                       placeholder="e.g., Stockholm"
-                      className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C] outline-none text-sm"
+                      className={fc('city')}
                     />
+                    {errors.city && <p className="text-xs text-red-500 mt-1">{errors.city}</p>}
                   </div>
                 </div>
                 <div>
@@ -290,10 +372,11 @@ export default function SignupPage() {
                   <input
                     type="tel"
                     value={business.phone}
-                    onChange={e => setBusiness({ ...business, phone: e.target.value })}
+                    onChange={e => { setBusiness({ ...business, phone: e.target.value }); setErrors(p => ({ ...p, phone: '' })); }}
                     placeholder="+46 XX XXX XX XX"
-                    className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C] outline-none text-sm"
+                    className={fc('phone')}
                   />
+                  {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Website (optional)</label>
@@ -316,7 +399,7 @@ export default function SignupPage() {
                 ← Back
               </button>
               <button
-                onClick={() => setStep(2)}
+                onClick={() => { if (validateStep1()) { setErrors({}); setStep(2); } }}
                 className="flex-1 bg-[#FF6B2C] text-white py-3 rounded-xl font-semibold hover:bg-[#e55a1f] transition-colors"
               >
                 Continue →
@@ -338,84 +421,96 @@ export default function SignupPage() {
                   <input
                     type="text"
                     value={admin.fullName}
-                    onChange={e => setAdmin({ ...admin, fullName: e.target.value })}
+                    onChange={e => { setAdmin({ ...admin, fullName: e.target.value }); setErrors(p => ({ ...p, fullName: '' })); }}
                     placeholder="Your full name"
-                    className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C] outline-none text-sm"
+                    className={fc('fullName')}
                   />
+                  {errors.fullName && <p className="text-xs text-red-500 mt-1">{errors.fullName}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('emailAddress')} *</label>
                   <input
                     type="email"
                     value={admin.email}
-                    onChange={e => setAdmin({ ...admin, email: e.target.value })}
+                    onChange={e => { setAdmin({ ...admin, email: e.target.value }); setErrors(p => ({ ...p, email: '' })); }}
                     placeholder="you@dealership.com"
-                    className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C] outline-none text-sm"
+                    className={fc('email')}
                   />
+                  {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Mobile Number *</label>
                   <input
                     type="tel"
                     value={admin.mobile}
-                    onChange={e => setAdmin({ ...admin, mobile: e.target.value })}
+                    onChange={e => { setAdmin({ ...admin, mobile: e.target.value }); setErrors(p => ({ ...p, mobile: '' })); }}
                     placeholder="+46 70 XXX XX XX"
-                    className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C] outline-none text-sm"
+                    className={fc('mobile')}
                   />
+                  {errors.mobile && <p className="text-xs text-red-500 mt-1">{errors.mobile}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('password')} *</label>
                   <input
                     type="password"
                     value={admin.password}
-                    onChange={e => setAdmin({ ...admin, password: e.target.value })}
+                    onChange={e => { setAdmin({ ...admin, password: e.target.value }); setErrors(p => ({ ...p, password: '' })); }}
                     placeholder="••••••••"
-                    className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C] outline-none text-sm"
+                    className={fc('password')}
                   />
-                  <p className="text-xs text-slate-400 mt-1">{t('passwordMinLength')}</p>
+                  {errors.password
+                    ? <p className="text-xs text-red-500 mt-1">{errors.password}</p>
+                    : <p className="text-xs text-slate-400 mt-1">{t('passwordMinLength')}</p>
+                  }
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('confirmPassword')} *</label>
                   <input
                     type="password"
                     value={admin.confirmPassword}
-                    onChange={e => setAdmin({ ...admin, confirmPassword: e.target.value })}
+                    onChange={e => { setAdmin({ ...admin, confirmPassword: e.target.value }); setErrors(p => ({ ...p, confirmPassword: '' })); }}
                     placeholder="••••••••"
-                    className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C] outline-none text-sm"
+                    className={fc('confirmPassword')}
                   />
-                  {admin.password && admin.confirmPassword && (
-                    <p className={`text-xs mt-1 ${admin.password === admin.confirmPassword ? 'text-green-600' : 'text-red-500'}`}>
-                      {admin.password === admin.confirmPassword ? t('passwordsMatch') : t('passwordsDoNotMatch')}
-                    </p>
-                  )}
+                  {errors.confirmPassword
+                    ? <p className="text-xs text-red-500 mt-1">{errors.confirmPassword}</p>
+                    : admin.password && admin.confirmPassword && (
+                      <p className={`text-xs mt-1 ${admin.password === admin.confirmPassword ? 'text-green-600' : 'text-red-500'}`}>
+                        {admin.password === admin.confirmPassword ? t('passwordsMatch') : t('passwordsDoNotMatch')}
+                      </p>
+                    )
+                  }
                 </div>
-                <div className="flex items-start gap-2.5 pt-1">
-                  <input
-                    type="checkbox"
-                    id="terms"
-                    checked={admin.agreeToTerms}
-                    onChange={e => setAdmin({ ...admin, agreeToTerms: e.target.checked })}
-                    className="w-4 h-4 mt-0.5 rounded border-slate-300 accent-[#FF6B2C]"
-                  />
-                  <label htmlFor="terms" className="text-sm text-slate-600 leading-snug">
-                    {t('agreeToTerms')}{' '}
-                    <Link href="/terms" className="text-[#FF6B2C] hover:underline">{t('termsOfService')}</Link>
-                    {' '}{t('and')}{' '}
-                    <Link href="/privacy" className="text-[#FF6B2C] hover:underline">{t('privacyPolicy')}</Link>
-                  </label>
+                <div>
+                  <div className="flex items-start gap-2.5 pt-1">
+                    <input
+                      type="checkbox"
+                      id="terms"
+                      checked={admin.agreeToTerms}
+                      onChange={e => { setAdmin({ ...admin, agreeToTerms: e.target.checked }); setErrors(p => ({ ...p, agreeToTerms: '' })); }}
+                      className={`w-4 h-4 mt-0.5 rounded border-slate-300 accent-[#FF6B2C] ${errors.agreeToTerms ? 'outline outline-red-400' : ''}`}
+                    />
+                    <label htmlFor="terms" className="text-sm text-slate-600 leading-snug">
+                      {t('agreeToTerms')}{' '}
+                      <Link href="/terms" className="text-[#FF6B2C] hover:underline">{t('termsOfService')}</Link>
+                      {' '}{t('and')}{' '}
+                      <Link href="/privacy" className="text-[#FF6B2C] hover:underline">{t('privacyPolicy')}</Link>
+                    </label>
+                  </div>
+                  {errors.agreeToTerms && <p className="text-xs text-red-500 mt-1.5">{errors.agreeToTerms}</p>}
                 </div>
               </div>
             </div>
 
             <div className="flex gap-4 mt-5">
               <button
-                onClick={() => setStep(1)}
+                onClick={() => { setErrors({}); setStep(1); }}
                 className="flex-1 border border-slate-300 text-slate-700 py-3 rounded-xl font-medium hover:bg-slate-50 transition-colors"
               >
                 ← Back
               </button>
               <button
-                onClick={() => setStep(3)}
+                onClick={() => { if (validateStep2()) { setErrors({}); setStep(3); } }}
                 className="flex-1 bg-[#FF6B2C] text-white py-3 rounded-xl font-semibold hover:bg-[#e55a1f] transition-colors"
               >
                 Continue →
@@ -450,13 +545,14 @@ export default function SignupPage() {
                     <input
                       type="text"
                       value={payment.cardNumber}
-                      onChange={e => setPayment({ ...payment, cardNumber: formatCardNumber(e.target.value) })}
+                      onChange={e => { setPayment({ ...payment, cardNumber: formatCardNumber(e.target.value) }); setErrors(p => ({ ...p, cardNumber: '' })); }}
                       placeholder="1234 5678 9012 3456"
                       maxLength={19}
-                      className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C] outline-none text-sm pr-12"
+                      className={`${fc('cardNumber')} pr-12`}
                     />
                     <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-lg">💳</span>
                   </div>
+                  {errors.cardNumber && <p className="text-xs text-red-500 mt-1">{errors.cardNumber}</p>}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -464,22 +560,24 @@ export default function SignupPage() {
                     <input
                       type="text"
                       value={payment.expiry}
-                      onChange={e => setPayment({ ...payment, expiry: formatExpiry(e.target.value) })}
+                      onChange={e => { setPayment({ ...payment, expiry: formatExpiry(e.target.value) }); setErrors(p => ({ ...p, expiry: '' })); }}
                       placeholder="MM / YY"
                       maxLength={5}
-                      className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C] outline-none text-sm"
+                      className={fc('expiry')}
                     />
+                    {errors.expiry && <p className="text-xs text-red-500 mt-1">{errors.expiry}</p>}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">CVC *</label>
                     <input
                       type="text"
                       value={payment.cvc}
-                      onChange={e => setPayment({ ...payment, cvc: e.target.value.replace(/\D/g, '').slice(0, 3) })}
+                      onChange={e => { setPayment({ ...payment, cvc: e.target.value.replace(/\D/g, '').slice(0, 3) }); setErrors(p => ({ ...p, cvc: '' })); }}
                       placeholder="123"
                       maxLength={3}
-                      className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C] outline-none text-sm"
+                      className={fc('cvc')}
                     />
+                    {errors.cvc && <p className="text-xs text-red-500 mt-1">{errors.cvc}</p>}
                   </div>
                 </div>
                 <div>
@@ -487,10 +585,11 @@ export default function SignupPage() {
                   <input
                     type="text"
                     value={payment.cardholderName}
-                    onChange={e => setPayment({ ...payment, cardholderName: e.target.value })}
+                    onChange={e => { setPayment({ ...payment, cardholderName: e.target.value }); setErrors(p => ({ ...p, cardholderName: '' })); }}
                     placeholder="Name on card"
-                    className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C] outline-none text-sm"
+                    className={fc('cardholderName')}
                   />
+                  {errors.cardholderName && <p className="text-xs text-red-500 mt-1">{errors.cardholderName}</p>}
                 </div>
                 <div className="flex items-center gap-2.5">
                   <input
@@ -516,22 +615,21 @@ export default function SignupPage() {
 
             <div className="flex gap-4 mt-5">
               <button
-                onClick={() => setStep(2)}
+                onClick={() => { setErrors({}); setStep(2); }}
                 className="flex-1 border border-slate-300 text-slate-700 py-3 rounded-xl font-medium hover:bg-slate-50 transition-colors"
               >
                 ← Back
               </button>
               <button
                 onClick={() => {
+                  if (!validateStep3()) return;
                   const profile = {
                     name: admin.fullName,
                     email: admin.email,
                     dealershipName: business.dealershipName,
                     plan: selectedPlan,
                   };
-                  // Save active session
                   localStorage.setItem('user', JSON.stringify(profile));
-                  // Save to accounts registry so email login can restore dealershipName
                   const accounts = JSON.parse(localStorage.getItem('accounts') || '{}');
                   accounts[admin.email] = profile;
                   localStorage.setItem('accounts', JSON.stringify(accounts));
@@ -548,35 +646,86 @@ export default function SignupPage() {
         {/* ── Step 4: Complete ── */}
         {step === 4 && (
           <div className="w-full max-w-lg">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-10 text-center">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-10">
               {/* Checkmark */}
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                </svg>
+              <div className="text-center mb-8">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-slate-900 mb-2">Welcome to BikeMeNow! 🎉</h2>
+                <p className="text-slate-500 text-sm">Your account is ready. Let's get you set up!</p>
               </div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">Welcome to BikeMeNow! 🎉</h2>
-              <p className="text-slate-500 text-sm mb-8">Your account is ready. Let's get started!</p>
 
               {/* Quick start */}
-              <div className="text-left mb-8">
-                <h3 className="font-bold text-slate-900 mb-4">Quick Start Guide</h3>
-                <div className="space-y-3">
-                  {QUICK_START.map((item, i) => (
-                    <div key={i} className="flex items-start gap-3 p-4 bg-slate-50 rounded-xl">
-                      <div className="w-5 h-5 rounded-full border-2 border-slate-300 shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-slate-800 text-sm">{item.title}</p>
-                        <p className="text-slate-500 text-xs mt-0.5">{item.desc}</p>
-                      </div>
-                    </div>
-                  ))}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-slate-900">Quick Start Guide</h3>
+                  <span className="text-xs text-slate-400">
+                    {skipped.size}/{QUICK_START.length} done
+                  </span>
                 </div>
+
+                <div className="space-y-2">
+                  {QUICK_START.map((item) => {
+                    const isDone = skipped.has(item.key);
+                    return (
+                      <div
+                        key={item.key}
+                        className={`flex items-center gap-3 p-4 rounded-xl border transition-all ${
+                          isDone
+                            ? 'bg-slate-50 border-slate-100 opacity-60'
+                            : 'bg-white border-slate-200 hover:border-orange-200 hover:bg-orange-50/30'
+                        }`}
+                      >
+                        {/* Status icon */}
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-base ${
+                          isDone ? 'bg-green-100' : 'bg-slate-100'
+                        }`}>
+                          {isDone ? '✓' : item.icon}
+                        </div>
+
+                        {/* Text */}
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-medium text-sm ${isDone ? 'line-through text-slate-400' : 'text-slate-800'}`}>
+                            {item.title}
+                          </p>
+                          <p className="text-slate-400 text-xs mt-0.5">{item.desc}</p>
+                        </div>
+
+                        {/* Actions */}
+                        {!isDone && (
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Link
+                              href={item.href}
+                              className="text-xs font-semibold text-[#FF6B2C] hover:underline whitespace-nowrap"
+                            >
+                              Start →
+                            </Link>
+                            <button
+                              onClick={() => handleSkip(item.key)}
+                              className="text-xs text-slate-400 hover:text-slate-600 whitespace-nowrap border border-slate-200 px-2 py-1 rounded-lg hover:border-slate-300 transition-colors"
+                            >
+                              Hoppa över
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {skipped.size === QUICK_START.length && (
+                  <p className="text-center text-xs text-slate-400 mt-3">
+                    You can complete these steps anytime from Settings or the relevant pages.
+                  </p>
+                )}
               </div>
 
               <button
                 onClick={() => router.push('/dashboard')}
-                className="w-full bg-[#2563EB] text-white py-3.5 rounded-xl font-semibold hover:bg-[#e55a1f] transition-colors"
+                className="w-full bg-[#FF6B2C] text-white py-3.5 rounded-xl font-semibold hover:bg-[#e55a1f] transition-colors"
               >
                 Go to Dashboard →
               </button>
