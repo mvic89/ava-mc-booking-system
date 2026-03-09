@@ -469,7 +469,7 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <QuickAction href="/sales/leads/new" icon="➕" label={t('quickActions.newLead')}      desc={t('quickActions.newLeadDesc')}      accent="#FF6B2C" />
               <QuickAction href="/inventory"        icon="🏍" label={t('quickActions.addVehicle')}   desc={t('quickActions.addVehicleDesc')}   accent="#3b82f6" />
-              <QuickAction href="/purchase-orders"  icon="📦" label={t('quickActions.purchaseOrder')} desc={t('quickActions.purchaseOrderDesc')} accent="#10b981" />
+              <QuickAction href="/purchase"  icon="📦" label={t('quickActions.purchaseOrder')} desc={t('quickActions.purchaseOrderDesc')} accent="#10b981" />
             </div>
           </div>
 
