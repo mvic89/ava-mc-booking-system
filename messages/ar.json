@@ -1,0 +1,926 @@
+{
+  "common": {
+    "appName": "BikeMeNow",
+    "version": "v3.0",
+    "signOut": "تسجيل الخروج",
+    "admin": "مسؤول",
+    "user": "مستخدم",
+    "comingSoon": "قريباً",
+    "verifiedIdentity": "هوية موثقة",
+    "populationVerified": "موثق من سجل السكان",
+    "address": "العنوان",
+    "dateOfBirth": "تاريخ الميلاد",
+    "gender": "الجنس",
+    "protectedIdentity": "هوية محمية",
+    "protectedIdentityYes": "نعم — تعامل بحذر",
+    "privacyPolicy": "سياسة الخصوصية",
+    "terms": "الشروط"
+  },
+  "navigation": {
+    "dashboard": "لوحة القيادة",
+    "inventory": "المخزون",
+    "purchaseOrders": "أوامر الشراء",
+    "salesPipeline": "خط المبيعات",
+    "pipeline": "خط الأنابيب",
+    "customers": "العملاء",
+    "invoices": "الفواتير",
+    "documents": "المستندات",
+    "analytics": "التحليلات",
+    "settings": "الإعدادات",
+    "users": "المستخدمون",
+    "auditLog": "سجل المراجعة",
+    "subscribedDealer": "وكيل مشترك",
+    "groups": {
+      "core": "الأساسي",
+      "sales": "المبيعات",
+      "admin": "الإدارة"
+    }
+  },
+  "login": {
+    "title": "مرحباً بعودتك",
+    "subtitle": "سجّل الدخول إلى مساحة عمل BikeMeNow الخاصة بك",
+    "signInWithBankID": "تسجيل الدخول باستخدام BankID",
+    "recommended": "موصى به — لا حاجة لكلمة مرور",
+    "or": "أو",
+    "emailAddress": "عنوان البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "rememberDevice": "تذكر هذا الجهاز",
+    "forgotPassword": "هل نسيت كلمة المرور؟",
+    "signIn": "تسجيل الدخول",
+    "noAccount": "ليس لديك حساب؟",
+    "signUp": "سجل الآن",
+    "security": "مشفر SSL 256 بت • متوافق مع GDPR",
+    "branding": {
+      "tagline": "منصة الذكاء للوكلاء",
+      "zeroInput": "صفر إدخال يدوي",
+      "zeroInputDesc": "الذكاء الاصطناعي يتعامل مع إدخال البيانات حتى تتمكن من البيع",
+      "secured": "محمي بـ BankID",
+      "securedDesc": "المعيار السويدي للهوية الرقمية",
+      "analytics": "تحليلات في الوقت الفعلي",
+      "analyticsDesc": "لوحات معلومات مباشرة ورؤى الذكاء الاصطناعي",
+      "dealers": "مصمم لتجار الدراجات النارية",
+      "dealersDesc": "مركز على وكلاء الدراجات النارية السويدية",
+      "copyright": "© 2026 BikeMeNow.com. جميع الحقوق محفوظة.",
+      "security": "مشفر 256 بت • متوافق مع GDPR • استضافة سويدية"
+    }
+  },
+  "redirecting": "إعادة التوجيه إلى تسجيل الدخول...",
+  "newLead": {
+    "breadcrumb": {
+      "sales": "المبيعات",
+      "newLead": "عميل محتمل جديد"
+    },
+    "title": "إنشاء عميل محتمل جديد",
+    "identifyCustomer": "تحديد هوية العميل",
+    "identifyCustomerDesc": "اختر كيفية تحديد هوية العميل",
+    "tabs": {
+      "bankid": "BankID (موصى به)",
+      "manual": "يدوي",
+      "phone": "البحث عبر الهاتف"
+    },
+    "successBanner": "تم التعرف عليه عبر BankID — {name} ({personalNumber})",
+    "genderOptions": {
+      "male": "ذكر",
+      "female": "أنثى"
+    },
+    "fields": {
+      "name": "الاسم",
+      "address": "العنوان",
+      "dateOfBirth": "تاريخ الميلاد",
+      "gender": "الجنس",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "source": "المصدر",
+      "notes": "ملاحظات",
+      "interest": "الاهتمام"
+    },
+    "badges": {
+      "bankid": "BankID",
+      "registration": "التسجيل",
+      "manual": "يدوي"
+    },
+    "sourceOptions": {
+      "walkin": "زيارة مباشرة",
+      "phone": "هاتف",
+      "website": "الموقع الإلكتروني",
+      "referral": "إحالة"
+    },
+    "placeholders": {
+      "email": "lars@example.sa",
+      "phone": "05-123-4567",
+      "notes": "مهتم بالدراجات الرياضية، الميزانية ~90-150 ألف",
+      "interest": "كاواساكي نينجا ZX-6R"
+    },
+    "autoFilled": "تم ملء 80% تلقائيًا",
+    "gdprConsent": "يوافق العميل على معالجة البيانات الشخصية وفقاً لـ",
+    "privacyPolicyLink": "سياسة الخصوصية",
+    "submitButton": "إنشاء عميل محتمل",
+    "sidebar": {
+      "title": "إثراء BankID + Roaring.io",
+      "bankidInfo": "BankID ← الاسم + الرقم الشخصي (تم التحقق منه)",
+      "roaringInfo": "Roaring.io ← العنوان، الرمز البريدي، المدينة، الجنس (SPAR)",
+      "manualInfo": "يدوي ← البريد الإلكتروني، الهاتف (اسأل العميل)",
+      "existingCustomer": "عميل موجود: لا (جديد في النظام)",
+      "protectedIdentity": "هوية محمية: لا",
+      "highIntent": "زيارة مباشرة + BankID = 92% نية عالية",
+      "matchingVehicles": "المركبات المطابقة",
+      "basedOn": "بناءً على الميزانية 90-150 ألف واهتمام رياضي",
+      "testEnv": "بيئة اختبار BankID"
+    }
+  },
+  "dashboard": {
+    "loading": "جارٍ التحميل...",
+    "welcome": "مرحباً بعودتك، {name}!",
+    "subtitle": "إليك ما يحدث مع وكالتك اليوم.",
+    "happeningToday": "إليك ما يحدث في وكالتك اليوم.",
+    "greeting": {
+      "morning": "صباح الخير",
+      "afternoon": "مساء الخير",
+      "evening": "مساء الخير"
+    },
+    "newLead": "＋ عميل جديد",
+    "vsLastMonth": "مقارنة بالشهر الماضي",
+    "revenueTrend": "اتجاه الإيرادات",
+    "revenueTrendSub": "آخر 6 أشهر · كرونة (بالآلاف)",
+    "vsLastYear": "↑ 22% مقارنة بالعام الماضي",
+    "salesFunnel": "مسار المبيعات",
+    "salesFunnelSub": "العملاء المحتملون النشطون حسب المرحلة",
+    "openPipeline": "فتح خط المبيعات →",
+    "funnelStages": {
+      "new": "جديد",
+      "contacted": "تم التواصل",
+      "testRide": "تجربة القيادة",
+      "negotiating": "تفاوض",
+      "closed": "مغلق"
+    },
+    "stats": {
+      "activeLeads": "العملاء المحتملون النشطون",
+      "inStock": "في المخزون",
+      "inventory": "المخزون",
+      "revenueKr": "الإيرادات (كرونة)",
+      "revenue": "الإيرادات",
+      "customers": "العملاء",
+      "new": "جديد",
+      "today": "اليوم",
+      "thisMonth": "هذا الشهر",
+      "percentIncrease": "+{percent}%"
+    },
+    "quickActions": {
+      "title": "إجراءات سريعة",
+      "newLead": "عميل محتمل جديد",
+      "newLeadDesc": "إضافة زيارة مباشرة أو مكالمة",
+      "addInventory": "إضافة مخزون",
+      "addInventoryDesc": "تسجيل مركبة جديدة",
+      "addVehicle": "إضافة مركبة",
+      "addVehicleDesc": "تحديث مخزونك",
+      "purchaseOrder": "أمر شراء",
+      "purchaseOrderDesc": "اطلب من المورد"
+    },
+    "recentLeads": {
+      "title": "أحدث العملاء المحتملين",
+      "viewAll": "عرض الكل →",
+      "hot": "ساخن",
+      "warm": "دافئ",
+      "cold": "بارد",
+      "hoursAgo": "منذ {hours} ساعات",
+      "daysAgo": "منذ {days} يوم"
+    },
+    "topSelling": {
+      "title": "الأكثر مبيعاً",
+      "sold": "مُباع",
+      "thisMonth": "هذا الشهر",
+      "sales": "{count} مبيعات"
+    }
+  },
+  "signup": {
+    "title": "إنشاء حسابك",
+    "subtitle": "انضم إلى BikeMeNow وسهّل عمل وكالتك",
+    "signUpWithBankID": "التسجيل باستخدام BankID",
+    "recommended": "موصى به — تحقق فوري",
+    "or": "أو",
+    "fullName": "الاسم الكامل",
+    "emailAddress": "عنوان البريد الإلكتروني",
+    "dealershipName": "اسم الوكالة",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "passwordMinLength": "8 أحرف على الأقل",
+    "passwordsMatch": "✅ كلمات المرور متطابقة!",
+    "passwordsDoNotMatch": "❌ كلمات المرور غير متطابقة",
+    "agreeToTerms": "أوافق على",
+    "termsOfService": "شروط الخدمة",
+    "and": "و",
+    "privacyPolicy": "سياسة الخصوصية",
+    "createAccount": "إنشاء حساب",
+    "security": "🔒 مشفر SSL 256 بت • متوافق مع GDPR",
+    "alreadyHaveAccount": "هل لديك حساب بالفعل؟",
+    "signIn": "تسجيل الدخول",
+    "branding": {
+      "tagline": "منصة الذكاء للوكلاء",
+      "getStartedFree": "ابدأ مجاناً",
+      "getStartedFreeDesc": "لا حاجة لبطاقة ائتمان",
+      "setupQuick": "الإعداد في دقيقتين",
+      "setupQuickDesc": "تسجيل سريع باستخدام BankID",
+      "dealers": "مصمم لتجار الدراجات النارية",
+      "dealersDesc": "مركز على وكلاء الدراجات النارية السويدية",
+      "secureCompliant": "آمن ومتوافق",
+      "secureCompliantDesc": "متوافق مع GDPR مع استضافة سويدية",
+      "copyright": "© 2026 BikeMeNow.com. جميع الحقوق محفوظة.",
+      "security": "مشفر 256 بت • متوافق مع GDPR • استضافة سويدية"
+    },
+    "alerts": {
+      "passwordsDontMatch": "كلمات المرور غير متطابقة!",
+      "passwordTooShort": "يجب أن تكون كلمة المرور 8 أحرف على الأقل!",
+      "mustAgreeToTerms": "يجب أن توافق على شروط الخدمة وسياسة الخصوصية!"
+    }
+  },
+  "resetPassword": {
+    "title": "تعيين كلمة مرور جديدة",
+    "subtitle": "أدخل كلمة مرورك الجديدة أدناه. اجعلها قوية ولا تُنسى!",
+    "newPassword": "كلمة المرور الجديدة",
+    "confirmNewPassword": "تأكيد كلمة المرور الجديدة",
+    "minLength": "8 أحرف على الأقل",
+    "passwordsMatch": "✅ كلمات المرور متطابقة!",
+    "passwordsDoNotMatch": "❌ كلمات المرور غير متطابقة",
+    "resetButton": "إعادة تعيين كلمة المرور",
+    "backToSignIn": "العودة إلى تسجيل الدخول",
+    "security": "🔒 مشفر SSL 256 بت • متوافق مع GDPR",
+    "branding": {
+      "tagline": "منصة الذكاء للوكلاء",
+      "strongPassword": "كلمة مرور قوية",
+      "strongPasswordDesc": "مطلوب 8 أحرف على الأقل",
+      "confirmationMatch": "تطابق كلمات المرور",
+      "confirmationMatchDesc": "يجب أن تتطابق كلمتا المرور",
+      "secureHash": "تشفير آمن",
+      "secureHashDesc": "كلمات المرور مشفرة ولا تُخزن أبداً كنص عادي",
+      "immediateEffect": "تأثير فوري",
+      "immediateEffectDesc": "كلمة المرور الجديدة تعمل فوراً",
+      "copyright": "© 2026 BikeMeNow.com. جميع الحقوق محفوظة.",
+      "security": "مشفر 256 بت • متوافق مع GDPR • استضافة سويدية"
+    },
+    "alerts": {
+      "passwordsDontMatch": "كلمات المرور غير متطابقة",
+      "passwordTooShort": "يجب أن تكون كلمة المرور 8 أحرف على الأقل"
+    }
+  },
+  "customers": {
+    "title": "العملاء",
+    "searchPlaceholder": "ابحث عن عملاء…",
+    "addWithBankID": "🔒 تحقق من الهوية بـ BankID",
+    "addManuallyTitle": "إضافة عميل يدوياً",
+    "export": "تصدير",
+    "tabs": {
+      "all": "الكل",
+      "active": "نشط",
+      "vip": "VIP",
+      "bankid": "BankID ✓",
+      "inactive": "غير نشط"
+    },
+    "table": {
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "source": "المصدر",
+      "vehicles": "المركبات",
+      "lifetimeValue": "القيمة الإجمالية",
+      "lastActivity": "آخر نشاط",
+      "tags": "التصنيفات",
+      "noResults": "لم يتم العثور على عملاء",
+      "showing": "عرض 1–{count} من 342 عميل"
+    },
+    "sourceBadge": {
+      "manual": "يدوي"
+    },
+    "stats": {
+      "totalCustomers": "إجمالي العملاء",
+      "bankidVerified": "BankID موثق",
+      "bankidShare": "نسبة BankID",
+      "protected": "محميون",
+      "unverified": "غير موثق"
+    },
+    "new": {
+      "breadcrumb": "عميل جديد",
+      "title": "إضافة عميل جديد",
+      "subtitle": "اختر كيفية تحديد هوية العميل",
+      "cancel": "إلغاء",
+      "bankIDOption": {
+        "title": "التحقق بـ BankID",
+        "desc": "تعبئة تلقائية للاسم والعنوان من سجل السكان. موصى به.",
+        "verifiedTag": "هوية موثقة",
+        "autoFillTag": "عنوان مُعبأ تلقائياً"
+      },
+      "manualOption": {
+        "title": "تعبئة يدوية",
+        "desc": "أدخل بيانات العميل يدوياً. لا يتطلب BankID.",
+        "unverifiedTag": "غير موثق",
+        "allManualTag": "جميع الحقول يدوية"
+      },
+      "scanning": {
+        "title": "تحديد هوية العميل",
+        "subtitle": "اطلب من العميل مسح رمز QR باستخدام تطبيق BankID",
+        "clickStart": "انقر على \"بدء BankID\"\nلعرض رمز QR",
+        "qrAutoUpdate": "يتحدث رمز QR تلقائياً",
+        "startBankID": "⏳ ابدأ تطبيق BankID وامسح رمز QR...",
+        "openOnDevice": "📱 افتح BankID على هذا الجهاز",
+        "back": "→ رجوع",
+        "useManual": "تعبئة يدوية بدلاً من ذلك",
+        "howItWorks": "كيف يعمل",
+        "dataSources": "مصادر البيانات",
+        "step1Title": "BankID يمسح",
+        "step1Desc": "يتحقق من الرقم الشخصي + الاسم",
+        "step2Title": "Roaring.io يجلب",
+        "step2Desc": "العنوان، الرمز البريدي، المدينة من سجل السكان",
+        "step3Title": "أنت تملأ",
+        "step3Desc": "البريد الإلكتروني + الهاتف (ليس في السجل أبداً)",
+        "step4Title": "عميل موجود؟",
+        "step4Desc": "يحمل الملف الشخصي الكامل تلقائياً",
+        "source1": "BankID — الاسم، الرقم الشخصي (موثق)",
+        "source2": "Roaring.io — العنوان، الرمز البريدي، المدينة، الجنس، تاريخ الميلاد",
+        "source3": "يدوي — البريد الإلكتروني، الهاتف (اسأل العميل دائماً)"
+      },
+      "manual": {
+        "title": "عميل جديد — تسجيل يدوي",
+        "subtitle": "أدخل بيانات العميل. غير موثق بـ BankID.",
+        "useBankIDInstead": "🔒 استخدم BankID بدلاً من ذلك",
+        "personalInfo": "المعلومات الشخصية",
+        "contact": "تفاصيل الاتصال",
+        "addressSection": "العنوان",
+        "streetAddress": "عنوان الشارع",
+        "postalCode": "الرمز البريدي",
+        "city": "المدينة",
+        "notesSection": "أخرى",
+        "notesLabel": "ملاحظات",
+        "notesPlaceholder": "أي ملاحظات حول العميل...",
+        "genderMale": "ذكر",
+        "genderFemale": "أنثى",
+        "genderOther": "آخر",
+        "warningNotVerified": "العملاء المسجلون يدوياً غير موثقين بـ BankID. الهوية غير مؤكدة. فكر في التحقق من العميل بـ BankID في الزيارة القادمة.",
+        "saveCustomer": "حفظ العميل"
+      },
+      "bankIDFlow": {
+        "identifiedBannerSub": "الرقم الشخصي موثق • العنوان مُجلب من سجل السكان",
+        "autoFilledTitle": "عميل جديد — مُعبأ تلقائياً",
+        "autoFilledSubtitle": "البيانات الأساسية مُجلبة تلقائياً. أدخل البريد الإلكتروني والهاتف.",
+        "verifiedSection": "🔒 موثق عبر BANKID",
+        "roaringSection": "📋 سجل السكان (ROARING.IO / SPAR)",
+        "manualSection": "✏️ أدخل يدوياً (غير متوفر في السجل)",
+        "unavailable": "غير متوفر",
+        "male": "ذكر",
+        "female": "أنثى",
+        "saveCustomer": "حفظ العميل"
+      },
+      "returning": {
+        "identified": "تم التعرف عليه عبر BankID — تم تحميل الملف الشخصي تلقائياً. آخر زيارة: {date}.",
+        "quickActions": "إجراءات سريعة",
+        "newQuote": "عرض سعر جديد",
+        "createLead": "إنشاء عميل محتمل",
+        "bookTestRide": "حجز تجربة قيادة",
+        "viewProfile": "عرض الملف الشخصي",
+        "vehicles": "المركبات",
+        "lifetimeValue": "القيمة الإجمالية",
+        "purchases": "المشتريات",
+        "outstanding": "المستحقات"
+      },
+      "protected": {
+        "bannerTitle": "هوية محمية (علامة سرية)",
+        "bannerDesc": "لا يمكن جلب العنوان تلقائياً. اطلب من العميل ملء بياناته.",
+        "title": "عميل جديد — هوية محمية",
+        "addressBlocked": "🛡 العنوان محجوب — هوية محمية",
+        "addressBlockedDesc": "أعاد Roaring.io protectedRegistration: true. العنوان غير متوفر.",
+        "confirmCheckbox": "أؤكد أن العميل قد أدخل هذه البيانات بنفسه"
+      },
+      "summary": {
+        "title": "ملخص التعبئة التلقائية",
+        "bankidVerified": "BankID (موثق)",
+        "bankidSub": "الاسم الأول، الاسم الأخير، الرقم الشخصي",
+        "roaringData": "Roaring.io / SPAR",
+        "roaringSub": "العنوان، الرمز البريدي، المدينة، تاريخ الميلاد، الجنس",
+        "manualInput": "إدخال يدوي",
+        "manualSub": "البريد الإلكتروني، الهاتف (ليس في السجل أبداً)",
+        "fields": "{count} حقول",
+        "autoFilled": "80% مُعبأ تلقائياً (8 من 10 حقول)",
+        "bankidVerification": "🔒 توثيق BankID",
+        "signatureLabel": "التوقيع:",
+        "signatureStored": "محفوظ (base64 XML)",
+        "ocspLabel": "OCSP:",
+        "ocspStored": "محفوظ (صالح)",
+        "riskLabel": "المخاطرة:",
+        "riskLow": "منخفض",
+        "ipLabel": "IP:",
+        "signatureNote": "التوقيع + OCSP محفوظان لكل توثيق (دليل قانوني)"
+      },
+      "savedToast": "تم حفظ العميل!",
+      "savedToastDesc": "تم إضافة العميل إلى النظام."
+    },
+    "profile": {
+      "tabs": {
+        "overview": "نظرة عامة",
+        "vehicles": "المركبات",
+        "invoices": "الفواتير",
+        "documents": "المستندات",
+        "timeline": "الجدول الزمني",
+        "gdpr": "GDPR"
+      },
+      "contactInfo": "👤 تفاصيل الاتصال",
+      "bankidHistory": "🔒 سجل توثيق BankID",
+      "stats": "📊 نظرة عامة",
+      "recentActivity": "📋 النشاط الأخير",
+      "noBankIDHistory": "لا يوجد سجل BankID",
+      "noActivity": "لا يوجد نشاط بعد",
+      "noVehicles": "لا توجد مركبات مسجلة",
+      "noInvoices": "لا توجد فواتير",
+      "underDevelopment": "هذا القسم تحت التطوير.",
+      "gdprTab": {
+        "title": "GDPR — إدارة البيانات الشخصية",
+        "dataTitle": "البيانات المسجلة",
+        "name": "الاسم والرقم الشخصي",
+        "address": "العنوان والجنس وتاريخ الميلاد",
+        "contact": "البريد الإلكتروني والهاتف",
+        "purchases": "تاريخ الشراء ({n} فاتورة)",
+        "bankidLogs": "تحقق BankID ({n} مرة)",
+        "sourceBankID": "BankID",
+        "sourceSPAR": "سجل السكان",
+        "sourceManual": "يدوي",
+        "legalBasisTitle": "الأساس القانوني",
+        "legalBasis1": "العقد (عقد الشراء) — GDPR المادة 6.1b",
+        "legalBasis2": "قانون المحاسبة (7 سنوات) — GDPR المادة 6.1c",
+        "legalBasis3": "المصلحة المشروعة (علاقة العميل) — GDPR المادة 6.1f",
+        "accessTitle": "الوصول والنقل",
+        "accessDesc": "يحق لك الحصول على جميع بياناتك بتنسيق قابل للقراءة آلياً.",
+        "exportBtn": "تصدير كـ JSON",
+        "rectifyTitle": "التصحيح",
+        "rectifyDesc": "تواصل معنا لتصحيح البيانات غير الدقيقة.",
+        "rectifyBtn": "تواصل معنا",
+        "deleteTitle": "الحذف",
+        "deleteDesc": "البيانات المرتبطة بعقود الشراء تُحفظ لمدة 7 سنوات وفقاً لقانون المحاسبة ولا يمكن حذفها قبل ذلك.",
+        "deleteBtn": "إرسال طلب",
+        "deleteSuccess": "تم استلام الطلب. سنرد خلال 30 يوماً.",
+        "imy": "يمكن توجيه الشكاوى إلى IMY (هيئة حماية البيانات السويدية) — imy.se",
+        "privacyLink": "سياسة الخصوصية الكاملة"
+      },
+      "fields": {
+        "firstName": "الاسم الأول",
+        "lastName": "الاسم الأخير",
+        "personalNumber": "الرقم الشخصي",
+        "address": "العنوان",
+        "birthDate": "تاريخ الميلاد",
+        "email": "البريد الإلكتروني",
+        "phone": "الهاتف",
+        "gender": "الجنس",
+        "citizenship": "الجنسية",
+        "protectedIdentity": "هوية محمية",
+        "yes": "نعم",
+        "no": "لا",
+        "protectedAddressNote": "🛡️ محمي — غير متوفر"
+      },
+      "vehicleTable": {
+        "vehicle": "المركبة",
+        "year": "السنة",
+        "plate": "رقم التسجيل",
+        "status": "الحالة"
+      },
+      "invoiceTable": {
+        "invoiceNo": "رقم الفاتورة",
+        "description": "الوصف",
+        "date": "التاريخ",
+        "amount": "المبلغ",
+        "status": "الحالة"
+      },
+      "dataSources": "مصادر البيانات:",
+      "dataSourceLabels": {
+        "bankid": "BankID (موثق)",
+        "roaring": "Roaring.io / SPAR (سجل السكان)",
+        "manual": "إدخال يدوي"
+      },
+      "actions": {
+        "newQuote": "عرض سعر جديد",
+        "gdprExport": "تصدير GDPR"
+      },
+      "notFound": "العميل غير موجود",
+      "backToCustomers": "→ العودة إلى العملاء"
+    }
+  },
+  "forgotPassword": {
+    "title": "هل نسيت كلمة المرور؟",
+    "subtitle": "لا تقلق! أدخل عنوان بريدك الإلكتروني وسنرسل لك رابط إعادة التعيين.",
+    "emailAddress": "عنوان البريد الإلكتروني",
+    "emailPlaceholder": "name@dealer.com",
+    "sendButton": "إرسال رابط إعادة التعيين",
+    "backToSignIn": "→ العودة إلى تسجيل الدخول",
+    "security": "🔒 مشفر SSL 256 بت • متوافق مع GDPR",
+    "branding": {
+      "tagline": "منصة الذكاء للوكلاء",
+      "secureReset": "إعادة تعيين آمنة",
+      "secureResetDesc": "معايير الصناعة لاسترداد كلمة المرور",
+      "emailVerification": "التحقق عبر البريد الإلكتروني",
+      "emailVerificationDesc": "تم إرسال رابط إعادة التعيين إلى بريدك الإلكتروني المسجل",
+      "expiry": "انتهاء الصلاحية بعد 15 دقيقة",
+      "expiryDesc": "ينتهي الرابط لأسباب أمنية",
+      "protectedAccess": "وصول محمي",
+      "protectedAccessDesc": "لا تغييرات غير مصرح بها لكلمة المرور",
+      "copyright": "© 2026 BikeMeNow.com. جميع الحقوق محفوظة.",
+      "security": "مشفر 256 بت • متوافق مع GDPR • استضافة سويدية"
+    }
+  },
+  "emailSent": {
+    "title": "تحقق من بريدك الإلكتروني",
+    "subtitle": "لقد أرسلنا رابط إعادة تعيين كلمة المرور إلى عنوان بريدك الإلكتروني. انقر على الرابط في البريد لإنشاء كلمة مرور جديدة.",
+    "linkExpires": "⏱️ ينتهي الرابط بعد 15 دقيقة",
+    "linkExpiresDesc": "لأسباب أمنية، سينتهي رابط إعادة التعيين بعد 15 دقيقة",
+    "didntReceive": "لم تستلم البريد الإلكتروني؟",
+    "resendEmail": "إعادة إرسال البريد الإلكتروني",
+    "backToSignIn": "→ العودة إلى تسجيل الدخول",
+    "security": "🔒 مشفر SSL 256 بت • متوافق مع GDPR",
+    "branding": {
+      "tagline": "منصة الذكاء للوكلاء",
+      "checkInbox": "تحقق من صندوق الوارد",
+      "checkInboxDesc": "تم إرسال رابط إعادة التعيين إلى بريدك الإلكتروني",
+      "validFor": "صالح لمدة 15 دقيقة",
+      "validForDesc": "انقر على الرابط خلال 15 دقيقة",
+      "checkSpam": "تحقق من مجلد الرسائل غير المرغوب فيها",
+      "checkSpamDesc": "قد يكون البريد في مجلد السبام",
+      "didntReceiveIt": "لم تستلمه؟",
+      "didntReceiveItDesc": "اطلب رابطاً جديداً بعد بضع دقائق",
+      "copyright": "© 2026 BikeMeNow.com. جميع الحقوق محفوظة.",
+      "security": "مشفر 256 بت • متوافق مع GDPR • استضافة سويدية"
+    }
+  },
+  "resetComplete": {
+    "title": "اكتملت إعادة تعيين كلمة المرور!",
+    "subtitle": "تم إعادة تعيين كلمة مرورك بنجاح. يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.",
+    "successTitle": "تم تحديث كلمة المرور بنجاح",
+    "itemNewActive": "كلمة المرور الجديدة نشطة الآن",
+    "itemOldInvalidated": "كلمة المرور القديمة لم تعد صالحة",
+    "itemCanSignIn": "يمكنك تسجيل الدخول فوراً",
+    "goToSignIn": "الذهاب إلى تسجيل الدخول",
+    "security": "🔒 مشفر SSL 256 بت • متوافق مع GDPR",
+    "tip": "💡 نصيحة: احتفظ بكلمة مرورك بأمان ولا تشاركها مع أي شخص. للحصول على أمان إضافي، فكر في استخدام BankID لعمليات تسجيل الدخول المستقبلية.",
+    "branding": {
+      "tagline": "منصة الذكاء للوكلاء",
+      "passwordUpdated": "تم تحديث كلمة المرور",
+      "passwordUpdatedDesc": "كلمة مرورك الجديدة نشطة الآن",
+      "securelyEncrypted": "مشفر بأمان",
+      "securelyEncryptedDesc": "يحمي تشفير 256 بت كلمة مرورك",
+      "readyToGo": "جاهز للبدء",
+      "readyToGoDesc": "سجّل الدخول بكلمة مرورك الجديدة",
+      "accountSecure": "الحساب آمن",
+      "accountSecureDesc": "كلمة المرور القديمة لم تعد صالحة",
+      "copyright": "© 2026 BikeMeNow.com. جميع الحقوق محفوظة.",
+      "security": "مشفر 256 بت • متوافق مع GDPR • استضافة سويدية"
+    }
+  },
+  "leads": {
+    "breadcrumb": {
+      "sales": "المبيعات",
+      "pipeline": "خط الأنابيب"
+    },
+    "searchPlaceholder": "ابحث عن leads…",
+    "newLead": "＋ عميل محتمل جديد",
+    "pipelineValue": "قيمة خط الأنابيب",
+    "noLeads": "لا يوجد leads",
+    "addLead": "＋ إضافة lead",
+    "columns": {
+      "new": "جديد",
+      "contacted": "تم التواصل",
+      "testRide": "تجربة القيادة",
+      "negotiating": "تفاوض",
+      "closed": "مغلق"
+    },
+    "status": {
+      "hot": "ساخن",
+      "warm": "دافئ",
+      "cold": "بارد"
+    }
+  },
+  "settings": {
+    "breadcrumb": "الإدارة / الإعدادات",
+    "title": "الإعدادات",
+    "subtitle": "قم بتكوين ملف تعريف الوكالة والتكاملات وتفضيلات النظام.",
+    "comingSoon": "قريباً",
+    "sections": {
+      "payments": {
+        "title": "مزودو الدفع",
+        "desc": "قم بتكوين Svea وKlarna وSwish وNets وجميع طرق الدفع الأخرى لوكالتك.",
+        "badge": "20 مزوداً"
+      },
+      "profile": {
+        "title": "ملف الوكالة",
+        "desc": "قم بتعديل اسم شركتك وعنوانها ورقم التسجيل والشعار وبيانات الاتصال.",
+        "badge": "نشط"
+      },
+      "users": {
+        "title": "المستخدمون والصلاحيات",
+        "desc": "إدارة حسابات الموظفين والأدوار (مدير، مبيعات، خدمة) ومستويات الوصول.",
+        "badge": "نشط"
+      },
+      "notifications": {
+        "title": "الإشعارات",
+        "desc": "إعداد إشعارات البريد الإلكتروني والرسائل النصية للعملاء الجدد والاتفاقيات والمدفوعات.",
+        "badge": "مباشر"
+      },
+      "integrations": {
+        "title": "التكاملات",
+        "desc": "ربط Fortnox وBlocket وTransportstyrelsen ومزودي التأمين.",
+        "badge": "5 تكاملات"
+      },
+      "billing": {
+        "title": "الاشتراك والفوترة",
+        "desc": "إدارة خطة نظام AVA MC والفواتير وطريقة الدفع.",
+        "badge": "مباشر"
+      }
+    }
+  },
+  "pages": {
+    "analytics": {
+      "title": "التحليلات",
+      "desc": "تقارير متعمقة حول أداء المبيعات ودوران المخزون وتحويل العملاء المحتملين."
+    },
+    "auditLog": {
+      "title": "سجل المراجعة",
+      "desc": "سجل كامل للنشاطات — كل عملية تسجيل دخول وتعديل ومعاملة في وكالتك."
+    },
+    "documents": {
+      "title": "المستندات",
+      "desc": "تخزين وإدارة العقود وسجلات الخدمة ووثائق الامتثال."
+    },
+    "inventory": {
+      "title": "المخزون",
+      "desc": "تصفح وإدارة مخزون الدراجات النارية وإضافة مركبات جديدة وتتبع التوفر."
+    },
+    "invoices": {
+      "title": "الفواتير",
+      "desc": "إنشاء وإرسال وتتبع الفواتير لأعمال البيع والصيانة."
+    },
+    "purchaseOrders": {
+      "title": "أوامر الشراء",
+      "desc": "إدارة طلبات الموردين وتتبع التسليمات والتعامل مع المشتريات لوكالتك."
+    },
+    "users": {
+      "title": "المستخدمون",
+      "desc": "إدارة حسابات الموظفين والأدوار والأذونات لوكالتك."
+    }
+  },
+  "agreement": {
+    "breadcrumb": {
+      "sales": "المبيعات",
+      "agreement": "العقد"
+    },
+    "title": "إنشاء اتفاقية شراء",
+    "editingBadge": "جاري التعديل",
+    "autopopulated": "جميع الحقول مملوءة تلقائياً من العرض المقبول {offerNumber} — لا حاجة لإدخال يدوي",
+    "sections": {
+      "details": "تفاصيل الاتفاقية",
+      "legal": "الامتثال القانوني",
+      "security": "أمان المستند"
+    },
+    "fields": {
+      "agreementNumber": "رقم الاتفاقية:",
+      "customer": "العميل:",
+      "vehicle": "المركبة:",
+      "vin": "رقم الهيكل:",
+      "accessories": "الملحقات:",
+      "tradeIn": "المقايضة:",
+      "totalPrice": "السعر الإجمالي:",
+      "financing": "التمويل:",
+      "totalCreditCost": "إجمالي تكلفة الائتمان"
+    },
+    "badges": {
+      "auto": "تلقائي",
+      "fromOffer": "من العرض",
+      "calculated": "محسوب"
+    },
+    "placeholders": {
+      "fullName": "الاسم الكامل",
+      "personnummer": "الرقم الشخصي",
+      "vehicleModel": "السنة الصنع الطراز",
+      "vin": "رقم هيكل 17 حرفاً",
+      "accessories": "مثال: Akrapovic + واقي الخزان",
+      "vehicleMakeModel": "صنع/طراز المركبة"
+    },
+    "legal": {
+      "consumerAct": "قانون شراء المستهلك السويدي",
+      "returnPolicy": "سياسة إرجاع 14 يوماً مضمنة",
+      "gdpr": "بند GDPR لمعالجة البيانات",
+      "vat": "ضريبة القيمة المضافة مطبقة بشكل صحيح (25%)",
+      "fskattebevis": "مرجع شهادة الضريبة",
+      "warranty": "شروط الضمان مضمنة"
+    },
+    "docSecurity": {
+      "beforeSigning": "قبل التوقيع:",
+      "afterBankID": "بعد BankID:",
+      "auditTrail": "مسار المراجعة:",
+      "retention": "مدة الاحتفاظ:",
+      "editable": "قابل للتعديل",
+      "locked": "مقفل وغير قابل للتغيير",
+      "everyChange": "كل تغيير مسجل",
+      "encrypted": "7 سنوات مشفرة"
+    },
+    "unsavedChanges": "التغييرات غير محفوظة",
+    "vatNote": "شامل 25% ضريبة قيمة مضافة",
+    "actions": {
+      "saveChanges": "حفظ التغييرات",
+      "cancel": "إلغاء",
+      "editAgreement": "تعديل الاتفاقية",
+      "proceedToSigning": "المتابعة للتوقيع"
+    }
+  },
+  "privacy": {
+    "title": "سياسة الخصوصية",
+    "subtitle": "كيف تعالج AVA MC AB بياناتك الشخصية",
+    "lastUpdated": "آخر تحديث: 2026-03-06",
+    "s1title": "المتحكم في البيانات",
+    "s1body": "AVA MC AB، رقم التسجيل 556123-4567، كيستا، ستوكهولم. للتواصل: privacy@avamc.se",
+    "s2title": "ما هي البيانات التي نجمعها؟",
+    "s2body": "BankID (الاسم، الرقم الشخصي، وقت التوقيع، التحقق OCSP)، سجل السكان عبر Roaring.io/SPAR (العنوان، الجنس، تاريخ الميلاد، الهوية المحمية)، يدوي (البريد الإلكتروني، الهاتف)، تاريخ الشراء (العقود، الفواتير، المركبات، VIN، رقم اللوحة).",
+    "s3title": "الأساس القانوني (GDPR المادة 6)",
+    "s3body": "المادة 6.1b: تنفيذ عقد الشراء. المادة 6.1c: التزام قانوني (قانون المحاسبة، قانون مكافحة غسيل الأموال). المادة 6.1f: مصلحة مشروعة (علاقة العملاء، تقييم الائتمان). المادة 6.1a: الموافقة (التسويق — يمكن سحبها في أي وقت).",
+    "s4title": "كم مدة الاحتفاظ بالبيانات؟",
+    "s4body": "بيانات المعاملات (العقود، الفواتير): 7 سنوات (قانون المحاسبة). ملف تعريف العميل: طوال فترة العلاقة + 3 سنوات. سجلات BankID: 5 سنوات. العملاء المحتملون بدون شراء: سنة واحدة.",
+    "s5title": "مع من نشارك البيانات؟",
+    "s5body": "BankID AB (Bankgirot) — التحقق من الهوية. Roaring Technologies AB — بحث SPAR (سجل السكان). مزودو خدمات الدفع: Svea وKlarna وSwish وNets وغيرها. Fortnox AB — تكامل المحاسبة. Transportstyrelsen — نقل ملكية المركبة.",
+    "s6title": "حقوقك",
+    "s6body": "الوصول، التصحيح، الحذف*، التقييد، قابلية النقل، الاعتراض. *يقيد الحذف بموجب قانون المحاسبة (7 سنوات) وقانون مكافحة غسيل الأموال.",
+    "s7title": "القرارات الآلية",
+    "s7body": "تصنيف مخاطر BankID (منخفض/متوسط/عالٍ) — غير ملزم قانونياً، يمكن الطعن فيه.",
+    "s8title": "ملفات تعريف الارتباط",
+    "s8body": "ملفات الجلسة وملف الإعداد اللغوي فقط. لا يوجد تتبع أو ملفات تسويقية.",
+    "s9title": "الشكاوى",
+    "s9body": "Integritetsskyddsmyndigheten (IMY)، صندوق بريد 8114، 104 20 ستوكهولم، imy.se",
+    "s10title": "التواصل وآخر تحديث",
+    "s10body": "privacy@avamc.se · تاريخ التحديث: 2026-03-06"
+  },
+  "terms": {
+    "title": "شروط الاستخدام",
+    "subtitle": "شروط استخدام منصة BikeMeNow",
+    "s1title": "الخدمة",
+    "s1body": "BikeMeNow منصة SaaS لتجار الدراجات النارية المسجلين في السويد بشهادة F-skatt سارية.",
+    "s2title": "الأهلية",
+    "s2body": "يشترط رقم تسجيل تجاري صالح، وشهادة F-skatt، وأن يكون مسؤول واحد على الأقل معرفاً عبر BankID.",
+    "s3title": "الحسابات والأمان",
+    "s3body": "المشترك مسؤول عن جميع الأنشطة تحت بيانات حسابه. يُشترط BankID لإجراءات المسؤول.",
+    "s4title": "الاشتراك والدفع",
+    "s4body": "الأسعار تشمل ضريبة قيمة مضافة بنسبة 25٪. فترة تجريبية مجانية لمدة 14 يوماً. دفع شهري أو سنوي. الإلغاء قبل 30 يوماً من الفترة القادمة. لا استرداد للفترة المنتهية.",
+    "s5title": "الملكية الفكرية",
+    "s5body": "البرنامج ملك AVA MC AB. بيانات العميل مملوكة للمشترك ويمكن تصديرها عند الإلغاء.",
+    "s6title": "تحديد المسؤولية",
+    "s6body": "AVA MC AB غير مسؤولة عن الأضرار غير المباشرة أو الأرباح الفائتة أو أعطال الأنظمة. الحد الأقصى للمسؤولية = 3 أشهر من رسوم الاشتراك.",
+    "s7title": "القانون المطبق والنزاعات",
+    "s7body": "القانون السويدي. النزاعات تُحال أولاً إلى ARN (www.arn.se). بدلاً من ذلك، محكمة مدينة ستوكهولم.",
+    "s8title": "التواصل",
+    "s8body": "info@avamc.se · AVA MC AB · رقم التسجيل 556123-4567 · كيستا، ستوكهولم"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "breadcrumb": "الإشعارات",
+    "subtitle": "اختر الأحداث التي تستدعي الإشعارات والقنوات المستخدمة.",
+    "testButton": "إرسال إشعار تجريبي",
+    "save": "حفظ",
+    "saving": "جارٍ الحفظ…",
+    "saveAll": "حفظ الإعدادات",
+    "back": "← العودة إلى الإعدادات",
+    "columnEvent": "الحدث",
+    "infoTitle": "إشعارات فورية داخل النظام",
+    "infoBody": "تظهر إشعارات التطبيق مباشرةً في أيقونة الجرس في الشريط الجانبي — دون الحاجة لإعادة تحميل الصفحة. يتم تسليم البريد الإلكتروني والرسائل النصية عبر عنوان المرسل والبوابة المكوّنة عند حدوث الحدث.",
+    "infoEmail": "يُرسَل البريد الإلكتروني إلى",
+    "smsNote": "قم بتهيئة بوابة الرسائل النصية ضمن التكاملات",
+    "inAppNote": "✓ متاح دائمًا",
+    "testNotifTitle": "إشعار تجريبي",
+    "testNotifMessage": "هذا إشعار تجريبي — النظام يعمل بشكل صحيح.",
+    "testToast": "تم إرسال الإشعار التجريبي — افتح الجرس في الشريط الجانبي",
+    "saveToast": "تم حفظ إعدادات الإشعارات",
+    "events": {
+      "newLead":         { "title": "عميل محتمل جديد",   "desc": "عند إضافة عميل محتمل جديد إلى خط الأنابيب" },
+      "agreementSigned": { "title": "تم توقيع العقد",    "desc": "عند توقيع عقد الشراء من كلا الطرفين عبر BankID" },
+      "paymentReceived": { "title": "تم استلام الدفعة",  "desc": "عند تأكيد دفعة (Klarna، Swish، Svea، بطاقة، إلخ.)" },
+      "newCustomer":     { "title": "عميل جديد",         "desc": "عند تسجيل عميل جديد في سجل العملاء" }
+    },
+    "channels": {
+      "inApp": { "label": "داخل التطبيق",       "note": "يظهر في أيقونة الإشعارات مباشرةً في التنقل" },
+      "email": { "label": "البريد الإلكتروني", "note": "يُرسَل إلى عنوان بريدك الإلكتروني المسجّل" },
+      "sms":   { "label": "رسالة نصية",        "note": "يُرسَل إلى رقم هاتفك المسجّل" }
+    },
+    "bell": {
+      "title":     "الإشعارات",
+      "new":       "جديد",
+      "clearAll":  "مسح الكل",
+      "settings":  "الإعدادات",
+      "empty":     "لا توجد إشعارات بعد",
+      "emptyHint": "ستظهر الأحداث هنا في الوقت الفعلي",
+      "total":     "{count, plural, one {# إشعار في المجموع} other {# إشعارات في المجموع}}",
+      "justNow":   "الآن",
+      "minAgo":    "منذ {n} دقيقة",
+      "hourAgo":   "منذ {n} ساعة",
+      "dayAgo":    "منذ {n} أيام"
+    },
+    "actions": {
+      "newLead":         { "title": "تم إنشاء عميل محتمل جديد",        "interestedIn": "مهتم بـ" },
+      "agreementSigned": { "title": "تم توقيع العقد من كلا الطرفين",   "signedBy": "تم توقيع عقد الشراء من قِبَل", "and": "و", "viaBankID": "عبر BankID" },
+      "paymentConfirmed":{ "title": "تم تأكيد الدفعة",                  "via": "عبر" }
+    }
+  },
+  "billing": {
+    "title": "الاشتراك والفوترة",
+    "breadcrumb": "الاشتراك والفوترة",
+    "subtitle": "إدارة خطتك وطريقة الدفع وعرض الفواتير.",
+    "currentPlan": "الخطة الحالية",
+    "active": "نشط",
+    "planBasic": "الأساسية",
+    "planStandard": "القياسية",
+    "planPro": "الاحترافية",
+    "month": "شهر",
+    "year": "سنة",
+    "vatNote": "جميع الأسعار تشمل ضريبة قيمة مضافة 25٪",
+    "nextBilling": "الفوترة القادمة",
+    "billingCycle": "دورة الفوترة",
+    "monthly": "شهري",
+    "annual": "سنوي",
+    "save20": "وفّر 20٪",
+    "planUpdatedToast": "تم تحديث الخطة إلى",
+    "switchedToAnnual": "تم التحويل إلى الفوترة السنوية",
+    "switchedToMonthly": "تم التحويل إلى الفوترة الشهرية",
+    "choosePlan": "تغيير الخطة",
+    "popular": "الأكثر شيوعًا",
+    "currentBadge": "الحالية",
+    "selectPlan": "اختر الخطة",
+    "paymentMethod": "طريقة الدفع",
+    "expires": "تنتهي",
+    "updateCard": "تحديث بيانات البطاقة",
+    "cardUpdateToast": "تحديث البطاقة متاح في الإنتاج.",
+    "billingContact": "جهة اتصال الفوترة",
+    "orgNumber": "رقم التسجيل",
+    "vatNumber": "رقم ضريبة القيمة المضافة",
+    "updateContact": "تحديث جهة اتصال الفوترة",
+    "contactUpdateToast": "تحديث جهة الاتصال متاح في الإنتاج.",
+    "invoices": "سجل الفواتير",
+    "invoiceCount": "فواتير",
+    "invoiceNumber": "الفاتورة",
+    "invoiceDate": "التاريخ",
+    "invoiceAmount": "المبلغ",
+    "invoiceStatus": "الحالة",
+    "invoicePaid": "مدفوع",
+    "downloadToast": "جارٍ التنزيل",
+    "cancelZone": "إلغاء الاشتراك",
+    "cancelDesc": "يسري الإلغاء في نهاية فترة الفوترة الحالية. يتم الاحتفاظ ببياناتك لمدة 30 يومًا بعد الإلغاء.",
+    "cancelButton": "إلغاء الاشتراك",
+    "cancelToast": "تم إرسال طلب الإلغاء. سنتواصل معك خلال 24 ساعة.",
+    "cancelConfirmTitle": "إلغاء الاشتراك؟",
+    "cancelConfirmDesc": "يستمر وصولك حتى نهاية فترة الفوترة. لا يمكن التراجع عن ذلك.",
+    "cancelBack": "الاحتفاظ بالاشتراك",
+    "cancelConfirmButton": "نعم، إلغاء",
+    "f": {
+      "users3":         "حتى 3 مستخدمين",
+      "usersUnlimited": "مستخدمون غير محدودون",
+      "leads50":        "50 عميل محتمل / شهر",
+      "leadsUnlimited": "عملاء محتملون غير محدودون",
+      "bankid":         "توقيع رقمي عبر BankID",
+      "basicPayments":  "طرق دفع أساسية",
+      "allPayments":    "جميع طرق الدفع",
+      "notifications":  "إشعارات فورية",
+      "emailSupport":   "دعم البريد الإلكتروني",
+      "api":            "الوصول إلى API",
+      "multiUser":      "أدوار متعددة المستخدمين",
+      "prioritySupport":"دعم ذو أولوية"
+    }
+  },
+  "invoices": {
+    "breadcrumb":    "الفواتير",
+    "title":         "إدارة الفواتير",
+    "subtitle":      "فواتير مُنشأة تلقائياً من الاتفاقيات والمدفوعات المكتملة",
+    "searchPlaceholder": "ابحث بالعميل أو المركبة أو رقم الفاتورة…",
+    "filterAll":     "الكل",
+    "filterPaid":    "مدفوعة",
+    "filterPending": "معلقة",
+    "statTotal":     "إجمالي الإيرادات",
+    "statCount":     "إجمالي الفواتير",
+    "statPaid":      "مدفوعة",
+    "statPending":   "معلقة",
+    "colInvoice":    "الفاتورة",
+    "colDate":       "التاريخ",
+    "colCustomer":   "العميل",
+    "colVehicle":    "المركبة",
+    "colAgreement":  "الاتفاقية",
+    "colMethod":     "الدفع",
+    "colAmount":     "المبلغ",
+    "colStatus":     "الحالة",
+    "colActions":    "الإجراءات",
+    "badgePaid":     "مدفوعة",
+    "badgePending":  "معلقة",
+    "printBtn":      "طباعة",
+    "empty":         "لا توجد فواتير",
+    "emptyHint":     "تُنشأ الفواتير تلقائياً عند اكتمال الدفع.",
+    "printTitle":    "فاتورة",
+    "printClose":    "إغلاق",
+    "printPrint":    "طباعة",
+    "printIssued":   "تاريخ الفاتورة",
+    "printPaid":     "تاريخ الدفع",
+    "printMethod":   "طريقة الدفع",
+    "printCustomer": "العميل",
+    "printVehicle":  "المركبة",
+    "printAgreement":"مرجع الاتفاقية",
+    "printDesc":     "بيع مركبة وفق عقد الشراء",
+    "printNet":      "المبلغ الصافي (بدون ضريبة)",
+    "printVat":      "ضريبة القيمة المضافة 25%",
+    "printTotal":    "الإجمالي شامل الضريبة",
+    "printStatus":   "الحالة",
+    "printFooter":   "AVA MC AB • Org.nr 556123-4567 • Kista, Stockholm • info@avamc.se"
+  }
+}

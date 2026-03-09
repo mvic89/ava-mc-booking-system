@@ -1,0 +1,927 @@
+{
+  "common": {
+    "appName": "BikeMeNow",
+    "version": "v3.0",
+    "signOut": "Logga ut",
+    "admin": "Administratör",
+    "user": "Användare",
+    "comingSoon": "Kommer snart",
+    "verifiedIdentity": "Verifierad identitet",
+    "populationVerified": "Folkbokföring verifierad",
+    "address": "Adress",
+    "dateOfBirth": "Födelsedatum",
+    "gender": "Kön",
+    "protectedIdentity": "Skyddad identitet",
+    "protectedIdentityYes": "Ja — hantera med försiktighet",
+    "privacyPolicy": "Integritetspolicy",
+    "terms": "Villkor"
+  },
+  "navigation": {
+    "dashboard": "Instrumentpanel",
+    "inventory": "Lager",
+    "purchaseOrders": "Inköpsorder",
+    "salesPipeline": "Försäljningspipeline",
+    "pipeline": "Pipeline",
+    "customers": "Kunder",
+    "invoices": "Fakturor",
+    "documents": "Dokument",
+    "analytics": "Analys",
+    "settings": "Inställningar",
+    "users": "Användare",
+    "auditLog": "Granskningslogg",
+    "subscribedDealer": "Prenumerant återförsäljare",
+    "groups": {
+      "core": "KÄRNA",
+      "sales": "FÖRSÄLJNING",
+      "admin": "ADMIN"
+    }
+  },
+  "login": {
+    "title": "Välkommen tillbaka",
+    "subtitle": "Logga in på ditt BikeMeNow-arbetsområde",
+    "signInWithBankID": "Logga in med BankID",
+    "recommended": "Rekommenderas — Inget lösenord behövs",
+    "or": "eller",
+    "emailAddress": "E-postadress",
+    "password": "Lösenord",
+    "rememberDevice": "Kom ihåg denna enhet",
+    "forgotPassword": "Glömt lösenord?",
+    "signIn": "Logga in",
+    "noAccount": "Har du inget konto?",
+    "signUp": "Registrera dig",
+    "security": "256-bitars SSL-krypterad • GDPR-kompatibel",
+    "branding": {
+      "tagline": "Återförsäljares intelligensplattform",
+      "zeroInput": "Noll manuell inmatning",
+      "zeroInputDesc": "AI hanterar datainmatning så att du kan sälja",
+      "secured": "BankID-säkrad",
+      "securedDesc": "Svensk standard för digital identitet",
+      "analytics": "Realtidsanalys",
+      "analyticsDesc": "Live-instrumentpaneler och AI-insikter",
+      "dealers": "Byggd för MC-återförsäljare",
+      "dealersDesc": "Fokuserad på svenska motorcykelåterförsäljare",
+      "copyright": "© 2026 BikeMeNow.com. Alla rättigheter förbehållna.",
+      "security": "256-bitars krypterad • GDPR-kompatibel • Svensk hosting"
+    }
+  },
+  "redirecting": "Omdirigerar till inloggning...",
+  "newLead": {
+    "breadcrumb": {
+      "sales": "Försäljning",
+      "newLead": "Ny Lead"
+    },
+    "title": "Skapa Ny Lead",
+    "identifyCustomer": "Identifiera kund",
+    "identifyCustomerDesc": "Välj hur du vill identifiera kunden",
+    "tabs": {
+      "bankid": "BankID (rekommenderat)",
+      "manual": "Manuellt",
+      "phone": "Telefonuppslag"
+    },
+    "successBanner": "Identifierad via BankID — {name} ({personalNumber})",
+    "genderOptions": {
+      "male": "Man",
+      "female": "Kvinna"
+    },
+    "fields": {
+      "name": "Namn",
+      "address": "Adress",
+      "dateOfBirth": "Födelsedatum",
+      "gender": "Kön",
+      "email": "E-post",
+      "phone": "Telefon",
+      "source": "Källa",
+      "notes": "Anteckningar",
+      "interest": "Intresse"
+    },
+    "badges": {
+      "bankid": "BankID",
+      "registration": "Folkbokföring",
+      "manual": "Manuell"
+    },
+    "sourceOptions": {
+      "walkin": "Walk-in",
+      "phone": "Telefon",
+      "website": "Webbplats",
+      "referral": "Hänvisning"
+    },
+    "placeholders": {
+      "email": "lars@example.se",
+      "phone": "076-123 4567",
+      "notes": "Intresserad av sportcyklar, budget ~90-150k",
+      "interest": "Kawasaki Ninja ZX-6R"
+    },
+    "autoFilled": "80% auto-ifyllt",
+    "gdprConsent": "Kunden samtycker till behandling av personuppgifter enligt vår",
+    "privacyPolicyLink": "integritetspolicy",
+    "submitButton": "Skapa Lead",
+    "sidebar": {
+      "title": "BankID + Roaring.io Enrichment",
+      "bankidInfo": "BankID → Namn + personnummer (verifierat)",
+      "roaringInfo": "Roaring.io → Adress, postnr, ort, kön (SPAR)",
+      "manualInfo": "Manuell → E-post, telefon (fråga kunden)",
+      "existingCustomer": "Befintlig kund: Nej (ny i systemet)",
+      "protectedIdentity": "Skyddad identitet: Nej",
+      "highIntent": "Walk-in + BankID = 92% hög avsikt",
+      "matchingVehicles": "Matchande fordon",
+      "basedOn": "Baserat på budget 90-150k och sportintresse",
+      "testEnv": "BankID Testmiljö"
+    }
+  },
+  "dashboard": {
+    "loading": "Laddar...",
+    "welcome": "Välkommen tillbaka, {name}!",
+    "subtitle": "Här är vad som händer med din återförsäljning idag.",
+    "happeningToday": "Här är vad som händer på din återförsäljning idag.",
+    "greeting": {
+      "morning": "God morgon",
+      "afternoon": "God eftermiddag",
+      "evening": "God kväll"
+    },
+    "newLead": "＋ Ny Lead",
+    "vsLastMonth": "jämfört med förra månaden",
+    "revenueTrend": "Intäktstrend",
+    "revenueTrendSub": "Senaste 6 månaderna · kr (tusental)",
+    "vsLastYear": "↑ 22% jämfört med förra året",
+    "salesFunnel": "Försäljningstratt",
+    "salesFunnelSub": "Aktiva leads per steg",
+    "openPipeline": "Öppen pipeline →",
+    "funnelStages": {
+      "new": "Ny",
+      "contacted": "Kontaktad",
+      "testRide": "Provkörning",
+      "negotiating": "Förhandling",
+      "closed": "Avslutad"
+    },
+    "stats": {
+      "activeLeads": "Aktiva Leads",
+      "inStock": "I Lager",
+      "inventory": "Lager",
+      "revenueKr": "Intäkter (kr)",
+      "revenue": "Intäkter",
+      "customers": "Kunder",
+      "new": "nya",
+      "today": "idag",
+      "thisMonth": "Denna månad",
+      "percentIncrease": "+{percent}%"
+    },
+    "quickActions": {
+      "title": "Snabbåtgärder",
+      "newLead": "Ny Lead",
+      "newLeadDesc": "Lägg till walk-in eller samtal",
+      "addInventory": "Lägg till lager",
+      "addInventoryDesc": "Registrera nytt fordon",
+      "addVehicle": "Lägg till fordon",
+      "addVehicleDesc": "Uppdatera ditt lager",
+      "purchaseOrder": "Inköpsorder",
+      "purchaseOrderDesc": "Beställ från leverantör"
+    },
+    "recentLeads": {
+      "title": "Senaste Leads",
+      "viewAll": "Visa alla →",
+      "hot": "Het",
+      "warm": "Varm",
+      "cold": "Kall",
+      "hoursAgo": "{hours} timmar sedan",
+      "daysAgo": "{days} dag sedan"
+    },
+    "topSelling": {
+      "title": "Mest sålda",
+      "sold": "sålda",
+      "thisMonth": "Denna månad",
+      "sales": "{count} försäljningar"
+    }
+  },
+  "signup": {
+    "title": "Skapa ditt konto",
+    "subtitle": "Gå med i BikeMeNow och effektivisera din återförsäljning",
+    "signUpWithBankID": "Registrera dig med BankID",
+    "recommended": "Rekommenderas — Omedelbar verifiering",
+    "or": "eller",
+    "fullName": "Fullständigt namn",
+    "emailAddress": "E-postadress",
+    "dealershipName": "Återförsäljarnamn",
+    "password": "Lösenord",
+    "confirmPassword": "Bekräfta lösenord",
+    "passwordMinLength": "Minimum 8 tecken",
+    "passwordsMatch": "✅ Lösenorden matchar!",
+    "passwordsDoNotMatch": "❌ Lösenorden matchar inte",
+    "agreeToTerms": "Jag godkänner",
+    "termsOfService": "Användarvillkoren",
+    "and": "och",
+    "privacyPolicy": "Sekretesspolicyn",
+    "createAccount": "Skapa konto",
+    "security": "🔒 256-bitars SSL-krypterad • GDPR-kompatibel",
+    "alreadyHaveAccount": "Har du redan ett konto?",
+    "signIn": "Logga in",
+    "branding": {
+      "tagline": "Återförsäljares intelligensplattform",
+      "getStartedFree": "Kom igång gratis",
+      "getStartedFreeDesc": "Inget kreditkort krävs",
+      "setupQuick": "Konfiguration på 2 minuter",
+      "setupQuickDesc": "Snabb registrering med BankID",
+      "dealers": "Byggd för MC-återförsäljare",
+      "dealersDesc": "Fokuserad på svenska motorcykelåterförsäljare",
+      "secureCompliant": "Säker och efterlevnad",
+      "secureCompliantDesc": "GDPR-kompatibel med svensk hosting",
+      "copyright": "© 2026 BikeMeNow.com. Alla rättigheter förbehållna.",
+      "security": "256-bitars krypterad • GDPR-kompatibel • Svensk hosting"
+    },
+    "alerts": {
+      "passwordsDontMatch": "Lösenorden matchar inte!",
+      "passwordTooShort": "Lösenordet måste vara minst 8 tecken långt!",
+      "mustAgreeToTerms": "Du måste godkänna användarvillkoren och sekretesspolicyn!"
+    }
+  },
+  "resetPassword": {
+    "title": "Ange nytt lösenord",
+    "subtitle": "Ange ditt nya lösenord nedan. Gör det starkt och minnesvärt!",
+    "newPassword": "Nytt lösenord",
+    "confirmNewPassword": "Bekräfta nytt lösenord",
+    "minLength": "Minimum 8 tecken",
+    "passwordsMatch": "✅ Lösenorden matchar!",
+    "passwordsDoNotMatch": "❌ Lösenorden matchar inte",
+    "resetButton": "Återställ lösenord",
+    "backToSignIn": "Tillbaka till inloggning",
+    "security": "🔒 256-bitars SSL-krypterad • GDPR-kompatibel",
+    "branding": {
+      "tagline": "Återförsäljares intelligensplattform",
+      "strongPassword": "Starkt lösenord",
+      "strongPasswordDesc": "Minimum 8 tecken krävs",
+      "confirmationMatch": "Lösenord matchar",
+      "confirmationMatchDesc": "Båda lösenorden måste matcha",
+      "secureHash": "Säker hash",
+      "secureHashDesc": "Lösenord krypteras och lagras aldrig i klartext",
+      "immediateEffect": "Omedelbar effekt",
+      "immediateEffectDesc": "Nytt lösenord fungerar direkt",
+      "copyright": "© 2026 BikeMeNow.com. Alla rättigheter förbehållna.",
+      "security": "256-bitars krypterad • GDPR-kompatibel • Svensk hosting"
+    },
+    "alerts": {
+      "passwordsDontMatch": "Lösenorden matchar inte",
+      "passwordTooShort": "Lösenordet måste vara minst 8 tecken långt"
+    }
+  },
+  "customers": {
+    "title": "Kunder",
+    "searchPlaceholder": "Sök kunder…",
+    "addWithBankID": "🔒 Identifiera med BankID",
+    "addManuallyTitle": "Lägg till kund manuellt",
+    "export": "Exportera",
+    "tabs": {
+      "all": "Alla",
+      "active": "Aktiva",
+      "vip": "VIP",
+      "bankid": "BankID ✓",
+      "inactive": "Inaktiva"
+    },
+    "table": {
+      "name": "Namn",
+      "email": "E-post",
+      "phone": "Telefon",
+      "source": "Källa",
+      "vehicles": "Fordon",
+      "lifetimeValue": "Livstidsvärde",
+      "lastActivity": "Senaste aktivitet",
+      "tags": "Taggar",
+      "noResults": "Inga kunder hittades",
+      "showing": "Visar 1–{count} av 342 kunder"
+    },
+    "sourceBadge": {
+      "manual": "Manuell"
+    },
+    "stats": {
+      "totalCustomers": "Totalt kunder",
+      "bankidVerified": "BankID verifierade",
+      "bankidShare": "BankID andel",
+      "protected": "Skyddade",
+      "unverified": "Ej verifierade"
+    },
+    "new": {
+      "breadcrumb": "Ny kund",
+      "title": "Lägg till ny kund",
+      "subtitle": "Välj hur du vill identifiera kunden",
+      "cancel": "Avbryt",
+      "bankIDOption": {
+        "title": "Identifiera med BankID",
+        "desc": "Automatisk ifyllning av namn och adress från folkbokföringen. Rekommenderas.",
+        "verifiedTag": "Verifierad identitet",
+        "autoFillTag": "Auto-ifyllt adress"
+      },
+      "manualOption": {
+        "title": "Fyll i manuellt",
+        "desc": "Skriv in kundens uppgifter för hand. Inget krav på BankID.",
+        "unverifiedTag": "Ej verifierad",
+        "allManualTag": "Alla fält manuella"
+      },
+      "scanning": {
+        "title": "Identifiera kund",
+        "subtitle": "Be kunden skanna QR-koden med BankID-appen",
+        "clickStart": "Klicka \"Starta BankID\"\nför att visa QR-kod",
+        "qrAutoUpdate": "QR-koden uppdateras automatiskt",
+        "startBankID": "⏳ Starta BankID-appen och skanna QR-koden...",
+        "openOnDevice": "📱 Öppna BankID på denna enhet",
+        "back": "← Tillbaka",
+        "useManual": "Fyll i manuellt istället",
+        "howItWorks": "Så här fungerar det",
+        "dataSources": "Datakällor",
+        "step1Title": "BankID skannar",
+        "step1Desc": "Verifierar personnummer + namn",
+        "step2Title": "Roaring.io hämtar",
+        "step2Desc": "Adress, postnr, ort från folkbokföringen",
+        "step3Title": "Du fyller i",
+        "step3Desc": "E-post + telefon (aldrig i register)",
+        "step4Title": "Befintlig kund?",
+        "step4Desc": "Laddar hela profilen automatiskt",
+        "source1": "BankID — Namn, personnummer (verifierat)",
+        "source2": "Roaring.io — Adress, postnummer, ort, kön, födelsedatum",
+        "source3": "Manuellt — E-post, telefon (alltid fråga kund)"
+      },
+      "manual": {
+        "title": "Ny kund — Manuell registrering",
+        "subtitle": "Fyll i kundens uppgifter. Ej BankID-verifierad.",
+        "useBankIDInstead": "🔒 Använd BankID istället",
+        "personalInfo": "Personuppgifter",
+        "contact": "Kontaktuppgifter",
+        "addressSection": "Adress",
+        "streetAddress": "Gatuadress",
+        "postalCode": "Postnummer",
+        "city": "Ort",
+        "notesSection": "Övrigt",
+        "notesLabel": "Noteringar",
+        "notesPlaceholder": "Ev. anteckningar om kunden...",
+        "genderMale": "Man",
+        "genderFemale": "Kvinna",
+        "genderOther": "Annat",
+        "warningNotVerified": "Manuellt registrerade kunder är inte BankID-verifierade. Identiteten är inte säkerställd. Överväg att verifiera kunden med BankID vid nästa besök.",
+        "saveCustomer": "Spara kund"
+      },
+      "bankIDFlow": {
+        "identifiedBannerSub": "Personnummer verifierat • Adress hämtad från folkbokföringen",
+        "autoFilledTitle": "Ny kund — Auto-ifylld",
+        "autoFilledSubtitle": "Grunduppgifter hämtade automatiskt. Fyll i e-post och telefon.",
+        "verifiedSection": "🔒 VERIFIERAT VIA BANKID",
+        "roaringSection": "📋 FOLKBOKFÖRING (ROARING.IO / SPAR)",
+        "manualSection": "✏️ FYLL I MANUELLT (ej tillgängligt i register)",
+        "unavailable": "Ej tillgänglig",
+        "male": "Man",
+        "female": "Kvinna",
+        "saveCustomer": "Spara kund"
+      },
+      "returning": {
+        "identified": "Identifierad via BankID — Profil laddad automatiskt. Senast här: {date}.",
+        "quickActions": "Snabbåtgärder",
+        "newQuote": "Ny offert",
+        "createLead": "Skapa lead",
+        "bookTestRide": "Boka provkörning",
+        "viewProfile": "Visa profil",
+        "vehicles": "Fordon",
+        "lifetimeValue": "Livstidsvärde",
+        "purchases": "Köp",
+        "outstanding": "Obetalda"
+      },
+      "protected": {
+        "bannerTitle": "Skyddad identitet (Sekretessmarkering)",
+        "bannerDesc": "Adress kan INTE hämtas automatiskt. Be kunden fylla i sina uppgifter.",
+        "title": "Ny kund — Skyddad identitet",
+        "addressBlocked": "🛡 ADRESS BLOCKERAD — SKYDDAD IDENTITET",
+        "addressBlockedDesc": "Roaring.io returnerade protectedRegistration: true. Adress ej tillgänglig.",
+        "confirmCheckbox": "Jag bekräftar att kunden själv har angett dessa uppgifter"
+      },
+      "summary": {
+        "title": "Auto-ifyllt sammanfattning",
+        "bankidVerified": "BankID (verifierat)",
+        "bankidSub": "Förnamn, efternamn, personnummer",
+        "roaringData": "Roaring.io / SPAR",
+        "roaringSub": "Adress, postnr, ort, födelsedatum, kön",
+        "manualInput": "Manuell inmatning",
+        "manualSub": "E-post, telefon (aldrig i register)",
+        "fields": "{count} fält",
+        "autoFilled": "80% ifyllt automatiskt (8 av 10 fält)",
+        "bankidVerification": "🔒 BankID verifiering",
+        "signatureLabel": "Signatur:",
+        "signatureStored": "lagrad (base64 XML)",
+        "ocspLabel": "OCSP:",
+        "ocspStored": "lagrad (giltig)",
+        "riskLabel": "Risk:",
+        "riskLow": "Låg",
+        "ipLabel": "IP:",
+        "signatureNote": "Signatur + OCSP lagrad för varje verifiering (rättsligt bevis)"
+      },
+      "savedToast": "Kund sparad!",
+      "savedToastDesc": "Kunden har lagts till i systemet."
+    },
+    "profile": {
+      "tabs": {
+        "overview": "Översikt",
+        "vehicles": "Fordon",
+        "invoices": "Fakturor",
+        "documents": "Dokument",
+        "timeline": "Tidslinje",
+        "gdpr": "GDPR"
+      },
+      "contactInfo": "👤 Kontaktuppgifter",
+      "bankidHistory": "🔒 BankID Verifieringshistorik",
+      "stats": "📊 Översikt",
+      "recentActivity": "📋 Senaste aktivitet",
+      "noBankIDHistory": "Ingen BankID-historik",
+      "noActivity": "Ingen aktivitet ännu",
+      "noVehicles": "Inga registrerade fordon",
+      "noInvoices": "Inga fakturor",
+      "underDevelopment": "Denna sektion är under utveckling.",
+      "gdprTab": {
+        "title": "GDPR — Personuppgiftshantering",
+        "dataTitle": "Registrerade uppgifter",
+        "name": "Namn & personnummer",
+        "address": "Adress, kön, födelsedag",
+        "contact": "E-post & telefon",
+        "purchases": "Köphistorik ({n} fakturor)",
+        "bankidLogs": "BankID-verifieringar ({n} st)",
+        "sourceBankID": "BankID",
+        "sourceSPAR": "Folkbokföring",
+        "sourceManual": "Manuell",
+        "legalBasisTitle": "Rättslig grund",
+        "legalBasis1": "Avtal (köpeavtalet) — GDPR Art. 6.1b",
+        "legalBasis2": "Bokföringslagen (7 år) — GDPR Art. 6.1c",
+        "legalBasis3": "Berättigat intresse (kundrelation) — GDPR Art. 6.1f",
+        "accessTitle": "Tillgång & portabilitet",
+        "accessDesc": "Du har rätt att få ut alla dina uppgifter i maskinläsbart format.",
+        "exportBtn": "Exportera som JSON",
+        "rectifyTitle": "Rättelse",
+        "rectifyDesc": "Kontakta oss för att rätta felaktiga uppgifter.",
+        "rectifyBtn": "Kontakta oss",
+        "deleteTitle": "Radering",
+        "deleteDesc": "Uppgifter kopplade till köpeavtal sparas i 7 år per Bokföringslagen och kan ej raderas dessförinnan.",
+        "deleteBtn": "Skicka begäran",
+        "deleteSuccess": "Begäran mottagen. Vi återkommer inom 30 dagar.",
+        "imy": "Klagomål kan riktas till Integritetsskyddsmyndigheten (IMY) — imy.se",
+        "privacyLink": "Fullständig integritetspolicy"
+      },
+      "fields": {
+        "firstName": "Förnamn",
+        "lastName": "Efternamn",
+        "personalNumber": "Personnummer",
+        "address": "Adress",
+        "birthDate": "Födelsedatum",
+        "email": "E-post",
+        "phone": "Telefon",
+        "gender": "Kön",
+        "citizenship": "Medborgarskap",
+        "protectedIdentity": "Skyddad identitet",
+        "yes": "Ja",
+        "no": "Nej",
+        "protectedAddressNote": "🛡️ Skyddad — ej tillgänglig"
+      },
+      "vehicleTable": {
+        "vehicle": "Fordon",
+        "year": "År",
+        "plate": "Registreringsnummer",
+        "status": "Status"
+      },
+      "invoiceTable": {
+        "invoiceNo": "Fakturanr",
+        "description": "Beskrivning",
+        "date": "Datum",
+        "amount": "Belopp",
+        "status": "Status"
+      },
+      "dataSources": "Datakällor:",
+      "dataSourceLabels": {
+        "bankid": "BankID (verifierat)",
+        "roaring": "Roaring.io / SPAR (folkbokföring)",
+        "manual": "Manuell inmatning"
+      },
+      "actions": {
+        "newQuote": "Ny offert",
+        "gdprExport": "GDPR Export"
+      },
+      "notFound": "Kunden hittades inte",
+      "backToCustomers": "← Tillbaka till kunder"
+    }
+  },
+  "forgotPassword": {
+    "title": "Glömt lösenordet?",
+    "subtitle": "Inga problem! Ange din e-postadress så skickar vi en återställningslänk.",
+    "emailAddress": "E-postadress",
+    "emailPlaceholder": "namn@aterforsaljare.se",
+    "sendButton": "Skicka återställningslänk",
+    "backToSignIn": "← Tillbaka till inloggning",
+    "security": "🔒 256-bitars SSL-krypterad • GDPR-kompatibel",
+    "branding": {
+      "tagline": "Återförsäljares intelligensplattform",
+      "secureReset": "Säker återställning",
+      "secureResetDesc": "Branschstandard för lösenordsåterställning",
+      "emailVerification": "E-postverifiering",
+      "emailVerificationDesc": "Återställningslänk skickad till din registrerade e-post",
+      "expiry": "15 minuters giltighetstid",
+      "expiryDesc": "Länken upphör för säkerhetens skull",
+      "protectedAccess": "Skyddad åtkomst",
+      "protectedAccessDesc": "Inga obehöriga lösenordsändringar",
+      "copyright": "© 2026 BikeMeNow.com. Alla rättigheter förbehållna.",
+      "security": "256-bitars krypterad • GDPR-kompatibel • Svensk hosting"
+    }
+  },
+  "emailSent": {
+    "title": "Kontrollera din e-post",
+    "subtitle": "Vi har skickat en återställningslänk till din e-postadress. Klicka på länken i e-postmeddelandet för att skapa ett nytt lösenord.",
+    "linkExpires": "⏱️ Länken upphör om 15 minuter",
+    "linkExpiresDesc": "Av säkerhetsskäl upphör återställningslänken efter 15 minuter",
+    "didntReceive": "Fick du inte e-postmeddelandet?",
+    "resendEmail": "Skicka om e-post",
+    "backToSignIn": "← Tillbaka till inloggning",
+    "security": "🔒 256-bitars SSL-krypterad • GDPR-kompatibel",
+    "branding": {
+      "tagline": "Återförsäljares intelligensplattform",
+      "checkInbox": "Kontrollera din inkorg",
+      "checkInboxDesc": "Återställningslänk skickad till din e-post",
+      "validFor": "Giltig i 15 minuter",
+      "validForDesc": "Klicka på länken inom 15 minuter",
+      "checkSpam": "Kontrollera skräppostmappen",
+      "checkSpamDesc": "E-postmeddelandet kan finnas i skräppost",
+      "didntReceiveIt": "Fick du det inte?",
+      "didntReceiveItDesc": "Begär en ny länk efter några minuter",
+      "copyright": "© 2026 BikeMeNow.com. Alla rättigheter förbehållna.",
+      "security": "256-bitars krypterad • GDPR-kompatibel • Svensk hosting"
+    }
+  },
+  "resetComplete": {
+    "title": "Lösenordsåterställning klar!",
+    "subtitle": "Ditt lösenord har återställts. Du kan nu logga in med ditt nya lösenord.",
+    "successTitle": "Lösenordet har uppdaterats",
+    "itemNewActive": "Nytt lösenord är nu aktivt",
+    "itemOldInvalidated": "Gammalt lösenord har inaktiverats",
+    "itemCanSignIn": "Du kan logga in omedelbart",
+    "goToSignIn": "Gå till inloggning",
+    "security": "🔒 256-bitars SSL-krypterad • GDPR-kompatibel",
+    "tip": "💡 Tips: Håll ditt lösenord säkert och dela det inte med någon. För extra säkerhet, överväg att använda BankID för framtida inloggningar.",
+    "branding": {
+      "tagline": "Återförsäljares intelligensplattform",
+      "passwordUpdated": "Lösenord uppdaterat",
+      "passwordUpdatedDesc": "Ditt nya lösenord är nu aktivt",
+      "securelyEncrypted": "Säkert krypterat",
+      "securelyEncryptedDesc": "256-bitars kryptering skyddar ditt lösenord",
+      "readyToGo": "Redo att köra",
+      "readyToGoDesc": "Logga in med ditt nya lösenord",
+      "accountSecure": "Konto säkrat",
+      "accountSecureDesc": "Gammalt lösenord är inte längre giltigt",
+      "copyright": "© 2026 BikeMeNow.com. Alla rättigheter förbehållna.",
+      "security": "256-bitars krypterad • GDPR-kompatibel • Svensk hosting"
+    }
+  },
+  "leads": {
+    "breadcrumb": {
+      "sales": "Försäljning",
+      "pipeline": "Pipeline"
+    },
+    "searchPlaceholder": "Sök leads…",
+    "newLead": "＋ Ny Lead",
+    "pipelineValue": "Pipelinevärde",
+    "noLeads": "Inga leads",
+    "addLead": "＋ Lägg till lead",
+    "columns": {
+      "new": "Ny",
+      "contacted": "Kontaktad",
+      "testRide": "Provkörning",
+      "negotiating": "Förhandling",
+      "closed": "Avslutad"
+    },
+    "status": {
+      "hot": "Het",
+      "warm": "Varm",
+      "cold": "Kall"
+    }
+  },
+  "settings": {
+    "breadcrumb": "Admin / Inställningar",
+    "title": "Inställningar",
+    "subtitle": "Konfigurera din återförsäljarprofil, integrationer och systeminställningar.",
+    "comingSoon": "Kommer snart",
+    "sections": {
+      "payments": {
+        "title": "Betalningsleverantörer",
+        "desc": "Konfigurera Svea, Klarna, Swish, Nets och alla andra betalningsmetoder för din återförsäljare.",
+        "badge": "20 leverantörer"
+      },
+      "profile": {
+        "title": "Återförsäljarprofil",
+        "desc": "Redigera ditt företagsnamn, adress, org-nummer, logotyp och kontaktuppgifter.",
+        "badge": "Aktiv"
+      },
+      "users": {
+        "title": "Användare och behörigheter",
+        "desc": "Hantera personalkonton, roller (admin, försäljning, service) och åtkomstnivåer.",
+        "badge": "Aktiv"
+      },
+      "notifications": {
+        "title": "Notifikationer",
+        "desc": "Ställ in e-post- och SMS-notifikationer för nya leads, signerade avtal och betalningar.",
+        "badge": "Live"
+      },
+      "integrations": {
+        "title": "Integrationer",
+        "desc": "Anslut Fortnox, Blocket, Transportstyrelsen och försäkringsleverantörer.",
+        "badge": "5 integrationer"
+      },
+      "billing": {
+        "title": "Prenumeration och fakturering",
+        "desc": "Hantera ditt AVA MC-systemplan, fakturor och betalningsmetod.",
+        "badge": "Live"
+      }
+    }
+  },
+  "pages": {
+    "analytics": {
+      "title": "Analys",
+      "desc": "Djupgående rapporter om försäljningsprestanda, lageromsättning och konvertering av leads."
+    },
+    "auditLog": {
+      "title": "Revisionslogg",
+      "desc": "Fullständig aktivitetshistorik — varje inloggning, redigering och transaktion i din återförsäljare."
+    },
+    "documents": {
+      "title": "Dokument",
+      "desc": "Lagra och hantera avtal, serviceprotokoll och efterlevnadsdokument."
+    },
+    "inventory": {
+      "title": "Lager",
+      "desc": "Bläddra och hantera ditt motorcykellager, lägg till nya fordon och spåra tillgänglighet."
+    },
+    "invoices": {
+      "title": "Fakturor",
+      "desc": "Skapa, skicka och spåra fakturor för försäljning och servicearbete."
+    },
+    "purchaseOrders": {
+      "title": "Inköpsorder",
+      "desc": "Hantera leverantörsbeställningar, spåra leveranser och hantera inköp för din återförsäljare."
+    },
+    "users": {
+      "title": "Användare",
+      "desc": "Hantera personalkonton, roller och behörigheter för din återförsäljare."
+    }
+  },
+  "agreement": {
+    "breadcrumb": {
+      "sales": "Försäljning",
+      "agreement": "Avtal"
+    },
+    "title": "Skapa köpeavtal",
+    "editingBadge": "Redigerar",
+    "autopopulated": "Alla fält är automatiskt ifyllda från accepterat erbjudande {offerNumber} — ingen manuell inmatning krävs",
+    "sections": {
+      "details": "Avtalsdetaljer",
+      "legal": "Juridisk efterlevnad",
+      "security": "Dokumentsäkerhet"
+    },
+    "fields": {
+      "agreementNumber": "Avtalsnr:",
+      "customer": "Kund:",
+      "vehicle": "Fordon:",
+      "vin": "VIN:",
+      "accessories": "Tillbehör:",
+      "tradeIn": "Inbytesbil:",
+      "totalPrice": "Totalpris:",
+      "financing": "Finansiering:",
+      "totalCreditCost": "Total kreditkostnad"
+    },
+    "badges": {
+      "auto": "Auto",
+      "fromOffer": "Från erbjudande",
+      "calculated": "Beräknat"
+    },
+    "placeholders": {
+      "fullName": "Fullständigt namn",
+      "personnummer": "Personnummer",
+      "vehicleModel": "År Märke Modell",
+      "vin": "17-tecken VIN",
+      "accessories": "t.ex. Akrapovic + Tankskydd",
+      "vehicleMakeModel": "Fordonsmärke/-modell"
+    },
+    "legal": {
+      "consumerAct": "Konsumentköplagen",
+      "returnPolicy": "14 dagars ångerrätt ingår",
+      "gdpr": "GDPR-klausul för datahantering",
+      "vat": "Moms korrekt tillämpat (25%)",
+      "fskattebevis": "F-skattebevis referens",
+      "warranty": "Garantivillkor ingår"
+    },
+    "docSecurity": {
+      "beforeSigning": "Före signering:",
+      "afterBankID": "Efter BankID:",
+      "auditTrail": "Revisionsspår:",
+      "retention": "Bevaringstid:",
+      "editable": "Redigerbar",
+      "locked": "Låst & oföränderlig",
+      "everyChange": "Varje ändring loggad",
+      "encrypted": "7 år krypterat"
+    },
+    "unsavedChanges": "Ändringar ej sparade",
+    "vatNote": "inkl. 25% moms",
+    "actions": {
+      "saveChanges": "Spara ändringar",
+      "cancel": "Avbryt",
+      "editAgreement": "Redigera avtal",
+      "proceedToSigning": "Fortsätt till signering"
+    }
+  },
+  "privacy": {
+    "title": "Integritetspolicy",
+    "subtitle": "Hur AVA MC AB hanterar dina personuppgifter",
+    "lastUpdated": "Senast uppdaterad: 6 mars 2026",
+    "s1title": "Personuppgiftsansvarig",
+    "s1body": "AVA MC AB, org.nr 556123-4567, Kista, Stockholm. Kontakt för dataskyddsfrågor: privacy@avamc.se",
+    "s2title": "Vilka uppgifter samlar vi in?",
+    "s2body": "BankID: namn, personnummer, signaturtidpunkt, OCSP-verifiering. Roaring.io/SPAR (Statens personadressregister): folkbokförd adress, kön, födelsedag, skyddad identitet. Manuell inmatning: e-postadress, telefonnummer. Köphistorik: avtal, fakturor, fordon (märke, modell, VIN, registreringsnummer).",
+    "s3title": "Rättslig grund (GDPR art. 6)",
+    "s3body": "Fullgörande av avtal (6.1b): behandling krävs för att fullgöra ett köpeavtal. Rättslig förpliktelse (6.1c): bokföring (Bokföringslagen 7 år), penningtvättskontroller. Berättigat intresse (6.1f): hantering av kundrelation, kreditbedömning. Samtycke (6.1a): marknadsföringskommunikation — kan återkallas när som helst.",
+    "s4title": "Hur länge sparas uppgifterna?",
+    "s4body": "Transaktionsdata (avtal, fakturor): 7 år (Bokföringslagen). Kundprofil: under kundrelationen + 3 år. BankID-loggar: 5 år. Leads utan köp: 1 år.",
+    "s5title": "Vilka delar vi uppgifterna med?",
+    "s5body": "BankID AB (Bankgirot) — identitetsverifiering. Roaring Technologies AB — SPAR-uppslag (folkbokföring). Betaltjänstleverantörer: Svea, Klarna, Swish, Nets m.fl. beroende på vald betalmetod. Fortnox AB — bokföringsintegration. Transportstyrelsen — ägarbyte av fordon.",
+    "s6title": "Dina rättigheter",
+    "s6body": "Du har rätt till: tillgång till dina uppgifter, rättelse av felaktiga uppgifter, radering (begränsas av Bokföringslagens 7-åriga bevarandekrav), begränsning av behandling, dataportabilitet (export i maskinläsbart format), invändning mot behandling som grundas på berättigat intresse. Skicka begäran till: privacy@avamc.se",
+    "s7title": "Automatiserade beslut",
+    "s7body": "BankID:s riskklassificering (Låg/Medium/Hög) används som rådgivande indikator. Den är inte rättsligt bindande och kan ifrågasättas genom att kontakta oss.",
+    "s8title": "Cookies",
+    "s8body": "Vi använder endast nödvändiga cookies: en sessionscookie för autentisering och en locale-cookie för språkpreferens. Inga spårnings- eller marknadsföringscookies används.",
+    "s9title": "Klagomål",
+    "s9body": "Om du har synpunkter på hur vi hanterar dina uppgifter kan du lämna in ett klagomål till Integritetsskyddsmyndigheten (IMY), Box 8114, 104 20 Stockholm, www.imy.se.",
+    "s10title": "Kontakt",
+    "s10body": "privacy@avamc.se · AVA MC AB · Org.nr 556123-4567 · Kista, Stockholm"
+  },
+  "terms": {
+    "title": "Användarvillkor",
+    "subtitle": "BikeMeNow — Återförsäljarplattform av AVA MC AB",
+    "lastUpdated": "Senast uppdaterad: 6 mars 2026",
+    "s1title": "Tjänsten",
+    "s1body": "BikeMeNow är en SaaS-plattform för motorcykelåterförsäljare registrerade i Sverige med giltigt F-skattebevis. Tjänsten omfattar CRM, leadhantering, köpeavtal och betalningsintegrationer.",
+    "s2title": "Behörighet",
+    "s2body": "Användning kräver ett registrerat organisationsnummer, giltigt F-skattebevis och att minst en administratör identifierat sig via BankID. Genom att prenumerera bekräftar du att dessa krav uppfylls.",
+    "s3title": "Konton och säkerhet",
+    "s3body": "Prenumeranten ansvarar för all aktivitet under sina kontouppgifter. BankID-autentisering krävs för administratörsåtgärder. Meddela oss omedelbart vid obehörig åtkomst.",
+    "s4title": "Prenumeration och betalning",
+    "s4body": "Alla priser inkluderar 25% moms. En 14-dagars kostnadsfri prövotid erbjuds utan betalningskrav. Debitering sker månadsvis eller årsvis. Uppsägning måste ske senast 30 dagar före nästa faktureringsperiod. Återbetalning sker ej för påbörjad period.",
+    "s5title": "Immateriella rättigheter",
+    "s5body": "Mjukvaran och designen tillhör AVA MC AB. Kunddata ägs av prenumeranten och kan exporteras vid uppsägning.",
+    "s6title": "Ansvarsbegränsning",
+    "s6body": "AVA MC AB ansvarar inte för indirekta skador, utebliven vinst eller systemfel. Maxansvar begränsas till 3 månaders prenumerationsavgift.",
+    "s7title": "Tillämplig lag och tvister",
+    "s7body": "Detta avtal regleras av svensk lag. Tvist avgörs i första hand av Allmänna Reklamationsnämnden (ARN, www.arn.se). Om ARN inte lämnar rekommendation avgörs tvisten av Stockholms tingsrätt.",
+    "s8title": "Kontakt",
+    "s8body": "info@avamc.se · AVA MC AB · Org.nr 556123-4567 · Kista, Stockholm"
+  },
+  "notifications": {
+    "title": "Notifieringar",
+    "breadcrumb": "Notifieringar",
+    "subtitle": "Välj vilka händelser som ska trigga notifieringar och via vilka kanaler.",
+    "testButton": "Skicka testnotifiering",
+    "save": "Spara",
+    "saving": "Sparar…",
+    "saveAll": "Spara inställningar",
+    "back": "← Tillbaka till inställningar",
+    "columnEvent": "Händelse",
+    "infoTitle": "Realtidsnotifieringar inom systemet",
+    "infoBody": "In-app-notifieringar visas direkt i klockikonen i sidofältet — inga omladdningar krävs. E-post och SMS levereras via er konfigurerade avsändaradress och gateway när händelsen inträffar.",
+    "infoEmail": "E-post skickas till",
+    "smsNote": "Konfigurera SMS-gateway under Integrationer",
+    "inAppNote": "✓ Alltid tillgänglig",
+    "testNotifTitle": "Testnotifiering",
+    "testNotifMessage": "Det här är en testnotifiering — systemet fungerar korrekt.",
+    "testToast": "Testnotifiering skickad — öppna klockan i sidofältet",
+    "saveToast": "Notifieringsinställningar sparade",
+    "events": {
+      "newLead":         { "title": "Nytt lead",           "desc": "När ett nytt lead läggs till i pipelinen" },
+      "agreementSigned": { "title": "Avtal signerat",       "desc": "När ett köpeavtal signerats av båda parter via BankID" },
+      "paymentReceived": { "title": "Betalning mottagen",   "desc": "När en betalning bekräftats (Klarna, Swish, Svea, kort m.fl.)" },
+      "newCustomer":     { "title": "Ny kund",              "desc": "När en ny kund registreras i kundregistret" }
+    },
+    "channels": {
+      "inApp": { "label": "I appen", "note": "Visas i notifieringsikonen direkt i navigeringen" },
+      "email": { "label": "E-post",  "note": "Skickas till din registrerade e-postadress" },
+      "sms":   { "label": "SMS",     "note": "Skickas till ditt registrerade mobilnummer" }
+    },
+    "bell": {
+      "title":     "Notifieringar",
+      "new":       "nya",
+      "clearAll":  "Rensa alla",
+      "settings":  "Inställningar",
+      "empty":     "Inga notifieringar ännu",
+      "emptyHint": "Händelser visas här i realtid",
+      "total":     "{count, plural, one {# notifiering totalt} other {# notifieringar totalt}}",
+      "justNow":   "Just nu",
+      "minAgo":    "{n} min sedan",
+      "hourAgo":   "{n} tim sedan",
+      "dayAgo":    "{n} dagar sedan"
+    },
+    "actions": {
+      "newLead":         { "title": "Nytt lead skapat",                "interestedIn": "är intresserad av" },
+      "agreementSigned": { "title": "Avtal signerat av båda parter",   "signedBy": "Köpeavtal signerat av", "and": "och", "viaBankID": "via BankID" },
+      "paymentConfirmed":{ "title": "Betalning bekräftad",             "via": "via" }
+    }
+  },
+  "billing": {
+    "title": "Prenumeration och fakturering",
+    "breadcrumb": "Prenumeration och fakturering",
+    "subtitle": "Hantera ditt abonnemang, betalningsmetod och se fakturor.",
+    "currentPlan": "Nuvarande plan",
+    "active": "Aktiv",
+    "planBasic": "Grundläggande",
+    "planStandard": "Standard",
+    "planPro": "Professional",
+    "month": "mån",
+    "year": "år",
+    "vatNote": "Alla priser inkl. 25% moms",
+    "nextBilling": "Nästa fakturering",
+    "billingCycle": "Faktureringsperiod",
+    "monthly": "Månadsvis",
+    "annual": "Årsvis",
+    "save20": "Spara 20%",
+    "planUpdatedToast": "Plan ändrat till",
+    "switchedToAnnual": "Bytte till årsvis fakturering",
+    "switchedToMonthly": "Bytte till månadsvis fakturering",
+    "choosePlan": "Byt plan",
+    "popular": "Populär",
+    "currentBadge": "Nuvarande",
+    "selectPlan": "Välj plan",
+    "paymentMethod": "Betalningsmetod",
+    "expires": "Utgår",
+    "updateCard": "Uppdatera kortuppgifter",
+    "cardUpdateToast": "Kortuppdatering tillgänglig i produktion.",
+    "billingContact": "Fakturakontakt",
+    "orgNumber": "Organisationsnummer",
+    "vatNumber": "Momsnummer",
+    "updateContact": "Uppdatera fakturakontakt",
+    "contactUpdateToast": "Kontaktuppdatering tillgänglig i produktion.",
+    "invoices": "Fakturahistorik",
+    "invoiceCount": "fakturor",
+    "invoiceNumber": "Faktura",
+    "invoiceDate": "Datum",
+    "invoiceAmount": "Belopp",
+    "invoiceStatus": "Status",
+    "invoicePaid": "Betald",
+    "downloadToast": "Laddar ner",
+    "cancelZone": "Avsluta prenumeration",
+    "cancelDesc": "Avslutandet träder i kraft vid slutet av innevarande faktureringsperiod. Din data sparas i 30 dagar efter avslutandet.",
+    "cancelButton": "Avsluta prenumeration",
+    "cancelToast": "Avslutningsförfrågan skickad. Vi återkommer inom 24 timmar.",
+    "cancelConfirmTitle": "Avsluta prenumeration?",
+    "cancelConfirmDesc": "Din åtkomst fortsätter till slutet av faktureringsperioden. Det går inte att ångra.",
+    "cancelBack": "Behåll prenumeration",
+    "cancelConfirmButton": "Ja, avsluta",
+    "f": {
+      "users3":         "Upp till 3 användare",
+      "usersUnlimited": "Obegränsade användare",
+      "leads50":        "50 leads / mån",
+      "leadsUnlimited": "Obegränsade leads",
+      "bankid":         "BankID-signering",
+      "basicPayments":  "Grundläggande betalmetoder",
+      "allPayments":    "Alla betalmetoder",
+      "notifications":  "Realtidsnotifieringar",
+      "emailSupport":   "E-postsupport",
+      "api":            "API-åtkomst",
+      "multiUser":      "Flerbrukarroller",
+      "prioritySupport":"Prioritetssupport"
+    }
+  },
+  "invoices": {
+    "breadcrumb":    "Fakturor",
+    "title":         "Fakturahantering",
+    "subtitle":      "Automatiskt genererade fakturor från slutförda avtal och betalningar",
+    "searchPlaceholder": "Sök på kund, fordon eller fakturanummer…",
+    "filterAll":     "Alla",
+    "filterPaid":    "Betalda",
+    "filterPending": "Väntande",
+    "statTotal":     "Total omsättning",
+    "statCount":     "Totalt fakturor",
+    "statPaid":      "Betalda",
+    "statPending":   "Väntande",
+    "colInvoice":    "Faktura",
+    "colDate":       "Datum",
+    "colCustomer":   "Kund",
+    "colVehicle":    "Fordon",
+    "colAgreement":  "Avtal",
+    "colMethod":     "Betalning",
+    "colAmount":     "Belopp",
+    "colStatus":     "Status",
+    "colActions":    "Åtgärder",
+    "badgePaid":     "Betald",
+    "badgePending":  "Väntande",
+    "printBtn":      "Skriv ut",
+    "empty":         "Inga fakturor hittades",
+    "emptyHint":     "Fakturor skapas automatiskt när en betalning slutförs.",
+    "printTitle":    "Faktura",
+    "printClose":    "Stäng",
+    "printPrint":    "Skriv ut",
+    "printIssued":   "Fakturadatum",
+    "printPaid":     "Betalningsdatum",
+    "printMethod":   "Betalningsmetod",
+    "printCustomer": "Kund",
+    "printVehicle":  "Fordon",
+    "printAgreement":"Avtalsref",
+    "printDesc":     "Försäljning av fordon per köpeavtal",
+    "printNet":      "Nettobelopp (exkl. moms)",
+    "printVat":      "Moms 25%",
+    "printTotal":    "Totalt inkl. moms",
+    "printStatus":   "Status",
+    "printFooter":   "AVA MC AB • Org.nr 556123-4567 • Kista, Stockholm • info@avamc.se"
+  }
+}

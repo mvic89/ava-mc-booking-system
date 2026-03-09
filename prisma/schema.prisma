@@ -1,0 +1,79 @@
+// This is your Prisma schema file for AVA MC Booking System with BankID integration
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // Change to your database provider (postgresql, mysql, sqlite, etc.)
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id             String   @id @default(cuid())
+  personalNumber String   @unique // 12-digit Swedish personnummer from BankID
+  firstName      String
+  lastName       String
+  dateOfBirth    String? // Extracted from personnummer
+  email          String?
+  phone          String?
+  address        String?
+  city           String?
+  postalCode     String?
+  country        String   @default("SE")
+
+  // BankID metadata
+  source              String    @default("MANUAL") // "BANKID" | "MANUAL" | "LEAD"
+  lastBankIdAuth      DateTime?
+  bankIdIssueDate     String?
+  bankIdSignature     String?   @db.Text // Store for legal proof
+  bankIdOcspResponse  String?   @db.Text
+
+  // Relations (examples - customize based on your needs)
+  bookings      Booking[]
+  // sales         Sale[]
+  // leads         Lead[]
+  // vehicles      Vehicle[]
+  // invoices      Invoice[]
+  // agreements    Agreement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([personalNumber])
+  @@index([lastName, firstName])
+}
+
+model Booking {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  // Booking details
+  motorcycleModel String
+  bookingDate     DateTime
+  testRideDate    DateTime?
+  status          String   @default("PENDING") // PENDING, CONFIRMED, COMPLETED, CANCELLED
+  notes           String?  @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([bookingDate])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String // "BANKID_AUTH", "CUSTOMER_CREATED", etc.
+  entity    String // "Customer", "Booking", etc.
+  entityId  String?
+  details   String?  @db.Text
+  ipAddress String?
+  userId    String? // If you have user authentication
+
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
