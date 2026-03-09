@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
+import { notify } from '@/lib/notifications';
 import BankIDModal from '@/components/bankIdModel';
 import type { BankIDResult, Demo } from '@/types';
 
@@ -14,6 +15,7 @@ type TabType = 'bankid' | 'manual' | 'phone';
 const NewLeadPage = () => {
   const router = useRouter();
   const t = useTranslations();
+  const tNotif = useTranslations('notifications');
 
   const [activeTab, setActiveTab] = useState<TabType>('bankid');
   const [showBankID, setShowBankID] = useState(false);
@@ -89,6 +91,12 @@ const NewLeadPage = () => {
     const existing = JSON.parse(localStorage.getItem('custom_leads') || '[]');
     localStorage.setItem('custom_leads', JSON.stringify([newLead, ...existing]));
 
+    notify('newLead', {
+      type:    'lead',
+      title:   tNotif('actions.newLead.title'),
+      message: `${newLead.name} ${tNotif('actions.newLead.interestedIn')} ${newLead.bike}`,
+      href:    '/sales/leads',
+    });
     toast.success('Lead created successfully!');
     router.push('/sales/leads');
   };

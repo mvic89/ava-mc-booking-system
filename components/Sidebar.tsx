@@ -5,12 +5,15 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from './LanguageSwitcher';
+import NotificationBell from './NotificationBell';
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [open, setOpen] = useState(false);
+  const [dealershipLogo, setDealershipLogo] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const t = useTranslations();
 
   const NAV_GROUPS = [
@@ -41,9 +44,33 @@ export default function Sidebar() {
     },
   ];
 
+  const loadLogo = () => {
+    try {
+      const profile = JSON.parse(localStorage.getItem('dealership_profile') || '{}');
+      setDealershipLogo(profile.logoDataUrl || null);
+    } catch {
+      setDealershipLogo(null);
+    }
+  };
+
+  const loadUser = () => {
+    const raw = localStorage.getItem('user');
+    if (!raw) return;
+    const u = JSON.parse(raw);
+    setUser(u);
+    setAvatarUrl(u.avatarDataUrl || null);
+  };
+
   useEffect(() => {
-    const stored = localStorage.getItem('user');
-    if (stored) setUser(JSON.parse(stored));
+    loadUser();
+    loadLogo();
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'dealership_profile') loadLogo();
+      if (e.key === 'user') loadUser();
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   const isActive = (href: string) =>
@@ -98,7 +125,15 @@ export default function Sidebar() {
           {/* Subscriber dealer badge — shows the current tenant's dealership name */}
           {user && (
             <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2">
-              <span className="w-2 h-2 rounded-full bg-green-400 shrink-0 animate-pulse" />
+              {dealershipLogo ? (
+                <img
+                  src={dealershipLogo}
+                  alt="logo"
+                  className="w-8 h-8 rounded-md object-contain bg-white/10 shrink-0 p-0.5"
+                />
+              ) : (
+                <span className="w-2 h-2 rounded-full bg-green-400 shrink-0 animate-pulse" />
+              )}
               <div className="min-w-0">
                 <p className="text-[10px] text-slate-400 leading-none mb-0.5">{t('navigation.subscribedDealer')}</p>
                 <p className="text-xs text-white font-semibold truncate">
@@ -171,15 +206,26 @@ export default function Sidebar() {
         {/* User */}
         <div className="px-4 py-4 border-t border-white/5 shrink-0">
           <div className="flex items-center gap-2.5 mb-3">
-            <div className="w-9 h-9 rounded-xl bg-[#FF6B2C] flex items-center justify-center text-white text-sm font-bold shrink-0">
-              {user ? (user.givenName?.[0] || user.name?.[0] || 'U') : 'U'}
+
+            {/* Avatar — display only; change via Settings → Users */}
+            <div className="w-9 h-9 rounded-xl shrink-0 overflow-hidden">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-[#FF6B2C] flex items-center justify-center text-white text-sm font-bold">
+                  {user ? (user.givenName?.[0] || user.name?.[0] || 'U') : 'U'}
+                </div>
+              )}
             </div>
+
             <div className="min-w-0 flex-1">
               <div className="text-white font-semibold text-sm truncate">
                 {user ? (user.givenName || user.name || t('common.user')) : t('common.user')}
               </div>
               <div className="text-[11px] text-slate-500">{t('common.admin')}</div>
             </div>
+
+            <NotificationBell />
           </div>
           <button
             onClick={handleSignOut}

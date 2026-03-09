@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -63,9 +63,12 @@ function RoleBadge({ role }: { role: Role }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function UsersSettingsPage() {
-  const router = useRouter();
-  const [ready, setReady] = useState(false);
-  const [users, setUsers] = useState<StaffUser[]>([]);
+  const router       = useRouter();
+  const avatarRef    = useRef<HTMLInputElement>(null);
+  const [ready, setReady]       = useState(false);
+  const [users, setUsers]       = useState<StaffUser[]>([]);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [avatarUrl, setAvatarUrl]     = useState<string | null>(null);
 
   // Invite form state
   const [showInvite, setShowInvite] = useState(false);
@@ -79,11 +82,50 @@ export default function UsersSettingsPage() {
   useEffect(() => {
     const raw = localStorage.getItem('user');
     if (!raw) { router.push('/auth/login'); return; }
+    const u = JSON.parse(raw);
+    setCurrentUser(u);
+    setAvatarUrl(u.avatarDataUrl || null);
 
     const stored = localStorage.getItem(STORAGE_KEY);
     setUsers(stored ? JSON.parse(stored) : DEFAULT_USERS);
     setReady(true);
   }, [router]);
+
+  const handleAvatarFile = (file: File) => {
+    if (!file.type.startsWith('image/')) return;
+    const objectUrl = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const SIZE = 200;
+      const r = Math.min(SIZE / img.naturalWidth, SIZE / img.naturalHeight, 1);
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.naturalWidth * r);
+      canvas.height = Math.round(img.naturalHeight * r);
+      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      const raw = localStorage.getItem('user');
+      if (raw) {
+        const u = JSON.parse(raw);
+        u.avatarDataUrl = dataUrl;
+        localStorage.setItem('user', JSON.stringify(u));
+        setAvatarUrl(dataUrl);
+        toast.success('Profilbild uppdaterad');
+      }
+    };
+    img.src = objectUrl;
+  };
+
+  const handleRemoveAvatar = () => {
+    const raw = localStorage.getItem('user');
+    if (raw) {
+      const u = JSON.parse(raw);
+      delete u.avatarDataUrl;
+      localStorage.setItem('user', JSON.stringify(u));
+      setAvatarUrl(null);
+      toast.success('Profilbild borttagen');
+    }
+  };
 
   function persist(next: StaffUser[]) {
     setUsers(next);
@@ -171,6 +213,74 @@ export default function UsersSettingsPage() {
               + Bjud in användare
             </button>
           </div>
+
+          {/* ── My Profile ── */}
+          {currentUser && (
+            <div className="bg-white rounded-2xl border border-slate-100 p-5 mb-6 flex items-center gap-5 flex-wrap">
+              {/* Avatar */}
+              <div className="relative shrink-0">
+                <div className="w-16 h-16 rounded-2xl overflow-hidden bg-[#FF6B2C] flex items-center justify-center text-white text-xl font-bold shrink-0">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{currentUser.givenName?.[0] || currentUser.name?.[0] || 'U'}</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-slate-900">
+                  {currentUser.givenName || currentUser.name || 'Användare'}
+                </p>
+                {currentUser.personalNumber && (
+                  <p className="text-xs text-slate-400 font-mono mt-0.5">
+                    {currentUser.personalNumber.replace(/(\d{8})(\d{4})/, '$1-$2')}
+                  </p>
+                )}
+                <span className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-bold bg-[#235971] text-white px-2 py-0.5 rounded">
+                  🔒 BankID-verifierad
+                </span>
+              </div>
+
+              {/* Avatar controls */}
+              <div className="flex items-center gap-2 shrink-0">
+                <input
+                  ref={avatarRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={e => {
+                    const f = e.target.files?.[0];
+                    if (f) handleAvatarFile(f);
+                    e.target.value = '';
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => avatarRef.current?.click()}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-[#FF6B2C]/40 hover:bg-orange-50 text-sm font-semibold text-slate-700 transition-all"
+                >
+                  📷 {avatarUrl ? 'Byt bild' : 'Lägg till bild'}
+                </button>
+                {avatarUrl && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveAvatar}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-sm font-semibold text-red-600 transition-all"
+                  >
+                    🗑 Ta bort
+                  </button>
+                )}
+              </div>
+
+              <div className="w-full border-t border-slate-50 pt-3 mt-1">
+                <p className="text-[11px] text-slate-400">
+                  Din profilbild visas i navigeringsfältet. Bilden sparas lokalt i din webbläsare.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Stats bar */}
           <div className="grid grid-cols-3 gap-3 mb-6">

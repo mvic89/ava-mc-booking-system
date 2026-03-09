@@ -4,7 +4,11 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Script from 'next/script';
+import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
+import { notify } from '@/lib/notifications';
+import { createInvoice, markInvoicePaid } from '@/lib/invoices';
+import { emit } from '@/lib/realtime';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -69,6 +73,7 @@ export default function AgreementPaymentPage() {
   const router = useRouter();
   const params = useParams();
   const id = (params?.id as string) || 'default';
+  const tNotif = useTranslations('notifications');
 
   const [ready, setReady]         = useState(false);
   const [loading, setLoading]     = useState(true);
@@ -100,6 +105,36 @@ export default function AgreementPaymentPage() {
 
   // Cleanup on unmount
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
+
+  // Fire notification + create/mark invoice once when payment succeeds
+  useEffect(() => {
+    if (flowStep !== 'success') return;
+    const paymentMethod = selected?.name ?? '—';
+    // Create a paid invoice (deduplicates on repeat renders)
+    const vatAmount = Math.round(DEAL.amountSek - DEAL.amountSek / 1.25);
+    createInvoice({
+      leadId:        id,
+      customerName:  DEAL.customer,
+      vehicle:       DEAL.vehicle,
+      agreementRef:  DEAL.agreementId,
+      totalAmount:   DEAL.amountSek,
+      vatAmount,
+      netAmount:     DEAL.amountSek - vatAmount,
+      paymentMethod,
+      status:        'paid',
+      paidDate:      new Date().toISOString(),
+    });
+    // Also mark any pending invoice for this lead as paid (in case one was pre-created)
+    markInvoicePaid(id, paymentMethod);
+    emit({ type: 'payment:received', payload: { leadId: id, amount: DEAL.amountSek, method: paymentMethod } });
+    notify('paymentReceived', {
+      type:    'payment',
+      title:   tNotif('actions.paymentConfirmed.title'),
+      message: `${DEAL.customer} — ${DEAL.amountDisplay} kr${selected ? ` ${tNotif('actions.paymentConfirmed.via')} ${selected.name}` : ''}`,
+      href:    `/sales/leads/${id}/agreement/complete`,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flowStep]);
 
   // Auth + load providers
   useEffect(() => {

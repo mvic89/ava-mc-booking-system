@@ -1,10 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
 import Link from 'next/link';
+import { getCustomers } from '@/lib/customers';
+import { getInvoices } from '@/lib/invoices';
+import { useAutoRefresh } from '@/lib/realtime';
 
 // ── Count-up hook ──────────────────────────────────────
 function useCountUp(target: number, duration = 1200, delay = 0) {
@@ -140,33 +143,95 @@ function getGreetingKey() {
   return 'evening';
 }
 
+// ── Compute last-6-months revenue bars from paid invoices ─────────────────────
+function buildRevenueData(invoices: ReturnType<typeof getInvoices>) {
+  const now = new Date();
+  const months: { label: string; value: number; highlight: boolean }[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const label = d.toLocaleString('sv-SE', { month: 'short' });
+    const value = invoices
+      .filter(inv => {
+        if (inv.status !== 'paid' || !inv.paidDate) return false;
+        const pd = new Date(inv.paidDate);
+        return pd.getFullYear() === d.getFullYear() && pd.getMonth() === d.getMonth();
+      })
+      .reduce((sum, inv) => sum + inv.totalAmount, 0);
+    months.push({ label, value: Math.round(value / 1000), highlight: i === 0 });
+  }
+  // Ensure bars are never all-zero (show seed data scale if real data is empty)
+  const max = Math.max(...months.map(m => m.value));
+  if (max === 0) {
+    const defaults = [720, 890, 670, 1050, 980, 1200];
+    return months.map((m, i) => ({ ...m, value: defaults[i] }));
+  }
+  return months;
+}
+
 // ── Page ───────────────────────────────────────────────
 export default function DashboardPage() {
   const router = useRouter();
   const t = useTranslations('dashboard');
   const tCommon = useTranslations('common');
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser]       = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
+
+  // ── Live stats ─────────────────────────────────────────────────────────────
+  const [liveCustomers, setLiveCustomers] = useState(0);
+  const [liveRevenue,   setLiveRevenue]   = useState(0);
+  const [liveLeads,     setLiveLeads]     = useState(0);
+  const [revenueData,   setRevenueData]   = useState(() => buildRevenueData([]));
+
+  const loadStats = () => {
+    const invoices = getInvoices();
+    const paidTotal = invoices
+      .filter(inv => inv.status === 'paid')
+      .reduce((s, inv) => s + inv.totalAmount, 0);
+    setLiveRevenue(Math.round(paidTotal / 1000));
+    setRevenueData(buildRevenueData(invoices));
+
+    const allCustomers = getCustomers();
+    setLiveCustomers(allCustomers.length);
+
+    // Leads: custom leads + 15 initial seed leads
+    try {
+      const custom = JSON.parse(localStorage.getItem('custom_leads') || '[]');
+      setLiveLeads(custom.length + 15);
+    } catch {
+      setLiveLeads(15);
+    }
+  };
 
   useEffect(() => {
     const stored = localStorage.getItem('user');
     if (!stored) { router.replace('/auth/login'); return; }
     setUser(JSON.parse(stored));
+
+    const loadProfile = () => {
+      try {
+        const p = JSON.parse(localStorage.getItem('dealership_profile') || '{}');
+        setProfile(p.name ? p : null);
+      } catch { setProfile(null); }
+    };
+    loadProfile();
+    loadStats();
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'dealership_profile') loadProfile();
+      if (e.key === 'app_invoices' || e.key === 'app_customers' || e.key === 'custom_leads') loadStats();
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const leads     = useCountUp(24,   1000, 100);
-  const vehicles  = useCountUp(47,   1100, 200);
-  const revenue   = useCountUp(1200, 1300, 300);
-  const customers = useCountUp(156,  1200, 400);
+  // Refresh stats when realtime events fire (same tab or other tabs)
+  useAutoRefresh(loadStats);
 
-  const revenueData = [
-    { label: 'Sep', value: 720,  highlight: false },
-    { label: 'Oct', value: 890,  highlight: false },
-    { label: 'Nov', value: 670,  highlight: false },
-    { label: 'Dec', value: 1050, highlight: false },
-    { label: 'Jan', value: 980,  highlight: false },
-    { label: 'Feb', value: 1200, highlight: true  },
-  ];
+  const leads     = useCountUp(liveLeads,     1000, 100);
+  const vehicles  = useCountUp(47,            1100, 200);
+  const revenue   = useCountUp(liveRevenue,   1300, 300);
+  const customers = useCountUp(liveCustomers, 1200, 400);
 
   const recentLeads = [
     { name: 'Lars Andersson', bike: 'Ninja ZX-6R', time: '2h ago', status: 'hot',  verified: true },
@@ -198,26 +263,94 @@ export default function DashboardPage() {
       <Sidebar />
 
       <div className="lg:ml-64 flex-1 flex flex-col">
-        {/* Brand top accent */}
-        <div className="brand-top-bar" />
-
         <div className="flex-1 p-5 md:p-8">
 
-          {/* Header */}
-          <div className="flex items-start justify-between mb-8 animate-fade-up">
-            <div>
-              <p className="text-[11px] text-slate-400 uppercase tracking-widest font-semibold mb-1">{today}</p>
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
-                {{ morning: t('greeting.morning'), afternoon: t('greeting.afternoon'), evening: t('greeting.evening') }[getGreetingKey()]}, {user.givenName || user.name?.split(' ')[0] || 'there'} 👋
-              </h1>
-              <p className="text-slate-500 text-sm mt-1">{t('happeningToday')}</p>
+          {/* ── Dealership Hero Banner ─────────────────────────────────────── */}
+          <div className="relative rounded-2xl overflow-hidden mb-8 animate-fade-up" style={{ minHeight: 250 }}>
+
+            {/* Background — cover photo or brand gradient */}
+            {profile?.coverImageDataUrl ? (
+              <img
+                src={profile.coverImageDataUrl}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            ) : (
+              <div className="absolute inset-0 bg-linear-to-br from-[#0b1524] via-[#162236] to-[#0a1120]" />
+            )}
+
+            {/* Readability overlay */}
+            <div className="absolute inset-0 bg-linear-to-r from-black/80 via-black/55 to-black/20" />
+
+            {/* Brand accent line */}
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-linear-to-r from-[#FF6B2C] via-[#ff9a6c] to-transparent" />
+
+            {/* Content */}
+            <div className="relative z-10 p-7 md:p-10 flex flex-col justify-between" style={{ minHeight: 250 }}>
+
+              {/* Top row — dealer identity + CTA */}
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-4">
+
+                  {/* Logo or brand icon */}
+                  {profile?.logoDataUrl ? (
+                    <img
+                      src={profile.logoDataUrl}
+                      alt="logo"
+                      className="w-14 h-14 rounded-2xl object-contain bg-white/15 p-1.5 border border-white/20 shrink-0"
+                    />
+                  ) : (
+                    <div className="w-14 h-14 rounded-2xl bg-[#FF6B2C] flex items-center justify-center shrink-0 shadow-lg">
+                      <svg viewBox="0 0 20 20" className="w-7 h-7" fill="white">
+                        <circle cx="4.5" cy="14.5" r="2" />
+                        <circle cx="15.5" cy="14.5" r="2" />
+                        <path d="M4.5 14.5H3.5a.5.5 0 0 1-.48-.36L2 10h5l.8 2.4H11L12.5 8H15l.5 1.5L13 11v2a.5.5 0 0 1-.5.5H7.5" />
+                        <path d="M7.5 10L9 7h3l.8 1.5" />
+                      </svg>
+                    </div>
+                  )}
+
+                  {/* Name + location + badges */}
+                  <div>
+                    <h2 className="text-white text-xl md:text-2xl font-black tracking-tight leading-none drop-shadow-sm">
+                      {profile?.name || user.dealershipName || user.dealership || 'My Dealership'}
+                    </h2>
+                    {(profile?.city || profile?.county) && (
+                      <p className="text-white/55 text-sm mt-1">
+                        {[profile?.city, profile?.county].filter(Boolean).join(', ')}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-2 mt-2 flex-wrap">
+                      <span className="inline-flex items-center gap-1.5 text-[10px] font-bold bg-green-500/20 text-green-400 px-2.5 py-1 rounded-full border border-green-500/30">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                        Aktiv prenumeration
+                      </span>
+                      {profile?.orgNr && (
+                        <span className="text-[10px] text-white/35 font-mono">Org.nr {profile.orgNr}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* New lead button */}
+                <Link
+                  href="/sales/leads/new"
+                  className="hidden md:flex items-center gap-2 bg-[#FF6B2C] hover:bg-[#e55a1f] text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-lg shrink-0"
+                >
+                  {t('newLead')}
+                </Link>
+              </div>
+
+              {/* Bottom — greeting */}
+              <div className="mt-8">
+                <p className="text-white/40 text-[11px] uppercase tracking-widest font-semibold">{today}</p>
+                <h1 className="text-white text-2xl md:text-3xl font-bold mt-1 drop-shadow-sm">
+                  {{ morning: t('greeting.morning'), afternoon: t('greeting.afternoon'), evening: t('greeting.evening') }[getGreetingKey()]}, {user.givenName || user.name?.split(' ')[0] || 'there'} 👋
+                </h1>
+                <p className="text-white/55 text-sm mt-1">{t('happeningToday')}</p>
+              </div>
+
             </div>
-            <Link
-              href="/sales/leads/new"
-              className="hidden md:flex items-center gap-2 bg-[#FF6B2C] text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#e55a1f] transition-colors shadow-sm"
-            >
-              {t('newLead')}
-            </Link>
           </div>
 
           {/* BankID Verified Identity Card — shown only when Roaring data is present */}

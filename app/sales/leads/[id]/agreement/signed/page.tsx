@@ -19,20 +19,20 @@ interface SignedAgreement {
 
 const AGREEMENT = {
   agreementNumber:   'AGR-2024-0089',
-  date:              'Feb 10, 2026',
+  date:              '10 feb 2026',
   sellerName:        'AVA MC AB',
   sellerAddress:     'Kista, Stockholm',
   buyerName:         'Lars Bergman',
   buyerAddress:      'Sveavägen 42, Stockholm',
   vehicle:           'Kawasaki Ninja ZX-6R 2024',
   vin:               'JKBZXR636PA012345',
-  accessories:       'Akrapovic, Tank Pad, Crash Protectors (15,280 kr)',
-  tradeIn:           'Kawasaki Ninja 300 2020 — Credit: 32,000 kr',
-  totalPrice:        '133,280 kr (incl. VAT 26,656 kr)',
-  financing:         '36 months × 4,092 kr/mo at 4.9% APR',
-  warranty:          '2 years manufacturer + 1 year dealer',
-  returnPolicy:      '14 days per Swedish Consumer Purchase Act',
-  delivery:          'Estimated Feb 14, 2026 at AVA MC, Kista',
+  accessories:       'Akrapovic, Tank Pad, Crash Protectors (15 280 kr)',
+  tradeIn:           'Kawasaki Ninja 300 2020 — Inbytesvärde: 32 000 kr',
+  totalPrice:        '133 280 kr (inkl. moms 26 656 kr)',
+  financing:         '36 mån × 4 092 kr/mån vid 4,9 % eff. årsränta',
+  warranty:          '3 år fabriksgaranti + 1 år återförsäljargaranti',
+  returnPolicy:      '14 dagar per Distansavtalslagen (2005:59)',
+  delivery:          'Beräknad 14 feb 2026, AVA MC, Kista',
 };
 
 export default function SignedAgreementPage() {
@@ -104,13 +104,13 @@ export default function SignedAgreementPage() {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(13);
     doc.setTextColor(15, 23, 42); // slate-900
-    doc.text('PURCHASE AGREEMENT', 105, y, { align: 'center' });
+    doc.text('KÖPEAVTAL', 105, y, { align: 'center' });
     y += 6;
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(148, 163, 184);
-    doc.text(`${AGREEMENT.agreementNumber}  •  Date: ${AGREEMENT.date}`, 105, y, { align: 'center' });
+    doc.text(`${AGREEMENT.agreementNumber}  •  Datum: ${AGREEMENT.date}`, 105, y, { align: 'center' });
     y += 8;
 
     doc.setDrawColor(226, 232, 240);
@@ -119,16 +119,16 @@ export default function SignedAgreementPage() {
 
     // Fields
     const fields = [
-      { label: 'SELLER',        value: `${AGREEMENT.sellerName}, ${AGREEMENT.sellerAddress}` },
-      { label: 'BUYER',         value: `${AGREEMENT.buyerName}, ${AGREEMENT.buyerAddress}` },
-      { label: 'VEHICLE',       value: `${AGREEMENT.vehicle}, VIN: ${AGREEMENT.vin}` },
-      { label: 'ACCESSORIES',   value: AGREEMENT.accessories },
-      { label: 'TRADE-IN',      value: AGREEMENT.tradeIn },
-      { label: 'TOTAL PRICE',   value: AGREEMENT.totalPrice },
-      { label: 'FINANCING',     value: AGREEMENT.financing },
-      { label: 'WARRANTY',      value: AGREEMENT.warranty },
-      { label: 'RETURN POLICY', value: AGREEMENT.returnPolicy },
-      { label: 'DELIVERY',      value: AGREEMENT.delivery },
+      { label: 'SÄLJARE',       value: `${AGREEMENT.sellerName}, ${AGREEMENT.sellerAddress}` },
+      { label: 'KÖPARE',        value: `${AGREEMENT.buyerName}, ${AGREEMENT.buyerAddress}` },
+      { label: 'FORDON',        value: `${AGREEMENT.vehicle}, VIN: ${AGREEMENT.vin}` },
+      { label: 'TILLBEHÖR',     value: AGREEMENT.accessories },
+      { label: 'INBYTE',        value: AGREEMENT.tradeIn },
+      { label: 'TOTALPRIS',     value: AGREEMENT.totalPrice },
+      { label: 'FINANSIERING',  value: AGREEMENT.financing },
+      { label: 'GARANTI',       value: AGREEMENT.warranty },
+      { label: 'ÅNGERRÄTT',     value: AGREEMENT.returnPolicy },
+      { label: 'LEVERANS',      value: AGREEMENT.delivery },
     ];
 
     for (const row of fields) {
@@ -184,15 +184,15 @@ export default function SignedAgreementPage() {
       }
     };
 
-    renderSig('Customer Signature (BankID):', signatures?.customer);
-    renderSig('Dealer Signature (BankID):', signatures?.dealer);
+    renderSig('Köparens underskrift (BankID):', signatures?.customer);
+    renderSig('Säljarens underskrift (BankID):', signatures?.dealer);
 
     // Footer
     y += 4;
     doc.setFont('helvetica', 'italic');
     doc.setFontSize(8);
     doc.setTextColor(148, 163, 184);
-    doc.text('This agreement is governed by Swedish law. Signed electronically via BankID.', 105, y, { align: 'center' });
+    doc.text('Detta avtal regleras av svensk lag. Signerat elektroniskt via BankID.', 105, y, { align: 'center' });
 
     return doc;
   };
@@ -282,16 +282,16 @@ export default function SignedAgreementPage() {
   );
 
   const fields = [
-    { label: 'SELLER',        value: `${AGREEMENT.sellerName}, ${AGREEMENT.sellerAddress}` },
-    { label: 'BUYER',         value: `${AGREEMENT.buyerName}, ${AGREEMENT.buyerAddress}` },
-    { label: 'VEHICLE',       value: `${AGREEMENT.vehicle}, VIN: ${AGREEMENT.vin}` },
-    { label: 'ACCESSORIES',   value: AGREEMENT.accessories },
-    { label: 'TRADE-IN',      value: AGREEMENT.tradeIn },
-    { label: 'TOTAL PRICE',   value: AGREEMENT.totalPrice },
-    { label: 'FINANCING',     value: AGREEMENT.financing },
-    { label: 'WARRANTY',      value: AGREEMENT.warranty },
-    { label: 'RETURN POLICY', value: AGREEMENT.returnPolicy },
-    { label: 'DELIVERY',      value: AGREEMENT.delivery },
+    { label: 'SÄLJARE',       value: `${AGREEMENT.sellerName}, ${AGREEMENT.sellerAddress}` },
+    { label: 'KÖPARE',        value: `${AGREEMENT.buyerName}, ${AGREEMENT.buyerAddress}` },
+    { label: 'FORDON',        value: `${AGREEMENT.vehicle}, VIN: ${AGREEMENT.vin}` },
+    { label: 'TILLBEHÖR',     value: AGREEMENT.accessories },
+    { label: 'INBYTE',        value: AGREEMENT.tradeIn },
+    { label: 'TOTALPRIS',     value: AGREEMENT.totalPrice },
+    { label: 'FINANSIERING',  value: AGREEMENT.financing },
+    { label: 'GARANTI',       value: AGREEMENT.warranty },
+    { label: 'ÅNGERRÄTT',     value: AGREEMENT.returnPolicy },
+    { label: 'LEVERANS',      value: AGREEMENT.delivery },
   ];
 
   return (
@@ -304,18 +304,50 @@ export default function SignedAgreementPage() {
         {/* Header */}
         <div className="px-5 md:px-8 py-6 bg-white border-b border-slate-100 animate-fade-up">
           <nav className="flex items-center gap-1.5 text-xs text-slate-400 mb-3">
-            <Link href="/sales/leads" className="hover:text-[#FF6B2C] transition-colors">Sales</Link>
+            <Link href="/sales/leads" className="hover:text-[#FF6B2C] transition-colors">Försäljning</Link>
             <span>→</span>
-            <Link href={`/sales/leads/${id}/agreement/sign`} className="hover:text-[#FF6B2C] transition-colors">Signing</Link>
+            <Link href={`/sales/leads/${id}/agreement/sign`} className="hover:text-[#FF6B2C] transition-colors">Signering</Link>
             <span>→</span>
-            <span className="text-slate-700 font-medium">Signed Agreement</span>
+            <span className="text-slate-700 font-medium">Signerat avtal</span>
           </nav>
           <div className="flex items-center gap-3">
             <span className="text-2xl">✅</span>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">Signed Agreement: {AGREEMENT.agreementNumber}</h1>
-              <p className="text-sm text-green-600 font-medium mt-0.5">Both parties have signed — agreement is legally binding</p>
+              <h1 className="text-2xl font-bold text-slate-900">Signerat avtal: {AGREEMENT.agreementNumber}</h1>
+              <p className="text-sm text-green-600 font-medium mt-0.5">Båda parter har signerat — avtalet är juridiskt bindande</p>
             </div>
+          </div>
+        </div>
+
+        {/* Progress stepper */}
+        <div className="px-5 md:px-8 pb-4 bg-white border-b border-slate-100">
+          <div className="flex items-center">
+            {(['Avtal', 'Förhandsvisning', 'Signering', 'Betalning', 'Klart'] as const).map((step, i) => {
+              const isActive = i === 3;
+              const isDone   = i < 3;
+              return (
+                <div key={step} className="flex items-center">
+                  <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                    isActive ? 'bg-[#FF6B2C] text-white shadow-sm' :
+                    isDone   ? 'text-green-600' : 'text-slate-300'
+                  }`}>
+                    {isDone ? (
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <span className={`w-4 h-4 rounded-full text-[10px] flex items-center justify-center font-bold ${
+                        isActive ? 'bg-white/30' : 'bg-slate-100 text-slate-400'
+                      }`}>{i + 1}</span>
+                    )}
+                    {step}
+                  </div>
+                  {i < 4 && (
+                    <span className={`mx-1 text-xs ${isDone ? 'text-green-300' : 'text-slate-200'}`}>›</span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -328,11 +360,11 @@ export default function SignedAgreementPage() {
 
               {/* Document header */}
               <div className="flex items-start justify-between mb-6 pb-4 border-b border-slate-100">
-                <span className="text-xl font-extrabold tracking-tight text-[#FF6B2C]">MOTOOS</span>
+                <span className="text-xl font-extrabold tracking-tight text-[#FF6B2C]">BikeMeNow</span>
                 <div className="text-right">
                   <p className="text-xs text-slate-500">AVA MC AB • Org.nr 556123-4567</p>
                   <span className="inline-flex items-center gap-1 mt-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
-                    ✓ Fully Signed
+                    ✓ Fullständigt signerat
                   </span>
                 </div>
               </div>
@@ -340,10 +372,10 @@ export default function SignedAgreementPage() {
               {/* Title */}
               <div className="text-center mb-6">
                 <h2 className="text-base font-bold text-slate-900 tracking-widest uppercase">
-                  Purchase Agreement
+                  Köpeavtal
                 </h2>
                 <p className="text-xs text-slate-400 mt-1">
-                  {AGREEMENT.agreementNumber} • Date: {AGREEMENT.date}
+                  {AGREEMENT.agreementNumber} • Datum: {AGREEMENT.date}
                 </p>
               </div>
 
@@ -365,12 +397,12 @@ export default function SignedAgreementPage() {
               <div className="space-y-4">
                 {/* Customer */}
                 <div className={`rounded-xl p-4 ${signatures ? 'bg-green-50 border border-green-200' : 'bg-slate-50 border border-slate-200'}`}>
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Customer Signature (BankID)</p>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Köparens underskrift (BankID)</p>
                   {signatures ? (
                     <>
                       <p className="text-sm font-bold text-slate-800">{signatures.customer.name}</p>
                       <p className="text-xs text-slate-500">{signatures.customer.personalNumber}</p>
-                      <p className="text-xs text-green-600 mt-1 font-medium">✓ Signed: {signatures.customer.signedAt}</p>
+                      <p className="text-xs text-green-600 mt-1 font-medium">✓ Signerad: {signatures.customer.signedAt}</p>
                     </>
                   ) : (
                     <div className="h-8 border-b border-slate-300 w-64" />
@@ -379,12 +411,12 @@ export default function SignedAgreementPage() {
 
                 {/* Dealer */}
                 <div className={`rounded-xl p-4 ${signatures ? 'bg-green-50 border border-green-200' : 'bg-slate-50 border border-slate-200'}`}>
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Dealer Signature (BankID)</p>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Säljarens underskrift (BankID)</p>
                   {signatures ? (
                     <>
                       <p className="text-sm font-bold text-slate-800">{signatures.dealer.name}</p>
                       <p className="text-xs text-slate-500">{signatures.dealer.personalNumber}</p>
-                      <p className="text-xs text-green-600 mt-1 font-medium">✓ Signed: {signatures.dealer.signedAt}</p>
+                      <p className="text-xs text-green-600 mt-1 font-medium">✓ Signerad: {signatures.dealer.signedAt}</p>
                     </>
                   ) : (
                     <div className="h-8 border-b border-slate-300 w-64" />
@@ -394,7 +426,7 @@ export default function SignedAgreementPage() {
 
               {/* Footer */}
               <p className="text-xs text-slate-400 mt-6 text-center">
-                This agreement is governed by Swedish law. Signed electronically via BankID.
+                Detta avtal regleras av svensk lag. Signerat elektroniskt via BankID.
               </p>
             </div>
 
@@ -404,25 +436,25 @@ export default function SignedAgreementPage() {
                 href={`/sales/leads/${id}/agreement/sign`}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:border-slate-300 transition-colors"
               >
-                ← Back
+                ← Tillbaka
               </Link>
               <button
                 onClick={handleDownloadPDF}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-green-300 bg-green-50 text-sm font-semibold text-green-700 hover:bg-green-100 transition-colors"
               >
-                ⬇ Download PDF
+                ⬇ Ladda ner PDF
               </button>
               <button
                 onClick={() => { setShowSendPanel(p => !p); setSendStatus(null); }}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-blue-300 bg-blue-50 text-sm font-semibold text-blue-700 hover:bg-blue-100 transition-colors"
               >
-                📤 Send to Customer
+                📤 Skicka till kund
               </button>
               <Link
                 href={`/sales/leads/${id}/agreement/payment`}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2C] hover:bg-[#e55a1f] text-white text-sm font-semibold transition-colors"
               >
-                Proceed to Payment →
+                Gå till betalning →
               </Link>
             </div>
 
@@ -430,7 +462,7 @@ export default function SignedAgreementPage() {
             {showSendPanel && (
               <div className="mt-3 rounded-xl border border-blue-200 bg-blue-50 p-4 animate-fade-up">
                 <p className="text-xs font-semibold text-blue-700 uppercase tracking-wider mb-3">
-                  Send signed PDF to customer
+                  Skicka signerat avtal till kunden
                 </p>
 
                 {sendStatus && (
@@ -446,7 +478,7 @@ export default function SignedAgreementPage() {
                         onClick={handleSendEmail}
                         className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-blue-200 text-sm font-semibold text-blue-800 hover:bg-blue-100 transition-colors"
                       >
-                        📧 Email — {contact.email}
+                        📧 E-post — {contact.email}
                       </button>
                     )}
                     {contact.phone && (
@@ -460,7 +492,7 @@ export default function SignedAgreementPage() {
                   </div>
                 ) : (
                   <p className="text-sm text-blue-600">
-                    No contact info found. Contact details are saved when creating a lead via <strong>New Lead</strong>.
+                    Ingen kontaktinfo hittades. Kontaktuppgifter sparas när ett lead skapas via <strong>Nytt lead</strong>.
                   </p>
                 )}
               </div>

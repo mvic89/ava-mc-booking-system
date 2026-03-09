@@ -130,25 +130,25 @@ export default function AgreementCompletePage() {
       <div id="signed-agreement-doc" className="hidden">
         <div style={{ fontFamily: 'sans-serif', fontSize: 13, color: '#1e293b' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24, paddingBottom: 12, borderBottom: '1px solid #e2e8f0' }}>
-            <span style={{ fontSize: 18, fontWeight: 800, color: '#FF6B2C' }}>MOTOOS</span>
+            <span style={{ fontSize: 18, fontWeight: 800, color: '#FF6B2C' }}>BikeMeNow</span>
             <span style={{ fontSize: 11, color: '#94a3b8' }}>AVA MC AB • Org.nr 556123-4567</span>
           </div>
           <div style={{ textAlign: 'center', marginBottom: 20 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>Purchase Agreement</div>
-            <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>AGR-2024-0089 • Date: Feb 10, 2026</div>
+            <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>Köpeavtal</div>
+            <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>AGR-2024-0089 • Datum: 10 feb 2026</div>
           </div>
           <hr style={{ margin: '16px 0', borderColor: '#e2e8f0' }} />
           {[
-            { label: 'SELLER',        value: 'AVA MC AB, Kista, Stockholm' },
-            { label: 'BUYER',         value: 'Lars Bergman, Sveavägen 42, Stockholm' },
-            { label: 'VEHICLE',       value: 'Kawasaki Ninja ZX-6R 2024, VIN: JKBZXR636PA012345' },
-            { label: 'ACCESSORIES',   value: 'Akrapovic, Tank Pad, Crash Protectors (15,280 kr)' },
-            { label: 'TRADE-IN',      value: 'Kawasaki Ninja 300 2020 — Credit: 32,000 kr' },
-            { label: 'TOTAL PRICE',   value: '133,280 kr (incl. VAT 26,656 kr)' },
-            { label: 'FINANCING',     value: '36 months × 4,092 kr/mo at 4.9% APR' },
-            { label: 'WARRANTY',      value: '2 years manufacturer + 1 year dealer' },
-            { label: 'RETURN POLICY', value: '14 days per Swedish Consumer Purchase Act' },
-            { label: 'DELIVERY',      value: 'Estimated Feb 14, 2026 at AVA MC, Kista' },
+            { label: 'SÄLJARE',       value: 'AVA MC AB, Kista, Stockholm' },
+            { label: 'KÖPARE',        value: 'Lars Bergman, Sveavägen 42, Stockholm' },
+            { label: 'FORDON',        value: 'Kawasaki Ninja ZX-6R 2024, VIN: JKBZXR636PA012345' },
+            { label: 'TILLBEHÖR',     value: 'Akrapovic, Tank Pad, Crash Protectors (15 280 kr)' },
+            { label: 'INBYTE',        value: 'Kawasaki Ninja 300 2020 — Inbytesvärde: 32 000 kr' },
+            { label: 'TOTALPRIS',     value: '133 280 kr (inkl. moms 26 656 kr)' },
+            { label: 'FINANSIERING',  value: '36 mån × 4 092 kr/mån vid 4,9 % eff. årsränta' },
+            { label: 'GARANTI',       value: '3 år fabriksgaranti + 1 år återförsäljargaranti' },
+            { label: 'ÅNGERRÄTT',     value: '14 dagar per Distansavtalslagen (2005:59)' },
+            { label: 'LEVERANS',      value: 'Beräknad 14 feb 2026, AVA MC, Kista' },
           ].map(row => (
             <div key={row.label} style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
               <span style={{ width: 110, flexShrink: 0, fontWeight: 600, fontSize: 11, color: '#94a3b8', paddingTop: 2 }}>{row.label}:</span>
@@ -157,7 +157,7 @@ export default function AgreementCompletePage() {
           ))}
           <hr style={{ margin: '20px 0', borderColor: '#e2e8f0' }} />
           <div style={{ marginBottom: 8 }}>
-            <div style={{ fontSize: 11, color: '#64748b', marginBottom: 4 }}>Customer Signature (BankID):</div>
+            <div style={{ fontSize: 11, color: '#64748b', marginBottom: 4 }}>Köparens underskrift (BankID):</div>
             {signatures ? (
               <div>
                 <div style={{ fontWeight: 600 }}>{signatures.customer.name} &nbsp; {signatures.customer.personalNumber}</div>
@@ -168,7 +168,7 @@ export default function AgreementCompletePage() {
             )}
           </div>
           <div style={{ marginTop: 16 }}>
-            <div style={{ fontSize: 11, color: '#64748b', marginBottom: 4 }}>Dealer Signature (BankID):</div>
+            <div style={{ fontSize: 11, color: '#64748b', marginBottom: 4 }}>Säljarens underskrift (BankID):</div>
             {signatures ? (
               <div>
                 <div style={{ fontWeight: 600 }}>{signatures.dealer.name} &nbsp; {signatures.dealer.personalNumber}</div>
@@ -179,7 +179,7 @@ export default function AgreementCompletePage() {
             )}
           </div>
           <p style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center', marginTop: 28 }}>
-            This agreement is governed by Swedish law. Signed electronically via BankID.
+            Detta avtal regleras av svensk lag. Signerat elektroniskt via BankID.
           </p>
         </div>
       </div>
@@ -188,6 +188,38 @@ export default function AgreementCompletePage() {
 
       <div className="lg:ml-64 flex-1 flex flex-col min-w-0">
         <div className="brand-top-bar" />
+
+        {/* Progress stepper */}
+        <div className="px-5 md:px-8 pb-4 bg-white border-b border-slate-100">
+          <div className="flex items-center pt-4">
+            {(['Avtal', 'Förhandsvisning', 'Signering', 'Betalning', 'Klart'] as const).map((step, i) => {
+              const isActive = i === 4;
+              const isDone   = i < 4;
+              return (
+                <div key={step} className="flex items-center">
+                  <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                    isActive ? 'bg-[#FF6B2C] text-white shadow-sm' :
+                    isDone   ? 'text-green-600' : 'text-slate-300'
+                  }`}>
+                    {isDone ? (
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <span className={`w-4 h-4 rounded-full text-[10px] flex items-center justify-center font-bold ${
+                        isActive ? 'bg-white/30' : 'bg-slate-100 text-slate-400'
+                      }`}>{i + 1}</span>
+                    )}
+                    {step}
+                  </div>
+                  {i < 4 && (
+                    <span className={`mx-1 text-xs ${isDone ? 'text-green-300' : 'text-slate-200'}`}>›</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Content */}
         <div className="flex-1 px-5 md:px-8 py-8">
@@ -284,7 +316,7 @@ export default function AgreementCompletePage() {
               onClick={handleDownloadPDF}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:border-slate-300 transition-colors"
             >
-              ⬇ Download Signed Agreement
+              ⬇ Ladda ner signerat avtal
             </button>
             <div className="flex-1" />
             <Link

@@ -27,7 +27,9 @@ export default function SettingsPage() {
       title:    t('sections.profile.title'),
       desc:     t('sections.profile.desc'),
       href:     '/settings/profile',
-      live:     false,
+      live:     true,
+      badge:    t('sections.profile.badge'),
+      badgeCls: 'bg-green-100 text-green-700',
     },
     {
       id:       'users',
@@ -45,7 +47,9 @@ export default function SettingsPage() {
       title:    t('sections.notifications.title'),
       desc:     t('sections.notifications.desc'),
       href:     '/settings/notifications',
-      live:     false,
+      live:     true,
+      badge:    t('sections.notifications.badge'),
+      badgeCls: 'bg-orange-100 text-orange-700',
     },
     {
       id:       'integrations',
@@ -63,7 +67,9 @@ export default function SettingsPage() {
       title:    t('sections.billing.title'),
       desc:     t('sections.billing.desc'),
       href:     '/settings/billing',
-      live:     false,
+      live:     true,
+      badge:    t('sections.billing.badge'),
+      badgeCls: 'bg-green-100 text-green-700',
     },
   ] as const;
 
