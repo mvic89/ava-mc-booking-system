@@ -4,6 +4,8 @@
     "version": "v3.0",
     "signOut": "Logg ut",
     "admin": "Administrator",
+    "sales": "Selger",
+    "service": "Service",
     "user": "Bruker",
     "comingSoon": "Kommer snart",
     "verifiedIdentity": "Verifisert identitet",
@@ -722,14 +724,83 @@
       "cancel": "Avbryt",
       "editAgreement": "Rediger avtale",
       "proceedToSigning": "Fortsett til signering"
+    },
+    "progress": {
+      "step0": "Avtale",
+      "step1": "Forhåndsvisning",
+      "step2": "Signering",
+      "step3": "Betaling",
+      "step4": "Ferdig"
+    },
+    "sign": {
+      "breadcrumbSigning": "BankID-signering",
+      "signingStatus": "Signeringsstatus",
+      "bothMustSign": "Begge parter må signere med BankID",
+      "customerSigDone": "Kundens underskrift — Ferdig",
+      "customerSig": "Kundens underskrift",
+      "waiting": "Venter",
+      "identityVerified": "Identitet verifisert",
+      "legallyBinding": "Juridisk bindende",
+      "customerSignsFirst": "Kunden signerer avtalen først",
+      "signAsCustomer": "Signer som kunde",
+      "dealerSigDone": "Forhandlerens underskrift — Ferdig",
+      "dealerSigPending": "Forhandlerens underskrift — Venter",
+      "dealerSig": "Forhandlerens underskrift",
+      "waitingForCustomer": "Venter på kunde",
+      "dealerOpenBankID": "Forhandleren signerer — åpne BankID-appen",
+      "signAsDealer": "Signer som forhandler",
+      "waitingForCustomerSig": "Venter på kundens signatur…",
+      "bothSignedProcessing": "Begge parter har signert — behandler automatisering…",
+      "automationNote": "⚡ Etter begge signaturer: 10 automatiske handlinger utføres umiddelbart (faktura, betalingsplan, levering…)",
+      "signedAt": "Signert:"
+    },
+    "signed": {
+      "breadcrumbSigning": "Signering",
+      "breadcrumbTitle": "Signert avtale",
+      "title": "Signert avtale:",
+      "subtitle": "Begge parter har signert — avtalen er juridisk bindende",
+      "docTitle": "Kjøpeavtale",
+      "fullySigned": "Fullt signert",
+      "buyerSig": "Kjøperens underskrift (BankID)",
+      "sellerSig": "Selgerens underskrift (BankID)",
+      "signedAt": "✓ Signert:",
+      "footer": "Denne avtalen er regulert av svensk lov. Signert elektronisk via BankID.",
+      "back": "← Tilbake",
+      "downloadPDF": "⬇ Last ned PDF",
+      "sendToCustomer": "📤 Send til kunde",
+      "goToPayment": "Gå til betaling →",
+      "sendPanelTitle": "Send signert avtale til kunden",
+      "noContact": "Ingen kontaktinfo funnet. Kontaktdetaljer lagres når et lead opprettes via Nytt lead."
+    },
+    "complete": {
+      "successTitle": "Avtale signert av begge parter! 🎉",
+      "cascadeHeader": "⚡ AUTOMATISERING — 10 HANDLINGER PÅ 2 SEKUNDER ⚡",
+      "allDone": "Alle 10 handlinger fullført på 1,8 sekunder totalt",
+      "back": "← Tilbake til pipeline",
+      "download": "⬇ Last ned signert avtale",
+      "viewDelivery": "Se levering →",
+      "viewInvoice": "Se faktura →"
+    },
+    "preview": {
+      "breadcrumbPreview": "Forhåndsvisning",
+      "title": "Forhåndsvisning:",
+      "contractTitle": "Kjøpeavtale — Motorsykkel",
+      "termsTitle": "Avtalevilkår",
+      "buyerSig": "Kjøperens underskrift:",
+      "sellerSig": "Selgerens underskrift:",
+      "footer": "Denne avtalen er regulert av svensk lov.",
+      "back": "← Rediger",
+      "downloadDisabled": "🔒 Last ned PDF",
+      "downloadTooltip": "Tilgjengelig etter at begge parter har signert med BankID",
+      "sendForSigning": "Send for BankID-signering →"
     }
   },
   "privacy": {
     "title": "Personvernerklæring",
-    "subtitle": "Slik behandler AVA MC AB dine personopplysninger",
+    "subtitle": "Slik behandler {dealerName} dine personopplysninger",
     "lastUpdated": "Sist oppdatert: 2026-03-06",
     "s1title": "Personopplysningsansvarlig",
-    "s1body": "AVA MC AB, Org.nr 556123-4567, Kista, Stockholm. Kontakt: privacy@avamc.se",
+    "s1body": "{dealerName}, Org.nr {orgNr}, {city}. Kontakt: {email}",
     "s2title": "Hvilke opplysninger samler vi inn?",
     "s2body": "BankID (navn, personnummer, signaturtidspunkt, OCSP-verifisering), Folkeregister via Roaring.io/SPAR (registrert adresse, kjønn, fødselsdato, skjermet identitet), Manuell (e-post, telefon), Kjøpshistorikk (avtaler, fakturaer, kjøretøy, VIN, registreringsnummer).",
     "s3title": "Rettslig grunnlag (GDPR art. 6)",
@@ -747,7 +818,7 @@
     "s9title": "Klage",
     "s9body": "Datatilsynet (Norge), Postboks 458 Sentrum, 0105 Oslo, datatilsynet.no",
     "s10title": "Kontakt og sist oppdatert",
-    "s10body": "privacy@avamc.se · Oppdatert: 2026-03-06"
+    "s10body": "{email} · {dealerName} · Org.nr {orgNr} · {city}"
   },
   "terms": {
     "title": "Brukervilkår",
@@ -761,13 +832,13 @@
     "s4title": "Abonnement og betaling",
     "s4body": "Priser inkl. 25% moms. 14 dagers gratis prøveperiode uten betalingskrav. Månedlig eller årlig debitering. Oppsigelse senest 30 dager før neste faktureringsperiode. Refusjon ikke mulig for påbegynt periode.",
     "s5title": "Immaterielle rettigheter",
-    "s5body": "Programvaren tilhører AVA MC AB. Kundedata eies av abonnenten og kan eksporteres ved oppsigelse.",
+    "s5body": "Programvaren tilhører {dealerName}. Kundedata eies av abonnenten og kan eksporteres ved oppsigelse.",
     "s6title": "Ansvarsbegrensning",
-    "s6body": "AVA MC AB er ikke ansvarlig for indirekte skader, tapt fortjeneste eller datasystemfeil. Maksansvar = 3 måneders abonnementsavgift.",
+    "s6body": "{dealerName} er ikke ansvarlig for indirekte skader, tapt fortjeneste eller datasystemfeil. Maksansvar = 3 måneders abonnementsavgift.",
     "s7title": "Gjeldende lov og tvister",
     "s7body": "Svensk lov. Tvist i første omgang via ARN (www.arn.se). Alternativt Stockholms tingrett.",
     "s8title": "Kontakt",
-    "s8body": "info@avamc.se · AVA MC AB · Org.nr 556123-4567 · Kista, Stockholm"
+    "s8body": "{email} · {dealerName} · Org.nr {orgNr} · {city}"
   },
   "notifications": {
     "title": "Varsler",
@@ -922,6 +993,23 @@
     "printVat":      "MVA 25%",
     "printTotal":    "Totalt inkl. mva",
     "printStatus":   "Status",
-    "printFooter":   "AVA MC AB • Org.nr 556123-4567 • Kista, Stockholm • info@avamc.se"
+    "printFooter":   "{dealerName} • Org.nr {orgNr} • {city} • {email}"
+  },
+  "invite": {
+    "title":              "Du har blitt invitert",
+    "by":                 "Invitert av {dealershipName}",
+    "expired":            "Ugyldig eller utløpt invitasjon",
+    "expiredDesc":        "Denne lenken er ikke lenger gyldig. Kontakt administratoren for en ny invitasjon.",
+    "verify":             "Bekreft med BankID",
+    "verifyDesc":         "Bekreft din identitet for å aktivere kontoen din.",
+    "success":            "Konto aktivert!",
+    "successDesc":        "Omdirigerer til dashbordet...",
+    "labelName":          "Navn",
+    "labelEmail":         "E-post",
+    "labelRole":          "Rolle",
+    "labelCompany":       "Selskap",
+    "goToLogin":          "Gå til innlogging",
+    "alreadyHaveAccount": "Har du allerede en konto?",
+    "loginLink":          "Logg inn"
   }
 }

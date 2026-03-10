@@ -6,9 +6,9 @@ export const locales = ['en', 'sv', 'no', 'da', 'ar'] as const;
 export type Locale = (typeof locales)[number];
 
 export default getRequestConfig(async () => {
-  // Get locale from cookie or default to 'en'
+  // Get locale from cookie or default to 'sv'
   const cookieStore = await cookies();
-  const locale = cookieStore.get('locale')?.value || 'en';
+  const locale = cookieStore.get('locale')?.value || 'sv';
 
   return {
     locale,

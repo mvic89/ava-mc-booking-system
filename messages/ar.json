@@ -4,6 +4,8 @@
     "version": "v3.0",
     "signOut": "تسجيل الخروج",
     "admin": "مسؤول",
+    "sales": "مبيعات",
+    "service": "خدمة",
     "user": "مستخدم",
     "comingSoon": "قريباً",
     "verifiedIdentity": "هوية موثقة",
@@ -722,14 +724,83 @@
       "cancel": "إلغاء",
       "editAgreement": "تعديل الاتفاقية",
       "proceedToSigning": "المتابعة للتوقيع"
+    },
+    "progress": {
+      "step0": "العقد",
+      "step1": "معاينة",
+      "step2": "التوقيع",
+      "step3": "الدفع",
+      "step4": "مكتمل"
+    },
+    "sign": {
+      "breadcrumbSigning": "توقيع BankID",
+      "signingStatus": "حالة التوقيع",
+      "bothMustSign": "يجب على الطرفين التوقيع باستخدام BankID",
+      "customerSigDone": "توقيع العميل — مكتمل",
+      "customerSig": "توقيع العميل",
+      "waiting": "انتظار",
+      "identityVerified": "الهوية مُحققة",
+      "legallyBinding": "ملزم قانونياً",
+      "customerSignsFirst": "يوقع العميل على العقد أولاً",
+      "signAsCustomer": "وقّع كعميل",
+      "dealerSigDone": "توقيع الوكيل — مكتمل",
+      "dealerSigPending": "توقيع الوكيل — قيد الانتظار",
+      "dealerSig": "توقيع الوكيل",
+      "waitingForCustomer": "في انتظار العميل",
+      "dealerOpenBankID": "يقوم الوكيل بالتوقيع — افتح تطبيق BankID",
+      "signAsDealer": "وقّع كوكيل",
+      "waitingForCustomerSig": "في انتظار توقيع العميل…",
+      "bothSignedProcessing": "وقّع الطرفان — جارٍ معالجة الأتمتة…",
+      "automationNote": "⚡ بعد كلا التوقيعين: تُنفَّذ 10 إجراءات تلقائية فوراً (فاتورة، خطة دفع، تسليم…)",
+      "signedAt": "موقّع:"
+    },
+    "signed": {
+      "breadcrumbSigning": "التوقيع",
+      "breadcrumbTitle": "عقد موقّع",
+      "title": "عقد موقّع:",
+      "subtitle": "وقّع الطرفان — العقد ملزم قانونياً",
+      "docTitle": "عقد البيع",
+      "fullySigned": "موقّع بالكامل",
+      "buyerSig": "توقيع المشتري (BankID)",
+      "sellerSig": "توقيع البائع (BankID)",
+      "signedAt": "✓ موقّع:",
+      "footer": "تخضع هذه الاتفاقية للقانون السويدي. موقّعة إلكترونياً عبر BankID.",
+      "back": "رجوع →",
+      "downloadPDF": "⬇ تنزيل PDF",
+      "sendToCustomer": "📤 إرسال إلى العميل",
+      "goToPayment": "← الانتقال إلى الدفع",
+      "sendPanelTitle": "إرسال العقد الموقّع إلى العميل",
+      "noContact": "لم يتم العثور على معلومات الاتصال. يتم حفظ تفاصيل الاتصال عند إنشاء عميل محتمل جديد."
+    },
+    "complete": {
+      "successTitle": "وقّع الطرفان على العقد! 🎉",
+      "cascadeHeader": "⚡ أتمتة الإجراءات — 10 إجراءات في ثانيتين ⚡",
+      "allDone": "اكتملت جميع الإجراءات العشرة في 1.8 ثانية",
+      "back": "← العودة إلى خط الأنابيب",
+      "download": "⬇ تنزيل العقد الموقّع",
+      "viewDelivery": "← عرض التسليم",
+      "viewInvoice": "← عرض الفاتورة"
+    },
+    "preview": {
+      "breadcrumbPreview": "معاينة",
+      "title": "معاينة:",
+      "contractTitle": "عقد البيع — دراجة نارية",
+      "termsTitle": "الشروط والأحكام",
+      "buyerSig": "توقيع المشتري:",
+      "sellerSig": "توقيع البائع:",
+      "footer": "تخضع هذه الاتفاقية للقانون السويدي.",
+      "back": "تعديل →",
+      "downloadDisabled": "🔒 تنزيل PDF",
+      "downloadTooltip": "متاح بعد توقيع الطرفين عبر BankID",
+      "sendForSigning": "← إرسال للتوقيع عبر BankID"
     }
   },
   "privacy": {
     "title": "سياسة الخصوصية",
-    "subtitle": "كيف تعالج AVA MC AB بياناتك الشخصية",
+    "subtitle": "كيف تعالج {dealerName} بياناتك الشخصية",
     "lastUpdated": "آخر تحديث: 2026-03-06",
     "s1title": "المتحكم في البيانات",
-    "s1body": "AVA MC AB، رقم التسجيل 556123-4567، كيستا، ستوكهولم. للتواصل: privacy@avamc.se",
+    "s1body": "{dealerName}، رقم التسجيل {orgNr}، {city}. للتواصل: {email}",
     "s2title": "ما هي البيانات التي نجمعها؟",
     "s2body": "BankID (الاسم، الرقم الشخصي، وقت التوقيع، التحقق OCSP)، سجل السكان عبر Roaring.io/SPAR (العنوان، الجنس، تاريخ الميلاد، الهوية المحمية)، يدوي (البريد الإلكتروني، الهاتف)، تاريخ الشراء (العقود، الفواتير، المركبات، VIN، رقم اللوحة).",
     "s3title": "الأساس القانوني (GDPR المادة 6)",
@@ -747,7 +818,7 @@
     "s9title": "الشكاوى",
     "s9body": "Integritetsskyddsmyndigheten (IMY)، صندوق بريد 8114، 104 20 ستوكهولم، imy.se",
     "s10title": "التواصل وآخر تحديث",
-    "s10body": "privacy@avamc.se · تاريخ التحديث: 2026-03-06"
+    "s10body": "{email} · {dealerName} · رقم التسجيل {orgNr} · {city}"
   },
   "terms": {
     "title": "شروط الاستخدام",
@@ -761,13 +832,13 @@
     "s4title": "الاشتراك والدفع",
     "s4body": "الأسعار تشمل ضريبة قيمة مضافة بنسبة 25٪. فترة تجريبية مجانية لمدة 14 يوماً. دفع شهري أو سنوي. الإلغاء قبل 30 يوماً من الفترة القادمة. لا استرداد للفترة المنتهية.",
     "s5title": "الملكية الفكرية",
-    "s5body": "البرنامج ملك AVA MC AB. بيانات العميل مملوكة للمشترك ويمكن تصديرها عند الإلغاء.",
+    "s5body": "البرنامج ملك {dealerName}. بيانات العميل مملوكة للمشترك ويمكن تصديرها عند الإلغاء.",
     "s6title": "تحديد المسؤولية",
-    "s6body": "AVA MC AB غير مسؤولة عن الأضرار غير المباشرة أو الأرباح الفائتة أو أعطال الأنظمة. الحد الأقصى للمسؤولية = 3 أشهر من رسوم الاشتراك.",
+    "s6body": "{dealerName} غير مسؤولة عن الأضرار غير المباشرة أو الأرباح الفائتة أو أعطال الأنظمة. الحد الأقصى للمسؤولية = 3 أشهر من رسوم الاشتراك.",
     "s7title": "القانون المطبق والنزاعات",
     "s7body": "القانون السويدي. النزاعات تُحال أولاً إلى ARN (www.arn.se). بدلاً من ذلك، محكمة مدينة ستوكهولم.",
     "s8title": "التواصل",
-    "s8body": "info@avamc.se · AVA MC AB · رقم التسجيل 556123-4567 · كيستا، ستوكهولم"
+    "s8body": "{email} · {dealerName} · رقم التسجيل {orgNr} · {city}"
   },
   "notifications": {
     "title": "الإشعارات",
@@ -922,6 +993,23 @@
     "printVat":      "ضريبة القيمة المضافة 25%",
     "printTotal":    "الإجمالي شامل الضريبة",
     "printStatus":   "الحالة",
-    "printFooter":   "AVA MC AB • Org.nr 556123-4567 • Kista, Stockholm • info@avamc.se"
+    "printFooter":   "{dealerName} • Org.nr {orgNr} • {city} • {email}"
+  },
+  "invite": {
+    "title":              "لقد تمت دعوتك",
+    "by":                 "دعوة من {dealershipName}",
+    "expired":            "دعوة غير صالحة أو منتهية الصلاحية",
+    "expiredDesc":        "هذا الرابط لم يعد صالحاً. تواصل مع المسؤول للحصول على دعوة جديدة.",
+    "verify":             "التحقق عبر BankID",
+    "verifyDesc":         "أكّد هويتك لتفعيل حسابك.",
+    "success":            "تم تفعيل الحساب!",
+    "successDesc":        "جارٍ إعادة التوجيه إلى لوحة التحكم...",
+    "labelName":          "الاسم",
+    "labelEmail":         "البريد الإلكتروني",
+    "labelRole":          "الدور",
+    "labelCompany":       "الشركة",
+    "goToLogin":          "الذهاب إلى تسجيل الدخول",
+    "alreadyHaveAccount": "هل لديك حساب بالفعل؟",
+    "loginLink":          "تسجيل الدخول"
   }
 }

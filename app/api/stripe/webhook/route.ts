@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { constructWebhookEvent } from '@/lib/stripe/client';
+import { insertWebhookEvent } from '@/lib/webhookStore';
 
 /**
  * POST /api/stripe/webhook — Stripe event webhook
@@ -26,6 +27,9 @@ export async function POST(req: NextRequest) {
   }
 
   console.log(`[Stripe webhook] ${event.type} — id: ${event.id}`);
+
+  // Persist to Supabase so Realtime can push updates to the browser
+  await insertWebhookEvent('stripe', event.type, event.data.object as object);
 
   switch (event.type) {
     case 'payment_intent.succeeded':

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
 import BankIDModal from '@/components/bankIdModel';
+import { getDealerInfo } from '@/lib/dealer';
 import type { BankIDResult } from '@/types';
 import { notify } from '@/lib/notifications';
 
@@ -22,15 +23,18 @@ export default function BankIDSigningPage() {
   const params = useParams();
   const id = (params?.id as string) || 'default';
   const tNotif = useTranslations('notifications');
+  const t = useTranslations('agreement');
 
   const [ready, setReady] = useState(false);
   const [step, setStep] = useState<SignStep>('customer-pending');
   const [customerRecord, setCustomerRecord] = useState<SignRecord | null>(null);
   const [dealerRecord, setDealerRecord] = useState<SignRecord | null>(null);
+  const [dealerName, setDealerName] = useState('');
 
   useEffect(() => {
     const user = localStorage.getItem('user');
     if (!user) { router.replace('/auth/login'); return; }
+    setDealerName(getDealerInfo().name);
     setReady(true);
   }, [router]);
 
@@ -90,22 +94,22 @@ export default function BankIDSigningPage() {
         {/* Header */}
         <div className="px-5 md:px-8 py-6 bg-white border-b border-slate-100 animate-fade-up">
           <nav className="flex items-center gap-1.5 text-xs text-slate-400 mb-3">
-            <Link href="/sales/leads" className="hover:text-[#FF6B2C] transition-colors">Försäljning</Link>
+            <Link href="/sales/leads" className="hover:text-[#FF6B2C] transition-colors">{t('breadcrumb.sales')}</Link>
             <span>→</span>
-            <Link href={`/sales/leads/${id}/agreement/preview`} className="hover:text-[#FF6B2C] transition-colors">Avtal</Link>
+            <Link href={`/sales/leads/${id}/agreement/preview`} className="hover:text-[#FF6B2C] transition-colors">{t('breadcrumb.agreement')}</Link>
             <span>→</span>
-            <span className="text-slate-700 font-medium">BankID-signering</span>
+            <span className="text-slate-700 font-medium">{t('sign.breadcrumbSigning')}</span>
           </nav>
           <div className="flex items-center gap-3">
             <span className="text-2xl">🪪</span>
-            <h1 className="text-2xl font-bold text-slate-900">BankID-signering: AGR-2024-0089</h1>
+            <h1 className="text-2xl font-bold text-slate-900">{t('sign.breadcrumbSigning')}: AGR-2024-0089</h1>
           </div>
         </div>
 
         {/* Progress stepper */}
         <div className="px-5 md:px-8 pb-4 bg-white border-b border-slate-100">
           <div className="flex items-center">
-            {(['Avtal', 'Förhandsvisning', 'Signering', 'Betalning', 'Klart'] as const).map((step, i) => {
+            {[t('progress.step0'), t('progress.step1'), t('progress.step2'), t('progress.step3'), t('progress.step4')].map((step, i) => {
               const isActive = i === 2;
               const isDone   = i < 2;
               return (
@@ -140,8 +144,8 @@ export default function BankIDSigningPage() {
             <div className="bg-white rounded-2xl border border-slate-100 p-6 animate-fade-up">
 
               <div className="text-center mb-6">
-                <h2 className="text-base font-bold text-slate-900">Signeringsstatus</h2>
-                <p className="text-xs text-slate-400 mt-1">Båda parter måste signera med BankID</p>
+                <h2 className="text-base font-bold text-slate-900">{t('sign.signingStatus')}</h2>
+                <p className="text-xs text-slate-400 mt-1">{t('sign.bothMustSign')}</p>
               </div>
 
               {/* ── Customer Signature ── */}
@@ -150,31 +154,31 @@ export default function BankIDSigningPage() {
               }`}>
                 <div className="flex items-center justify-between mb-1">
                   <span className={`text-sm font-bold ${customerDone ? 'text-green-700' : 'text-slate-600'}`}>
-                    {customerDone ? '✅ Kundens underskrift — Klar' : '1️⃣ Kundens underskrift'}
+                    {customerDone ? `✅ ${t('sign.customerSigDone')}` : `1️⃣ ${t('sign.customerSig')}`}
                   </span>
                   {!customerDone && (
-                    <span className="text-xs text-slate-400 bg-white border border-slate-200 px-2 py-0.5 rounded-full">Väntar</span>
+                    <span className="text-xs text-slate-400 bg-white border border-slate-200 px-2 py-0.5 rounded-full">{t('sign.waiting')}</span>
                   )}
                 </div>
 
                 {customerDone && customerRecord ? (
                   <>
                     <p className="text-sm text-slate-700 font-medium">{customerRecord.name} ({customerRecord.personalNumber})</p>
-                    <p className="text-xs text-slate-500 mt-0.5">Signerad: {customerRecord.signedAt}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{t('sign.signedAt')} {customerRecord.signedAt}</p>
                     <div className="flex items-center gap-3 mt-2">
-                      <span className="text-xs text-green-600">✓ Identitet verifierad</span>
+                      <span className="text-xs text-green-600">✓ {t('sign.identityVerified')}</span>
                       <span className="text-xs text-slate-300">•</span>
-                      <span className="text-xs text-green-600">✓ Juridiskt bindande</span>
+                      <span className="text-xs text-green-600">✓ {t('sign.legallyBinding')}</span>
                     </div>
                   </>
                 ) : (
                   <>
-                    <p className="text-sm text-slate-500">Kunden signerar avtalet först</p>
+                    <p className="text-sm text-slate-500">{t('sign.customerSignsFirst')}</p>
                     <button
                       onClick={() => setStep('customer-signing')}
                       className="mt-3 w-full py-2.5 rounded-xl bg-[#0b1524] hover:bg-[#1a2a42] text-white text-sm font-bold tracking-wide transition-colors flex items-center justify-center gap-2"
                     >
-                      <span>🪪</span> Signera som kund
+                      <span>🪪</span> {t('sign.signAsCustomer')}
                     </button>
                   </>
                 )}
@@ -192,35 +196,35 @@ export default function BankIDSigningPage() {
                   <span className={`text-sm font-bold ${
                     dealerDone ? 'text-green-700' : customerDone ? 'text-amber-700' : 'text-slate-400'
                   }`}>
-                    {dealerDone ? '✅ Återförsäljarens underskrift — Klar' : customerDone ? '⏳ Återförsäljarens underskrift — Väntar' : '2️⃣ Återförsäljarens underskrift'}
+                    {dealerDone ? `✅ ${t('sign.dealerSigDone')}` : customerDone ? `⏳ ${t('sign.dealerSigPending')}` : `2️⃣ ${t('sign.dealerSig')}`}
                   </span>
                   {!dealerDone && !customerDone && (
-                    <span className="text-xs text-slate-400 bg-white border border-slate-200 px-2 py-0.5 rounded-full">Väntar på kund</span>
+                    <span className="text-xs text-slate-400 bg-white border border-slate-200 px-2 py-0.5 rounded-full">{t('sign.waitingForCustomer')}</span>
                   )}
                 </div>
 
                 {dealerDone && dealerRecord ? (
                   <>
                     <p className="text-sm text-slate-700 font-medium">{dealerRecord.name} ({dealerRecord.personalNumber})</p>
-                    <p className="text-xs text-slate-500 mt-0.5">Signerad: {dealerRecord.signedAt}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{t('sign.signedAt')} {dealerRecord.signedAt}</p>
                     <div className="flex items-center gap-3 mt-2">
-                      <span className="text-xs text-green-600">✓ Identitet verifierad</span>
+                      <span className="text-xs text-green-600">✓ {t('sign.identityVerified')}</span>
                       <span className="text-xs text-slate-300">•</span>
-                      <span className="text-xs text-green-600">✓ Juridiskt bindande</span>
+                      <span className="text-xs text-green-600">✓ {t('sign.legallyBinding')}</span>
                     </div>
                   </>
                 ) : customerDone ? (
                   <>
-                    <p className="text-sm text-amber-700">Återförsäljaren signerar — öppna BankID-appen</p>
+                    <p className="text-sm text-amber-700">{t('sign.dealerOpenBankID')}</p>
                     <button
                       onClick={() => setStep('dealer-signing')}
                       className="mt-3 w-full py-2.5 rounded-xl bg-[#0b1524] hover:bg-[#1a2a42] text-white text-sm font-bold tracking-wide transition-colors flex items-center justify-center gap-2"
                     >
-                      <span>🪪</span> Signera som återförsäljare
+                      <span>🪪</span> {t('sign.signAsDealer')}
                     </button>
                   </>
                 ) : (
-                  <p className="text-sm text-slate-400">Väntar på kundens signatur…</p>
+                  <p className="text-sm text-slate-400">{t('sign.waitingForCustomerSig')}</p>
                 )}
               </div>
 
@@ -228,14 +232,14 @@ export default function BankIDSigningPage() {
               {step === 'complete' && (
                 <div className="flex items-center justify-center gap-2 py-3 text-green-700 font-semibold text-sm animate-fade-in">
                   <div className="w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
-                  Båda parter signerat — bearbetar automation…
+                  {t('sign.bothSignedProcessing')}
                 </div>
               )}
 
               {/* Footer note */}
               {!dealerDone && (
                 <p className="text-xs text-amber-600 text-center">
-                  ⚡ Efter båda signaturer: 10 automatiska åtgärder utförs omedelbart (faktura, betalningsplan, leverans…)
+                  {t('sign.automationNote')}
                 </p>
               )}
             </div>
@@ -260,7 +264,7 @@ export default function BankIDSigningPage() {
       {step === 'dealer-signing' && (
         <BankIDModal
           mode="sign"
-          signText="Jag signerar köpeavtal AGR-2024-0089 som auktoriserad representant för AVA MC AB."
+          signText={`Jag signerar köpeavtal AGR-2024-0089 som auktoriserad representant för ${dealerName || 'återförsäljaren'}.`}
           title="Signera köpeavtal — Återförsäljare"
           subtitle="Återförsäljaren signerar köpeavtalet som juridiskt ombud."
           onComplete={handleDealerComplete}

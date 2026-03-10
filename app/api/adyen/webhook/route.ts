@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { insertWebhookEvent } from '@/lib/webhookStore';
 
 /**
  * POST /api/adyen/webhook — Adyen event notifications
@@ -15,6 +16,9 @@ export async function POST(req: NextRequest) {
 
       const { eventCode, success, pspReference, merchantReference } = n;
       console.log(`[Adyen webhook] ${eventCode} — ref: ${pspReference} order: ${merchantReference} success: ${success}`);
+
+      // Persist to Supabase so Realtime can push updates to the browser
+      await insertWebhookEvent('adyen', eventCode, n);
 
       switch (eventCode) {
         case 'AUTHORISATION':

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
+import PhoneInput from '@/components/PhoneInput';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -470,11 +471,10 @@ export default function DealershipProfilePage() {
             {/* ── Contact ── */}
             <SectionCard title="Kontaktuppgifter" icon="📞">
               <Field label="Telefon">
-                <Input
+                <PhoneInput
                   value={profile.phone}
                   onChange={set('phone')}
-                  placeholder="08-123 456 78"
-                  type="tel"
+                  placeholder="123 456 78"
                 />
               </Field>
               <Field label="E-post">

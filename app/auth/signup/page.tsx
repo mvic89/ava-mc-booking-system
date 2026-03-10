@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
+import PhoneInput from '@/components/PhoneInput';
+import PasswordInput from '@/components/PasswordInput';
 
 type Plan = 'starter' | 'professional' | 'enterprise';
 type Step = 0 | 1 | 2 | 3 | 4;
@@ -369,12 +371,11 @@ export default function SignupPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Phone Number *</label>
-                  <input
-                    type="tel"
+                  <PhoneInput
                     value={business.phone}
-                    onChange={e => { setBusiness({ ...business, phone: e.target.value }); setErrors(p => ({ ...p, phone: '' })); }}
-                    placeholder="+46 XX XXX XX XX"
-                    className={fc('phone')}
+                    onChange={v => { setBusiness({ ...business, phone: v }); setErrors(p => ({ ...p, phone: '' })); }}
+                    className={`rounded-lg border ${errors.phone ? 'border-red-400 bg-red-50 focus-within:ring-red-400' : 'border-slate-300 focus-within:border-[#FF6B2C] focus-within:ring-[#FF6B2C]'} focus-within:ring-1 transition-all`}
+                    inputClassName="py-3 text-sm"
                   />
                   {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
                 </div>
@@ -440,19 +441,17 @@ export default function SignupPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Mobile Number *</label>
-                  <input
-                    type="tel"
+                  <PhoneInput
                     value={admin.mobile}
-                    onChange={e => { setAdmin({ ...admin, mobile: e.target.value }); setErrors(p => ({ ...p, mobile: '' })); }}
-                    placeholder="+46 70 XXX XX XX"
-                    className={fc('mobile')}
+                    onChange={v => { setAdmin({ ...admin, mobile: v }); setErrors(p => ({ ...p, mobile: '' })); }}
+                    className={`rounded-lg border ${errors.mobile ? 'border-red-400 bg-red-50 focus-within:ring-red-400' : 'border-slate-300 focus-within:border-[#FF6B2C] focus-within:ring-[#FF6B2C]'} focus-within:ring-1 transition-all`}
+                    inputClassName="py-3 text-sm"
                   />
                   {errors.mobile && <p className="text-xs text-red-500 mt-1">{errors.mobile}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('password')} *</label>
-                  <input
-                    type="password"
+                  <PasswordInput
                     value={admin.password}
                     onChange={e => { setAdmin({ ...admin, password: e.target.value }); setErrors(p => ({ ...p, password: '' })); }}
                     placeholder="••••••••"
@@ -465,8 +464,7 @@ export default function SignupPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('confirmPassword')} *</label>
-                  <input
-                    type="password"
+                  <PasswordInput
                     value={admin.confirmPassword}
                     onChange={e => { setAdmin({ ...admin, confirmPassword: e.target.value }); setErrors(p => ({ ...p, confirmPassword: '' })); }}
                     placeholder="••••••••"
@@ -627,12 +625,44 @@ export default function SignupPage() {
                     name: admin.fullName,
                     email: admin.email,
                     dealershipName: business.dealershipName,
+                    orgNr: business.orgNumber,
+                    city: business.city,
+                    postalCode: business.postalCode,
+                    streetAddress: business.streetAddress,
+                    phone: business.phone,
+                    website: business.website,
                     plan: selectedPlan,
+                    role: 'admin' as const,
                   };
                   localStorage.setItem('user', JSON.stringify(profile));
+                  // Seed dealership_profile so all pages read the correct dealer data immediately
+                  localStorage.setItem('dealership_profile', JSON.stringify({
+                    name: business.dealershipName,
+                    orgNr: business.orgNumber,
+                    city: business.city,
+                    postalCode: business.postalCode,
+                    address: business.streetAddress,
+                    phone: business.phone,
+                    website: business.website,
+                    email: admin.email,
+                  }));
                   const accounts = JSON.parse(localStorage.getItem('accounts') || '{}');
                   accounts[admin.email] = profile;
                   localStorage.setItem('accounts', JSON.stringify(accounts));
+                  // Seed staff_users with the admin record if it doesn't exist yet
+                  if (!localStorage.getItem('staff_users')) {
+                    const adminStaff = [{
+                      id: crypto.randomUUID(),
+                      name: admin.fullName,
+                      email: admin.email,
+                      role: 'admin' as const,
+                      status: 'active' as const,
+                      lastLogin: new Date().toISOString(),
+                      bankidVerified: false,
+                      personalNumber: '',
+                    }];
+                    localStorage.setItem('staff_users', JSON.stringify(adminStaff));
+                  }
                   setStep(4);
                 }}
                 className="flex-1 bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors"

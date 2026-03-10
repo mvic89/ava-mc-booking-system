@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
 
 interface AgreementData {
@@ -59,6 +60,7 @@ export default function AgreementPreviewPage() {
   const router = useRouter();
   const params = useParams();
   const id = (params?.id as string) || 'default';
+  const t = useTranslations('agreement');
   const [ready, setReady] = useState(false);
   const [dealer, setDealer] = useState({ name: '', orgNr: '', city: '', email: '' });
 
@@ -120,16 +122,16 @@ export default function AgreementPreviewPage() {
         {/* Header */}
         <div className="px-5 md:px-8 py-6 bg-white border-b border-slate-100 animate-fade-up">
           <nav className="flex items-center gap-1.5 text-xs text-slate-400 mb-3">
-            <Link href="/sales/leads" className="hover:text-[#FF6B2C] transition-colors">Försäljning</Link>
+            <Link href="/sales/leads" className="hover:text-[#FF6B2C] transition-colors">{t('breadcrumb.sales')}</Link>
             <span>→</span>
-            <Link href={`/sales/leads/${id}/agreement`} className="hover:text-[#FF6B2C] transition-colors">Avtal</Link>
+            <Link href={`/sales/leads/${id}/agreement`} className="hover:text-[#FF6B2C] transition-colors">{t('breadcrumb.agreement')}</Link>
             <span>→</span>
-            <span className="text-slate-700 font-medium">Förhandsgranskning</span>
+            <span className="text-slate-700 font-medium">{t('preview.breadcrumbPreview')}</span>
           </nav>
           <div className="flex items-center gap-3">
             <span className="text-2xl">📄</span>
             <h1 className="text-2xl font-bold text-slate-900">
-              Förhandsgranskning: {agr.agreementNumber}
+              {t('preview.title')} {agr.agreementNumber}
             </h1>
           </div>
         </div>
@@ -153,7 +155,7 @@ export default function AgreementPreviewPage() {
               {/* Title */}
               <div className="text-center mb-6">
                 <h2 className="text-base font-bold text-slate-900 tracking-widest uppercase">
-                  Köpeavtal — Motorcykel
+                  {t('preview.contractTitle')}
                 </h2>
                 <p className="text-xs text-slate-400 mt-1">
                   {agr.agreementNumber} • Datum: {agr.date}
@@ -189,7 +191,7 @@ export default function AgreementPreviewPage() {
 
               {/* Legal prose §§ 1–11 */}
               <div className="mt-6 bg-slate-50 rounded-xl border border-slate-200 p-5 space-y-3">
-                <p className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Avtalsvillkor</p>
+                <p className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">{t('preview.termsTitle')}</p>
 
                 {[
                   {
@@ -250,12 +252,12 @@ export default function AgreementPreviewPage() {
               {/* Signatures */}
               <div className="space-y-3">
                 <div className="flex items-baseline gap-3 text-sm text-slate-500">
-                  <span>Köparens underskrift:</span>
+                  <span>{t('preview.buyerSig')}</span>
                   <span className="border-b border-slate-300 flex-1 min-w-[120px]" />
                   <span className="text-xs text-slate-400">(BankID)</span>
                 </div>
                 <div className="flex items-baseline gap-3 text-sm text-slate-500">
-                  <span>Säljarens underskrift:</span>
+                  <span>{t('preview.sellerSig')}</span>
                   <span className="border-b border-slate-300 flex-1 min-w-[120px]" />
                   <span className="text-xs text-slate-400">(BankID)</span>
                 </div>
@@ -263,7 +265,7 @@ export default function AgreementPreviewPage() {
 
               {/* Footer */}
               <p className="text-xs text-slate-400 mt-6 text-center">
-                Detta avtal regleras av svensk lag. Konsumentkreditlagen 2010:1846 · Konsumentköplagen 2022:260 · Distansavtalslagen 2005:59
+                {t('preview.footer')}
               </p>
             </div>
 
@@ -273,19 +275,19 @@ export default function AgreementPreviewPage() {
                 href={`/sales/leads/${id}/agreement`}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:border-slate-300 transition-colors"
               >
-                ← Redigera
+                {t('preview.back')}
               </Link>
               <span
-                title="Tillgänglig efter att båda parter har signerat med BankID"
+                title={t('preview.downloadTooltip')}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-400 bg-slate-50 cursor-not-allowed select-none"
               >
-                🔒 Ladda ner PDF
+                {t('preview.downloadDisabled')}
               </span>
               <Link
                 href={`/sales/leads/${id}/agreement/sign`}
                 className="ml-auto flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#1a7d4f] hover:bg-[#156640] text-white text-sm font-semibold transition-colors"
               >
-                Skicka för BankID-signering →
+                {t('preview.sendForSigning')}
               </Link>
             </div>
           </div>

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
+import { getDealerInfo, getVatNumber } from '@/lib/dealer';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -29,6 +30,7 @@ export default function BillingPage() {
   const [plan,       setPlan]       = useState<PlanId>('standard');
   const [cycle,      setCycle]      = useState<Cycle>('monthly');
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [dealer, setDealer] = useState({ email: '', orgNr: '', vatNr: '' });
 
   useEffect(() => {
     if (!localStorage.getItem('user')) { router.replace('/auth/login'); return; }
@@ -37,6 +39,8 @@ export default function BillingPage() {
       if (saved.plan)  setPlan(saved.plan);
       if (saved.cycle) setCycle(saved.cycle);
     } catch {}
+    const d = getDealerInfo();
+    setDealer({ email: d.email, orgNr: d.orgNr, vatNr: getVatNumber(d.orgNr) });
   }, [router]);
 
   const saveBillingPrefs = (p: PlanId, c: Cycle) =>
@@ -293,15 +297,15 @@ export default function BillingPage() {
               <div className="space-y-3">
                 <div>
                   <p className="text-[10px] text-slate-400 uppercase tracking-widest">Email</p>
-                  <p className="text-sm font-medium text-slate-700 mt-0.5">billing@avamc.se</p>
+                  <p className="text-sm font-medium text-slate-700 mt-0.5">{dealer.email || '—'}</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-slate-400 uppercase tracking-widest">{t('orgNumber')}</p>
-                  <p className="text-sm font-medium text-slate-700 mt-0.5">556123-4567</p>
+                  <p className="text-sm font-medium text-slate-700 mt-0.5">{dealer.orgNr || '—'}</p>
                 </div>
                 <div>
                   <p className="text-[10px] text-slate-400 uppercase tracking-widest">{t('vatNumber')}</p>
-                  <p className="text-sm font-medium text-slate-700 mt-0.5">SE556123456701</p>
+                  <p className="text-sm font-medium text-slate-700 mt-0.5">{dealer.vatNr || '—'}</p>
                 </div>
               </div>
               <button

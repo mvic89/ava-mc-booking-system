@@ -6,9 +6,11 @@ import Link from 'next/link';
 import Script from 'next/script';
 import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
+import PhoneInput from '@/components/PhoneInput';
 import { notify } from '@/lib/notifications';
 import { createInvoice, markInvoicePaid } from '@/lib/invoices';
 import { emit } from '@/lib/realtime';
+import { getDealerInfo } from '@/lib/dealer';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -247,12 +249,11 @@ export default function AgreementPaymentPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          payeePaymentReference: DEAL.agreementId,
-          callbackUrl: `${window.location.origin}/api/swish/callback`,
-          payerAlias:  normalised,
-          amount:      DEAL.amountDecimal,
-          currency:    DEAL.currency,
-          message:     `Betalning ${DEAL.agreementId}`,
+          orderId:    DEAL.agreementId,
+          payerAlias: normalised,
+          amount:     DEAL.amountDecimal,
+          currency:   DEAL.currency,
+          message:    `Betalning ${DEAL.agreementId}`,
         }),
       });
       const data = await res.json();
@@ -779,6 +780,7 @@ function ActionPanel({
 }) {
   const cat  = provider.category;
   const meta = CATEGORY_META[cat];
+  const dealerName = getDealerInfo().name || DEAL.receiver;
 
   const isIdle      = flowStep === 'idle' || flowStep === 'initiating';
   const isWaiting   = flowStep === 'waiting';
@@ -916,16 +918,11 @@ function ActionPanel({
                   <label className="text-xs font-bold text-slate-600 block mb-1.5">
                     Kundens mobilnummer
                   </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm">🇸🇪</span>
-                    <input
-                      type="tel"
-                      placeholder="070 123 45 67"
-                      value={phone}
-                      onChange={(e) => onPhoneChange(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#FF6B2C]/20 focus:border-[#FF6B2C] transition-all"
-                    />
-                  </div>
+                  <PhoneInput
+                    value={phone}
+                    onChange={onPhoneChange}
+                    placeholder="70 123 45 67"
+                  />
                 </div>
                 <Row label="Avtal" value={DEAL.agreementId} />
                 <Row label="Belopp" value={`${DEAL.amountDisplay} kr`} />
@@ -1000,16 +997,11 @@ function ActionPanel({
                 </InfoBox>
                 <div>
                   <label className="text-xs font-bold text-slate-600 block mb-1.5">Kundens mobilnummer</label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm">🇸🇪</span>
-                    <input
-                      type="tel"
-                      placeholder="070 123 45 67"
-                      value={phone}
-                      onChange={(e) => onPhoneChange(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#FF6B2C]/20 focus:border-[#FF6B2C] transition-all"
-                    />
-                  </div>
+                  <PhoneInput
+                    value={phone}
+                    onChange={onPhoneChange}
+                    placeholder="70 123 45 67"
+                  />
                 </div>
                 <Btn
                   label="Skicka Swish-förfrågan"
@@ -1096,7 +1088,7 @@ function ActionPanel({
                   <BankRow label="Bankgiro"      value={DEAL.bankgiro} mono />
                   <BankRow label="OCR / Referens" value={DEAL.ocr}     mono />
                   <BankRow label="Belopp"         value={`${DEAL.amountDisplay} kr`} bold />
-                  <BankRow label="Mottagare"      value={DEAL.receiver} />
+                  <BankRow label="Mottagare"      value={dealerName} />
                 </div>
                 <button
                   onClick={onCopy}

@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createPaymentRequest } from '@/lib/swish/client';
+import { mockSwishStore } from '@/lib/swish/mock-store';
+
+const MOCK = process.env.SWISH_MOCK_MODE === 'true';
 
 /**
  * POST /api/swish/payment — initiate a Swish payment request
@@ -17,12 +20,33 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // ── Mock mode ────────────────────────────────────────────────────────────
+    if (MOCK) {
+      const paymentId = 'MOCK' + Math.random().toString(36).slice(2, 14).toUpperCase();
+      mockSwishStore.set(paymentId, {
+        status:     'CREATED',
+        payerAlias,
+        amount,
+        orderId,
+        createdAt:  Date.now(),
+      });
+      // Auto-transition to PAID after 3 seconds (simulates customer approving in app)
+      setTimeout(() => mockSwishStore.paid(paymentId), 3000);
+      console.log(`[Swish MOCK] Payment created: ${paymentId}`);
+      return NextResponse.json({ paymentId });
+    }
+
+    // ── Live mode ─────────────────────────────────────────────────────────────
+    // Use NEXT_PUBLIC_BASE_URL if set, otherwise derive from request origin
+    const origin = process.env.NEXT_PUBLIC_BASE_URL ?? new URL(req.url).origin;
+
     const paymentId = await createPaymentRequest({
       payerAlias,
       amount,
-      currency:    currency ?? 'SEK',
-      message:     message ?? orderId,
-      callbackUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/swish/callback`,
+      currency:              (currency ?? 'SEK') as 'SEK',
+      message:               message ?? orderId,
+      payeePaymentReference: orderId,
+      callbackUrl:           `${origin}/api/swish/callback`,
     });
 
     console.log(`[Swish] Payment request created: ${paymentId}`);

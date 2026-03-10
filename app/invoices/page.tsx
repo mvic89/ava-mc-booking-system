@@ -7,22 +7,9 @@ import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
 import { getInvoices, type Invoice } from '@/lib/invoices';
 import { useAutoRefresh } from '@/lib/realtime';
+import { getDealerInfo } from '@/lib/dealer';
 
 // ─── Print helper ─────────────────────────────────────────────────────────────
-
-function getDealerInfo() {
-  try {
-    const p = JSON.parse(localStorage.getItem('dealership_profile') || '{}');
-    const u = JSON.parse(localStorage.getItem('user') || '{}');
-    const name    = p.name    || u.dealershipName || u.dealership || 'My Dealership';
-    const orgNr   = p.orgNr   || '—';
-    const city    = p.city    ? `${p.city}${p.county ? ', ' + p.county : ''}` : '—';
-    const email   = p.email   || '—';
-    return { name, orgNr, city, email };
-  } catch {
-    return { name: 'My Dealership', orgNr: '—', city: '—', email: '—' };
-  }
-}
 
 function openInvoicePrintWindow(inv: Invoice, labels: Record<string, string>) {
   const dealer = getDealerInfo();
@@ -181,6 +168,7 @@ export default function InvoicesPage() {
 
   // ── Print labels passed to popup ──────────────────────────────────────────
 
+  const _d = getDealerInfo();
   const printLabels = {
     title:      t('printTitle'),
     issued:     t('printIssued'),
@@ -196,7 +184,7 @@ export default function InvoicesPage() {
     amount:     t('colAmount'),
     badgePaid:  t('badgePaid'),
     badgePending: t('badgePending'),
-    footer:     t('printFooter'),
+    footer:     t('printFooter', { dealerName: _d.name, orgNr: _d.orgNr, city: _d.city, email: _d.email }),
   };
 
   const fmtDate = (iso: string) =>

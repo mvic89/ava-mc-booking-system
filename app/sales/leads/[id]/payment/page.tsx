@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Sidebar from '@/components/Sidebar';
+import { getDealerInfo } from '@/lib/dealer';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -726,7 +727,7 @@ const TERMINAL_STEPS: { id: TerminalStep; label: string; desc: string }[] = [
 
 const TERMINAL_SCREEN: Record<TerminalStep, { line1: string; line2: string; line3: string; bg: string; textColor: string }> = {
   idle:          { line1: 'NETS AXEPT',       line2: 'NETS-STH-001',        line3: 'REDO',                       bg: '#1e293b', textColor: '#94a3b8' },
-  amount_shown:  { line1: 'AVA MC AB',        line2: '119 952,00 SEK',       line3: 'VÄNTAR PÅ KUNDEN',           bg: '#1e3a5f', textColor: '#93c5fd' },
+  amount_shown:  { line1: '__DEALER__',        line2: '119 952,00 SEK',       line3: 'VÄNTAR PÅ KUNDEN',           bg: '#1e3a5f', textColor: '#93c5fd' },
   awaiting_card: { line1: 'BELOPP:',          line2: '119 952,00 SEK',       line3: 'BLIPP ELLER SÄTT I KORTET', bg: '#1e3a5f', textColor: '#fbbf24' },
   processing:    { line1: 'BEHANDLAR...',     line2: '119 952,00 SEK',       line3: 'VÄNLIGEN VÄNTA',             bg: '#1e3a5f', textColor: '#f97316' },
   confirmed:     { line1: 'GODKÄND',          line2: 'KOD: A8F3K2',          line3: 'TACK FÖR KÖPET!',           bg: '#14532d', textColor: '#86efac' },
@@ -763,7 +764,9 @@ function CardTab({ order }: { order: OrderSummary }) {
     }, 1500);
   };
 
-  const screen = TERMINAL_SCREEN[step];
+  const dealerName = getDealerInfo().name;
+  const rawScreen = TERMINAL_SCREEN[step];
+  const screen = { ...rawScreen, line1: rawScreen.line1 === '__DEALER__' ? (dealerName || 'ÅTERFÖRSÄLJARE') : rawScreen.line1 };
   const stepIndex = TERMINAL_STEPS.findIndex(s => s.id === step);
 
   return (
@@ -1403,6 +1406,7 @@ function BankTransferTab({ order }: { order: OrderSummary }) {
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('pending');
   const [confirming, setConfirming] = useState(false);
   const reference = `BKE${order.agreementNumber.replace(/\D/g, '')}`;
+  const dealerCompany = getDealerInfo().name;
 
   // REAL DATA GUIDE:
   // Bank transfer clearing in Sweden happens via Bankgiro (BGC).
@@ -1428,7 +1432,7 @@ function BankTransferTab({ order }: { order: OrderSummary }) {
         </p>
         <div className="space-y-3">
           {[
-            { label: 'Company',    value: 'AVA MC AB' },
+            { label: 'Company',    value: dealerCompany || '—' },
             { label: 'Bank',       value: 'Handelsbanken' },
             { label: 'Bankgiro',   value: '123-4567' },
             { label: 'IBAN',       value: 'SE35 5000 0000 0549 1000 0003' },

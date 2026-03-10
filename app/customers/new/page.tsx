@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
 import BankIDModal from '@/components/bankIdModel';
+import PhoneInput from '@/components/PhoneInput';
 import type { BankIDResult } from '@/types';
 
 const EXISTING_CUSTOMERS: Record<string, { id: number; name: string; lastSeen: string; vehicles: number; lifetimeValue: number; purchases: number }> = {
@@ -30,6 +31,7 @@ export default function NewCustomerPage() {
   const [existingCustomer, setExistingCustomer] = useState<typeof EXISTING_CUSTOMERS[string] | null>(null);
   const [bankIDEmail, setBankIDEmail] = useState('');
   const [bankIDPhone, setBankIDPhone] = useState('');
+  const [protectedPhone, setProtectedPhone] = useState('');
   const [manual, setManual] = useState(EMPTY_MANUAL);
 
   useEffect(() => {
@@ -308,12 +310,9 @@ export default function NewCustomerPage() {
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-slate-600 mb-1.5">{t('profile.fields.phone')} *</label>
-                      <input
-                        type="tel"
+                      <PhoneInput
                         value={manual.phone}
-                        onChange={e => setManual(m => ({ ...m, phone: e.target.value }))}
-                        placeholder="07X-XXX XXXX"
-                        className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C] outline-none"
+                        onChange={v => setManual(m => ({ ...m, phone: v }))}
                         required
                       />
                     </div>
@@ -478,7 +477,13 @@ export default function NewCustomerPage() {
                       </div>
                       <div>
                         <label className="block text-xs font-semibold text-slate-600 mb-1">{t('profile.fields.phone')} *</label>
-                        <input type="tel" value={bankIDPhone} onChange={e => setBankIDPhone(e.target.value)} placeholder="07X-XXX XXXX" className="w-full px-3 py-2 rounded-lg border-2 border-dashed border-orange-300 bg-white text-sm focus:border-[#FF6B2C] outline-none" required />
+                        <PhoneInput
+                          value={bankIDPhone}
+                          onChange={v => setBankIDPhone(v)}
+                          className="rounded-lg border-2 border-dashed border-orange-300 focus-within:border-[#FF6B2C] transition-all"
+                          inputClassName="py-2 bg-white"
+                          required
+                        />
                       </div>
                     </div>
                   </div>
@@ -622,7 +627,13 @@ export default function NewCustomerPage() {
                       </div>
                       <div>
                         <label className="block text-xs font-semibold text-slate-600 mb-1">{t('profile.fields.phone')}</label>
-                        <input type="tel" placeholder="07X-XXX XXXX" className="w-full px-3 py-2 rounded-lg border-2 border-dashed border-orange-300 bg-white text-sm focus:border-[#FF6B2C] outline-none" required />
+                        <PhoneInput
+                          value={protectedPhone}
+                          onChange={v => setProtectedPhone(v)}
+                          className="rounded-lg border-2 border-dashed border-orange-300 focus-within:border-[#FF6B2C] transition-all"
+                          inputClassName="py-2 bg-white"
+                          required
+                        />
                       </div>
                     </div>
                   </div>

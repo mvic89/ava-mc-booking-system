@@ -76,7 +76,7 @@ export default function IntegrationsSettingsPage() {
   const [saving,           setSaving]           = useState(false);
   const [saveResult,       setSaveResult]       = useState<'idle' | 'ok' | 'error'>('idle');
   const [dealerId,         setDealerId]         = useState('ava-mc');
-  const [dealerName,       setDealerName]       = useState('AVA MC AB');
+  const [dealerName,       setDealerName]       = useState('');
   const [integrationStates, setIntegrationStates] = useState<Record<string, IntegrationState>>({});
   const [showPasswords,    setShowPasswords]    = useState<Record<string, boolean>>({});
   const [restartBanner,    setRestartBanner]    = useState(false);
@@ -87,7 +87,7 @@ export default function IntegrationsSettingsPage() {
     const user = JSON.parse(raw);
     const id   = (user.dealershipName ?? user.dealership ?? 'ava-mc')
       .toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-    const name = user.dealershipName ?? user.dealership ?? 'AVA MC AB';
+    const name = user.dealershipName ?? user.dealership ?? '';
     setDealerId(id);
     setDealerName(name);
     loadConfig(id, name);

@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
 import { notify } from '@/lib/notifications';
 import BankIDModal from '@/components/bankIdModel';
+import PhoneInput from '@/components/PhoneInput';
 import type { BankIDResult, Demo } from '@/types';
 
 type TabType = 'bankid' | 'manual' | 'phone';
@@ -309,12 +310,11 @@ const NewLeadPage = () => {
                       {t('newLead.badges.manual')}
                     </span>
                   </label>
-                  <input
-                    type="tel"
+                  <PhoneInput
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                    onChange={v => setFormData({ ...formData, phone: v })}
                     placeholder={t('newLead.placeholders.phone')}
+                    className="rounded-lg border border-slate-300 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all"
                     required
                   />
                 </div>

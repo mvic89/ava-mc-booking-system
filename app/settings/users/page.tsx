@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
+import { storeInvite } from '@/lib/invites';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Role   = 'admin' | 'sales' | 'service';
-type Status = 'active' | 'inactive';
+type Status = 'active' | 'inactive' | 'pending';
 
 interface StaffUser {
   id:             string;
@@ -19,6 +20,7 @@ interface StaffUser {
   status:         Status;
   lastLogin:      string;
   bankidVerified: boolean;
+  personalNumber: string;
 }
 
 // ─── Role metadata ────────────────────────────────────────────────────────────
@@ -44,11 +46,11 @@ const ROLES: Record<Role, { label: string; color: string; permissions: string[] 
 const STORAGE_KEY = 'staff_users';
 
 const DEFAULT_USERS: StaffUser[] = [
-  { id: '1', name: 'Erik Lindström',  email: 'erik@avamc.se',   role: 'admin',   status: 'active',   lastLogin: '6 mar 2026',  bankidVerified: true },
-  { id: '2', name: 'Anna Svensson',   email: 'anna@avamc.se',   role: 'sales',   status: 'active',   lastLogin: '5 mar 2026',  bankidVerified: true },
-  { id: '3', name: 'Marcus Berg',     email: 'marcus@avamc.se', role: 'sales',   status: 'active',   lastLogin: '4 mar 2026',  bankidVerified: false },
-  { id: '4', name: 'Sofia Dahl',      email: 'sofia@avamc.se',  role: 'service', status: 'active',   lastLogin: '3 mar 2026',  bankidVerified: true },
-  { id: '5', name: 'Lars Ekman',      email: 'lars@avamc.se',   role: 'service', status: 'inactive', lastLogin: '15 jan 2026', bankidVerified: false },
+  { id: '1', name: 'Erik Lindström',  email: 'erik@avamc.se',   role: 'admin',   status: 'active',   lastLogin: '6 mar 2026',  bankidVerified: true,  personalNumber: '' },
+  { id: '2', name: 'Anna Svensson',   email: 'anna@avamc.se',   role: 'sales',   status: 'active',   lastLogin: '5 mar 2026',  bankidVerified: true,  personalNumber: '' },
+  { id: '3', name: 'Marcus Berg',     email: 'marcus@avamc.se', role: 'sales',   status: 'active',   lastLogin: '4 mar 2026',  bankidVerified: false, personalNumber: '' },
+  { id: '4', name: 'Sofia Dahl',      email: 'sofia@avamc.se',  role: 'service', status: 'active',   lastLogin: '3 mar 2026',  bankidVerified: true,  personalNumber: '' },
+  { id: '5', name: 'Lars Ekman',      email: 'lars@avamc.se',   role: 'service', status: 'inactive', lastLogin: '15 jan 2026', bankidVerified: false, personalNumber: '' },
 ];
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -71,10 +73,12 @@ export default function UsersSettingsPage() {
   const [avatarUrl, setAvatarUrl]     = useState<string | null>(null);
 
   // Invite form state
-  const [showInvite, setShowInvite] = useState(false);
-  const [inviteName,  setInviteName]  = useState('');
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole,  setInviteRole]  = useState<Role>('sales');
+  const [showInvite,   setShowInvite]   = useState(false);
+  const [inviteName,   setInviteName]   = useState('');
+  const [inviteEmail,  setInviteEmail]  = useState('');
+  const [inviteRole,   setInviteRole]   = useState<Role>('sales');
+  const [inviteLink,   setInviteLink]   = useState('');
+  const [inviteSending, setInviteSending] = useState(false);
 
   // Selected user for permission preview
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
@@ -155,24 +159,46 @@ export default function UsersSettingsPage() {
     toast.success(`${user.name} borttagen`);
   }
 
-  function handleInvite(e: React.FormEvent) {
+  async function handleInvite(e: React.FormEvent) {
     e.preventDefault();
     if (!inviteName.trim() || !inviteEmail.trim()) return;
+    setInviteSending(true);
+    const dealershipName = currentUser?.dealershipName ?? 'BikeMeNow';
+    const invite = storeInvite({
+      email: inviteEmail.trim(),
+      name:  inviteName.trim(),
+      role:  inviteRole,
+      dealershipName,
+    });
+    const url = `${window.location.origin}/auth/accept-invite?token=${invite.token}`;
+    setInviteLink(url);
     const newUser: StaffUser = {
-      id:             Date.now().toString(),
+      id:             invite.token,
       name:           inviteName.trim(),
       email:          inviteEmail.trim(),
       role:           inviteRole,
-      status:         'active',
+      status:         'pending',
       lastLogin:      '—',
       bankidVerified: false,
+      personalNumber: '',
     };
     persist([...users, newUser]);
-    toast.success(`Inbjudan skickad till ${newUser.email}`);
-    setInviteName('');
-    setInviteEmail('');
-    setInviteRole('sales');
-    setShowInvite(false);
+    try {
+      const res  = await fetch('/api/invite/send', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: inviteEmail.trim(), name: inviteName.trim(), role: inviteRole, inviteUrl: url, dealershipName }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        toast.success(`Inbjudan skickad till ${inviteEmail.trim()}`);
+      } else {
+        toast.error('E-post misslyckades — kopiera länken manuellt');
+      }
+    } catch {
+      toast.error('Kunde inte skicka e-post — kopiera länken manuellt');
+    }
+    setInviteSending(false);
   }
 
   if (!ready) return (
@@ -336,6 +362,9 @@ export default function UsersSettingsPage() {
                         {user.status === 'inactive' && (
                           <span className="text-[10px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded font-bold">Inaktiv</span>
                         )}
+                        {user.status === 'pending' && (
+                          <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold">Väntande</span>
+                        )}
                       </div>
                       <p className="text-xs text-slate-400 truncate">{user.email}</p>
                     </div>
@@ -454,8 +483,29 @@ export default function UsersSettingsPage() {
             <div className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md p-6 animate-fade-up">
               <div className="flex items-center justify-between mb-5">
                 <h2 className="text-lg font-bold text-slate-900">Bjud in ny användare</h2>
-                <button onClick={() => setShowInvite(false)} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">×</button>
+                <button onClick={() => { setShowInvite(false); setInviteLink(''); setInviteName(''); setInviteEmail(''); setInviteRole('sales'); }} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">×</button>
               </div>
+
+              {/* Copy-link area — shown after invite is sent */}
+              {inviteLink && (
+                <div className="mb-4 bg-slate-50 border border-slate-200 rounded-xl p-3">
+                  <p className="text-xs font-semibold text-slate-600 mb-2">Inbjudningslänk (giltig 7 dagar):</p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      readOnly
+                      value={inviteLink}
+                      className="flex-1 text-[11px] font-mono bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-slate-600 truncate focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => { navigator.clipboard.writeText(inviteLink); toast.success('Länk kopierad!'); }}
+                      className="px-3 py-1.5 rounded-lg bg-[#FF6B2C] text-white text-xs font-bold shrink-0 hover:bg-[#e05a20] transition-colors"
+                    >
+                      Kopiera
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <form onSubmit={handleInvite} className="space-y-4">
                 <div>
@@ -515,9 +565,10 @@ export default function UsersSettingsPage() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-2.5 rounded-xl bg-[#FF6B2C] hover:bg-[#e05a20] text-white text-sm font-bold transition-colors"
+                    disabled={inviteSending}
+                    className="flex-1 py-2.5 rounded-xl bg-[#FF6B2C] hover:bg-[#e05a20] disabled:opacity-60 text-white text-sm font-bold transition-colors"
                   >
-                    Skicka inbjudan
+                    {inviteSending ? 'Skickar...' : 'Skicka inbjudan'}
                   </button>
                 </div>
               </form>

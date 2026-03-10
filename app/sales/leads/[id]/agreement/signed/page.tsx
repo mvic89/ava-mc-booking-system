@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
 import jsPDF from 'jspdf';
+import { getDealerInfo } from '@/lib/dealer';
 
 interface SignRecord {
   name:           string;
@@ -17,11 +19,9 @@ interface SignedAgreement {
   dealer:   SignRecord;
 }
 
-const AGREEMENT = {
+const AGR_BASE = {
   agreementNumber:   'AGR-2024-0089',
   date:              '10 feb 2026',
-  sellerName:        'AVA MC AB',
-  sellerAddress:     'Kista, Stockholm',
   buyerName:         'Lars Bergman',
   buyerAddress:      'Sveavägen 42, Stockholm',
   vehicle:           'Kawasaki Ninja ZX-6R 2024',
@@ -32,23 +32,30 @@ const AGREEMENT = {
   financing:         '36 mån × 4 092 kr/mån vid 4,9 % eff. årsränta',
   warranty:          '3 år fabriksgaranti + 1 år återförsäljargaranti',
   returnPolicy:      '14 dagar per Distansavtalslagen (2005:59)',
-  delivery:          'Beräknad 14 feb 2026, AVA MC, Kista',
 };
 
 export default function SignedAgreementPage() {
   const router = useRouter();
   const params = useParams();
   const id = (params?.id as string) || 'default';
+  const t = useTranslations('agreement');
 
   const [ready, setReady]             = useState(false);
   const [signatures, setSignatures]   = useState<SignedAgreement | null>(null);
   const [contact, setContact]         = useState<{ email: string; phone: string } | null>(null);
   const [showSendPanel, setShowSendPanel] = useState(false);
   const [sendStatus, setSendStatus]   = useState<string | null>(null);
+  const [sellerName, setSellerName]   = useState('');
+  const [sellerAddress, setSellerAddress] = useState('');
+  const [sellerOrgNr, setSellerOrgNr] = useState('');
 
   useEffect(() => {
     const user = localStorage.getItem('user');
     if (!user) { router.replace('/auth/login'); return; }
+    const d = getDealerInfo();
+    setSellerName(d.name);
+    setSellerAddress(d.city);
+    setSellerOrgNr(d.orgNr);
 
     try {
       const sig = JSON.parse(localStorage.getItem(`agreement_signed_${id}`) ?? 'null');
@@ -87,7 +94,7 @@ export default function SignedAgreementPage() {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(148, 163, 184); // slate-400
-    doc.text('AVA MC AB  •  Org.nr 556123-4567', marginR, y, { align: 'right' });
+    doc.text(`${sellerName}  •  Org.nr ${sellerOrgNr}`, marginR, y, { align: 'right' });
 
     y += 5;
     // "Fully Signed" badge
@@ -110,7 +117,7 @@ export default function SignedAgreementPage() {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(148, 163, 184);
-    doc.text(`${AGREEMENT.agreementNumber}  •  Datum: ${AGREEMENT.date}`, 105, y, { align: 'center' });
+    doc.text(`${AGR_BASE.agreementNumber}  •  Datum: ${AGR_BASE.date}`, 105, y, { align: 'center' });
     y += 8;
 
     doc.setDrawColor(226, 232, 240);
@@ -119,16 +126,16 @@ export default function SignedAgreementPage() {
 
     // Fields
     const fields = [
-      { label: 'SÄLJARE',       value: `${AGREEMENT.sellerName}, ${AGREEMENT.sellerAddress}` },
-      { label: 'KÖPARE',        value: `${AGREEMENT.buyerName}, ${AGREEMENT.buyerAddress}` },
-      { label: 'FORDON',        value: `${AGREEMENT.vehicle}, VIN: ${AGREEMENT.vin}` },
-      { label: 'TILLBEHÖR',     value: AGREEMENT.accessories },
-      { label: 'INBYTE',        value: AGREEMENT.tradeIn },
-      { label: 'TOTALPRIS',     value: AGREEMENT.totalPrice },
-      { label: 'FINANSIERING',  value: AGREEMENT.financing },
-      { label: 'GARANTI',       value: AGREEMENT.warranty },
-      { label: 'ÅNGERRÄTT',     value: AGREEMENT.returnPolicy },
-      { label: 'LEVERANS',      value: AGREEMENT.delivery },
+      { label: 'SÄLJARE',       value: `${sellerName}, ${sellerAddress}` },
+      { label: 'KÖPARE',        value: `${AGR_BASE.buyerName}, ${AGR_BASE.buyerAddress}` },
+      { label: 'FORDON',        value: `${AGR_BASE.vehicle}, VIN: ${AGR_BASE.vin}` },
+      { label: 'TILLBEHÖR',     value: AGR_BASE.accessories },
+      { label: 'INBYTE',        value: AGR_BASE.tradeIn },
+      { label: 'TOTALPRIS',     value: AGR_BASE.totalPrice },
+      { label: 'FINANSIERING',  value: AGR_BASE.financing },
+      { label: 'GARANTI',       value: AGR_BASE.warranty },
+      { label: 'ÅNGERRÄTT',     value: AGR_BASE.returnPolicy },
+      { label: 'LEVERANS',      value: `Beräknad 14 feb 2026, ${sellerAddress}` },
     ];
 
     for (const row of fields) {
@@ -197,7 +204,7 @@ export default function SignedAgreementPage() {
     return doc;
   };
 
-  const pdfFilename = `Purchase-Agreement-${AGREEMENT.agreementNumber}-SIGNED.pdf`;
+  const pdfFilename = `Purchase-Agreement-${AGR_BASE.agreementNumber}-SIGNED.pdf`;
 
   const handleDownloadPDF = () => {
     const doc = buildPDF();
@@ -217,8 +224,8 @@ export default function SignedAgreementPage() {
       try {
         await navigator.share({
           files: [file],
-          title: `Signed Purchase Agreement — ${AGREEMENT.agreementNumber}`,
-          text: `Your signed purchase agreement for ${AGREEMENT.vehicle} (${AGREEMENT.totalPrice}) is attached.`,
+          title: `Signed Purchase Agreement — ${AGR_BASE.agreementNumber}`,
+          text: `Your signed purchase agreement for ${AGR_BASE.vehicle} (${AGR_BASE.totalPrice}) is attached.`,
         });
         setSendStatus('Shared successfully via native share sheet.');
         return;
@@ -229,14 +236,14 @@ export default function SignedAgreementPage() {
 
     // Fallback: download the PDF then open email client
     doc.save(pdfFilename);
-    const subject = encodeURIComponent(`Your Signed Purchase Agreement — ${AGREEMENT.agreementNumber}`);
+    const subject = encodeURIComponent(`Your Signed Purchase Agreement — ${AGR_BASE.agreementNumber}`);
     const body = encodeURIComponent(
       `Dear ${signatures?.customer.name ?? 'Customer'},\n\n` +
-      `Your purchase agreement (${AGREEMENT.agreementNumber}) has been signed by both parties and is now legally binding.\n\n` +
-      `Vehicle: ${AGREEMENT.vehicle}\n` +
-      `Total: ${AGREEMENT.totalPrice}\n\n` +
+      `Your purchase agreement (${AGR_BASE.agreementNumber}) has been signed by both parties and is now legally binding.\n\n` +
+      `Vehicle: ${AGR_BASE.vehicle}\n` +
+      `Total: ${AGR_BASE.totalPrice}\n\n` +
       `The signed PDF has been downloaded to your device — please attach it to this email before sending.\n\n` +
-      `Best regards,\nAVA MC AB`
+      `Best regards,\n${sellerName}`
     );
     window.open(`mailto:${contact.email}?subject=${subject}&body=${body}`);
     setSendStatus('PDF downloaded. Please attach it to the email that just opened.');
@@ -255,8 +262,8 @@ export default function SignedAgreementPage() {
       try {
         await navigator.share({
           files: [file],
-          title: `Signed Agreement — ${AGREEMENT.agreementNumber}`,
-          text: `Hi ${signatures?.customer.name ?? 'there'}, your signed purchase agreement (${AGREEMENT.agreementNumber}) is attached.`,
+          title: `Signed Agreement — ${AGR_BASE.agreementNumber}`,
+          text: `Hi ${signatures?.customer.name ?? 'there'}, your signed purchase agreement (${AGR_BASE.agreementNumber}) is attached.`,
         });
         setSendStatus('Shared successfully via native share sheet.');
         return;
@@ -268,7 +275,7 @@ export default function SignedAgreementPage() {
     // Fallback: download then open SMS
     doc.save(pdfFilename);
     const smsBody = encodeURIComponent(
-      `Hi ${signatures?.customer.name ?? 'there'}, your signed purchase agreement (${AGREEMENT.agreementNumber}) for ${AGREEMENT.vehicle} is ready. ` +
+      `Hi ${signatures?.customer.name ?? 'there'}, your signed purchase agreement (${AGR_BASE.agreementNumber}) for ${AGR_BASE.vehicle} is ready. ` +
       `The PDF has been downloaded — please check your device downloads folder.`
     );
     window.open(`sms:${contact.phone}?body=${smsBody}`);
@@ -282,16 +289,16 @@ export default function SignedAgreementPage() {
   );
 
   const fields = [
-    { label: 'SÄLJARE',       value: `${AGREEMENT.sellerName}, ${AGREEMENT.sellerAddress}` },
-    { label: 'KÖPARE',        value: `${AGREEMENT.buyerName}, ${AGREEMENT.buyerAddress}` },
-    { label: 'FORDON',        value: `${AGREEMENT.vehicle}, VIN: ${AGREEMENT.vin}` },
-    { label: 'TILLBEHÖR',     value: AGREEMENT.accessories },
-    { label: 'INBYTE',        value: AGREEMENT.tradeIn },
-    { label: 'TOTALPRIS',     value: AGREEMENT.totalPrice },
-    { label: 'FINANSIERING',  value: AGREEMENT.financing },
-    { label: 'GARANTI',       value: AGREEMENT.warranty },
-    { label: 'ÅNGERRÄTT',     value: AGREEMENT.returnPolicy },
-    { label: 'LEVERANS',      value: AGREEMENT.delivery },
+    { label: 'SÄLJARE',       value: `${sellerName}, ${sellerAddress}` },
+    { label: 'KÖPARE',        value: `${AGR_BASE.buyerName}, ${AGR_BASE.buyerAddress}` },
+    { label: 'FORDON',        value: `${AGR_BASE.vehicle}, VIN: ${AGR_BASE.vin}` },
+    { label: 'TILLBEHÖR',     value: AGR_BASE.accessories },
+    { label: 'INBYTE',        value: AGR_BASE.tradeIn },
+    { label: 'TOTALPRIS',     value: AGR_BASE.totalPrice },
+    { label: 'FINANSIERING',  value: AGR_BASE.financing },
+    { label: 'GARANTI',       value: AGR_BASE.warranty },
+    { label: 'ÅNGERRÄTT',     value: AGR_BASE.returnPolicy },
+    { label: 'LEVERANS',      value: `Beräknad 14 feb 2026, ${sellerAddress}` },
   ];
 
   return (
@@ -304,17 +311,17 @@ export default function SignedAgreementPage() {
         {/* Header */}
         <div className="px-5 md:px-8 py-6 bg-white border-b border-slate-100 animate-fade-up">
           <nav className="flex items-center gap-1.5 text-xs text-slate-400 mb-3">
-            <Link href="/sales/leads" className="hover:text-[#FF6B2C] transition-colors">Försäljning</Link>
+            <Link href="/sales/leads" className="hover:text-[#FF6B2C] transition-colors">{t('breadcrumb.sales')}</Link>
             <span>→</span>
-            <Link href={`/sales/leads/${id}/agreement/sign`} className="hover:text-[#FF6B2C] transition-colors">Signering</Link>
+            <Link href={`/sales/leads/${id}/agreement/sign`} className="hover:text-[#FF6B2C] transition-colors">{t('signed.breadcrumbSigning')}</Link>
             <span>→</span>
-            <span className="text-slate-700 font-medium">Signerat avtal</span>
+            <span className="text-slate-700 font-medium">{t('signed.breadcrumbTitle')}</span>
           </nav>
           <div className="flex items-center gap-3">
             <span className="text-2xl">✅</span>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">Signerat avtal: {AGREEMENT.agreementNumber}</h1>
-              <p className="text-sm text-green-600 font-medium mt-0.5">Båda parter har signerat — avtalet är juridiskt bindande</p>
+              <h1 className="text-2xl font-bold text-slate-900">{t('signed.title')} {AGR_BASE.agreementNumber}</h1>
+              <p className="text-sm text-green-600 font-medium mt-0.5">{t('signed.subtitle')}</p>
             </div>
           </div>
         </div>
@@ -322,7 +329,7 @@ export default function SignedAgreementPage() {
         {/* Progress stepper */}
         <div className="px-5 md:px-8 pb-4 bg-white border-b border-slate-100">
           <div className="flex items-center">
-            {(['Avtal', 'Förhandsvisning', 'Signering', 'Betalning', 'Klart'] as const).map((step, i) => {
+            {[t('progress.step0'), t('progress.step1'), t('progress.step2'), t('progress.step3'), t('progress.step4')].map((step, i) => {
               const isActive = i === 3;
               const isDone   = i < 3;
               return (
@@ -362,9 +369,9 @@ export default function SignedAgreementPage() {
               <div className="flex items-start justify-between mb-6 pb-4 border-b border-slate-100">
                 <span className="text-xl font-extrabold tracking-tight text-[#FF6B2C]">BikeMeNow</span>
                 <div className="text-right">
-                  <p className="text-xs text-slate-500">AVA MC AB • Org.nr 556123-4567</p>
+                  <p className="text-xs text-slate-500">{sellerName}{sellerOrgNr ? ` • Org.nr ${sellerOrgNr}` : ''}</p>
                   <span className="inline-flex items-center gap-1 mt-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
-                    ✓ Fullständigt signerat
+                    ✓ {t('signed.fullySigned')}
                   </span>
                 </div>
               </div>
@@ -372,10 +379,10 @@ export default function SignedAgreementPage() {
               {/* Title */}
               <div className="text-center mb-6">
                 <h2 className="text-base font-bold text-slate-900 tracking-widest uppercase">
-                  Köpeavtal
+                  {t('signed.docTitle')}
                 </h2>
                 <p className="text-xs text-slate-400 mt-1">
-                  {AGREEMENT.agreementNumber} • Datum: {AGREEMENT.date}
+                  {AGR_BASE.agreementNumber} • Datum: {AGR_BASE.date}
                 </p>
               </div>
 
@@ -397,12 +404,12 @@ export default function SignedAgreementPage() {
               <div className="space-y-4">
                 {/* Customer */}
                 <div className={`rounded-xl p-4 ${signatures ? 'bg-green-50 border border-green-200' : 'bg-slate-50 border border-slate-200'}`}>
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Köparens underskrift (BankID)</p>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">{t('signed.buyerSig')}</p>
                   {signatures ? (
                     <>
                       <p className="text-sm font-bold text-slate-800">{signatures.customer.name}</p>
                       <p className="text-xs text-slate-500">{signatures.customer.personalNumber}</p>
-                      <p className="text-xs text-green-600 mt-1 font-medium">✓ Signerad: {signatures.customer.signedAt}</p>
+                      <p className="text-xs text-green-600 mt-1 font-medium">{t('signed.signedAt')} {signatures.customer.signedAt}</p>
                     </>
                   ) : (
                     <div className="h-8 border-b border-slate-300 w-64" />
@@ -411,12 +418,12 @@ export default function SignedAgreementPage() {
 
                 {/* Dealer */}
                 <div className={`rounded-xl p-4 ${signatures ? 'bg-green-50 border border-green-200' : 'bg-slate-50 border border-slate-200'}`}>
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Säljarens underskrift (BankID)</p>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">{t('signed.sellerSig')}</p>
                   {signatures ? (
                     <>
                       <p className="text-sm font-bold text-slate-800">{signatures.dealer.name}</p>
                       <p className="text-xs text-slate-500">{signatures.dealer.personalNumber}</p>
-                      <p className="text-xs text-green-600 mt-1 font-medium">✓ Signerad: {signatures.dealer.signedAt}</p>
+                      <p className="text-xs text-green-600 mt-1 font-medium">{t('signed.signedAt')} {signatures.dealer.signedAt}</p>
                     </>
                   ) : (
                     <div className="h-8 border-b border-slate-300 w-64" />
@@ -426,7 +433,7 @@ export default function SignedAgreementPage() {
 
               {/* Footer */}
               <p className="text-xs text-slate-400 mt-6 text-center">
-                Detta avtal regleras av svensk lag. Signerat elektroniskt via BankID.
+                {t('signed.footer')}
               </p>
             </div>
 
@@ -436,25 +443,25 @@ export default function SignedAgreementPage() {
                 href={`/sales/leads/${id}/agreement/sign`}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:border-slate-300 transition-colors"
               >
-                ← Tillbaka
+                {t('signed.back')}
               </Link>
               <button
                 onClick={handleDownloadPDF}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-green-300 bg-green-50 text-sm font-semibold text-green-700 hover:bg-green-100 transition-colors"
               >
-                ⬇ Ladda ner PDF
+                {t('signed.downloadPDF')}
               </button>
               <button
                 onClick={() => { setShowSendPanel(p => !p); setSendStatus(null); }}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-blue-300 bg-blue-50 text-sm font-semibold text-blue-700 hover:bg-blue-100 transition-colors"
               >
-                📤 Skicka till kund
+                {t('signed.sendToCustomer')}
               </button>
               <Link
                 href={`/sales/leads/${id}/agreement/payment`}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2C] hover:bg-[#e55a1f] text-white text-sm font-semibold transition-colors"
               >
-                Gå till betalning →
+                {t('signed.goToPayment')}
               </Link>
             </div>
 
@@ -462,7 +469,7 @@ export default function SignedAgreementPage() {
             {showSendPanel && (
               <div className="mt-3 rounded-xl border border-blue-200 bg-blue-50 p-4 animate-fade-up">
                 <p className="text-xs font-semibold text-blue-700 uppercase tracking-wider mb-3">
-                  Skicka signerat avtal till kunden
+                  {t('signed.sendPanelTitle')}
                 </p>
 
                 {sendStatus && (
@@ -492,7 +499,7 @@ export default function SignedAgreementPage() {
                   </div>
                 ) : (
                   <p className="text-sm text-blue-600">
-                    Ingen kontaktinfo hittades. Kontaktuppgifter sparas när ett lead skapas via <strong>Nytt lead</strong>.
+                    {t('signed.noContact')}
                   </p>
                 )}
               </div>

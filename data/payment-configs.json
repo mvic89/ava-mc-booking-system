@@ -24,7 +24,7 @@
     "credentials": {
       "klarna": {
         "KLARNA_API_USERNAME": "b531f2ac-ddd1-439a-8501-7e15dc776312",
-        "KLARNA_API_PASSWORD": "klarna_test_api_cjhIMlBuP2ZFQW16NDZUKDNyVEVFQ2N4KkRZa2g_OS8sYjUzMWYyYWMtZGRkMS00MzlhLTg1MDEtN2UxNWRjNzc2MzEyLDEsSE8vYnNHTW8rMndnZUxoY3Q2WTExSEtSOEtjeVhmNStvb1RSMnVGSjZ3Yz0"
+        "KLARNA_API_PASSWORD": "klarna_test_api_cjhIMlBuP2ZFQW16NDZUKDNyVEVFQ2N4KkRZa2g_OS8sYjUzMWYyYWMtZGRkMS00MzlhLTg1MDEtN2UxNWRjNzc2MzEyLDEsSEUvYnNHTW8rMndnZUxoY3Q2WTExSEtSOEtjeVhmNStvb1RSMnVGSjZ3Yz0"
       },
       "nets": {
         "NETS_SECRET_KEY": "b01f59bd62814ca8a7325b7c1257bbd5",
@@ -43,7 +43,7 @@
     ],
     "primaryFinancing": "",
     "credentials": {},
-    "updatedAt": "2026-03-06T01:30:24.924Z"
+    "updatedAt": "2026-03-06T01:30:24.922Z"
   },
   "ava-mc-ab": {
     "dealerId": "ava-mc-ab",
@@ -55,5 +55,17 @@
     "primaryFinancing": "",
     "credentials": {},
     "updatedAt": "2026-03-09T12:19:24.875Z"
+  },
+  "swedish-motors-ab": {
+    "dealerId": "swedish-motors-ab",
+    "dealerName": "Swedish Motors AB",
+    "enabledProviders": [
+      "svea",
+      "klarna",
+      "swish"
+    ],
+    "primaryFinancing": "",
+    "credentials": {},
+    "updatedAt": "2026-03-10T03:00:56.517Z"
   }
 }

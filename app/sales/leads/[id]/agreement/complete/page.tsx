@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
+import { getDealerInfo } from '@/lib/dealer';
 
 interface SelectedPayment {
   id:       string;
@@ -46,16 +48,24 @@ export default function AgreementCompletePage() {
   const router = useRouter();
   const params = useParams();
   const id = (params?.id as string) || 'default';
+  const t = useTranslations('agreement');
 
   const [ready, setReady]               = useState(false);
   const [completedCount, setCompletedCount] = useState(0);
   const [allDone, setAllDone]           = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<SelectedPayment | null>(null);
   const [signatures, setSignatures]     = useState<SignedAgreement | null>(null);
+  const [sellerName, setSellerName]     = useState('');
+  const [sellerOrgNr, setSellerOrgNr]   = useState('');
+  const [sellerCity, setSellerCity]     = useState('');
 
   useEffect(() => {
     const user = localStorage.getItem('user');
     if (!user) { router.replace('/auth/login'); return; }
+    const d = getDealerInfo();
+    setSellerName(d.name);
+    setSellerOrgNr(d.orgNr);
+    setSellerCity(d.city);
 
     // Read which payment method the salesperson selected on the /payment page
     try {
@@ -131,7 +141,7 @@ export default function AgreementCompletePage() {
         <div style={{ fontFamily: 'sans-serif', fontSize: 13, color: '#1e293b' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24, paddingBottom: 12, borderBottom: '1px solid #e2e8f0' }}>
             <span style={{ fontSize: 18, fontWeight: 800, color: '#FF6B2C' }}>BikeMeNow</span>
-            <span style={{ fontSize: 11, color: '#94a3b8' }}>AVA MC AB • Org.nr 556123-4567</span>
+            <span style={{ fontSize: 11, color: '#94a3b8' }}>{sellerName}{sellerOrgNr ? ` • Org.nr ${sellerOrgNr}` : ''}</span>
           </div>
           <div style={{ textAlign: 'center', marginBottom: 20 }}>
             <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>Köpeavtal</div>
@@ -139,7 +149,7 @@ export default function AgreementCompletePage() {
           </div>
           <hr style={{ margin: '16px 0', borderColor: '#e2e8f0' }} />
           {[
-            { label: 'SÄLJARE',       value: 'AVA MC AB, Kista, Stockholm' },
+            { label: 'SÄLJARE',       value: `${sellerName}${sellerCity ? ', ' + sellerCity : ''}` },
             { label: 'KÖPARE',        value: 'Lars Bergman, Sveavägen 42, Stockholm' },
             { label: 'FORDON',        value: 'Kawasaki Ninja ZX-6R 2024, VIN: JKBZXR636PA012345' },
             { label: 'TILLBEHÖR',     value: 'Akrapovic, Tank Pad, Crash Protectors (15 280 kr)' },
@@ -148,7 +158,7 @@ export default function AgreementCompletePage() {
             { label: 'FINANSIERING',  value: '36 mån × 4 092 kr/mån vid 4,9 % eff. årsränta' },
             { label: 'GARANTI',       value: '3 år fabriksgaranti + 1 år återförsäljargaranti' },
             { label: 'ÅNGERRÄTT',     value: '14 dagar per Distansavtalslagen (2005:59)' },
-            { label: 'LEVERANS',      value: 'Beräknad 14 feb 2026, AVA MC, Kista' },
+            { label: 'LEVERANS',      value: `Beräknad 14 feb 2026${sellerCity ? ', ' + sellerCity : ''}` },
           ].map(row => (
             <div key={row.label} style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
               <span style={{ width: 110, flexShrink: 0, fontWeight: 600, fontSize: 11, color: '#94a3b8', paddingTop: 2 }}>{row.label}:</span>
@@ -192,7 +202,7 @@ export default function AgreementCompletePage() {
         {/* Progress stepper */}
         <div className="px-5 md:px-8 pb-4 bg-white border-b border-slate-100">
           <div className="flex items-center pt-4">
-            {(['Avtal', 'Förhandsvisning', 'Signering', 'Betalning', 'Klart'] as const).map((step, i) => {
+            {[t('progress.step0'), t('progress.step1'), t('progress.step2'), t('progress.step3'), t('progress.step4')].map((step, i) => {
               const isActive = i === 4;
               const isDone   = i < 4;
               return (
@@ -232,7 +242,7 @@ export default function AgreementCompletePage() {
               </svg>
             </div>
             <div>
-              <h1 className="text-lg font-bold text-green-800">Avtal signerat av båda parter! 🎉</h1>
+              <h1 className="text-lg font-bold text-green-800">{t('complete.successTitle')}</h1>
               <p className="text-sm text-green-600 mt-0.5">
                 AGR-2024-0089 • Lars Bergman + AVA MC • Ninja ZX-6R • 133,280 kr
                 {paymentMethod && (
@@ -248,7 +258,7 @@ export default function AgreementCompletePage() {
             {/* Cascade header */}
             <div className="bg-[#FF6B2C] px-6 py-3 flex items-center justify-center gap-2">
               <span className="text-white font-bold text-sm tracking-widest">
-                ⚡ AUTOMATION CASCADE — 10 ÅTGÄRDER PÅ 2 SEKUNDER ⚡
+                {t('complete.cascadeHeader')}
               </span>
             </div>
 
@@ -290,18 +300,10 @@ export default function AgreementCompletePage() {
               </div>
               {allDone && (
                 <p className="text-sm font-bold text-green-700 text-center animate-fade-in">
-                  Alla 10 åtgärder klara på 1.8 sekunder totalt
+                  {t('complete.allDone')}
                 </p>
               )}
             </div>
-          </div>
-
-          {/* DL Prime comparison */}
-          <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-4 py-3 mt-4 animate-fade-up">
-            <span className="text-red-500">✗</span>
-            <p className="text-sm text-red-700">
-              I DL Prime kräver dessa 10 åtgärder 30+ minuters manuellt arbete fördelat på 4 olika skärmar
-            </p>
           </div>
 
           {/* Action buttons */}
@@ -310,26 +312,26 @@ export default function AgreementCompletePage() {
               href="/sales/leads"
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:border-slate-300 transition-colors"
             >
-              ← Tillbaka till pipeline
+              {t('complete.back')}
             </Link>
             <button
               onClick={handleDownloadPDF}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:border-slate-300 transition-colors"
             >
-              ⬇ Ladda ner signerat avtal
+              {t('complete.download')}
             </button>
             <div className="flex-1" />
             <Link
               href={`/sales/leads/${id}/delivery`}
               className="px-5 py-2.5 rounded-xl bg-[#FF6B2C] hover:bg-[#e55a1f] text-white text-sm font-bold transition-colors"
             >
-              Visa leverans →
+              {t('complete.viewDelivery')}
             </Link>
             <Link
               href="/invoices"
               className="px-5 py-2.5 rounded-xl bg-[#1d4ed8] hover:bg-[#1a44c4] text-white text-sm font-semibold transition-colors"
             >
-              Visa faktura →
+              {t('complete.viewInvoice')}
             </Link>
           </div>
         </div>

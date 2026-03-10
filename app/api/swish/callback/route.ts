@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { insertWebhookEvent } from '@/lib/webhookStore';
 
 /**
  * POST /api/swish/callback
@@ -11,6 +12,9 @@ export async function POST(req: NextRequest) {
     console.log('[Swish callback]', JSON.stringify(body));
 
     const { id, status, paymentReference, errorCode, errorMessage } = body;
+
+    // Persist to Supabase so Realtime can push updates to the browser
+    await insertWebhookEvent('swish', status ?? 'callback', body);
 
     if (status === 'PAID') {
       console.log(`[Swish] Payment ${id} succeeded — ref: ${paymentReference}`);

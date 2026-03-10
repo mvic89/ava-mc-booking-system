@@ -1,13 +1,21 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { getDealerInfo, type DealerInfo } from '@/lib/dealer';
 
 const SECTIONS = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8'] as const;
+const EMPTY_DEALER: DealerInfo = { name: '', orgNr: '', city: '', email: '', phone: '', website: '', address: '', postalCode: '' };
 
 export default function TermsPage() {
   const t = useTranslations('terms');
+  const [dealer, setDealer] = useState<DealerInfo>(EMPTY_DEALER);
+
+  useEffect(() => { setDealer(getDealerInfo()); }, []);
+
+  const tv = { dealerName: dealer.name, orgNr: dealer.orgNr, city: dealer.city, email: dealer.email };
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -27,7 +35,7 @@ export default function TermsPage() {
         {/* Title card */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 mb-6">
           <h1 className="text-3xl font-bold text-slate-900 mb-2">{t('title')}</h1>
-          <p className="text-slate-500 text-sm">{t('subtitle')}</p>
+          <p className="text-slate-500 text-sm">{t('subtitle', tv)}</p>
         </div>
 
         {/* Sections */}
@@ -42,7 +50,7 @@ export default function TermsPage() {
                   {t(titleKey)}
                 </h2>
                 <p className="text-sm text-slate-600 leading-relaxed">
-                  {t(bodyKey)}
+                  {t(bodyKey, tv)}
                 </p>
               </div>
             );
@@ -59,7 +67,7 @@ export default function TermsPage() {
             BikeMeNow
           </Link>
           <span>·</span>
-          <span>AVA MC AB · 556123-4567</span>
+          <span>{dealer.name}{dealer.orgNr ? ` · ${dealer.orgNr}` : ''}</span>
         </div>
       </main>
     </div>

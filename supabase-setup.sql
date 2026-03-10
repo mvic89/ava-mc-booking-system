@@ -489,3 +489,24 @@ BEGIN
     RAISE NOTICE '2. Run: npx prisma generate';
     RAISE NOTICE '3. Start your app: npm run dev';
 END $$;
+
+-- ============================================
+-- Webhook Events (Realtime live updates)
+-- ============================================
+-- Run this section separately if the tables above already exist.
+
+CREATE TABLE IF NOT EXISTS webhook_events (
+  id         BIGSERIAL PRIMARY KEY,
+  provider   TEXT NOT NULL,        -- 'adyen' | 'stripe' | 'svea' | 'swish' | 'custom'
+  event_type TEXT NOT NULL,        -- e.g. 'AUTHORISATION', 'payment_intent.succeeded', 'PAID'
+  payload    JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Index for fast filtering by provider or event type
+CREATE INDEX IF NOT EXISTS idx_webhook_events_provider   ON webhook_events(provider);
+CREATE INDEX IF NOT EXISTS idx_webhook_events_event_type ON webhook_events(event_type);
+CREATE INDEX IF NOT EXISTS idx_webhook_events_created_at ON webhook_events(created_at DESC);
+
+-- Enable Supabase Realtime on this table so browser clients get live INSERTs
+ALTER PUBLICATION supabase_realtime ADD TABLE webhook_events;

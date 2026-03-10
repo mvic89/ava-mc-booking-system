@@ -86,7 +86,7 @@ export default function PaymentSettingsPage() {
   const [saveResult,       setSaveResult]       = useState<'idle' | 'ok' | 'error'>('idle');
   const [primaryFinancing, setPrimaryFinancing] = useState('');
   const [dealerId,         setDealerId]         = useState('ava-mc');
-  const [dealerName,       setDealerName]       = useState('AVA MC AB');
+  const [dealerName,       setDealerName]       = useState('');
   const [providerStates,   setProviderStates]   = useState<Record<string, ProviderState>>({});
   const [showPasswords,    setShowPasswords]    = useState<Record<string, boolean>>({});
   const [restartBanner,    setRestartBanner]    = useState(false);
@@ -98,7 +98,7 @@ export default function PaymentSettingsPage() {
     const user = JSON.parse(raw);
     const id   = (user.dealershipName ?? user.dealership ?? 'ava-mc')
       .toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-    const name = user.dealershipName ?? user.dealership ?? 'AVA MC AB';
+    const name = user.dealershipName ?? user.dealership ?? '';
     setDealerId(id);
     setDealerName(name);
     loadConfig(id, name);

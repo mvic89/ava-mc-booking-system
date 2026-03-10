@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { deliverOrder } from '@/lib/svea/client';
+import { insertWebhookEvent } from '@/lib/webhookStore';
 
 /**
  * POST /api/svea/callback
@@ -26,6 +27,9 @@ export async function POST(req: NextRequest) {
 
     const eventName: string = body?.EventType ?? body?.eventType ?? '';
     const orderId: string   = body?.OrderId   ?? body?.orderId   ?? '';
+
+    // Persist to Supabase so Realtime can push updates to the browser
+    await insertWebhookEvent('svea', eventName || 'unknown', body);
 
     switch (eventName) {
 

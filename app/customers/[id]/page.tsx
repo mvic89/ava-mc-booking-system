@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
+import { getDealerInfo } from '@/lib/dealer';
 
 type ProfileTab = 'overview' | 'vehicles' | 'invoices' | 'documents' | 'timeline' | 'gdpr';
 type SourceBadge = 'BankID' | 'Folkbokföring' | 'Manuell';
@@ -123,10 +124,12 @@ export default function CustomerProfilePage() {
 
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState<ProfileTab>('overview');
+  const [dealerEmail, setDealerEmail] = useState('');
 
   useEffect(() => {
     const user = localStorage.getItem('user');
     if (!user) { router.push('/auth/login'); return; }
+    setDealerEmail(getDealerInfo().email);
     setReady(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -550,7 +553,7 @@ export default function CustomerProfilePage() {
                     <h3 className="text-sm font-bold text-slate-900 mb-1">{t('profile.gdprTab.rectifyTitle')}</h3>
                     <p className="text-xs text-slate-500 mb-3">{t('profile.gdprTab.rectifyDesc')}</p>
                     <a
-                      href={`mailto:privacy@avamc.se?subject=Rättelse — ${c.firstName} ${c.lastName}`}
+                      href={`mailto:${dealerEmail || 'privacy@avamc.se'}?subject=Rättelse — ${c.firstName} ${c.lastName}`}
                       className="inline-block px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:border-slate-300 transition-colors"
                     >
                       {t('profile.gdprTab.rectifyBtn')} →

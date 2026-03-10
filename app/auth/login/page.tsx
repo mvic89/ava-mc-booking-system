@@ -2,11 +2,31 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import PasswordInput from '@/components/PasswordInput';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import BankIDModal from '@/components/bankIdModel';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import type { BankIDResult } from '@/types';
+
+type UserRole = 'admin' | 'sales' | 'service';
+
+function resolveRole(personalNumber?: string, email?: string): UserRole {
+  try {
+    const staff: Array<{ email: string; personalNumber: string; role: UserRole }> =
+      JSON.parse(localStorage.getItem('staff_users') ?? '[]');
+    if (staff.length === 0) return 'admin';
+    if (personalNumber) {
+      const match = staff.find(s => s.personalNumber === personalNumber);
+      if (match) return match.role;
+    }
+    if (email) {
+      const match = staff.find(s => s.email === email);
+      if (match) return match.role;
+    }
+  } catch { /* ignore */ }
+  return 'admin';
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,12 +48,29 @@ export default function LoginPage() {
 
   const handleBankIDComplete = (result: BankIDResult) => {
     setShowBankID(false);
-    // Store user session with Roaring data so dashboard can display it
+    const role = resolveRole(result.user.personalNumber);
+    // Preserve existing session fields (email, dealershipName) from accounts store
+    const accounts = JSON.parse(localStorage.getItem('accounts') || '{}');
+    const existing = Object.values(accounts).find(
+      (a: any) => a.email && true
+    ) as any ?? {};
+    // Update staff_users: set personalNumber + bankidVerified + lastLogin
+    try {
+      const staff: any[] = JSON.parse(localStorage.getItem('staff_users') ?? '[]');
+      const updated = staff.map(s =>
+        s.personalNumber === result.user.personalNumber || (!s.personalNumber && s.role === role)
+          ? { ...s, personalNumber: result.user.personalNumber, bankidVerified: true, lastLogin: new Date().toISOString() }
+          : s,
+      );
+      localStorage.setItem('staff_users', JSON.stringify(updated));
+    } catch { /* ignore */ }
     localStorage.setItem('user', JSON.stringify({
       ...result.user,
-      roaring: (result as any).roaring ?? null,
+      roaring:        (result as any).roaring ?? null,
+      email:          existing.email          ?? '',
+      dealershipName: existing.dealershipName ?? '',
+      role,
     }));
-    // Redirect to dashboard
     router.replace('/dashboard');
   };
 
@@ -42,8 +79,11 @@ export default function LoginPage() {
     // Look up registered account to restore dealershipName
     const accounts = JSON.parse(localStorage.getItem('accounts') || '{}');
     const registered = accounts[formData.email];
+    const role = resolveRole(undefined, formData.email);
     localStorage.setItem('user', JSON.stringify(
-      registered ?? { name: formData.email.split('@')[0], email: formData.email }
+      registered
+        ? { ...registered, role }
+        : { name: formData.email.split('@')[0], email: formData.email, role }
     ));
     router.replace('/dashboard');
   };
@@ -157,11 +197,9 @@ export default function LoginPage() {
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
                 {t('login.password')}
               </label>
-              <input
-                type="password"
+              <PasswordInput
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                 placeholder="••••••••••"
                 required
               />
