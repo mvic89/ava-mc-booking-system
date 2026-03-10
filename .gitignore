@@ -34,10 +34,12 @@ yarn-error.log*
 .env*
 !.env.example
 
-# BankID certificates - NEVER commit these!
-/certs/*.p12
+# BankID certificates
+# Production certs: NEVER commit!
+# Test cert (FPTestcert5_20240610.p12) is public BankID test cert — always keep tracked
 /certs/*.pem
 /certs/*.pfx
+!/certs/FPTestcert5_20240610.p12
 
 # vercel
 .vercel
