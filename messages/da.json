@@ -1,0 +1,44 @@
+{
+  "navigation": {
+    "groups": {
+      "core": "Kerne",
+      "sales": "Salg",
+      "admin": "Admin"
+    },
+    "dashboard": "Dashboard",
+    "inventory": "Lager",
+    "purchaseOrders": "Indkøbsordrer",
+    "purchaseinvoices": "Købsfakturaer",
+    "suppliers": "Leverandører",
+    "pipeline": "Salgspipeline",
+    "customers": "Kunder",
+    "invoices": "Fakturaer",
+    "analytics": "Analyse",
+    "documents": "Dokumenter",
+    "settings": "Indstillinger",
+    "auditLog": "Revisionslog",
+    "subscribedDealer": "Abonneret forhandler"
+  },
+  "common": {
+    "user": "Bruger",
+    "admin": "Administrator",
+    "signOut": "Log ud",
+    "privacyPolicy": "Privatlivspolitik",
+    "terms": "Servicevilkår"
+  },
+  "notifications": {
+    "bell": {
+      "title": "Notifikationer",
+      "new": "nye",
+      "justNow": "Lige nu",
+      "minAgo": "{n}m siden",
+      "hourAgo": "{n}t siden",
+      "dayAgo": "{n}d siden",
+      "clearAll": "Ryd alle",
+      "settings": "Indstillinger",
+      "empty": "Ingen notifikationer",
+      "emptyHint": "Du er opdateret!",
+      "total": "{count} i alt"
+    }
+  }
+}

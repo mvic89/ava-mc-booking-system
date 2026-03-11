@@ -21,7 +21,6 @@ export function qtyKey(poId: string, inventoryId: string) {
 export const STATUS_STYLE: Record<POStatus, { dot: string; badge: string }> = {
     'Draft':        { dot: 'bg-gray-400',   badge: 'bg-gray-100 text-gray-600' },
     'Under Review': { dot: 'bg-amber-500',  badge: 'bg-amber-50 text-amber-700 border border-amber-200' },
-    'Approved':     { dot: 'bg-blue-500',   badge: 'bg-blue-50 text-blue-700' },
     'Reviewed':     { dot: 'bg-teal-500',   badge: 'bg-teal-50 text-teal-700 border border-teal-200' },
     'Sent':         { dot: 'bg-purple-500', badge: 'bg-purple-50 text-purple-700' },
     'Received':     { dot: 'bg-green-500',  badge: 'bg-green-50 text-green-700' },
@@ -81,7 +80,7 @@ export function POModal({
     const [sending,     setSending]     = useState(false)
     const [emailStatus, setEmailStatus] = useState<'idle' | 'sent' | 'error'>('idle')
 
-    const style       = STATUS_STYLE[po.status]
+    const style       = STATUS_STYLE[po.status] ?? STATUS_STYLE['Draft']
     const vendor      = vendorDetails[po.vendor]
     const vendorEmail = vendor?.email ?? ''
 
@@ -129,6 +128,7 @@ export function POModal({
 
     function handleDone() {
         onReviewed?.(editedItems, editedEta)
+        onClose()
     }
 
     // ── Date helpers ─────────────────────────────────────────────────────────

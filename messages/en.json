@@ -1,0 +1,44 @@
+{
+  "navigation": {
+    "groups": {
+      "core": "Core",
+      "sales": "Sales",
+      "admin": "Admin"
+    },
+    "dashboard": "Dashboard",
+    "inventory": "Inventory",
+    "purchaseOrders": "Purchase Orders",
+    "purchaseinvoices": "Purchase Invoices",
+    "suppliers": "Suppliers",
+    "pipeline": "Sales Pipeline",
+    "customers": "Customers",
+    "invoices": "Invoices",
+    "analytics": "Analytics",
+    "documents": "Documents",
+    "settings": "Settings",
+    "auditLog": "Audit Log",
+    "subscribedDealer": "Subscribed Dealer"
+  },
+  "common": {
+    "user": "User",
+    "admin": "Administrator",
+    "signOut": "Sign Out",
+    "privacyPolicy": "Privacy Policy",
+    "terms": "Terms of Service"
+  },
+  "notifications": {
+    "bell": {
+      "title": "Notifications",
+      "new": "new",
+      "justNow": "Just now",
+      "minAgo": "{n}m ago",
+      "hourAgo": "{n}h ago",
+      "dayAgo": "{n}d ago",
+      "clearAll": "Clear all",
+      "settings": "Settings",
+      "empty": "No notifications",
+      "emptyHint": "You're all caught up!",
+      "total": "{count} total"
+    }
+  }
+}

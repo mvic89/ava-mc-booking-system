@@ -1,0 +1,44 @@
+{
+  "navigation": {
+    "groups": {
+      "core": "Kärna",
+      "sales": "Försäljning",
+      "admin": "Admin"
+    },
+    "dashboard": "Instrumentpanel",
+    "inventory": "Lager",
+    "purchaseOrders": "Inköpsordrar",
+    "purchaseinvoices": "Inköpsfakturor",
+    "suppliers": "Leverantörer",
+    "pipeline": "Säljpipeline",
+    "customers": "Kunder",
+    "invoices": "Fakturor",
+    "analytics": "Analys",
+    "documents": "Dokument",
+    "settings": "Inställningar",
+    "auditLog": "Granskningslogg",
+    "subscribedDealer": "Prenumererad återförsäljare"
+  },
+  "common": {
+    "user": "Användare",
+    "admin": "Administratör",
+    "signOut": "Logga ut",
+    "privacyPolicy": "Integritetspolicy",
+    "terms": "Användarvillkor"
+  },
+  "notifications": {
+    "bell": {
+      "title": "Aviseringar",
+      "new": "nya",
+      "justNow": "Just nu",
+      "minAgo": "{n}m sedan",
+      "hourAgo": "{n}h sedan",
+      "dayAgo": "{n}d sedan",
+      "clearAll": "Rensa alla",
+      "settings": "Inställningar",
+      "empty": "Inga aviseringar",
+      "emptyHint": "Du är à jour!",
+      "total": "{count} totalt"
+    }
+  }
+}

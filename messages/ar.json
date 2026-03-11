@@ -1,0 +1,44 @@
+{
+  "navigation": {
+    "groups": {
+      "core": "الرئيسية",
+      "sales": "المبيعات",
+      "admin": "الإدارة"
+    },
+    "dashboard": "لوحة التحكم",
+    "inventory": "المخزون",
+    "purchaseOrders": "أوامر الشراء",
+    "purchaseinvoices": "فواتير الشراء",
+    "suppliers": "الموردون",
+    "pipeline": "خط المبيعات",
+    "customers": "العملاء",
+    "invoices": "الفواتير",
+    "analytics": "التحليلات",
+    "documents": "المستندات",
+    "settings": "الإعدادات",
+    "auditLog": "سجل التدقيق",
+    "subscribedDealer": "وكيل مشترك"
+  },
+  "common": {
+    "user": "مستخدم",
+    "admin": "مدير",
+    "signOut": "تسجيل الخروج",
+    "privacyPolicy": "سياسة الخصوصية",
+    "terms": "شروط الخدمة"
+  },
+  "notifications": {
+    "bell": {
+      "title": "الإشعارات",
+      "new": "جديد",
+      "justNow": "الآن",
+      "minAgo": "منذ {n}د",
+      "hourAgo": "منذ {n}س",
+      "dayAgo": "منذ {n}ي",
+      "clearAll": "مسح الكل",
+      "settings": "الإعدادات",
+      "empty": "لا توجد إشعارات",
+      "emptyHint": "أنت على اطلاع دائم!",
+      "total": "المجموع {count}"
+    }
+  }
+}
