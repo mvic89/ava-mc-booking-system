@@ -328,13 +328,15 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                {/* New lead button */}
-                <Link
-                  href="/sales/leads/new"
-                  className="hidden md:flex items-center gap-2 bg-[#FF6B2C] hover:bg-[#e55a1f] text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-lg shrink-0"
-                >
-                  {t('newLead')}
-                </Link>
+                {/* New lead button — pipeline access only */}
+                {user?.role !== 'service' && (
+                  <Link
+                    href="/sales/leads/new"
+                    className="hidden md:flex items-center gap-2 bg-[#FF6B2C] hover:bg-[#e55a1f] text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-lg shrink-0"
+                  >
+                    {t('newLead')}
+                  </Link>
+                )}
               </div>
 
               {/* Bottom — greeting */}
@@ -452,9 +454,11 @@ export default function DashboardPage() {
                 <FunnelRow label={t('funnelStages.negotiating')} count={3} total={24} color="#3b82f6" />
                 <FunnelRow label={t('funnelStages.closed')}      count={2} total={24} color="#10b981" />
               </div>
-              <Link href="/sales/leads" className="mt-5 flex items-center gap-1 text-xs text-[#FF6B2C] font-semibold hover:underline">
-                {t('openPipeline')}
-              </Link>
+              {user?.role !== 'service' && (
+                <Link href="/sales/leads" className="mt-5 flex items-center gap-1 text-xs text-[#FF6B2C] font-semibold hover:underline">
+                  {t('openPipeline')}
+                </Link>
+              )}
             </div>
           </div>
 
@@ -462,7 +466,9 @@ export default function DashboardPage() {
           <div className="bg-white rounded-2xl border border-slate-100 p-5 mb-8 animate-fade-up" style={{ animationDelay: '250ms' }}>
             <h2 className="font-bold text-slate-900 mb-4">{t('quickActions.title')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <QuickAction href="/sales/leads/new" icon="➕" label={t('quickActions.newLead')}      desc={t('quickActions.newLeadDesc')}      accent="#FF6B2C" />
+              {user?.role !== 'service' && (
+                <QuickAction href="/sales/leads/new" icon="➕" label={t('quickActions.newLead')}      desc={t('quickActions.newLeadDesc')}      accent="#FF6B2C" />
+              )}
               <QuickAction href="/inventory"        icon="🏍" label={t('quickActions.addVehicle')}   desc={t('quickActions.addVehicleDesc')}   accent="#3b82f6" />
               <QuickAction href="/purchase"  icon="📦" label={t('quickActions.purchaseOrder')} desc={t('quickActions.purchaseOrderDesc')} accent="#10b981" />
             </div>
@@ -474,7 +480,9 @@ export default function DashboardPage() {
             <div className="bg-white rounded-2xl border border-slate-100 p-6 animate-fade-up" style={{ animationDelay: '300ms' }}>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-bold text-slate-900">{t('recentLeads.title')}</h2>
-                <Link href="/sales/leads" className="text-xs text-[#FF6B2C] font-semibold hover:underline">{t('recentLeads.viewAll')}</Link>
+                {user?.role !== 'service' && (
+                  <Link href="/sales/leads" className="text-xs text-[#FF6B2C] font-semibold hover:underline">{t('recentLeads.viewAll')}</Link>
+                )}
               </div>
               <div className="space-y-1">
                 {recentLeads.map((lead, i) => (

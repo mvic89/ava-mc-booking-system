@@ -32,7 +32,13 @@ const NewLeadPage = () => {
       router.push('/auth/login');
       return;
     }
-    setUser(JSON.parse(storedUser));
+    const parsed = JSON.parse(storedUser);
+    if (parsed.role === 'service') {
+      toast.error('Creating leads is not available for Service users.');
+      router.replace('/dashboard');
+      return;
+    }
+    setUser(parsed);
   }, [router]);
 
   // Form data
