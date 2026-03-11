@@ -260,8 +260,7 @@ export default function Sidebar() {
       {showBankIDModal && (
         <BankIDModal
           onComplete={handleSwitchBankID}
-          onCancel={() => setShowBankIDModal(false)}
-        />
+          onCancel={() => setShowBankIDModal(false)} mode={'auth'}        />
       )}
 
       {/* Switch User modal */}
