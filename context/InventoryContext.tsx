@@ -101,9 +101,9 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         async function loadInventory() {
             const [mcs, sps, accs] = await Promise.all([
-                supabase.from('motorcycles').select('*').order('id'),
-                supabase.from('spare_parts').select('*').order('id'),
-                supabase.from('accessories').select('*').order('id'),
+                supabase.from('motorcycles').select('*').order('id', { ascending: false }),
+                supabase.from('spare_parts').select('*').order('id', { ascending: false }),
+                supabase.from('accessories').select('*').order('id', { ascending: false }),
             ])
             if (mcs.data)  setMotorcycles(mcs.data.map(dbToMotorcycle))
             if (sps.data)  setSpareParts(sps.data.map(dbToSparePart))
@@ -157,7 +157,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 vendor:        mc.vendor,
             })
             if (error) throw new Error(error.message)
-            setMotorcycles((prev) => [...prev, mc])
+            setMotorcycles((prev) => [mc, ...prev])
         } else if (category === 'spareParts') {
             const sp = item as SparePart
             const { error } = await supabase.from('spare_parts').insert({
@@ -174,7 +174,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 vendor:        sp.vendor,
             })
             if (error) throw new Error(error.message)
-            setSpareParts((prev) => [...prev, sp])
+            setSpareParts((prev) => [sp, ...prev])
         } else {
             const acc = item as Accessory
             const { error } = await supabase.from('accessories').insert({
@@ -192,7 +192,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 vendor:        acc.vendor,
             })
             if (error) throw new Error(error.message)
-            setAccessories((prev) => [...prev, acc])
+            setAccessories((prev) => [acc, ...prev])
         }
     }, [])
 
