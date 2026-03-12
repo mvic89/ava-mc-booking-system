@@ -23,6 +23,7 @@
     "inventory": "Beholdning",
     "purchaseOrders": "Innkjøpsordre",
     "suppliers": "Leverandører",
+    "purchaseinvoices": "Kjøpsfakturaer",
     "salesPipeline": "Salgspipeline",
     "pipeline": "Pipeline",
     "customers": "Kunder",

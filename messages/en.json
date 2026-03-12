@@ -23,6 +23,7 @@
     "inventory": "Inventory",
     "purchaseOrders": "Purchase Orders",
     "suppliers": "Suppliers",
+    "purchaseinvoices": "Purchase Invoices",
     "salesPipeline": "Sales Pipeline",
     "pipeline": "Pipeline",
     "customers": "Customers",

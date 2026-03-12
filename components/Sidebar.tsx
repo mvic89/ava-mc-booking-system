@@ -12,6 +12,7 @@ import { getSupabaseBrowser } from '@/lib/supabase';
 import { toast } from 'sonner';
 import type { BankIDResult } from '@/types';
 
+
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -164,6 +165,7 @@ export default function Sidebar() {
         { icon: '🏍', label: t('navigation.inventory'),       href: '/inventory',  roles: ['admin', 'sales', 'service'] },
         { icon: '📦', label: t('navigation.purchaseOrders'), href: '/purchase',   roles: ['admin', 'sales', 'service'] },
         { icon: '🏭', label: t('navigation.suppliers'),       href: '/suppliers',  roles: ['admin', 'sales', 'service'] },
+        { icon: '📧', label: t('navigation.purchaseinvoices'),    href: '/purchaseinvoice', roles: ['admin', 'sales', 'service'] },
       ],
     },
     {
@@ -216,6 +218,7 @@ export default function Sidebar() {
     const u = JSON.parse(raw);
     setUser(u);
     setAvatarUrl(u.avatarDataUrl || null);
+
     try {
       const p = JSON.parse(localStorage.getItem('dealership_profile') || '{}');
       setOrgNr(p.orgNr || u.orgNr || '');
@@ -244,9 +247,7 @@ export default function Sidebar() {
     pathname === href || (href === '/sales/leads' && pathname?.startsWith('/sales'));
 
   const handleSignOut = async () => {
-    // Destroy the server-side httpOnly session cookie first
     await fetch('/api/auth/session', { method: 'DELETE' });
-    // Then clear client-side state
     localStorage.removeItem('user');
     router.replace('/auth/login');
   };
@@ -427,6 +428,7 @@ export default function Sidebar() {
         </div>
       )}
 
+
       {/* Mobile toggle */}
       <button
         onClick={() => setOpen(!open)}
@@ -538,6 +540,8 @@ export default function Sidebar() {
             </Link>
             <span>·</span>
             {orgNr && <span>{orgNr}</span>}
+
+            <span>556123-4567</span>
           </div>
         </div>
 
@@ -560,7 +564,9 @@ export default function Sidebar() {
               <div className="text-white font-semibold text-sm truncate">
                 {user ? (user.givenName || user.name || t('common.user')) : t('common.user')}
               </div>
+
               <div className="text-[11px] text-slate-500">{ROLE_LABELS[userRole] ?? t('common.admin')}</div>
+
             </div>
 
             <NotificationBell />
@@ -585,3 +591,4 @@ export default function Sidebar() {
     </>
   );
 }
+

@@ -47,7 +47,11 @@ export default function NotificationBell() {
     window.addEventListener(NOTIFS_EVENT, load);
     // Also sync when another tab writes to localStorage
     const onStorage = (e: StorageEvent) => {
+
       if (e.key === getNotifsKey()) load();
+
+      if (e.key === 'app_notifications') load();
+
     };
     window.addEventListener('storage', onStorage);
     return () => {
@@ -82,7 +86,9 @@ export default function NotificationBell() {
           />
         </svg>
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-0.5 bg-[#FF6B2C] rounded-full text-[9px] font-bold text-white flex items-center justify-center leading-none">
+
+          <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-0.5 bg-[#FF6B2C] rounded-full text-[9px] font-bold text-white flex items-center justify-center leading-none">
+
             {unread > 9 ? '9+' : unread}
           </span>
         )}
@@ -127,7 +133,7 @@ export default function NotificationBell() {
             </div>
 
             {/* Notification list */}
-            <div className="max-h-[360px] overflow-y-auto">
+            <div className="max-h-90 overflow-y-auto">
               {notifs.length === 0 ? (
                 <div className="py-10 text-center">
                   <p className="text-2xl mb-2">🔔</p>
@@ -148,7 +154,7 @@ export default function NotificationBell() {
                       }
                     }}
                     className={`flex items-start gap-3 px-4 py-3 border-b border-white/5 last:border-0 cursor-pointer transition-colors hover:bg-white/5 ${
-                      !n.read ? 'bg-white/[0.03]' : ''
+                      !n.read ? 'bg-white/3' : ''
                     }`}
                   >
                     {/* Icon */}
@@ -258,4 +264,7 @@ export default function NotificationBell() {
       )}
     </div>
   );
+
 }
+
+

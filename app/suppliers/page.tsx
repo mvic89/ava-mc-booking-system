@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useInventory }  from '@/context/InventoryContext'
 import { vendorDetails } from '@/data/vendors'
 import { historicalPOs } from '@/data/purchaseOrders'
@@ -8,11 +8,12 @@ import { POModal, STATUS_STYLE, formatCurrency, qtyKey } from '@/components/POMo
 import { SupplierRow, CATEGORY_STYLE } from '@/components/SupplierFormShared'
 import { AddSupplierModal }     from '@/components/AddSupplierModal'
 import { SupplierDetailModal }  from '@/components/SupplierDetailModal'
-import { BaseInventoryItem, PurchaseOrder } from '@/utils/types'
+import { BaseInventoryItem, POLineItem, POStatus, PurchaseOrder } from '@/utils/types'
+import { supabase } from '@/lib/supabase'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const STATUS_ORDER = ['Under Review', 'Draft', 'Approved', 'Reviewed', 'Sent', 'Received']
+const STATUS_ORDER = ['Under Review', 'Draft', 'Reviewed', 'Sent', 'Received']
 
 function supNum(n: number) {
     return `SUP-${String(n).padStart(3, '0')}`
@@ -138,7 +139,7 @@ function SupplierPOListModal({
                     ) : (
                         <div className="space-y-2">
                             {sorted.map((po) => {
-                                const style  = STATUS_STYLE[po.status]
+                                const style  = STATUS_STYLE[po.status] ?? STATUS_STYLE['Draft']
                                 const isAuto = autoIds.has(po.id)
                                 return (
                                     <button
@@ -194,12 +195,18 @@ export default function SuppliersPage() {
     const [detailSupplier,  setDetailSupplier]  = useState<SupplierRow | null>(null)
     const [poListSupplier,  setPoListSupplier]  = useState<SupplierRow | null>(null)
     const [selectedPO,      setSelectedPO]      = useState<PurchaseOrder | null>(null)
-    const [qtyOverrides,    setQtyOverrides]    = useState<Record<string, number>>({})
-    const [showAddSupplier, setShowAddSupplier] = useState(false)
-    const [manualSuppliers, setManualSuppliers] = useState<SupplierRow[]>([])
-    const [supplierEdits,   setSupplierEdits]   = useState<Record<string, Partial<SupplierRow>>>({})
+    const [qtyOverrides,      setQtyOverrides]      = useState<Record<string, number>>({})
+    const [showAddSupplier,   setShowAddSupplier]   = useState(false)
+    const [manualSuppliers,   setManualSuppliers]   = useState<SupplierRow[]>([])
+    const [supplierEdits,     setSupplierEdits]     = useState<Record<string, Partial<SupplierRow>>>({})
+    const [poStatusOverrides, setPoStatusOverrides] = useState<Record<string, POStatus>>({})
 
-    const allPOs  = useMemo<PurchaseOrder[]>(() => [...autoPOs, ...historicalPOs], [autoPOs])
+    const allPOs = useMemo<PurchaseOrder[]>(
+        () => [...autoPOs, ...historicalPOs].map((po) =>
+            poStatusOverrides[po.id] ? { ...po, status: poStatusOverrides[po.id] } : po
+        ),
+        [autoPOs, poStatusOverrides],
+    )
     const autoIds = useMemo(() => new Set(autoPOs.map((p) => p.id)), [autoPOs])
 
     const inventorySuppliers = useMemo(
@@ -246,9 +253,140 @@ export default function SuppliersPage() {
         })
     }
 
-    function handleEditSupplier(name: string, updates: Partial<SupplierRow>) {
+    // ─── Load persisted data from Supabase on mount ───────────────────────────
+    useEffect(() => {
+        async function load() {
+            // Load PO status overrides
+            const { data: poData } = await supabase
+                .from('purchase_orders')
+                .select('id, status')
+            if (poData && poData.length > 0) {
+                const overrides: Record<string, POStatus> = {}
+                for (const row of poData) {
+                    overrides[row.id] = row.status as POStatus
+                }
+                setPoStatusOverrides(overrides)
+            }
+
+            // Load vendor edits and manual suppliers
+            const { data: vendorData } = await supabase
+                .from('vendors')
+                .select('*')
+            if (vendorData && vendorData.length > 0) {
+                const edits: Record<string, Partial<SupplierRow>> = {}
+                const manual: SupplierRow[] = []
+                for (const row of vendorData) {
+                    const { name, is_manual, supplier_number, ...rest } = row
+                    edits[name] = {
+                        address:               rest.address,
+                        phone:                 rest.phone,
+                        orgNumber:             rest.org_number,
+                        freeShippingThreshold: rest.free_shipping_threshold,
+                    }
+                    if (is_manual) {
+                        manual.push({
+                            name,
+                            supplierNumber: supplier_number ?? '',
+                            address:        rest.address   ?? '—',
+                            phone:          rest.phone     ?? '—',
+                            orgNumber:      rest.org_number ?? '—',
+                            itemCount:      0,
+                            categories:     rest.categories ?? [],
+                            lowStockCount:  0,
+                            hasDetails:     true,
+                            isManual:       true,
+                            freeShippingThreshold: rest.free_shipping_threshold,
+                        })
+                    }
+                }
+                setSupplierEdits(edits)
+                if (manual.length > 0) setManualSuppliers(manual)
+            }
+        }
+        load()
+    }, [])
+
+    async function handleReviewedPO(poId: string, items: POLineItem[], eta: string) {
+        setPoStatusOverrides((prev) => ({ ...prev, [poId]: 'Reviewed' }))
+        setSelectedPO((prev) => prev ? { ...prev, status: 'Reviewed' } : prev)
+
+        const po = allPOs.find((p) => p.id === poId)
+        if (po) {
+            const lineItems  = items.length > 0 ? items : po.items
+            const totalCost  = lineItems.reduce((s, li) => s + li.lineTotal, 0)
+            await supabase.from('purchase_orders').upsert({
+                id:         poId,
+                vendor:     po.vendor,
+                date:       po.date,
+                eta:        eta || po.eta,
+                status:     'Reviewed',
+                total_cost: totalCost || po.totalCost,
+                notes:      po.notes ?? null,
+            }, { onConflict: 'id' })
+            // Persist line items: delete old, insert updated
+            await supabase.from('po_line_items').delete().eq('po_id', poId)
+            if (lineItems.length > 0) {
+                await supabase.from('po_line_items').insert(
+                    lineItems.map((li) => ({
+                        po_id:          poId,
+                        inventory_id:   li.inventoryId,
+                        name:           li.name,
+                        article_number: li.articleNumber,
+                        order_qty:      li.orderQty,
+                        unit_cost:      li.unitCost,
+                        line_total:     li.lineTotal,
+                        size:           li.size ?? null,
+                    }))
+                )
+            }
+        }
+    }
+
+    async function handleSentPO(poId: string) {
+        setPoStatusOverrides((prev) => ({ ...prev, [poId]: 'Sent' }))
+        setSelectedPO(null)
+
+        const po = allPOs.find((p) => p.id === poId)
+        if (po) {
+            await supabase.from('purchase_orders').upsert({
+                id:         poId,
+                vendor:     po.vendor,
+                date:       po.date,
+                eta:        po.eta,
+                status:     'Sent',
+                total_cost: po.totalCost,
+                notes:      po.notes ?? null,
+            }, { onConflict: 'id' })
+            // Persist line items
+            await supabase.from('po_line_items').delete().eq('po_id', poId)
+            if (po.items.length > 0) {
+                await supabase.from('po_line_items').insert(
+                    po.items.map((li) => ({
+                        po_id:          poId,
+                        inventory_id:   li.inventoryId,
+                        name:           li.name,
+                        article_number: li.articleNumber,
+                        order_qty:      li.orderQty,
+                        unit_cost:      li.unitCost,
+                        line_total:     li.lineTotal,
+                        size:           li.size ?? null,
+                    }))
+                )
+            }
+        }
+    }
+
+    async function handleEditSupplier(name: string, updates: Partial<SupplierRow>) {
         setSupplierEdits((prev) => ({ ...prev, [name]: { ...(prev[name] ?? {}), ...updates } }))
         setDetailSupplier((prev) => (prev?.name === name ? { ...prev, ...updates } : prev))
+        await supabase.from('vendors').upsert({
+            name,
+            address:                updates.address,
+            phone:                  updates.phone,
+            org_number:             updates.orgNumber,
+            free_shipping_threshold: updates.freeShippingThreshold,
+            is_manual:              false,
+        }, { onConflict: 'name' })
     }
 
     const supplierPOs = useMemo(
@@ -385,7 +523,19 @@ export default function SuppliersPage() {
             {showAddSupplier && (
                 <AddSupplierModal
                     supplierNumber={nextSupplierNumber}
-                    onSave={(s) => setManualSuppliers((prev) => [...prev, s])}
+                    onSave={async (s) => {
+                        setManualSuppliers((prev) => [...prev, s])
+                        await supabase.from('vendors').upsert({
+                            name:                    s.name,
+                            address:                 s.address,
+                            phone:                   s.phone,
+                            org_number:              s.orgNumber,
+                            free_shipping_threshold: s.freeShippingThreshold,
+                            supplier_number:         s.supplierNumber,
+                            categories:              s.categories,
+                            is_manual:               true,
+                        }, { onConflict: 'name' })
+                    }}
                     onClose={() => setShowAddSupplier(false)}
                 />
             )}
@@ -419,6 +569,8 @@ export default function SuppliersPage() {
                     qtyOverrides={qtyOverrides}
                     onAdjust={handleAdjust}
                     onClose={() => setSelectedPO(null)}
+                    onReviewed={(items, eta) => handleReviewedPO(selectedPO.id, items, eta)}
+                    onSent={() => handleSentPO(selectedPO.id)}
                     zIndex="z-60"
                     freeShippingThreshold={poListSupplier?.freeShippingThreshold}
                 />

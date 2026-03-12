@@ -14,7 +14,7 @@ import { getDealershipId }  from '@/lib/tenant'
 import { generateAutoPOs }  from '@/utils/generateAutoPOs'
 import { emit, useAutoRefresh } from '@/lib/realtime'
 
-import type { Motorcycle, SparePart, Accessory, PurchaseOrder } from '@/utils/types'
+import type { Motorcycle, SparePart, Accessory, PurchaseOrder, InventoryCategory } from '@/utils/types'
 
 // ─── DB row → TypeScript type mappers ─────────────────────────────────────────
 
@@ -85,6 +85,8 @@ interface InventoryContextValue {
     loading:     boolean
     /** Adjust a single item's stock to an absolute value (not a delta). */
     updateStock: (id: string, newStock: number) => void
+    /** Insert a new item into the correct Supabase table and update local state. */
+    addItem: (category: InventoryCategory, item: Motorcycle | SparePart | Accessory) => Promise<void>
 }
 
 const InventoryContext = createContext<InventoryContextValue | null>(null)
@@ -135,6 +137,73 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
     }, [])
 
     /**
+     * Insert a new item into Supabase and optimistically append to local state.
+     */
+    const addItem = useCallback(async (
+        category: InventoryCategory,
+        item: Motorcycle | SparePart | Accessory,
+    ) => {
+        if (category === 'motorcycles') {
+            const mc = item as Motorcycle
+            const { error } = await supabase.from('motorcycles').insert({
+                id:            mc.id,
+                article_number: mc.articleNumber,
+                name:          mc.name,
+                brand:         mc.brand,
+                description:   mc.description,
+                vin:           mc.vin,
+                year:          mc.year,
+                engine_cc:     mc.engineCC,
+                color:         mc.color,
+                mc_type:       mc.mcType,
+                warehouse:     mc.warehouse,
+                stock:         mc.stock,
+                reorder_qty:   mc.reorderQty,
+                cost:          mc.cost,
+                selling_price: mc.sellingPrice,
+                vendor:        mc.vendor,
+            })
+            if (error) throw new Error(error.message)
+            setMotorcycles((prev) => [mc, ...prev])
+        } else if (category === 'spareParts') {
+            const sp = item as SparePart
+            const { error } = await supabase.from('spare_parts').insert({
+                id:            sp.id,
+                article_number: sp.articleNumber,
+                name:          sp.name,
+                brand:         sp.brand,
+                description:   sp.description,
+                category:      sp.category,
+                stock:         sp.stock,
+                reorder_qty:   sp.reorderQty,
+                cost:          sp.cost,
+                selling_price: sp.sellingPrice,
+                vendor:        sp.vendor,
+            })
+            if (error) throw new Error(error.message)
+            setSpareParts((prev) => [sp, ...prev])
+        } else {
+            const acc = item as Accessory
+            const { error } = await supabase.from('accessories').insert({
+                id:            acc.id,
+                article_number: acc.articleNumber,
+                name:          acc.name,
+                brand:         acc.brand,
+                description:   acc.description,
+                category:      acc.category,
+                size:          acc.size ?? null,
+                stock:         acc.stock,
+                reorder_qty:   acc.reorderQty,
+                cost:          acc.cost,
+                selling_price: acc.sellingPrice,
+                vendor:        acc.vendor,
+            })
+            if (error) throw new Error(error.message)
+            setAccessories((prev) => [acc, ...prev])
+        }
+    }, [])
+
+    /**
      * Auto-POs are re-derived every time inventory state changes.
      * They are NOT stored in Supabase — generated client-side only.
      */
@@ -144,7 +213,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
     )
 
     return (
-        <InventoryContext.Provider value={{ motorcycles, spareParts, accessories, autoPOs, loading, updateStock }}>
+        <InventoryContext.Provider value={{ motorcycles, spareParts, accessories, autoPOs, loading, updateStock, addItem }}>
             {children}
         </InventoryContext.Provider>
     )

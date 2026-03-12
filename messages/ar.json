@@ -23,6 +23,7 @@
     "inventory": "المخزون",
     "purchaseOrders": "أوامر الشراء",
     "suppliers": "الموردون",
+      "purchaseinvoices": "فواتير الشراء",
     "salesPipeline": "خط المبيعات",
     "pipeline": "خط الأنابيب",
     "customers": "العملاء",

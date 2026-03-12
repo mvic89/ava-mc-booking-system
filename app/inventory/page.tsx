@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useInventory } from '@/context/InventoryContext'
 import { Motorcycle, SparePart, Accessory, BaseInventoryItem, InventoryCategory } from '@/utils/types'
+import { AddItemModal } from '@/components/AddItemModal'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -307,8 +308,9 @@ function EmptyState() {
 
 export default function InventoryPage() {
     const { motorcycles, spareParts, accessories, updateStock, autoPOs } = useInventory()
-    const [activeTab, setActiveTab] = useState<InventoryCategory>('motorcycles')
-    const [search, setSearch]       = useState('')
+    const [activeTab, setActiveTab]     = useState<InventoryCategory>('motorcycles')
+    const [search, setSearch]           = useState('')
+    const [showAddModal, setShowAddModal] = useState(false)
 
     const q = search.toLowerCase()
 
@@ -350,7 +352,10 @@ export default function InventoryPage() {
                             ⚠️ {pendingPOs} PO{pendingPOs > 1 ? 's' : ''} pending approval
                         </span>
                     )}
-                    <button className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+                    <button
+                        onClick={() => setShowAddModal(true)}
+                        className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                    >
                         + Add Item
                     </button>
                 </div>
@@ -415,6 +420,11 @@ export default function InventoryPage() {
                         : <EmptyState />
                 )}
             </div>
+
+            {/* Add Item Modal */}
+            {showAddModal && (
+                <AddItemModal onClose={() => setShowAddModal(false)} />
+            )}
         </div>
     )
 }

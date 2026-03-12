@@ -23,6 +23,7 @@
     "inventory": "Lager",
     "purchaseOrders": "Inköpsorder",
     "suppliers": "Leverantörer",
+      "purchaseinvoices": "Inköpsfakturor",
     "salesPipeline": "Försäljningspipeline",
     "pipeline": "Pipeline",
     "customers": "Kunder",

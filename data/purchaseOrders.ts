@@ -135,8 +135,8 @@ export const historicalPOs: PurchaseOrder[] = [
         vendor: 'NGK Spark Plugs (Malaysia) Sdn Bhd',
         date: 'Feb 15, 2026',
         eta: 'Mar 8, 2026',
-        status: 'Approved',
-        notes: 'Approved. Awaiting submission to NGK supplier portal.',
+        status: 'Reviewed',
+        notes: 'Reviewed. Awaiting submission to NGK supplier portal.',
         totalCost: 240,
         items: [
             {
@@ -154,8 +154,8 @@ export const historicalPOs: PurchaseOrder[] = [
         vendor: 'EBC Brakes Distribution Asia',
         date: 'Feb 18, 2026',
         eta: 'Mar 10, 2026',
-        status: 'Approved',
-        notes: 'Approved. To be submitted to EBC distributor portal this week.',
+        status: 'Reviewed',
+        notes: 'Reviewed. To be submitted to EBC distributor portal this week.',
         totalCost: 330,
         items: [
             {

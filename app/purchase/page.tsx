@@ -9,7 +9,7 @@ import { POModal, STATUS_STYLE, formatCurrency, qtyKey, VendorItem } from '@/com
 import { CreatePOModal, FlatInventoryItem } from '@/components/CreatePOModal'
 import { POLineItem, POStatus, PurchaseOrder } from '@/utils/types'
 
-const ALL_STATUSES: POStatus[] = ['Draft', 'Under Review', 'Approved', 'Reviewed', 'Sent', 'Received']
+const ALL_STATUSES: POStatus[] = ['Draft', 'Under Review', 'Reviewed', 'Sent', 'Received']
 
 // ─── PO number generator ──────────────────────────────────────────────────────
 
@@ -140,7 +140,7 @@ export default function PurchasePage() {
     const [poItemOverrides,   setPoItemOverrides]   = useState<Record<string, POLineItem[]>>({})
     const [poEtaOverrides,    setPoEtaOverrides]    = useState<Record<string, string>>({})
 
-    // Fetch historical POs (Approved / Sent / Received) from Supabase on mount
+    // Fetch POs from Supabase on mount; also load status overrides for auto-POs
     useEffect(() => {
         async function loadHistoricalPOs() {
             const dealershipId = getDealershipId()
@@ -152,6 +152,10 @@ export default function PurchasePage() {
                 ? await supabase.from('po_line_items').select('*').in('po_id', poIds)
                 : { data: [] }
             if (!orders) return
+            // Populate status overrides for ALL POs (including auto-POs saved to DB)
+            const overrides: Record<string, POStatus> = {}
+            orders.forEach((po) => { overrides[po.id] = po.status as POStatus })
+            setPoStatusOverrides(overrides)
             const mapped: PurchaseOrder[] = orders.map((po) => ({
                 id:        po.id,
                 vendor:    po.vendor,
@@ -177,15 +181,12 @@ export default function PurchasePage() {
         loadHistoricalPOs()
     }, [])
 
-    const allPOs  = useMemo<PurchaseOrder[]>(() => {
-        const seen = new Set<string>()
-        return [...autoPOs, ...userPOs, ...historicalPOs].filter((p) => {
-            if (seen.has(p.id)) return false
-            seen.add(p.id)
-            return true
-        })
-    }, [autoPOs, userPOs, historicalPOs])
     const autoIds = useMemo(() => new Set(autoPOs.map((p) => p.id)), [autoPOs])
+    // Deduplicate: auto-POs come from live inventory; filter them out of historicalPOs to avoid duplicate keys
+    const allPOs  = useMemo<PurchaseOrder[]>(
+        () => [...autoPOs, ...userPOs, ...historicalPOs.filter((p) => !autoIds.has(p.id))],
+        [autoPOs, userPOs, historicalPOs, autoIds],
+    )
 
     const allPOsResolved = useMemo<PurchaseOrder[]>(
         () => allPOs.map((po) => {
@@ -274,49 +275,71 @@ export default function PurchasePage() {
         })
     }
 
-    function handleSentPO(poId: string) {
+    async function handleSentPO(poId: string) {
         setPoStatusOverrides((prev) => ({ ...prev, [poId]: 'Sent' }))
-        // Persist status to Supabase (skip auto-POs — they are not in the DB)
-        if (!autoIds.has(poId)) {
-            const dealershipId = getDealershipId()
-            if (dealershipId) {
-                supabase.from('purchase_orders').update({ status: 'Sent' }).eq('id', poId).eq('dealership_id', dealershipId)
-            }
-        }
         setSelectedPO(null)
-    }
-
-    function handleReviewedPO(poId: string, items: POLineItem[], eta: string) {
-        setPoStatusOverrides((prev) => ({ ...prev, [poId]: 'Reviewed' }))
-        setPoItemOverrides((prev)   => ({ ...prev, [poId]: items }))
-        setPoEtaOverrides((prev)    => ({ ...prev, [poId]: eta }))
-        // Persist to Supabase (skip auto-POs — they are not in the DB)
-        if (!autoIds.has(poId)) {
-            const dealershipId = getDealershipId()
-            if (dealershipId) {
-                const total = items.reduce((s, li) => s + li.lineTotal, 0)
-                supabase.from('purchase_orders')
-                    .update({ status: 'Reviewed', eta, total_cost: total })
-                    .eq('id', poId)
-                    .eq('dealership_id', dealershipId)
-                // Replace line items: delete old, insert updated
-                supabase.from('po_line_items').delete().eq('po_id', poId).then(() =>
-                    supabase.from('po_line_items').insert(
-                        items.map((li) => ({
-                            po_id:          poId,
-                            inventory_id:   li.inventoryId,
-                            name:           li.name,
-                            article_number: li.articleNumber,
-                            order_qty:      li.orderQty,
-                            unit_cost:      li.unitCost,
-                            line_total:     li.lineTotal,
-                            size:           li.size ?? null,
-                        }))
-                    )
+        const po = allPOs.find((p) => p.id === poId)
+        if (po) {
+            await supabase.from('purchase_orders').upsert({
+                id:         poId,
+                vendor:     po.vendor,
+                date:       po.date,
+                eta:        po.eta,
+                status:     'Sent',
+                total_cost: po.totalCost,
+                notes:      po.notes ?? null,
+            }, { onConflict: 'id' })
+            await supabase.from('po_line_items').delete().eq('po_id', poId)
+            if (po.items.length > 0) {
+                await supabase.from('po_line_items').insert(
+                    po.items.map((li) => ({
+                        po_id:          poId,
+                        inventory_id:   li.inventoryId,
+                        name:           li.name,
+                        article_number: li.articleNumber,
+                        order_qty:      li.orderQty,
+                        unit_cost:      li.unitCost,
+                        line_total:     li.lineTotal,
+                        size:           li.size ?? null,
+                    }))
                 )
             }
         }
+    }
+
+    async function handleReviewedPO(poId: string, items: POLineItem[], eta: string) {
+        setPoStatusOverrides((prev) => ({ ...prev, [poId]: 'Reviewed' }))
+        setPoItemOverrides((prev)   => ({ ...prev, [poId]: items }))
+        setPoEtaOverrides((prev)    => ({ ...prev, [poId]: eta }))
         setSelectedPO(null)
+        const po = allPOs.find((p) => p.id === poId)
+        if (po) {
+            const total = items.reduce((s, li) => s + li.lineTotal, 0)
+            await supabase.from('purchase_orders').upsert({
+                id:         poId,
+                vendor:     po.vendor,
+                date:       po.date,
+                eta:        eta || po.eta,
+                status:     'Reviewed',
+                total_cost: total || po.totalCost,
+                notes:      po.notes ?? null,
+            }, { onConflict: 'id' })
+            await supabase.from('po_line_items').delete().eq('po_id', poId)
+            if (items.length > 0) {
+                await supabase.from('po_line_items').insert(
+                    items.map((li) => ({
+                        po_id:          poId,
+                        inventory_id:   li.inventoryId,
+                        name:           li.name,
+                        article_number: li.articleNumber,
+                        order_qty:      li.orderQty,
+                        unit_cost:      li.unitCost,
+                        line_total:     li.lineTotal,
+                        size:           li.size ?? null,
+                    }))
+                )
+            }
+        }
     }
 
     const selectedVendorItems = useMemo<VendorItem[]>(() => {
@@ -411,7 +434,7 @@ export default function PurchasePage() {
                             <tbody>
                                 {filtered.map((po) => {
                                     const displayStatus = poStatusOverrides[po.id] ?? po.status
-                                    const style    = STATUS_STYLE[displayStatus]
+                                    const style    = STATUS_STYLE[displayStatus] ?? STATUS_STYLE['Draft']
                                     const isAuto   = autoIds.has(po.id)
                                     const effTotal = po.items.reduce((sum, li) => {
                                         const qty = qtyOverrides[qtyKey(po.id, li.inventoryId)] ?? li.orderQty
