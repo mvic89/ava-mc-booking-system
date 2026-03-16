@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
+import CustomerImportModal from '@/components/CustomerImportModal';
 import { getCustomers, type Customer, type Tag } from '@/lib/customers';
 import { useAutoRefresh } from '@/lib/realtime';
 
@@ -32,10 +33,11 @@ function filterByTab(customers: Customer[], tab: Tab): Customer[] {
 export default function CustomersPage() {
   const router = useRouter();
   const t = useTranslations('customers');
-  const [ready, setReady] = useState(false);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [tab, setTab] = useState<Tab>('all');
-  const [search, setSearch] = useState('');
+  const [ready,       setReady]       = useState(false);
+  const [customers,   setCustomers]   = useState<Customer[]>([]);
+  const [tab,         setTab]         = useState<Tab>('all');
+  const [search,      setSearch]      = useState('');
+  const [showImport,  setShowImport]  = useState(false);
 
   useEffect(() => {
     const user = localStorage.getItem('user');
@@ -82,6 +84,7 @@ export default function CustomersPage() {
   const bankidPct = customers.length > 0 ? Math.round((bankidCount / customers.length) * 100) : 0;
 
   return (
+    <>
     <div className="flex min-h-screen bg-[#f5f7fa]">
       <Sidebar />
 
@@ -117,6 +120,12 @@ export default function CustomersPage() {
               >
                 ＋
               </Link>
+              <button
+                onClick={() => setShowImport(true)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-sm font-medium transition-colors"
+              >
+                ↑ Importera
+              </button>
               <button className="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-sm font-medium transition-colors">
                 {t('export')}
               </button>
@@ -258,5 +267,13 @@ export default function CustomersPage() {
         </div>
       </div>
     </div>
+
+    {showImport && (
+      <CustomerImportModal
+        onClose={() => setShowImport(false)}
+        onSuccess={() => getCustomers().then(setCustomers)}
+      />
+    )}
+    </>
   );
 }
