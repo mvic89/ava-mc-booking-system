@@ -121,7 +121,24 @@ export default function NewCustomerPage() {
       toast.success(t('new.savedToast'), { description: t('new.savedToastDesc') });
       router.push('/customers');
     } catch (err) {
-      toast.error('Failed to save customer', { description: err instanceof Error ? err.message : String(err) });
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.startsWith('DUPLICATE_CUSTOMER:')) {
+        const parts    = msg.split(':');
+        const existId  = parts[1];
+        const existName = parts.slice(2).join(':').trim();
+        toast.error(
+          existName ? `${existName} finns redan i systemet` : 'Kunden finns redan i systemet',
+          {
+            description: 'En kund med detta personnummer är redan registrerad.',
+            duration:    8000,
+            action: existId && existId !== 'unknown'
+              ? { label: 'Visa kund →', onClick: () => router.push(`/customers/${existId}`) }
+              : undefined,
+          },
+        );
+      } else {
+        toast.error('Kunde inte spara kunden', { description: msg });
+      }
     }
   };
 

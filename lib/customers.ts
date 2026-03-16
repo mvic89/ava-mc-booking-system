@@ -636,13 +636,34 @@ export async function createCustomer(
 ): Promise<Customer> {
   const dealershipId = getDealershipId();
   if (!dealershipId) throw new Error('Not authenticated: no dealership context');
+
+  // Check for an existing customer with the same personnummer before inserting
+  if (data.personnummer) {
+    const { data: existing } = await db()
+      .from('customers')
+      .select('id, first_name, last_name')
+      .eq('personnummer', data.personnummer)
+      .eq('dealership_id', dealershipId)
+      .maybeSingle();
+    if (existing) {
+      throw new Error(`DUPLICATE_CUSTOMER:${existing.id}:${existing.first_name} ${existing.last_name}`);
+    }
+  }
+
   const row = { ...mapCustomerToDb({ ...data, id: 0 }, false), dealership_id: dealershipId };
   const { data: created, error } = await db()
     .from('customers')
     .insert(row)
     .select()
     .single();
-  if (error || !created) throw new Error(error?.message ?? 'createCustomer failed');
+  if (error) {
+    // Catch DB-level unique constraint violation as a safety net
+    if (error.code === '23505') {
+      throw new Error('DUPLICATE_CUSTOMER:unknown:');
+    }
+    throw new Error(error.message);
+  }
+  if (!created) throw new Error('createCustomer failed');
   return mapDbToCustomer(created as Record<string, unknown>);
 }
 
