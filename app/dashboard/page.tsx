@@ -270,7 +270,7 @@ export default function DashboardPage() {
     // ── Motorcycles in stock ─────────────────────────────
     const { data: mcs } = await sb
       .from('motorcycles')
-      .select('stock, created_at')
+      .select('stock')
       .eq('dealership_id', dealershipId);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const totalStock = (mcs ?? []).reduce((s: number, r: any) => s + (r.stock ?? 0), 0);

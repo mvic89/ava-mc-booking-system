@@ -28,9 +28,9 @@ const securityHeaders = [
       "default-src 'self'",
       // unsafe-eval needed for Next.js HMR; vercel.live for preview toolbar
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live",
-      "style-src 'self' 'unsafe-inline' https://vercel.live",
-      "img-src 'self' data: blob: https://vercel.live https://*.vercel.com",
-      "font-src 'self' https://vercel.live",
+      "style-src 'self' 'unsafe-inline' https://vercel.live https://www.gstatic.com",
+      "img-src 'self' data: blob: https://vercel.live https://*.vercel.com https://www.gstatic.com",
+      "font-src 'self' https://vercel.live https://fonts.gstatic.com",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vercel.live wss://ws-us3.pusher.com",
       "frame-src https://vercel.live",
       "frame-ancestors 'none'",
