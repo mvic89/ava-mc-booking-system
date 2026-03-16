@@ -24,6 +24,7 @@ export interface Customer {
   address:           string;
   gender:            'Man' | 'Kvinna';
   birthDate:         string;
+  notes?:            string;   // free-form notes + extra imported columns
 }
 
 // ── Seed data (474 real customers from KUNDLISTA) ────────────────────────────
@@ -515,6 +516,10 @@ const MONTH_MAP: Record<string, number> = {
 
 function parseLastActivity(s: string): string {
   if (!s || s === '—') return new Date().toISOString();
+  // Try ISO / YYYY-MM-DD / any parseable date string first
+  const direct = new Date(s);
+  if (!isNaN(direct.getTime())) return direct.toISOString();
+  // Fallback: "Mon DD" display format (e.g. "Jun 9")
   const [mon, day] = s.split(' ');
   const m = MONTH_MAP[mon ?? ''];
   const d = parseInt(day ?? '0');
@@ -547,6 +552,7 @@ function mapDbToCustomer(row: Record<string, unknown>): Customer {
     address:           (row.address     as string) ?? '',
     gender:            (row.gender      as 'Man' | 'Kvinna') ?? 'Man',
     birthDate:         (row.birth_date  as string) ?? '',
+    notes:             (row.notes       as string) ?? undefined,
   };
 }
 
@@ -566,6 +572,7 @@ function mapCustomerToDb(c: Customer, includeId = true): Record<string, unknown>
     address:            c.address       || null,
     gender:             c.gender,
     birth_date:         c.birthDate     || null,
+    notes:              c.notes         || null,
   };
   if (includeId) row.id = c.id;
   return row;
@@ -637,4 +644,15 @@ export async function createCustomer(
     .single();
   if (error || !created) throw new Error(error?.message ?? 'createCustomer failed');
   return mapDbToCustomer(created as Record<string, unknown>);
+}
+
+export async function deleteCustomers(ids: number[]): Promise<void> {
+  const dealershipId = getDealershipId();
+  if (!dealershipId || ids.length === 0) return;
+  const { error } = await db()
+    .from('customers')
+    .delete()
+    .in('id', ids)
+    .eq('dealership_id', dealershipId);
+  if (error) throw new Error(error.message);
 }

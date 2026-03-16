@@ -5,8 +5,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
-import { getCustomers, type Customer, type Tag } from '@/lib/customers';
+import CustomerImportModal from '@/components/CustomerImportModal';
+import { getCustomers, deleteCustomers, type Customer, type Tag } from '@/lib/customers';
 import { useAutoRefresh } from '@/lib/realtime';
 
 type Tab = 'all' | 'active' | 'vip' | 'bankid' | 'inactive';
@@ -18,7 +20,6 @@ const TAG_STYLES: Record<Tag, string> = {
   Inactive: 'bg-slate-100 text-slate-500',
 };
 
-
 function filterByTab(customers: Customer[], tab: Tab): Customer[] {
   switch (tab) {
     case 'active':   return customers.filter(c => c.tag === 'Active' || c.tag === 'VIP');
@@ -29,13 +30,34 @@ function filterByTab(customers: Customer[], tab: Tab): Customer[] {
   }
 }
 
+function exportToCsv(rows: Customer[]) {
+  const header = 'Förnamn,Efternamn,E-post,Telefon,Källa,Senaste aktivitet,Tag,Livstidsvärde (kr)\n';
+  const csv = header + rows.map(c =>
+    [c.firstName, c.lastName, c.email, c.phone, c.source, c.lastActivity, c.tag, c.lifetimeValue]
+      .map(v => `"${String(v ?? '').replace(/"/g, '""')}"`)
+      .join(',')
+  ).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `kunder-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function CustomersPage() {
   const router = useRouter();
   const t = useTranslations('customers');
-  const [ready, setReady] = useState(false);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [tab, setTab] = useState<Tab>('all');
-  const [search, setSearch] = useState('');
+
+  const [ready,         setReady]         = useState(false);
+  const [customers,     setCustomers]     = useState<Customer[]>([]);
+  const [tab,           setTab]           = useState<Tab>('all');
+  const [search,        setSearch]        = useState('');
+  const [showImport,    setShowImport]    = useState(false);
+  const [selected,      setSelected]      = useState<Set<number>>(new Set());
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting,      setDeleting]      = useState(false);
 
   useEffect(() => {
     const user = localStorage.getItem('user');
@@ -76,12 +98,49 @@ export default function CustomersPage() {
     c.phone.includes(search)
   );
 
-  const bankidCount    = counts.bankid;
-  const protectedCount = customers.filter(c => c.protectedIdentity).length;
+  const allVisibleSelected = displayed.length > 0 && displayed.every(c => selected.has(c.id));
+  const someSelected = selected.size > 0;
+
+  function toggleRow(id: number, e: React.MouseEvent) {
+    e.stopPropagation();
+    setSelected(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    if (allVisibleSelected) {
+      setSelected(prev => { const n = new Set(prev); displayed.forEach(c => n.delete(c.id)); return n; });
+    } else {
+      setSelected(prev => { const n = new Set(prev); displayed.forEach(c => n.add(c.id)); return n; });
+    }
+  }
+
+  async function handleDelete() {
+    setDeleting(true);
+    try {
+      await deleteCustomers([...selected]);
+      const fresh = await getCustomers();
+      setCustomers(fresh);
+      setSelected(new Set());
+      setConfirmDelete(false);
+      toast.success(`${selected.size} kunder borttagna`);
+    } catch {
+      toast.error('Fel vid borttagning, försök igen');
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  const bankidCount     = counts.bankid;
+  const protectedCount  = customers.filter(c => c.protectedIdentity).length;
   const unverifiedCount = customers.filter(c => !c.bankidVerified).length;
-  const bankidPct = customers.length > 0 ? Math.round((bankidCount / customers.length) * 100) : 0;
+  const bankidPct       = customers.length > 0 ? Math.round((bankidCount / customers.length) * 100) : 0;
 
   return (
+    <>
     <div className="flex min-h-screen bg-[#f5f7fa]">
       <Sidebar />
 
@@ -117,7 +176,17 @@ export default function CustomersPage() {
               >
                 ＋
               </Link>
-              <button className="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-sm font-medium transition-colors">
+              <button
+                onClick={() => setShowImport(true)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-sm font-medium transition-colors"
+              >
+                ↑ Importera
+              </button>
+              <button
+                onClick={() => exportToCsv(someSelected ? customers.filter(c => selected.has(c.id)) : displayed)}
+                className="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-sm font-medium transition-colors"
+                title={someSelected ? `Exportera ${selected.size} valda` : 'Exportera alla synliga'}
+              >
                 {t('export')}
               </button>
             </div>
@@ -125,21 +194,21 @@ export default function CustomersPage() {
 
           {/* Tabs */}
           <div className="flex gap-0 mt-5 border-b border-slate-100 -mb-6">
-            {TABS.map(t => (
+            {TABS.map(tabItem => (
               <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
+                key={tabItem.id}
+                onClick={() => { setTab(tabItem.id); setSelected(new Set()); }}
                 className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-                  tab === t.id
+                  tab === tabItem.id
                     ? 'border-[#FF6B2C] text-[#FF6B2C]'
                     : 'border-transparent text-slate-500 hover:text-slate-700'
                 }`}
               >
-                {t.label}
+                {tabItem.label}
                 <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full font-bold ${
-                  tab === t.id ? 'bg-[#FF6B2C]/10 text-[#FF6B2C]' : 'bg-slate-100 text-slate-500'
+                  tab === tabItem.id ? 'bg-[#FF6B2C]/10 text-[#FF6B2C]' : 'bg-slate-100 text-slate-500'
                 }`}>
-                  {t.count}
+                  {tabItem.count}
                 </span>
               </button>
             ))}
@@ -149,14 +218,57 @@ export default function CustomersPage() {
         {/* Table */}
         <div className="flex-1 px-5 md:px-8 py-6 animate-fade-up overflow-x-auto">
           <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-            <table className="w-full min-w-[900px]">
+
+            {/* Bulk action bar */}
+            {someSelected && (
+              <div className="flex items-center justify-between px-5 py-3 bg-[#FF6B2C]/5 border-b border-[#FF6B2C]/20">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-semibold text-slate-700">
+                    {selected.size} kund{selected.size !== 1 ? 'er' : ''} vald{selected.size !== 1 ? 'a' : ''}
+                  </span>
+                  <button
+                    onClick={() => exportToCsv(customers.filter(c => selected.has(c.id)))}
+                    className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-medium transition-colors"
+                  >
+                    ↓ Exportera CSV
+                  </button>
+                  <button
+                    onClick={() => setConfirmDelete(true)}
+                    className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium transition-colors"
+                  >
+                    🗑 Ta bort
+                  </button>
+                </div>
+                <button
+                  onClick={() => setSelected(new Set())}
+                  className="text-slate-400 hover:text-slate-600 transition-colors text-xl leading-none"
+                  title="Avmarkera alla"
+                >
+                  ×
+                </button>
+              </div>
+            )}
+
+            <table className="w-full min-w-[960px]">
               <thead>
                 <tr className="border-b border-slate-100">
+                  {/* Master checkbox */}
+                  <th className="w-10 px-4 py-3.5">
+                    <input
+                      type="checkbox"
+                      checked={allVisibleSelected}
+                      onChange={toggleAll}
+                      className="w-4 h-4 accent-[#FF6B2C] cursor-pointer rounded"
+                      title={allVisibleSelected ? 'Avmarkera alla' : 'Markera alla'}
+                    />
+                  </th>
                   {[t('table.name'), t('table.email'), t('table.phone'), t('table.source'), t('table.vehicles'), t('table.lifetimeValue'), t('table.lastActivity'), t('table.tags')].map(col => (
                     <th key={col} className="text-left text-xs font-semibold text-slate-400 uppercase tracking-wider px-5 py-3.5">
                       {col}
                     </th>
                   ))}
+                  {/* Actions column */}
+                  <th className="w-10 px-3 py-3.5" />
                 </tr>
               </thead>
               <tbody>
@@ -164,8 +276,22 @@ export default function CustomersPage() {
                   <tr
                     key={c.id}
                     onClick={() => router.push(`/customers/${c.id}`)}
-                    className={`border-b border-slate-50 hover:bg-[#FF6B2C]/5 cursor-pointer transition-colors ${i % 2 === 0 ? '' : 'bg-slate-50/50'}`}
+                    className={`group border-b border-slate-50 cursor-pointer transition-colors ${
+                      selected.has(c.id)
+                        ? 'bg-[#FF6B2C]/5'
+                        : i % 2 === 0 ? 'hover:bg-[#FF6B2C]/5' : 'bg-slate-50/50 hover:bg-[#FF6B2C]/5'
+                    }`}
                   >
+                    {/* Checkbox */}
+                    <td className="px-4 py-3.5" onClick={e => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={selected.has(c.id)}
+                        onChange={() => {}}
+                        onClick={e => toggleRow(c.id, e)}
+                        className="w-4 h-4 accent-[#FF6B2C] cursor-pointer rounded"
+                      />
+                    </td>
                     {/* Name */}
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
@@ -213,6 +339,16 @@ export default function CustomersPage() {
                         {c.tag}
                       </span>
                     </td>
+                    {/* Per-row delete */}
+                    <td className="px-3 py-3.5" onClick={e => e.stopPropagation()}>
+                      <button
+                        onClick={() => { setSelected(new Set([c.id])); setConfirmDelete(true); }}
+                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-50 text-slate-300 hover:text-red-500 transition-all"
+                        title="Ta bort kund"
+                      >
+                        🗑
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -227,6 +363,9 @@ export default function CustomersPage() {
             {/* Pagination hint */}
             <div className="px-5 py-3 border-t border-slate-100 text-xs text-slate-400 text-center">
               {t('table.showing', { count: displayed.length })}
+              {someSelected && (
+                <span className="ml-2 text-[#FF6B2C] font-medium">· {selected.size} markerade</span>
+              )}
             </div>
           </div>
         </div>
@@ -258,5 +397,50 @@ export default function CustomersPage() {
         </div>
       </div>
     </div>
+
+    {/* Import modal */}
+    {showImport && (
+      <CustomerImportModal
+        onClose={() => setShowImport(false)}
+        onSuccess={() => getCustomers().then(setCustomers)}
+      />
+    )}
+
+    {/* Delete confirmation dialog */}
+    {confirmDelete && (
+      <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm animate-fade-up">
+          <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4 text-2xl">
+            🗑
+          </div>
+          <h3 className="text-lg font-bold text-slate-900 text-center mb-2">Ta bort kunder?</h3>
+          <p className="text-sm text-slate-500 text-center mb-6">
+            Du är på väg att ta bort{' '}
+            <strong className="text-slate-700">{selected.size} kund{selected.size !== 1 ? 'er' : ''}</strong>.
+            {' '}Det går inte att ångra.
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setConfirmDelete(false)}
+              disabled={deleting}
+              className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors disabled:opacity-60"
+            >
+              Avbryt
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="flex-1 px-4 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              {deleting
+                ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Tar bort...</>
+                : `Ta bort ${selected.size}`
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
