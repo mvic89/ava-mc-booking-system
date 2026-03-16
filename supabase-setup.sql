@@ -565,10 +565,13 @@ CREATE TABLE IF NOT EXISTS customers (
   protected_identity BOOLEAN       NOT NULL DEFAULT FALSE,
   gender             TEXT,
   birth_date         TEXT,
+  notes              TEXT,          -- free-form notes + extra imported columns (JSON or plain text)
   dealership_id      UUID          NOT NULL REFERENCES dealership_settings(dealership_id) ON DELETE CASCADE,
   created_at         TIMESTAMPTZ            DEFAULT NOW(),
   updated_at         TIMESTAMPTZ            DEFAULT NOW()
 );
+-- Migration for existing databases (safe to run multiple times):
+-- ALTER TABLE customers ADD COLUMN IF NOT EXISTS notes TEXT;
 
 CREATE UNIQUE INDEX IF NOT EXISTS customers_pnr_dealer_uidx ON customers(personnummer, dealership_id)
   WHERE personnummer IS NOT NULL;

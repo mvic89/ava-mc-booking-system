@@ -78,6 +78,7 @@ export default function NewCustomerPage() {
           address: [manual.address, manual.postalCode, manual.city].filter(Boolean).join(', '),
           gender: manual.gender === 'Kvinna' ? 'Kvinna' : 'Man',
           birthDate: manual.birthDate || '',
+          notes: manual.notes || undefined,
         });
       } else if (step === 'new' && bankIDResult) {
         const r = bankIDResult.roaring;
@@ -119,8 +120,8 @@ export default function NewCustomerPage() {
       }
       toast.success(t('new.savedToast'), { description: t('new.savedToastDesc') });
       router.push('/customers');
-    } catch (err: any) {
-      toast.error('Failed to save customer', { description: err.message });
+    } catch (err) {
+      toast.error('Failed to save customer', { description: err instanceof Error ? err.message : String(err) });
     }
   };
 
