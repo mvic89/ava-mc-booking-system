@@ -9,7 +9,7 @@ import { getInvite, consumeInvite } from '@/lib/invites';
 import { getSupabaseBrowser } from '@/lib/supabase';
 import type { BankIDResult } from '@/types';
 
-type PageState = 'loading' | 'invalid' | 'ready' | 'signing' | 'success';
+type PageState = 'loading' | 'invalid' | 'ready' | 'signing' | 'email' | 'success';
 
 interface StaffUser {
   id: string; name: string; email: string;
@@ -20,15 +20,16 @@ interface StaffUser {
 }
 
 const ROLE_SV: Record<string, string> = { admin: 'Administratör', sales: 'Säljare', service: 'Service' };
-const ROLE_EN: Record<string, string> = { admin: 'Administrator',  sales: 'Sales',   service: 'Service' };
 
 function AcceptInviteInner() {
   const router       = useRouter();
   const searchParams = useSearchParams();
   const t            = useTranslations('invite');
 
-  const [state, setState]           = useState<PageState>('loading');
-  const [invite, setInvite]         = useState<ReturnType<typeof getInvite>>(null);
+  const [state, setState]         = useState<PageState>('loading');
+  const [invite, setInvite]       = useState<ReturnType<typeof getInvite>>(null);
+  const [emailValue, setEmailValue] = useState('');
+  const [emailError, setEmailError] = useState('');
 
   useEffect(() => {
     const token = searchParams.get('token');
@@ -39,20 +40,64 @@ function AcceptInviteInner() {
     setState('ready');
   }, [searchParams]);
 
-  const handleBankIDComplete = async (result: BankIDResult) => {
+  // ── Shared: write user + session after any verification ────────────────────
+  async function activateAccount(userObj: Record<string, unknown>, bankidVerified: boolean, personalNumber?: string) {
     if (!invite) return;
 
-    // Update the matching staff user record in localStorage
+    // Update staff_users in localStorage
     try {
       const staff: StaffUser[] = JSON.parse(localStorage.getItem('staff_users') ?? '[]');
       const updated = staff.map(s =>
         s.email === invite.email
-          ? { ...s, personalNumber: result.user.personalNumber, bankidVerified: true, status: 'active' as const, lastLogin: new Date().toISOString() }
+          ? { ...s, personalNumber: personalNumber ?? '', bankidVerified, status: 'active' as const, lastLogin: new Date().toISOString() }
           : s,
       );
       localStorage.setItem('staff_users', JSON.stringify(updated));
     } catch { /* ignore */ }
 
+    localStorage.setItem('user', JSON.stringify(userObj));
+
+    // Upsert into Supabase
+    if (invite.dealershipId) {
+      try {
+        const db = getSupabaseBrowser();
+        await (db as any).from('staff_users').upsert(
+          {
+            dealership_id:   invite.dealershipId,
+            email:           invite.email,
+            name:            userObj.name,
+            role:            invite.role,
+            status:          'active',
+            bankid_verified: bankidVerified,
+            personal_number: personalNumber ?? null,
+            last_login:      new Date().toISOString(),
+          },
+          { onConflict: 'email' },
+        );
+      } catch { /* non-blocking */ }
+    }
+
+    // Create server-side session cookie
+    await fetch('/api/auth/session', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        dealershipId:   invite.dealershipId,
+        dealershipName: invite.dealershipName,
+        name:           userObj.givenName ?? userObj.name,
+        email:          invite.email,
+        role:           invite.role,
+      }),
+    });
+
+    consumeInvite(invite.token);
+    setState('success');
+    setTimeout(() => router.push('/dashboard'), 1500);
+  }
+
+  // ── BankID complete ────────────────────────────────────────────────────────
+  const handleBankIDComplete = async (result: BankIDResult) => {
+    if (!invite) return;
     const userObj = {
       name:           result.user.name,
       givenName:      result.user.givenName,
@@ -65,63 +110,48 @@ function AcceptInviteInner() {
       dealershipId:   invite.dealershipId,
       role:           invite.role,
     };
-
-    // Persist user to localStorage (UI reads from here)
-    localStorage.setItem('user', JSON.stringify(userObj));
-
-    // Upsert this user into Supabase staff_users so future logins (email or
-    // BankID) can look them up and get their correct role + dealership_id.
-    if (invite.dealershipId) {
-      try {
-        const db = getSupabaseBrowser();
-        await (db as any)
-          .from('staff_users')
-          .upsert(
-            {
-              dealership_id:   invite.dealershipId,
-              email:           invite.email,
-              name:            result.user.name,
-              role:            invite.role,
-              status:          'active',
-              bankid_verified: true,
-              personal_number: result.user.personalNumber,
-              last_login:      new Date().toISOString(),
-            },
-            { onConflict: 'email' },
-          );
-      } catch { /* non-blocking — session cookie still created below */ }
-    }
-
-    // Create the server-side httpOnly session cookie so proxy.ts lets the
-    // user through without redirecting them back to login.
-    await fetch('/api/auth/session', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        dealershipId:   invite.dealershipId,
-        dealershipName: invite.dealershipName,
-        name:           result.user.givenName ?? result.user.name,
-        email:          invite.email,
-        role:           invite.role,
-      }),
-    });
-
-    consumeInvite(invite.token);
-    setState('success');
-
-    setTimeout(() => router.push('/dashboard'), 1500);
+    await activateAccount(userObj, true, result.user.personalNumber);
   };
 
-  // ── Render ──────────────────────────────────────────────────────────────────
+  // ── Email verification ─────────────────────────────────────────────────────
+  const handleEmailSubmit = async () => {
+    if (!invite) return;
+    setEmailError('');
+    const entered = emailValue.trim().toLowerCase();
+    const expected = invite.email.trim().toLowerCase();
 
+    if (!entered) {
+      setEmailError('Ange din e-postadress.');
+      return;
+    }
+    if (entered !== expected) {
+      setEmailError('E-postadressen matchar inte inbjudan.');
+      return;
+    }
+
+    const nameParts = (invite.name ?? '').trim().split(' ');
+    const givenName = nameParts[0] ?? invite.name;
+    const userObj = {
+      name:           invite.name,
+      givenName,
+      surname:        nameParts.slice(1).join(' ') || '',
+      personalNumber: '',
+      email:          invite.email,
+      dealershipName: invite.dealershipName,
+      dealershipId:   invite.dealershipId,
+      role:           invite.role,
+    };
+    await activateAccount(userObj, false);
+  };
+
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#f5f7fa] flex items-center justify-center p-4">
-      {/* Card */}
       <div className="w-full max-w-md">
 
         {/* Logo */}
         <div className="text-center mb-6">
-          <div className="bg-white rounded-xl px-2 py-1 border border-slate-100">
+          <div className="bg-white rounded-xl px-2 py-1 border border-slate-100 inline-block">
             <img src="/BikeMeNow_logo_test.png" alt="BikeMeNow" className="h-8 w-auto object-contain" />
           </div>
         </div>
@@ -150,10 +180,11 @@ function AcceptInviteInner() {
           </div>
         )}
 
-        {/* Ready — show invite details */}
-        {(state === 'ready' || state === 'signing') && invite && (
+        {/* Ready — choose verification method */}
+        {state === 'ready' && invite && (
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 animate-fade-up">
-            {/* Company + role */}
+
+            {/* Header */}
             <div className="text-center mb-6">
               <div className="w-14 h-14 rounded-2xl bg-[#FF6B2C]/10 flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">✉️</span>
@@ -164,7 +195,7 @@ function AcceptInviteInner() {
               </p>
             </div>
 
-            {/* Details card */}
+            {/* Invite details */}
             <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 mb-6 space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-slate-500">{t('labelName')}</span>
@@ -186,15 +217,101 @@ function AcceptInviteInner() {
               </div>
             </div>
 
-            <p className="text-xs text-slate-400 text-center mb-5">{t('verifyDesc')}</p>
+            <p className="text-xs text-slate-400 text-center mb-5">
+              Verifiera din identitet för att aktivera ditt konto
+            </p>
 
-            {/* BankID button */}
+            {/* BankID — recommended */}
             <button
               onClick={() => setState('signing')}
-              className="w-full py-3 rounded-xl bg-[#0b1524] hover:bg-[#1a2a42] text-white text-sm font-bold tracking-wide transition-colors flex items-center justify-center gap-2"
+              className="w-full mb-3 bg-[#0b1524] hover:bg-[#1a2a42] text-white rounded-xl p-4 flex items-center gap-4 transition-all"
             >
-              <span>🪪</span> {t('verify')}
+              <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center shrink-0 text-xl">
+                🪪
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-sm font-bold">BankID</p>
+                <p className="text-xs text-slate-400">Säker elektronisk identifiering</p>
+              </div>
+              <span className="shrink-0 text-[10px] font-bold bg-[#FF6B2C] text-white px-2 py-0.5 rounded-full">
+                REKOMMENDERAT
+              </span>
             </button>
+
+            {/* Email fallback */}
+            <button
+              onClick={() => setState('email')}
+              className="w-full bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl p-4 flex items-center gap-4 transition-all border border-slate-200"
+            >
+              <div className="w-10 h-10 bg-slate-200 rounded-lg flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                </svg>
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-bold">E-postadress</p>
+                <p className="text-xs text-slate-400">Verifiera med din registrerade e-post</p>
+              </div>
+            </button>
+          </div>
+        )}
+
+        {/* Email verification form */}
+        {state === 'email' && invite && (
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 animate-fade-up">
+            <div className="text-center mb-6">
+              <div className="w-14 h-14 rounded-2xl bg-[#FF6B2C]/10 flex items-center justify-center mx-auto mb-4">
+                <svg className="w-7 h-7 text-[#FF6B2C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                </svg>
+              </div>
+              <h1 className="text-xl font-bold text-slate-900 mb-1">Verifiera e-post</h1>
+              <p className="text-sm text-slate-500">
+                Ange e-postadressen som inbjudan skickades till
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                  E-postadress
+                </label>
+                <input
+                  type="email"
+                  value={emailValue}
+                  onChange={e => { setEmailValue(e.target.value); setEmailError(''); }}
+                  onKeyDown={e => e.key === 'Enter' && handleEmailSubmit()}
+                  placeholder={invite.email}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#FF6B2C]/30 focus:border-[#FF6B2C] transition-all"
+                  autoFocus
+                />
+                {emailError && (
+                  <p className="text-xs text-red-500 mt-1.5 font-medium">{emailError}</p>
+                )}
+              </div>
+
+              <button
+                onClick={handleEmailSubmit}
+                className="w-full py-3 rounded-xl bg-[#FF6B2C] hover:bg-[#e55a1f] text-white text-sm font-bold transition-colors"
+              >
+                Verifiera och aktivera konto
+              </button>
+
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => { setState('ready'); setEmailValue(''); setEmailError(''); }}
+                  className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  ← Tillbaka
+                </button>
+                <button
+                  onClick={() => { setState('signing'); }}
+                  className="text-xs text-[#FF6B2C] hover:underline"
+                >
+                  Använd BankID istället →
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
