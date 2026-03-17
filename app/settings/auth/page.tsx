@@ -6,7 +6,7 @@ import Link from 'next/link';
 import BankIDModal from '@/components/bankIdModel';
 import type { BankIDResult } from '@/types';
 
-type Step = 'choose' | 'password' | 'denied';
+type Step = 'choose' | 'password' | 'email' | 'denied';
 
 interface StaffUser {
   id:            string;
@@ -22,9 +22,12 @@ export default function SettingsAuthPage() {
   const [ready, setReady]         = useState(false);
   const [step, setStep]           = useState<Step>('choose');
   const [showBankID, setShowBankID] = useState(false);
-  const [pinValue, setPinValue]   = useState('');
-  const [pinError, setPinError]   = useState('');
-  const [user, setUser]           = useState<any>(null);
+  const [pinValue,    setPinValue]    = useState('');
+  const [pinError,    setPinError]    = useState('');
+  const [emailValue,  setEmailValue]  = useState('');
+  const [emailError,  setEmailError]  = useState('');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [user, setUser]               = useState<any>(null);
 
   useEffect(() => {
     const raw = localStorage.getItem('user');
@@ -83,12 +86,28 @@ export default function SettingsAuthPage() {
       setPinError('Felaktigt personnummer. Försök igen.');
       return;
     }
-    // personalNumber matched (or not stored — lenient for demo)
-    if (checkAdminRole()) {
-      unlock();
-    } else {
-      setStep('denied');
+    if (checkAdminRole()) { unlock(); } else { setStep('denied'); }
+  };
+
+  // ── Email verification ────────────────────────────────────────────────────
+  const handleEmailSubmit = () => {
+    setEmailError('');
+    const stored  = (user?.email ?? '').trim().toLowerCase();
+    const entered = emailValue.trim().toLowerCase();
+
+    if (!entered) {
+      setEmailError('Ange din e-postadress.');
+      return;
     }
+    if (!stored) {
+      setEmailError('Ingen e-post registrerad — använd BankID.');
+      return;
+    }
+    if (entered !== stored) {
+      setEmailError('Felaktig e-postadress. Försök igen.');
+      return;
+    }
+    if (checkAdminRole()) { unlock(); } else { setStep('denied'); }
   };
 
   if (!ready) return (
@@ -173,7 +192,7 @@ export default function SettingsAuthPage() {
                   </span>
                 </button>
 
-                {/* Personal number fallback */}
+                {/* Personnummer fallback */}
                 <button
                   onClick={() => setStep('password')}
                   className="w-full bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl p-4 flex items-center gap-4 transition-all border border-slate-200"
@@ -191,6 +210,24 @@ export default function SettingsAuthPage() {
                   </div>
                 </button>
 
+                {/* Email fallback */}
+                <button
+                  onClick={() => setStep('email')}
+                  className="w-full bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl p-4 flex items-center gap-4 transition-all border border-slate-200"
+                >
+                  <div className="w-10 h-10 bg-slate-200 rounded-lg flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round"
+                        d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+                      />
+                    </svg>
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-bold">E-postadress</p>
+                    <p className="text-xs text-slate-400">Verifiera med din registrerade e-post</p>
+                  </div>
+                </button>
+
                 <div className="pt-2 text-center">
                   <Link href="/dashboard" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">
                     ← Tillbaka till dashboard
@@ -199,7 +236,7 @@ export default function SettingsAuthPage() {
               </div>
             )}
 
-            {/* ── Personal number form ── */}
+            {/* ── Personnummer form ── */}
             {step === 'password' && (
               <div className="space-y-4">
                 <div>
@@ -230,6 +267,51 @@ export default function SettingsAuthPage() {
                 <div className="flex items-center justify-between">
                   <button
                     onClick={() => { setStep('choose'); setPinValue(''); setPinError(''); }}
+                    className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    ← Tillbaka
+                  </button>
+                  <button
+                    onClick={() => { setStep('choose'); setShowBankID(true); }}
+                    className="text-xs text-[#FF6B2C] hover:underline"
+                  >
+                    Använd BankID istället →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ── Email form ── */}
+            {step === 'email' && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                    E-postadress
+                  </label>
+                  <input
+                    type="email"
+                    value={emailValue}
+                    onChange={e => { setEmailValue(e.target.value); setEmailError(''); }}
+                    onKeyDown={e => e.key === 'Enter' && handleEmailSubmit()}
+                    placeholder="din@epost.se"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#FF6B2C]/30 focus:border-[#FF6B2C] transition-all"
+                    autoFocus
+                  />
+                  {emailError && (
+                    <p className="text-xs text-red-500 mt-1.5 font-medium">{emailError}</p>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleEmailSubmit}
+                  className="w-full py-3 rounded-xl bg-[#FF6B2C] hover:bg-[#e55a1f] text-white text-sm font-bold transition-colors"
+                >
+                  Verifiera
+                </button>
+
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => { setStep('choose'); setEmailValue(''); setEmailError(''); }}
                     className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
                   >
                     ← Tillbaka
