@@ -16,8 +16,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import { renderToStaticMarkup } from 'react-dom/server';
-import * as React from 'react';
+import React from 'react';
 import { InviteEmail } from '@/components/emails/InviteEmail';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -52,21 +51,17 @@ export async function POST(req: NextRequest) {
     // Send one email per invitee (individual personalised messages)
     const results = await Promise.all(
       invitees.map(async (invitee) => {
-        const html = renderToStaticMarkup(
-          React.createElement(InviteEmail, {
+        const { data, error } = await resend.emails.send({
+          from:    FROM_ADDRESS,
+          to:      [invitee.email],
+          subject: `You're invited to join ${dealershipName} on BikeMeNow`,
+          react:   React.createElement(InviteEmail, {
             inviteeName:    invitee.name,
             dealershipName,
             role:           invitee.role,
             inviteUrl:      invitee.inviteUrl,
             inviterName,
           }),
-        );
-
-        const { data, error } = await resend.emails.send({
-          from:    FROM_ADDRESS,
-          to:      [invitee.email],
-          subject: `You're invited to join ${dealershipName} on BikeMeNow`,
-          html,
         });
 
         if (error) {
