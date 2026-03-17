@@ -229,7 +229,30 @@ export async function convertLeadToCustomer(
       customerId = (newCustomer as { id: number }).id;
       created = true;
     } else if (insertErr) {
-      console.error('[leads] convertLeadToCustomer – insert customer:', insertErr.message);
+      if (insertErr.code === '23505') {
+        // Duplicate key — customer already exists (race condition or prior partial run).
+        // Fall back to a lookup by personnummer then email.
+        if (lead.personnummer) {
+          const { data: byPnr2 } = await db()
+            .from('customers')
+            .select('id')
+            .eq('personnummer', lead.personnummer)
+            .eq('dealership_id', dealershipId)
+            .maybeSingle();
+          if (byPnr2) customerId = (byPnr2 as { id: number }).id;
+        }
+        if (!customerId && lead.email) {
+          const { data: byEmail2 } = await db()
+            .from('customers')
+            .select('id')
+            .eq('email', lead.email)
+            .eq('dealership_id', dealershipId)
+            .maybeSingle();
+          if (byEmail2) customerId = (byEmail2 as { id: number }).id;
+        }
+      } else {
+        console.error('[leads] convertLeadToCustomer – insert customer:', insertErr.message);
+      }
     }
   }
 
