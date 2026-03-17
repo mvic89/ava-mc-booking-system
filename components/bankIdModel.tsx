@@ -1,29 +1,5 @@
 'use client';
 
-/**
- * BankIDModal — Reusable BankID identification/signing component.
- *
- * USE THIS ON EVERY PAGE WHERE BANKID IS NEEDED:
- *   - Customer identification (mode="auth")
- *   - Waiver signing (mode="sign")
- *   - Agreement signing (mode="sign")
- *   - Test drive consent (mode="sign")
- *
- * Usage:
- *   <BankIDModal
- *     mode="auth"
- *     onComplete={(data) => { ... }}
- *     onCancel={() => { ... }}
- *   />
- *
- *   <BankIDModal
- *     mode="sign"
- *     signText="Jag signerar köpeavtal #SA-2026-042 för 98,280 kr"
- *     onComplete={(data) => { ... }}
- *     onCancel={() => { ... }}
- *   />
- */
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { BankIDStatus, BankIDModalProps, BankIDUser } from '@/types';
 
