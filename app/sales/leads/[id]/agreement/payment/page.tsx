@@ -229,15 +229,21 @@ export default function AgreementPaymentPage() {
         // Check localStorage for agreement data (saved by the agreement editor)
         let storedAgreementId: string | undefined;
         let storedVin: string | undefined;
+        let storedTotalPrice: number = 0;
         try {
           const agr = JSON.parse(localStorage.getItem(`agreement_${id}`) ?? '{}');
           storedAgreementId = agr.agreementNumber ?? agr.agreementRef;
           storedVin         = agr.vin ?? agr.vinNumber;
+          storedTotalPrice  = typeof agr.totalPrice === 'number' && agr.totalPrice > 0
+            ? agr.totalPrice : 0;
         } catch { /* ignore */ }
+        // Prefer localStorage totalPrice (from agreement editor) over lead.value
+        const dbValue      = parseFloat(lead.value ?? '0');
+        const resolvedAmt  = storedTotalPrice > 0 ? storedTotalPrice : dbValue;
         setDeal(buildDeal(
           lead.name  ?? '',
           lead.bike  ?? '',
-          parseFloat(lead.value ?? '0'),
+          resolvedAmt,
           id,
           ds?.bankgiro ?? '',
           ds?.name     ?? getDealerInfo().name ?? '',

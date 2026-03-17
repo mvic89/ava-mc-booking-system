@@ -174,14 +174,45 @@ export default function CreateAgreementPage() {
 
       if (lead) {
         const leadValue = parseFloat(String(lead.value ?? '0')) || 0;
+        const resolvedPrice   = leadValue > 0 ? leadValue : BLANK_AGREEMENT.totalPrice;
+        const resolvedVehicle = ((lead.bike as string) || '').trim() || BLANK_AGREEMENT.vehicle;
+
         setAgr(prev => ({
           ...prev,
           customerName: (lead.name         as string) ?? '',
           personnummer: (lead.personnummer  as string) ?? '',
-          // Pre-populate vehicle and price from the lead if available
-          vehicle:      ((lead.bike as string) || '').trim() || prev.vehicle,
-          totalPrice:   leadValue > 0 ? leadValue : prev.totalPrice,
+          vehicle:      resolvedVehicle,
+          totalPrice:   resolvedPrice,
         }));
+
+        // Always persist agreement data to localStorage so the payment page can read it
+        // even before the user explicitly edits/saves the form
+        try {
+          const existing = JSON.parse(localStorage.getItem(`agreement_${leadId}`) ?? '{}');
+          localStorage.setItem(`agreement_${leadId}`, JSON.stringify({
+            ...existing,
+            vehicle:       resolvedVehicle,
+            totalPrice:    resolvedPrice,
+            agreementNumber: existing.agreementNumber ?? BLANK_AGREEMENT.agreementNumber,
+            vin:             existing.vin           ?? BLANK_AGREEMENT.vin,
+          }));
+        } catch { /* ignore */ }
+
+        // If lead.value is 0, write the resolved price back to Supabase immediately
+        // so kanban cards show a non-zero amount right away
+        if (leadValue === 0 && dealershipId) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const sbWrite = getSupabaseBrowser() as any;
+          sbWrite
+            .from('leads')
+            .update({ value: resolvedPrice })
+            .eq('id', leadId)
+            .eq('dealership_id', dealershipId)
+            .then(({ error }: { error: { message: string } | null }) => {
+              if (error) console.error('[agreement] init lead value:', error.message);
+              else emit({ type: 'data:refresh' });
+            });
+        }
       }
 
       // Advance the lead from 'new'/'contacted' → 'negotiating' when agreement is opened
@@ -197,6 +228,17 @@ export default function CreateAgreementPage() {
   const saveEdit   = async () => {
     if (draft) {
       setAgr(draft);
+      // Persist to localStorage so the payment page always has the latest values
+      try {
+        const existing = JSON.parse(localStorage.getItem(`agreement_${id}`) ?? '{}');
+        localStorage.setItem(`agreement_${id}`, JSON.stringify({
+          ...existing,
+          totalPrice:      draft.totalPrice,
+          vehicle:         draft.vehicle,
+          agreementNumber: draft.agreementNumber,
+          vin:             draft.vin,
+        }));
+      } catch { /* ignore */ }
       // Sync deal amount + vehicle back to the leads row so kanban cards show the correct value
       const dealershipId = getDealershipId();
       if (dealershipId && id !== 'default' && !Number.isNaN(Number(id))) {
@@ -213,7 +255,7 @@ export default function CreateAgreementPage() {
     }
     setDraft(null);
     setIsEditing(false);
-  };;
+  };
 
   function update<K extends keyof AgreementData>(key: K, value: AgreementData[K]) {
     setDraft(d => d ? { ...d, [key]: value } : d);
