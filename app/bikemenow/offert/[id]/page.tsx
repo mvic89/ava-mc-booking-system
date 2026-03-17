@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import Sidebar from "@/components/Sidebar";
 import { inquiries, getInquiry, statusMeta } from "../../data";
 import OfferBuilder from "@/components/OfferBuilder";
 
@@ -20,135 +21,122 @@ export default async function OffertBuilderPage({
   const meta = statusMeta[inq.status];
 
   return (
-    <div className="max-w-2xl mx-auto p-6 md:p-8 pb-24">
-      {/* Back */}
-      <Link
-        href="/bikemenow"
-        className="text-[10px] font-mono text-neutral-500 hover:text-neutral-300 transition-colors uppercase tracking-widest"
-      >
-        ← Dashboard
-      </Link>
+    <div className="flex min-h-screen bg-[#f5f7fa]">
+      <Sidebar />
 
-      {/* Header */}
-      <div className="mt-5 mb-6 flex items-start justify-between gap-4">
-        <div>
-          <span className="text-[10px] uppercase tracking-widest text-neutral-500 font-mono">
-            Offert
-          </span>
-          <h1 className="text-2xl font-bold text-white mt-1">
-            {inq.customer.name}
-          </h1>
-        </div>
-        <span
-          className={`text-[10px] font-mono px-2 py-1 rounded border shrink-0 mt-1 ${meta.bg} ${meta.color}`}
-        >
-          {meta.label}
-        </span>
-      </div>
+      <div className="lg:ml-64 flex-1 flex flex-col min-w-0">
+        <div className="brand-top-bar" />
 
-      {/* ── Customer + Bike summary ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-        {/* Customer */}
-        <div className="border border-neutral-700 rounded-xl p-4 bg-neutral-800/40 space-y-2.5">
-          <p className="text-[10px] uppercase tracking-widest text-neutral-500 font-mono">
-            Kund
-          </p>
-          {[
-            ["Namn", inq.customer.name],
-            ["E-post", inq.customer.email],
-            ["Telefon", inq.customer.phone],
-            ["Betalning", inq.payment === "cash" ? "Kontant" : "Finansiering"],
-          ].map(([label, value]) => (
-            <div key={label}>
-              <p className="text-[10px] text-neutral-600 font-mono">{label}</p>
-              <p className="text-neutral-200 text-sm">{value}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Bike */}
-        <div className="border border-neutral-700 rounded-xl overflow-hidden bg-neutral-800/40">
-          <div className="relative h-28 w-full">
-            <Image
-              src={inq.bike.image}
-              alt={`${inq.bike.brand} ${inq.bike.model}`}
-              fill
-              className="object-cover"
-            />
-          </div>
-          <div className="p-4 space-y-1.5">
-            <p className="text-[10px] uppercase tracking-widest text-neutral-500 font-mono">
-              {inq.bike.brand}
-            </p>
-            <p className="text-white font-semibold text-sm">{inq.bike.model}</p>
-            <p className="text-neutral-400 text-xs">
-              {inq.bike.price.toLocaleString("sv-SE")} kr · {inq.bike.year} ·{" "}
-              {inq.bike.type}
-            </p>
+        {/* Page header */}
+        <div className="px-5 md:px-8 py-6 bg-white border-b border-slate-100 animate-fade-up">
+          <Link
+            href="/bikemenow/offer"
+            className="text-xs text-slate-400 uppercase tracking-widest font-semibold hover:text-slate-600 transition-colors"
+          >
+            ← Offerter
+          </Link>
+          <div className="flex items-center justify-between mt-1">
+            <h1 className="text-2xl font-bold text-slate-900">{inq.customer.name}</h1>
+            <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ${meta.bg} ${meta.color}`}>
+              {meta.label}
+            </span>
           </div>
         </div>
-      </div>
 
-      {/* ── Customer's preferences (read-only) ── */}
-      <div className="border border-neutral-700 rounded-xl p-4 bg-neutral-800/40 mb-6 space-y-4">
-        <p className="text-[10px] uppercase tracking-widest text-neutral-500 font-mono">
-          Kundens önskemål
-        </p>
+        <div className="flex-1 p-5 md:p-8">
+          <div className="max-w-2xl">
 
-        <div className="grid grid-cols-2 gap-3 text-xs">
-          <div>
-            <p className="text-neutral-600 font-mono mb-0.5">Inbyte</p>
-            {inq.tradeIn.has ? (
-              <p className="text-amber-400">
-                {inq.tradeIn.make} {inq.tradeIn.model} ({inq.tradeIn.year}) —{" "}
-                {parseInt(inq.tradeIn.mileage ?? "0").toLocaleString("sv-SE")} km
-              </p>
-            ) : (
-              <p className="text-neutral-500">Inget inbyte</p>
-            )}
-          </div>
-          <div>
-            <p className="text-neutral-600 font-mono mb-0.5">Tillbehör</p>
-            {inq.accessories.wants ? (
-              <div>
-                <p className="text-blue-400">
-                  {inq.accessories.items?.join(", ")}
-                </p>
-                {inq.accessories.note && (
-                  <p className="text-neutral-500 mt-0.5">
-                    &ldquo;{inq.accessories.note}&rdquo;
-                  </p>
-                )}
+            {/* Customer + Bike */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              {/* Customer */}
+              <div className="bg-white border border-slate-100 rounded-2xl p-5 space-y-3">
+                <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">Kund</p>
+                {[
+                  ["Namn",      inq.customer.name],
+                  ["E-post",    inq.customer.email],
+                  ["Telefon",   inq.customer.phone],
+                  ["Betalning", inq.payment === "cash" ? "Kontant" : "Finansiering"],
+                ].map(([label, value]) => (
+                  <div key={label}>
+                    <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">{label}</p>
+                    <p className="text-slate-800 text-sm mt-0.5">{value}</p>
+                  </div>
+                ))}
               </div>
-            ) : (
-              <p className="text-neutral-500">Inga tillbehör</p>
-            )}
+
+              {/* Bike */}
+              <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden">
+                <div className="relative h-28 w-full">
+                  <Image
+                    src={inq.bike.image}
+                    alt={`${inq.bike.brand} ${inq.bike.model}`}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="p-4 space-y-1">
+                  <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">{inq.bike.brand}</p>
+                  <p className="text-slate-900 font-semibold text-sm">{inq.bike.model}</p>
+                  <p className="text-slate-500 text-xs">
+                    {inq.bike.price.toLocaleString("sv-SE")} kr · {inq.bike.year} · {inq.bike.type}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Customer preferences */}
+            <div className="bg-white border border-slate-100 rounded-2xl p-5 mb-6 space-y-4">
+              <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">Kundens önskemål</p>
+
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide mb-1">Inbyte</p>
+                  {inq.tradeIn.has ? (
+                    <p className="text-amber-700 font-medium text-xs">
+                      {inq.tradeIn.make} {inq.tradeIn.model} ({inq.tradeIn.year}) —{" "}
+                      {parseInt(inq.tradeIn.mileage ?? "0").toLocaleString("sv-SE")} km
+                    </p>
+                  ) : (
+                    <p className="text-slate-400 text-xs">Inget inbyte</p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide mb-1">Tillbehör</p>
+                  {inq.accessories.wants ? (
+                    <div>
+                      <p className="text-blue-700 font-medium text-xs">{inq.accessories.items?.join(", ")}</p>
+                      {inq.accessories.note && (
+                        <p className="text-slate-400 text-xs mt-0.5">&ldquo;{inq.accessories.note}&rdquo;</p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-slate-400 text-xs">Inga tillbehör</p>
+                  )}
+                </div>
+              </div>
+
+              {inq.message && (
+                <div>
+                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide mb-1">Meddelande</p>
+                  <p className="text-slate-600 text-xs">&ldquo;{inq.message}&rdquo;</p>
+                </div>
+              )}
+            </div>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex-1 border-t border-slate-200" />
+              <span className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">
+                Säljarens tillägg
+              </span>
+              <div className="flex-1 border-t border-slate-200" />
+            </div>
+
+            <OfferBuilder inq={inq} />
+
           </div>
         </div>
-
-        {inq.message && (
-          <div>
-            <p className="text-neutral-600 font-mono text-xs mb-0.5">
-              Meddelande
-            </p>
-            <p className="text-neutral-300 text-xs">
-              &ldquo;{inq.message}&rdquo;
-            </p>
-          </div>
-        )}
       </div>
-
-      {/* Divider */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="flex-1 border-t border-neutral-800" />
-        <span className="text-[10px] uppercase tracking-widest text-neutral-600 font-mono">
-          Säljarens tillägg
-        </span>
-        <div className="flex-1 border-t border-neutral-800" />
-      </div>
-
-      {/* ── Seller's offer builder ── */}
-      <OfferBuilder inq={inq} />
     </div>
   );
 }

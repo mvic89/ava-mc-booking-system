@@ -233,31 +233,11 @@ export const statusMeta: Record<
   Status,
   { label: string; color: string; bg: string }
 > = {
-  new: {
-    label: "Ny",
-    color: "text-blue-400",
-    bg: "bg-blue-950/60 border-blue-900",
-  },
-  reviewing: {
-    label: "Granskas",
-    color: "text-amber-400",
-    bg: "bg-amber-950/60 border-amber-900",
-  },
-  sent: {
-    label: "Skickad",
-    color: "text-orange-400",
-    bg: "bg-orange-950/60 border-orange-900",
-  },
-  accepted: {
-    label: "Accepterad",
-    color: "text-green-400",
-    bg: "bg-green-950/60 border-green-900",
-  },
-  declined: {
-    label: "Avböjd",
-    color: "text-red-400",
-    bg: "bg-red-950/60 border-red-900",
-  },
+  new:       { label: "Ny",          color: "text-blue-700",   bg: "bg-blue-50"   },
+  reviewing: { label: "Granskas",    color: "text-amber-700",  bg: "bg-amber-50"  },
+  sent:      { label: "Skickad",     color: "text-orange-700", bg: "bg-orange-50" },
+  accepted:  { label: "Accepterad",  color: "text-green-700",  bg: "bg-green-50"  },
+  declined:  { label: "Avböjd",      color: "text-red-700",    bg: "bg-red-50"    },
 };
 
 export function getInquiry(id: string) {

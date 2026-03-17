@@ -166,16 +166,8 @@ export const testStatusMeta: Record<
   TestDriveStatus,
   { label: string; color: string; bg: string }
 > = {
-  scheduled: {
-    label: "Bokad",
-    color: "text-amber-400",
-    bg: "bg-amber-950/60 border-amber-900",
-  },
-  completed: {
-    label: "Slutförd",
-    color: "text-green-400",
-    bg: "bg-green-950/60 border-green-900",
-  },
+  scheduled: { label: "Bokad",    color: "text-amber-700", bg: "bg-amber-50" },
+  completed:  { label: "Slutförd", color: "text-green-700", bg: "bg-green-50" },
 };
 
 export function getBooking(id: string) {

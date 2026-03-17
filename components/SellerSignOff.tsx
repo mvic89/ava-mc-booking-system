@@ -28,88 +28,76 @@ export default function SellerSignOff({ booking }: { booking: TestDriveBooking }
 
   return (
     <div className="space-y-4">
+
       {/* Customer signature — always completed */}
-      <div className="border border-green-900 rounded-xl p-4 bg-green-950/20">
+      <div className="border border-green-200 rounded-2xl p-4 bg-green-50">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] uppercase tracking-widest text-neutral-500 font-mono mb-0.5">
+            <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-1">
               Kunds signatur
             </p>
-            <p className="text-white text-sm font-medium">
+            <p className="text-slate-900 text-sm font-semibold">
               {booking.customer.firstName} {booking.customer.lastName}
             </p>
-            <p className="text-neutral-500 text-xs mt-0.5">
+            <p className="text-slate-500 text-xs mt-0.5">
               {booking.customer.personalNumber}
             </p>
           </div>
           <div className="text-right">
-            <span className="text-green-400 text-sm font-mono">✓ Signerad</span>
-            <p className="text-neutral-600 text-[10px] mt-0.5">via BankID</p>
+            <span className="text-green-600 text-sm font-semibold">✓ Signerad</span>
+            <p className="text-slate-400 text-[10px] mt-0.5">via BankID</p>
           </div>
         </div>
       </div>
 
       {/* Seller signature */}
-      <div
-        className={`border rounded-xl p-4 ${
-          signed
-            ? "border-green-900 bg-green-950/20"
-            : "border-neutral-700 bg-neutral-800/40"
-        }`}
-      >
+      <div className={`border rounded-2xl p-4 ${signed ? "border-green-200 bg-green-50" : "border-slate-200 bg-white"}`}>
         {signed ? (
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[10px] uppercase tracking-widest text-neutral-500 font-mono mb-0.5">
+              <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-1">
                 Säljarens signatur
               </p>
-              <p className="text-white text-sm font-medium">AVA MC</p>
-              <p className="text-neutral-500 text-xs mt-0.5">
+              <p className="text-slate-900 text-sm font-semibold">AVA MC</p>
+              <p className="text-slate-500 text-xs mt-0.5">
                 {formatDateTime(booking.completedAt ?? completedAt)}
               </p>
             </div>
             <div className="text-right">
-              <span className="text-green-400 text-sm font-mono">✓ Signerad</span>
-              <p className="text-neutral-600 text-[10px] mt-0.5">via BankID</p>
+              <span className="text-green-600 text-sm font-semibold">✓ Signerad</span>
+              <p className="text-slate-400 text-[10px] mt-0.5">via BankID</p>
             </div>
           </div>
         ) : (
           <div className="space-y-4">
             <div>
-              <p className="text-[10px] uppercase tracking-widest text-neutral-500 font-mono mb-0.5">
+              <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-1">
                 Säljarens signatur
               </p>
-              <p className="text-neutral-400 text-xs">
-                Signera för att bekräfta att testkörningen har genomförts enligt
-                villkoren.
+              <p className="text-slate-500 text-xs">
+                Signera för att bekräfta att testkörningen har genomförts enligt villkoren.
               </p>
             </div>
 
-            {/* BankID sign */}
-            <div className="border border-[#2a5a9a]/50 rounded-xl p-5 bg-[#183966]/20 flex flex-col items-center gap-4">
+            {/* BankID sign block */}
+            <div className="border border-[#235971]/20 rounded-2xl p-5 bg-[#235971] flex flex-col items-center gap-4">
               {loading ? (
                 <>
-                  <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   <div className="text-center">
-                    <p className="text-white text-sm font-medium">
-                      Väntar på BankID...
-                    </p>
-                    <p className="text-[#6b9fd4] text-xs mt-1">
-                      Öppna appen och godkänn signeringen.
-                    </p>
+                    <p className="text-white text-sm font-semibold">Väntar på BankID...</p>
+                    <p className="text-white/60 text-xs mt-1">Öppna appen och godkänn signeringen.</p>
                   </div>
                 </>
               ) : (
                 <>
                   <div className="text-center">
-                    <p className="text-white font-bold text-xl tracking-widest">
-                      BankID
-                    </p>
-                    <p className="text-[#6b9fd4] text-xs mt-1">AVA MC — Säljare</p>
+                    <p className="text-white font-bold text-xl tracking-widest">BankID</p>
+                    <p className="text-white/60 text-xs mt-1">AVA MC — Säljare</p>
                   </div>
                   <button
                     onClick={handleSign}
-                    className="w-full bg-[#183966] hover:bg-[#1e4a82] border border-[#2a5a9a] text-white font-semibold text-sm py-2.5 rounded-lg transition-colors"
+                    className="w-full bg-white hover:bg-slate-50 text-[#235971] font-semibold text-sm py-2.5 rounded-xl transition-colors"
                   >
                     Signera slutförande
                   </button>
@@ -122,35 +110,36 @@ export default function SellerSignOff({ booking }: { booking: TestDriveBooking }
 
       {/* Completion certificate */}
       {signed && (
-        <div className="border border-neutral-700 rounded-xl p-4 bg-neutral-800/40 space-y-2.5">
-          <p className="text-[10px] uppercase tracking-widest text-neutral-500 font-mono">
+        <div className="border border-slate-200 rounded-2xl p-5 bg-white space-y-2.5">
+          <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">
             Slutfört dokument
           </p>
           {[
-            ["Fordon", `${booking.bike.brand} ${booking.bike.model} (${booking.bike.year})`],
-            ["Förare", `${booking.customer.firstName} ${booking.customer.lastName}`],
+            ["Fordon",       `${booking.bike.brand} ${booking.bike.model} (${booking.bike.year})`],
+            ["Förare",       `${booking.customer.firstName} ${booking.customer.lastName}`],
             ["Personnummer", booking.customer.personalNumber],
-            ["Datum", formatDateTime(booking.completedAt ?? completedAt)],
-            ["Max tid", "15 minuter"],
-            ["Självrisk", "15 000 kr vid skada"],
+            ["Datum",        formatDateTime(booking.completedAt ?? completedAt)],
+            ["Max tid",      "15 minuter"],
+            ["Självrisk",    "15 000 kr vid skada"],
           ].map(([label, value]) => (
             <div key={label} className="flex justify-between text-xs">
-              <span className="text-neutral-500">{label}</span>
-              <span className="text-neutral-200 text-right ml-4">{value}</span>
+              <span className="text-slate-400">{label}</span>
+              <span className="text-slate-800 font-medium text-right ml-4">{value}</span>
             </div>
           ))}
-          <div className="border-t border-neutral-700 pt-2.5 grid grid-cols-2 gap-2">
+          <div className="border-t border-slate-100 pt-3 grid grid-cols-2 gap-2">
             <div className="text-center">
-              <p className="text-[10px] text-neutral-600 font-mono">Kund</p>
-              <p className="text-green-400 text-xs mt-0.5">✓ BankID</p>
+              <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Kund</p>
+              <p className="text-green-600 text-xs font-semibold mt-0.5">✓ BankID</p>
             </div>
             <div className="text-center">
-              <p className="text-[10px] text-neutral-600 font-mono">Säljare</p>
-              <p className="text-green-400 text-xs mt-0.5">✓ BankID</p>
+              <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Säljare</p>
+              <p className="text-green-600 text-xs font-semibold mt-0.5">✓ BankID</p>
             </div>
           </div>
         </div>
       )}
+
     </div>
   );
 }
