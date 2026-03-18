@@ -216,15 +216,18 @@ export default function Sidebar() {
     const raw = localStorage.getItem('user');
     if (!raw) return;
     const u = JSON.parse(raw);
-    setUser(u);
-    setAvatarUrl(u.avatarDataUrl || null);
 
     try {
       const p = JSON.parse(localStorage.getItem('dealership_profile') || '{}');
+      // Use cached profile name if user object lacks it (e.g. after login before profile is fetched)
+      if (p.name && !u.dealershipName) u.dealershipName = p.name;
       setOrgNr(p.orgNr || u.orgNr || '');
     } catch {
       setOrgNr(u.orgNr || '');
     }
+
+    setUser(u);
+    setAvatarUrl(u.avatarDataUrl || null);
   };
 
   useEffect(() => {
@@ -232,7 +235,7 @@ export default function Sidebar() {
     loadLogo();
 
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'dealership_profile') loadLogo();
+      if (e.key === 'dealership_profile') { loadLogo(); loadUser(); }
       if (e.key === 'user') loadUser();
     };
     window.addEventListener('storage', handleStorage);
