@@ -179,7 +179,7 @@ async function fetchProfileFromSupabase(dealershipId: string): Promise<Partial<D
 
 async function saveProfileToSupabase(dealershipId: string, profile: DealershipProfile): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (getSupabaseBrowser() as any)
+  const { error } = await (getSupabaseBrowser() as any)
     .from('dealership_settings')
     .upsert({
       dealership_id:        dealershipId,
@@ -201,6 +201,7 @@ async function saveProfileToSupabase(dealershipId: string, profile: DealershipPr
       cover_image_data_url: profile.coverImageDataUrl,
       updated_at:           new Date().toISOString(),
     }, { onConflict: 'dealership_id' });
+  if (error) throw new Error(error.message);
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -291,7 +292,7 @@ export default function DealershipProfilePage() {
     // 1. Try Supabase first (source of truth across devices)
     if (dealershipId) {
       const remote = await fetchProfileFromSupabase(dealershipId);
-      if (remote && remote.name) {
+      if (remote) {
         const merged = { ...DEFAULTS, ...remote };
         setProfile(merged);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));

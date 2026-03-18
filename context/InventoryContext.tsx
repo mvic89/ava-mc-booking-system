@@ -143,6 +143,9 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
         category: InventoryCategory,
         item: Motorcycle | SparePart | Accessory,
     ) => {
+        const dealershipId = getDealershipId()
+        if (!dealershipId) throw new Error('Not authenticated: no dealership context')
+
         if (category === 'motorcycles') {
             const mc = item as Motorcycle
             const { error } = await supabase.from('motorcycles').insert({
@@ -162,6 +165,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 cost:          mc.cost,
                 selling_price: mc.sellingPrice,
                 vendor:        mc.vendor,
+                dealership_id: dealershipId,
             })
             if (error) throw new Error(error.message)
             setMotorcycles((prev) => [mc, ...prev])
@@ -179,6 +183,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 cost:          sp.cost,
                 selling_price: sp.sellingPrice,
                 vendor:        sp.vendor,
+                dealership_id: dealershipId,
             })
             if (error) throw new Error(error.message)
             setSpareParts((prev) => [sp, ...prev])
@@ -197,6 +202,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 cost:          acc.cost,
                 selling_price: acc.sellingPrice,
                 vendor:        acc.vendor,
+                dealership_id: dealershipId,
             })
             if (error) throw new Error(error.message)
             setAccessories((prev) => [acc, ...prev])
