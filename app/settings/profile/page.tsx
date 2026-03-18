@@ -178,30 +178,41 @@ async function fetchProfileFromSupabase(dealershipId: string): Promise<Partial<D
 }
 
 async function saveProfileToSupabase(dealershipId: string, profile: DealershipProfile): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (getSupabaseBrowser() as any)
-    .from('dealership_settings')
-    .upsert({
-      dealership_id:        dealershipId,
-      name:                 profile.name,
-      org_nr:               profile.orgNr,
-      vat_nr:               profile.vatNr,
-      f_skatt:              profile.fSkatt,
-      street:               profile.street,
-      postal_code:          profile.postalCode,
-      city:                 profile.city,
-      county:               profile.county,
-      phone:                profile.phone,
-      email:                profile.email,
-      email_domain:         profile.emailDomain,
-      website:              profile.website,
-      bankgiro:             profile.bankgiro,
-      swish:                profile.swish,
-      logo_data_url:        profile.logoDataUrl,
-      cover_image_data_url: profile.coverImageDataUrl,
-      updated_at:           new Date().toISOString(),
-    }, { onConflict: 'dealership_id' });
-  if (error) throw new Error(error.message);
+  const sb = getSupabaseBrowser() as any;
+
+  const payload: Record<string, unknown> = {
+    dealership_id:        dealershipId,
+    name:                 profile.name,
+    org_nr:               profile.orgNr,
+    vat_nr:               profile.vatNr,
+    f_skatt:              profile.fSkatt,
+    street:               profile.street,
+    postal_code:          profile.postalCode,
+    city:                 profile.city,
+    county:               profile.county,
+    phone:                profile.phone,
+    email:                profile.email,
+    email_domain:         profile.emailDomain,
+    website:              profile.website,
+    bankgiro:             profile.bankgiro,
+    swish:                profile.swish,
+    logo_data_url:        profile.logoDataUrl,
+    cover_image_data_url: profile.coverImageDataUrl,
+    updated_at:           new Date().toISOString(),
+  };
+
+  const { error } = await sb.from('dealership_settings').upsert(payload, { onConflict: 'dealership_id' });
+
+  if (error) {
+    // If email_domain column doesn't exist yet (migration not run), retry without it
+    if (error.message?.includes('email_domain')) {
+      delete payload.email_domain;
+      const { error: error2 } = await sb.from('dealership_settings').upsert(payload, { onConflict: 'dealership_id' });
+      if (error2) throw new Error(error2.message);
+    } else {
+      throw new Error(error.message);
+    }
+  }
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -431,9 +442,10 @@ export default function DealershipProfilePage() {
 
       setSaving(false);
       toast.success('Profil sparad', { description: `${profile.name} · ${profile.orgNr}` });
-    } catch {
+    } catch (err) {
       setSaving(false);
-      toast.error('Kunde inte spara profilen.');
+      const detail = err instanceof Error ? err.message : String(err);
+      toast.error('Kunde inte spara profilen.', { description: detail });
     }
   };
 
