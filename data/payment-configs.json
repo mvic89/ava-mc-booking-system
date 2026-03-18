@@ -59,11 +59,14 @@
     "dealerName": "AVA MC AB",
     "enabledProviders": [
       "svea",
-      "swish"
+      "klarna",
+      "swish",
+      "nets",
+      "bank_transfer"
     ],
     "primaryFinancing": "",
     "credentials": {},
-    "updatedAt": "2026-03-09T12:19:24.875Z"
+    "updatedAt": "2026-03-18T00:56:36.665Z"
   },
   "swedish-motors-ab": {
     "dealerId": "swedish-motors-ab",
@@ -124,5 +127,20 @@
     "primaryFinancing": "",
     "credentials": {},
     "updatedAt": "2026-03-12T01:20:43.121Z"
+  },
+  "future-motors-ab": {
+    "dealerId": "future-motors-ab",
+    "dealerName": "Future Motors AB",
+    "enabledProviders": [
+      "svea",
+      "santander",
+      "klarna",
+      "swish",
+      "nets",
+      "bank_transfer"
+    ],
+    "primaryFinancing": "",
+    "credentials": {},
+    "updatedAt": "2026-03-17T22:22:53.573Z"
   }
 }

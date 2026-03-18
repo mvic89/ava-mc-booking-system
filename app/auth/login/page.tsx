@@ -9,6 +9,7 @@ import { useTranslations } from 'next-intl';
 import BankIDModal from '@/components/bankIdModel';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { getSupabaseBrowser } from '@/lib/supabase';
+import { emit } from '@/lib/realtime';
 import type { BankIDResult } from '@/types';
 
 type UserRole = 'admin' | 'sales' | 'service';
@@ -18,6 +19,39 @@ interface StaffRow {
   dealership_id:  string;
   name:           string;
   email:          string;
+}
+
+/**
+ * Fetch the dealer's profile from Supabase and cache it in localStorage so the
+ * Sidebar (name, logo) and other components can render immediately after login.
+ */
+async function prefetchDealerProfile(dealershipId: string): Promise<void> {
+  try {
+    const { data } = await (getSupabaseBrowser() as any)
+      .from('dealership_settings')
+      .select('name,org_nr,vat_nr,f_skatt,street,postal_code,city,county,phone,email,email_domain,website,bankgiro,swish,logo_data_url,cover_image_data_url')
+      .eq('dealership_id', dealershipId)
+      .maybeSingle();
+    if (!data) return;
+    localStorage.setItem('dealership_profile', JSON.stringify({
+      name:              data.name                  ?? '',
+      orgNr:             data.org_nr                ?? '',
+      vatNr:             data.vat_nr                ?? '',
+      fSkatt:            data.f_skatt               ?? true,
+      street:            data.street                ?? '',
+      postalCode:        data.postal_code           ?? '',
+      city:              data.city                  ?? '',
+      county:            data.county                ?? 'Stockholm',
+      phone:             data.phone                 ?? '',
+      email:             data.email                 ?? '',
+      emailDomain:       data.email_domain          ?? '',
+      website:           data.website               ?? '',
+      bankgiro:          data.bankgiro              ?? '',
+      swish:             data.swish                 ?? '',
+      logoDataUrl:       data.logo_data_url         ?? '',
+      coverImageDataUrl: data.cover_image_data_url  ?? '',
+    }));
+  } catch { /* non-fatal — profile page will load it on first visit */ }
 }
 
 /** Create the server-side httpOnly session cookie. */
@@ -94,6 +128,8 @@ export default function LoginPage() {
         dealershipId,
         role,
       }));
+      // Signal all contexts to reload with the new dealer's data
+      emit({ type: 'data:refresh' });
 
       // Create server-side httpOnly session cookie — this is what protects routes
       await createSession({ dealershipId, dealershipName, name, email, role });
@@ -105,6 +141,9 @@ export default function LoginPage() {
           .update({ last_login: new Date().toISOString(), bankid_verified: true })
           .eq('personal_number', result.user.personalNumber);
       }
+
+      // Pre-load dealer profile so Sidebar shows name/logo immediately
+      await prefetchDealerProfile(dealershipId);
 
       router.replace('/dashboard');
     } catch (err: any) {
@@ -157,6 +196,8 @@ export default function LoginPage() {
         ? { ...registered, role, dealershipId }
         : { name, email: formData.email, role, dealershipId, dealershipName };
       localStorage.setItem('user', JSON.stringify(userObj));
+      // Signal all contexts to reload with the new dealer's data
+      emit({ type: 'data:refresh' });
 
       // Create server-side httpOnly session cookie
       await createSession({
@@ -174,6 +215,9 @@ export default function LoginPage() {
           .update({ last_login: new Date().toISOString() })
           .eq('email', formData.email);
       }
+
+      // Pre-load dealer profile so Sidebar shows name/logo immediately
+      await prefetchDealerProfile(dealershipId);
 
       router.replace('/dashboard');
     } catch (err: any) {

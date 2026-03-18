@@ -16,9 +16,15 @@
   "ava-mc-ab": {
     "dealerId": "ava-mc-ab",
     "dealerName": "AVA MC AB",
-    "enabledIntegrations": [],
+    "enabledIntegrations": [
+      "fortnox",
+      "transportstyrelsen",
+      "blocket",
+      "lansforsakringar",
+      "trygg_hansa"
+    ],
     "credentials": {},
-    "updatedAt": "2026-03-07T00:48:45.697Z"
+    "updatedAt": "2026-03-18T00:54:57.053Z"
   },
   "stockholm-motors-ab": {
     "dealerId": "stockholm-motors-ab",
@@ -32,5 +38,18 @@
     ],
     "credentials": {},
     "updatedAt": "2026-03-10T14:59:57.294Z"
+  },
+  "future-motors-ab": {
+    "dealerId": "future-motors-ab",
+    "dealerName": "Future Motors AB",
+    "enabledIntegrations": [
+      "fortnox",
+      "transportstyrelsen",
+      "blocket",
+      "lansforsakringar",
+      "trygg_hansa"
+    ],
+    "credentials": {},
+    "updatedAt": "2026-03-17T22:24:04.365Z"
   }
 }

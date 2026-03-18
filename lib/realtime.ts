@@ -134,6 +134,18 @@ import { getSupabaseBrowser } from '@/lib/supabase';
 let _realtimeChannel: any = null;
 
 /**
+ * Stop the active Supabase Realtime subscription (if any).
+ * Call this on logout so the next dealer's login starts a fresh channel.
+ */
+export function stopSupabaseSync(): void {
+  if (_realtimeChannel) {
+    const sb = getSupabaseBrowser();
+    sb.removeChannel(_realtimeChannel);
+    _realtimeChannel = null;
+  }
+}
+
+/**
  * Start Supabase Realtime subscriptions for all dealer data tables.
  * Singleton — safe to call multiple times; only one channel is opened.
  * Returns a cleanup/stop function.

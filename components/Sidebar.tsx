@@ -9,6 +9,7 @@ import NotificationBell from './NotificationBell';
 import WebhookListener from './WebhookListener';
 import BankIDModal from './bankIdModel';
 import { getSupabaseBrowser } from '@/lib/supabase';
+import { stopSupabaseSync } from '@/lib/realtime';
 import { toast } from 'sonner';
 import type { BankIDResult } from '@/types';
 
@@ -219,8 +220,8 @@ export default function Sidebar() {
 
     try {
       const p = JSON.parse(localStorage.getItem('dealership_profile') || '{}');
-      // Use cached profile name if user object lacks it (e.g. after login before profile is fetched)
-      if (p.name && !u.dealershipName) u.dealershipName = p.name;
+      // Profile name (from Supabase) is always authoritative over the login-time accounts cache
+      if (p.name) u.dealershipName = p.name;
       setOrgNr(p.orgNr || u.orgNr || '');
     } catch {
       setOrgNr(u.orgNr || '');
@@ -250,6 +251,25 @@ export default function Sidebar() {
     pathname === href || (href === '/sales/leads' && pathname?.startsWith('/sales'));
 
   const handleSignOut = async () => {
+    // Stop Supabase Realtime — prevents dealer A's events reaching dealer B
+    stopSupabaseSync();
+
+    // Clear ALL dealer-specific localStorage keys so the next dealer starts fresh
+    const DEALER_KEYS = [
+      'dealership_profile',
+      'staff_users',
+      'accounts',
+      'billing_prefs',
+      'quickstart_skipped',
+    ];
+    DEALER_KEYS.forEach(k => localStorage.removeItem(k));
+
+    // Clear dynamic keys: agreement drafts, notification prefs, etc.
+    Object.keys(localStorage)
+      .filter(k => k.startsWith('agreement_') || k.startsWith('notification_'))
+      .forEach(k => localStorage.removeItem(k));
+
+    // Destroy the server-side session cookie, then clear user identity
     await fetch('/api/auth/session', { method: 'DELETE' });
     localStorage.removeItem('user');
     router.replace('/auth/login');
