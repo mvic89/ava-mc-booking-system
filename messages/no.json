@@ -27,7 +27,7 @@
     "salesPipeline": "Salgspipeline",
     "pipeline": "Pipeline",
     "customers": "Kunder",
-    "invoices": "Fakturaer",
+    "invoices": "Salgsfakturaer",
     "documents": "Dokumenter",
     "analytics": "Analyse",
     "settings": "Innstillinger",
