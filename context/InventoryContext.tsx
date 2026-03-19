@@ -10,7 +10,7 @@ import React, {
 } from 'react'
 
 import { supabase }         from '@/lib/supabase'
-import { getDealershipId }  from '@/lib/tenant'
+import { getDealershipId, getDealershipProfile }  from '@/lib/tenant'
 import { generateAutoPOs }  from '@/utils/generateAutoPOs'
 import { emit, useAutoRefresh } from '@/lib/realtime'
 
@@ -107,6 +107,28 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
     const loadInventory = useCallback(async () => {
         const dealershipId = getDealershipId()
         if (!dealershipId) { setLoading(false); return }
+
+        // Ensure this dealership row exists before any FK-constrained insert.
+        // First check if it already exists — if so, skip. If not, insert.
+        const { data: existing } = await supabase
+            .from('dealerships')
+            .select('id')
+            .eq('id', dealershipId)
+            .maybeSingle()
+
+        if (!existing) {
+            const profile = getDealershipProfile()
+            const { error: insertErr } = await supabase.from('dealerships').insert({
+                id:    dealershipId,
+                name:  profile.name  || 'Dealership',
+                email: profile.email || null,
+                phone: profile.phone || null,
+            })
+            if (insertErr) {
+                console.error('[dealerships] Failed to register dealership row:', insertErr.message)
+            }
+        }
+
         const [mcs, sps, accs] = await Promise.all([
             supabase.from('motorcycles').select('*').eq('dealership_id', dealershipId).order('id'),
             supabase.from('spare_parts').select('*').eq('dealership_id', dealershipId).order('id'),
