@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { CustomerInquiry } from "@/app/bikemenow/data";
+import type { CustomerInquiry } from "@/app/offer/data";
 
 export default function OfferBuilder({ inq }: { inq: CustomerInquiry }) {
   const [sent, setSent] = useState(false);

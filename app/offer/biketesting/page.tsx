@@ -101,7 +101,7 @@ export default function BiketestingDashboard() {
                         </td>
                         <td className="px-4 py-3">
                           <Link
-                            href={`/bikemenow/biketesting/${booking.id}`}
+                            href={`/offer/biketesting/${booking.id}`}
                             className="text-xs font-semibold text-[#FF6B2C] hover:underline whitespace-nowrap"
                           >
                             {booking.status === "scheduled" ? "Signera →" : "Visa →"}
@@ -123,7 +123,7 @@ export default function BiketestingDashboard() {
                 return (
                   <Link
                     key={booking.id}
-                    href={`/bikemenow/biketesting/${booking.id}`}
+                    href={`/offer/biketesting/${booking.id}`}
                     className="block bg-white border border-slate-100 rounded-2xl p-4 hover:border-slate-200 hover:shadow-sm transition-all"
                   >
                     <div className="flex items-start justify-between gap-3 mb-3">

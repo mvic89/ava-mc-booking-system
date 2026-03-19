@@ -33,7 +33,7 @@ export default function BikeMenuNowHub() {
 
             {/* Offerter */}
             <Link
-              href="/bikemenow/offer"
+              href="/offer/offers"
               className="group bg-white border border-slate-100 rounded-2xl p-6 hover:border-slate-200 hover:shadow-md transition-all"
             >
               <div className="flex items-start justify-between mb-5">
@@ -59,7 +59,7 @@ export default function BikeMenuNowHub() {
 
             {/* Testkörningar */}
             <Link
-              href="/bikemenow/biketesting"
+              href="/offer/biketesting"
               className="group bg-white border border-slate-100 rounded-2xl p-6 hover:border-slate-200 hover:shadow-md transition-all"
             >
               <div className="flex items-start justify-between mb-5">

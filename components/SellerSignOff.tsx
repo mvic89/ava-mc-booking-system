@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { TestDriveBooking } from "@/app/bikemenow/biketesting/data";
+import type { TestDriveBooking } from "@/app/offer/biketesting/data";
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString("sv-SE", {

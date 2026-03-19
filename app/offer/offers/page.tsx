@@ -109,7 +109,7 @@ export default function OfferDashboard() {
                         </td>
                         <td className="px-4 py-3">
                           <Link
-                            href={`/bikemenow/offert/${inq.id}`}
+                            href={`/offer/offert/${inq.id}`}
                             className="text-xs font-semibold text-[#FF6B2C] hover:underline whitespace-nowrap"
                           >
                             Öppna →
@@ -131,7 +131,7 @@ export default function OfferDashboard() {
                 return (
                   <Link
                     key={inq.id}
-                    href={`/bikemenow/offert/${inq.id}`}
+                    href={`/offer/offert/${inq.id}`}
                     className="block bg-white border border-slate-100 rounded-2xl p-4 hover:border-slate-200 hover:shadow-sm transition-all"
                   >
                     <div className="flex items-start justify-between gap-3 mb-3">

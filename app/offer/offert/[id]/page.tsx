@@ -30,7 +30,7 @@ export default async function OffertBuilderPage({
         {/* Page header */}
         <div className="px-5 md:px-8 py-6 bg-white border-b border-slate-100 animate-fade-up">
           <Link
-            href="/bikemenow/offer"
+            href="/offer/offers"
             className="text-xs text-slate-400 uppercase tracking-widest font-semibold hover:text-slate-600 transition-colors"
           >
             ← Offerter
