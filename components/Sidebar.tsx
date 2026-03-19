@@ -157,16 +157,30 @@ export default function Sidebar() {
 
   const userRole = user?.role ?? 'admin';
 
+  const isPlatformAdmin = userRole === 'platform_admin';
+
   const ALL_NAV_GROUPS = [
+    // ── Platform admin only ──────────────────────────────────────────────────
+    {
+      labelKey: 'Platform',
+      label: 'PLATFORM',
+      items: [
+        { icon: '🏢', label: 'All Dealerships',    href: '/admin',           roles: ['platform_admin'] },
+        { icon: '📊', label: 'Platform Analytics', href: '/admin/analytics', roles: ['platform_admin'] },
+        { icon: '💳', label: 'Subscriptions',      href: '/admin/billing',   roles: ['platform_admin'] },
+        { icon: '⚙',  label: 'Platform Settings',  href: '/admin/settings',  roles: ['platform_admin'] },
+      ],
+    },
+    // ── Dealer roles ─────────────────────────────────────────────────────────
     {
       labelKey: 'Core',
       label: t('navigation.groups.core'),
       items: [
-        { icon: '📊', label: t('navigation.dashboard'),      href: '/dashboard',  roles: ['admin', 'sales', 'service'] },
-        { icon: '🏍', label: t('navigation.inventory'),       href: '/inventory',  roles: ['admin', 'sales', 'service'] },
-        { icon: '📦', label: t('navigation.purchaseOrders'), href: '/purchase',   roles: ['admin', 'sales', 'service'] },
-        { icon: '🏭', label: t('navigation.suppliers'),       href: '/suppliers',  roles: ['admin', 'sales', 'service'] },
-        { icon: '📧', label: t('navigation.purchaseinvoices'),    href: '/purchaseinvoice', roles: ['admin', 'sales', 'service'] },
+        { icon: '📊', label: t('navigation.dashboard'),        href: '/dashboard',       roles: ['admin', 'sales', 'service'] },
+        { icon: '🏍', label: t('navigation.inventory'),         href: '/inventory',       roles: ['admin', 'sales', 'service'] },
+        { icon: '📦', label: t('navigation.purchaseOrders'),   href: '/purchase',        roles: ['admin', 'sales', 'service'] },
+        { icon: '🏭', label: t('navigation.suppliers'),         href: '/suppliers',       roles: ['admin', 'sales', 'service'] },
+        { icon: '📧', label: t('navigation.purchaseinvoices'), href: '/purchaseinvoice', roles: ['admin', 'sales', 'service'] },
       ],
     },
     {
@@ -199,9 +213,10 @@ export default function Sidebar() {
     .filter(group => group.items.length > 0);
 
   const ROLE_LABELS: Record<string, string> = {
-    admin:   t('common.admin'),
-    sales:   t('common.sales'),
-    service: t('common.service'),
+    admin:          t('common.admin'),
+    sales:          t('common.sales'),
+    service:        t('common.service'),
+    platform_admin: 'Platform Admin',
   };
 
   const loadLogo = () => {
@@ -476,7 +491,7 @@ export default function Sidebar() {
 
         {/* Logo */}
         <div className="px-5 py-5 shrink-0">
-          <Link href="/dashboard" className="flex items-center mb-3 hover:opacity-80 transition-opacity">
+          <Link href={isPlatformAdmin ? '/admin' : '/dashboard'} className="flex items-center mb-3 hover:opacity-80 transition-opacity">
             <div className="bg-white rounded-lg p-1 shrink-0">
               <img
                 src="/BikeMeNow_logo_test.png"
@@ -485,25 +500,35 @@ export default function Sidebar() {
               />
             </div>
           </Link>
-          {/* Subscriber dealer badge — shows the current tenant's dealership name */}
+          {/* Badge — platform admin vs subscriber dealer */}
           {user && (
-            <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2">
-              {dealershipLogo ? (
-                <img
-                  src={dealershipLogo}
-                  alt="logo"
-                  className="w-8 h-8 rounded-md object-contain bg-white/10 shrink-0 p-0.5"
-                />
-              ) : (
-                <span className="w-2 h-2 rounded-full bg-green-400 shrink-0 animate-pulse" />
-              )}
-              <div className="min-w-0">
-                <p className="text-[10px] text-slate-400 leading-none mb-0.5">{t('navigation.subscribedDealer')}</p>
-                <p className="text-xs text-white font-semibold truncate">
-                  {user.dealershipName || user.dealership || 'My Dealership'}
-                </p>
+            isPlatformAdmin ? (
+              <div className="flex items-center gap-2 bg-[#FF6B2C]/10 border border-[#FF6B2C]/30 rounded-lg px-3 py-2">
+                <span className="text-lg shrink-0">🌐</span>
+                <div className="min-w-0">
+                  <p className="text-[10px] text-[#FF6B2C] font-bold leading-none mb-0.5 tracking-wider">PLATFORM OWNER</p>
+                  <p className="text-xs text-white font-semibold truncate">bikeme.now</p>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2">
+                {dealershipLogo ? (
+                  <img
+                    src={dealershipLogo}
+                    alt="logo"
+                    className="w-8 h-8 rounded-md object-contain bg-white/10 shrink-0 p-0.5"
+                  />
+                ) : (
+                  <span className="w-2 h-2 rounded-full bg-green-400 shrink-0 animate-pulse" />
+                )}
+                <div className="min-w-0">
+                  <p className="text-[10px] text-slate-400 leading-none mb-0.5">{t('navigation.subscribedDealer')}</p>
+                  <p className="text-xs text-white font-semibold truncate">
+                    {user.dealershipName || user.dealership || 'My Dealership'}
+                  </p>
+                </div>
+              </div>
+            )
           )}
         </div>
 

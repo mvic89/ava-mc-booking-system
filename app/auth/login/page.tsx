@@ -14,11 +14,11 @@ import { emit } from '@/lib/realtime';
 import { verifyPassword } from '@/lib/password';
 import type { BankIDResult } from '@/types';
 
-type UserRole = 'admin' | 'sales' | 'service';
+type UserRole = 'admin' | 'sales' | 'service' | 'platform_admin';
 
 interface StaffRow {
   role:            UserRole;
-  dealership_id:   string;
+  dealership_id:   string | null;
   name:            string;
   email:           string;
   password_hash:   string | null;
@@ -119,7 +119,7 @@ export default function LoginPage() {
 
       const role: UserRole         = staffRow?.role         ?? 'admin';
       const dealershipId: string   = staffRow?.dealership_id ?? anyAccount.dealershipId ?? '';
-      const dealershipName: string = anyAccount.dealershipName ?? '';
+      const dealershipName: string = role === 'platform_admin' ? 'BikeMeNow Platform' : (anyAccount.dealershipName ?? '');
       const email: string          = staffRow?.email         ?? anyAccount.email ?? '';
       const name: string           = result.user.givenName   ?? staffRow?.name ?? '';
 
@@ -144,6 +144,12 @@ export default function LoginPage() {
           .from('staff_users')
           .update({ last_login: new Date().toISOString(), bankid_verified: true })
           .eq('personal_number', result.user.personalNumber);
+      }
+
+      // Platform admin goes to the admin dashboard; regular staff go to their dealer dashboard
+      if (role === 'platform_admin') {
+        router.replace('/admin');
+        return;
       }
 
       // Pre-load dealer profile so Sidebar shows name/logo immediately
@@ -214,12 +220,12 @@ export default function LoginPage() {
       // ── Proceed with login ────────────────────────────────────────────────
       const role: UserRole         = staffRow?.role          ?? registered?.role ?? 'admin';
       const dealershipId: string   = staffRow?.dealership_id ?? registered?.dealershipId ?? anyAccount.dealershipId ?? '';
-      const dealershipName: string = registered?.dealershipName ?? anyAccount.dealershipName ?? '';
+      const dealershipName: string = role === 'platform_admin' ? 'BikeMeNow Platform' : (registered?.dealershipName ?? anyAccount.dealershipName ?? '');
       const name: string           = staffRow?.name          ?? registered?.name ?? formData.email.split('@')[0];
 
       // Persist to localStorage
       const userObj = registered
-        ? { ...registered, role, dealershipId }
+        ? { ...registered, role, dealershipId, dealershipName }
         : { name, email: formData.email, role, dealershipId, dealershipName };
       localStorage.setItem('user', JSON.stringify(userObj));
       // Signal all contexts to reload with the new dealer's data
@@ -240,6 +246,12 @@ export default function LoginPage() {
           .from('staff_users')
           .update({ last_login: new Date().toISOString() })
           .eq('email', formData.email.toLowerCase().trim());
+      }
+
+      // Platform admin goes to the admin dashboard; regular staff go to their dealer dashboard
+      if (role === 'platform_admin') {
+        router.replace('/admin');
+        return;
       }
 
       // Pre-load dealer profile so Sidebar shows name/logo immediately

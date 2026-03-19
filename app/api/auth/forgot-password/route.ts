@@ -17,11 +17,25 @@ export async function POST(req: NextRequest) {
     const sb = getSupabaseServer();
 
     // Look up staff user — silently skip if not found (prevents email enumeration)
+    // Select only the base columns that are guaranteed to exist
     const { data: staffRow } = await (sb as any)
       .from('staff_users')
       .select('name, email')
       .eq('email', normalised)
       .maybeSingle() as { data: { name: string; email: string } | null };
+
+    // Try to also read recovery_email (column may not exist on all deployments)
+    let recoveryEmail: string | null = null;
+    if (staffRow) {
+      try {
+        const { data: extra } = await (sb as any)
+          .from('staff_users')
+          .select('recovery_email')
+          .eq('email', normalised)
+          .maybeSingle() as { data: { recovery_email: string | null } | null };
+        recoveryEmail = extra?.recovery_email ?? null;
+      } catch { /* column not added yet — ignore */ }
+    }
 
     if (staffRow) {
       // Invalidate any existing unused tokens for this email
@@ -45,9 +59,11 @@ export async function POST(req: NextRequest) {
       const origin   = process.env.NEXT_PUBLIC_APP_URL ?? req.nextUrl.origin;
       const resetUrl = `${origin}/auth/reset-password?token=${token}`;
 
+      // Send to recovery_email if set, otherwise fall back to the login email
+      const deliverTo = recoveryEmail ?? staffRow.email;
       await resend.emails.send({
-        from:    'BikeMeNow <no-reply@bikeme.now>',
-        to:      staffRow.email,
+        from:    'BikeMeNow <no-reply@contact.bikeme.now>',
+        to:      deliverTo,
         subject: 'Återställ ditt BikeMeNow-lösenord',
         html:    buildResetEmail(staffRow.name ?? normalised, resetUrl),
       });

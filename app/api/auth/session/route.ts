@@ -22,11 +22,11 @@ const COOKIE_NAME = 'ava_session';
 const SESSION_TTL  = 60 * 60 * 8; // 8 hours in seconds
 
 export interface SessionPayload {
-  dealershipId: string;
+  dealershipId: string | undefined;
   dealershipName: string;
   name:         string;
   email:        string;
-  role:         'admin' | 'sales' | 'service';
+  role:         'admin' | 'sales' | 'service' | 'platform_admin';
   exp:          number; // Unix ms timestamp
 }
 
@@ -36,7 +36,9 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json() as Partial<SessionPayload>;
 
-    if (!body.dealershipId || !body.role) {
+    // platform_admin has no dealership — only role is required for them
+    const isPlatformAdmin = body.role === 'platform_admin';
+    if (!body.role || (!isPlatformAdmin && !body.dealershipId)) {
       return NextResponse.json(
         { error: 'dealershipId and role are required' },
         { status: 400 },
