@@ -23,7 +23,7 @@ export default function Sidebar() {
         { icon: '📊', label: t('navigation.dashboard'),      href: '/dashboard' },
         { icon: '🏍', label: t('navigation.inventory'),       href: '/inventory' },
         { icon: '📦', label: t('navigation.purchaseOrders'), href: '/purchase-orders' },
-        { icon: '🏷️', label: t('navigation.offer'),          href: '/offer' },
+        { icon: '🏷️', label: t('navigation.offer'),          href: '/bikemenow' },
       ],
     },
     {
