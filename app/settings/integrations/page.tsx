@@ -100,18 +100,20 @@ export default function IntegrationsSettingsPage() {
     setDealerName(name);
     loadConfig(id, name);
 
-    // Load Zapier token for this dealership
-    const { getDealershipId } = await import('@/lib/tenant');
-    const { supabase }        = await import('@/lib/supabase');
-    const dealershipId        = getDealershipId();
-    if (dealershipId) {
-      const { data } = await supabase
-        .from('dealerships')
-        .select('zapier_token')
-        .eq('id', dealershipId)
-        .single();
-      if (data?.zapier_token) setZapierToken(data.zapier_token);
-    }
+    // Load Zapier token for this dealership (async, non-blocking)
+    (async () => {
+      const { getDealershipId } = await import('@/lib/tenant');
+      const { supabase }        = await import('@/lib/supabase');
+      const dealershipId        = getDealershipId();
+      if (dealershipId) {
+        const { data } = await supabase
+          .from('dealerships')
+          .select('zapier_token')
+          .eq('id', dealershipId)
+          .single();
+        if (data?.zapier_token) setZapierToken(data.zapier_token);
+      }
+    })();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadConfig = useCallback(async (id: string, name: string) => {

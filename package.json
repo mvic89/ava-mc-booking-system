@@ -10,9 +10,9 @@
     "postinstall": "node -e \"const fs=require('fs');fs.copyFileSync('node_modules/pdfjs-dist/build/pdf.worker.min.mjs','public/pdf.worker.min.mjs');\""
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "@react-email/render": "^2.0.4",
     "@supabase/supabase-js": "^2.99.0",
-    "@anthropic-ai/sdk": "^0.78.0",
     "@types/pdf-parse": "^1.1.5",
     "crypto-js": "^4.2.0",
     "jspdf": "^4.2.0",
@@ -20,8 +20,8 @@
     "next": "16.1.6",
     "next-intl": "^4.8.3",
     "nodemailer": "^8.0.1",
-    "pdfjs-dist": "^5.5.207",
     "pdf-parse": "^2.4.5",
+    "pdfjs-dist": "^5.5.207",
     "qrcode": "^1.5.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",

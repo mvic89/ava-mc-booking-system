@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
     const { error } = await resend.emails.send({
         from:        `${senderName} Procurement <${resendFrom}>`,
         to:          [toEmail],
-        reply_to:    replyToAddr,
+        replyTo:     replyToAddr,
         subject,
         text:        textBody,
         html:        htmlBody,

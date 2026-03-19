@@ -811,7 +811,7 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                                 Cancel
                             </button>
                             <button
-                                onClick={handleSubmit}
+                                onClick={() => handleSubmit()}
                                 disabled={!canSubmit || saving}
                                 className="px-5 py-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-colors"
                             >
