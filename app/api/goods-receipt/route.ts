@@ -43,7 +43,8 @@ function normaliseDate(raw: string): string | null {
 // ── PDF text extractor (server-side, no external API) ─────────────────────────
 
 async function extractTextFromPDF(pdfBase64: string): Promise<string> {
-    const pdfParse = (await import('pdf-parse')).default
+    const mod      = await import('pdf-parse')
+    const pdfParse = (mod.default ?? mod) as (buf: Buffer) => Promise<{ text: string }>
     const buffer   = Buffer.from(pdfBase64, 'base64')
     const result   = await pdfParse(buffer)
     return result.text
