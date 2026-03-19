@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       const resetUrl = `${origin}/auth/reset-password?token=${token}`;
 
       await resend.emails.send({
-        from:    'BikeMeNow <onboarding@resend.dev>',
+        from:    'BikeMeNow <no-reply@bikeme.now>',
         to:      staffRow.email,
         subject: 'Återställ ditt BikeMeNow-lösenord',
         html:    buildResetEmail(staffRow.name ?? normalised, resetUrl),

@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     const roleLabel = ROLE_SV[role] ?? role;
 
     const { error } = await resend.emails.send({
-      from:    'BikeMeNow <onboarding@resend.dev>',
+      from:    'BikeMeNow <no-reply@bikeme.now>',
       to:      email,
       subject: `Inbjudan till ${dealershipName} på BikeMeNow`,
       html: `
