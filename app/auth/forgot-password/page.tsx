@@ -4,18 +4,35 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
   const t = useTranslations('forgotPassword');
   const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement password reset email sending
-    console.log('Sending reset email to:', email);
-    router.push('/auth/email-sent');
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ email }),
+      });
+      if (!res.ok) {
+        const { error } = await res.json();
+        toast.error(error ?? 'Något gick fel. Försök igen.');
+        return;
+      }
+      router.push('/auth/email-sent');
+    } catch {
+      toast.error('Kunde inte skicka e-post. Kontrollera din anslutning.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -109,9 +126,10 @@ export default function ForgotPasswordPage() {
 
             <button
               type="submit"
-              className="w-full bg-[#FF6B2C] text-white py-3 rounded-lg font-semibold hover:bg-[#e55a1f] transition-colors"
+              disabled={loading}
+              className="w-full bg-[#FF6B2C] text-white py-3 rounded-lg font-semibold hover:bg-[#e55a1f] transition-colors disabled:opacity-60"
             >
-              {t('sendButton')}
+              {loading ? 'Skickar…' : t('sendButton')}
             </button>
           </form>
 

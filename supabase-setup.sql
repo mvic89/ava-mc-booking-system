@@ -445,3 +445,31 @@ CREATE POLICY "Allow all — dealership_settings" ON dealership_settings FOR ALL
 --    └── purchase_invoices  (N)  ← inbound supplier invoices (Pending/Paid/Overdue/Disputed)
 --          ├── po_id      → purchase_orders
 --          └── vendor_id  → vendors
+
+-- ══════════════════════════════════════════════════════════════════════════════
+-- PASSWORD AUTH ADDITIONS  (run after initial setup)
+-- ══════════════════════════════════════════════════════════════════════════════
+
+-- Add password_hash column to staff_users so users can set an email/password
+-- in addition to (or instead of) BankID authentication.
+ALTER TABLE staff_users
+  ADD COLUMN IF NOT EXISTS password_hash TEXT;
+
+-- One-time-use tokens for the forgot-password / reset-password flow.
+-- No dealership_id needed — tokens are short-lived (1 h) and self-contained.
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  id         UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  email      TEXT         NOT NULL,
+  token      TEXT         NOT NULL UNIQUE,
+  expires_at TIMESTAMPTZ  NOT NULL,
+  used       BOOLEAN      DEFAULT FALSE,
+  created_at TIMESTAMPTZ  DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS prt_email_idx ON password_reset_tokens(email);
+CREATE INDEX IF NOT EXISTS prt_token_idx ON password_reset_tokens(token);
+
+ALTER TABLE password_reset_tokens ENABLE ROW LEVEL SECURITY;
+DROP   POLICY IF EXISTS "Allow all — password_reset_tokens" ON password_reset_tokens;
+CREATE POLICY "Allow all — password_reset_tokens"
+  ON password_reset_tokens FOR ALL USING (true) WITH CHECK (true);

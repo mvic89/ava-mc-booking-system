@@ -8,17 +8,21 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import BankIDModal from '@/components/bankIdModel';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { toast } from 'sonner';
 import { getSupabaseBrowser } from '@/lib/supabase';
 import { emit } from '@/lib/realtime';
+import { verifyPassword } from '@/lib/password';
 import type { BankIDResult } from '@/types';
 
 type UserRole = 'admin' | 'sales' | 'service';
 
 interface StaffRow {
-  role:           UserRole;
-  dealership_id:  string;
-  name:           string;
-  email:          string;
+  role:            UserRole;
+  dealership_id:   string;
+  name:            string;
+  email:           string;
+  password_hash:   string | null;
+  bankid_verified: boolean;
 }
 
 /**
@@ -163,30 +167,52 @@ export default function LoginPage() {
     try {
       const supabase = getSupabaseBrowser();
 
-      // Look up the email in Supabase staff_users to verify they exist
-      // and to get their canonical dealershipId (cross-tenant protection)
+      // Fetch staff record including password_hash and bankid_verified
       const { data: staffRow, error } = await (supabase as any)
         .from('staff_users')
-        .select('role, dealership_id, name')
-        .eq('email', formData.email)
-        .maybeSingle() as { data: Omit<StaffRow, 'email'> | null; error: any };
+        .select('role, dealership_id, name, email, password_hash, bankid_verified')
+        .eq('email', formData.email.toLowerCase().trim())
+        .maybeSingle() as { data: StaffRow | null; error: any };
 
       if (error) throw error;
 
-      // Fallback to localStorage accounts for bootstrap (before any staff_users exist)
+      // Fallback to localStorage accounts for bootstrap (before any staff_users exist in DB)
       const accounts      = JSON.parse(localStorage.getItem('accounts') || '{}');
       const registered    = accounts[formData.email];
       const anyAccount    = (Object.values(accounts)[0] as any) ?? {};
-      const noStaffInDB   = !staffRow;
       const hasNoAccounts = Object.keys(accounts).length === 0;
 
-      if (noStaffInDB && !registered && !hasNoAccounts) {
-        // Staff users exist in accounts but not in DB — reject unknown emails
-        setLoginError('Email not recognised. Please contact your administrator.');
+      // ── Case 1: Not in system at all ─────────────────────────────────────
+      if (!staffRow && !registered && !hasNoAccounts) {
+        const msg = 'This email is not registered in the system. Please contact your administrator.';
+        setLoginError(msg);
+        toast.error('Account not found', { description: msg });
+        return;
+      }
+      if (!staffRow && hasNoAccounts) {
+        const msg = 'No accounts found. Please sign up or contact your administrator.';
+        setLoginError(msg);
+        toast.error('Account not found', { description: msg });
         return;
       }
 
-      const role: UserRole         = staffRow?.role         ?? registered?.role ?? 'admin';
+      // ── Case 2: Supabase user with a password hash — verify it ───────────
+      if (staffRow?.password_hash) {
+        if (!verifyPassword(formData.password, staffRow.password_hash)) {
+          setLoginError('Incorrect password. Please try again or use "Forgot password?".');
+          return;
+        }
+      }
+
+      // ── Case 3: BankID-registered user with no password set ──────────────
+      if (staffRow && !staffRow.password_hash && staffRow.bankid_verified) {
+        const msg = 'You registered via BankID. Sign in with BankID above, or click "Forgot password?" to set an email password.';
+        setLoginError(msg);
+        return;
+      }
+
+      // ── Proceed with login ────────────────────────────────────────────────
+      const role: UserRole         = staffRow?.role          ?? registered?.role ?? 'admin';
       const dealershipId: string   = staffRow?.dealership_id ?? registered?.dealershipId ?? anyAccount.dealershipId ?? '';
       const dealershipName: string = registered?.dealershipName ?? anyAccount.dealershipName ?? '';
       const name: string           = staffRow?.name          ?? registered?.name ?? formData.email.split('@')[0];
@@ -213,7 +239,7 @@ export default function LoginPage() {
         await (supabase as any)
           .from('staff_users')
           .update({ last_login: new Date().toISOString() })
-          .eq('email', formData.email);
+          .eq('email', formData.email.toLowerCase().trim());
       }
 
       // Pre-load dealer profile so Sidebar shows name/logo immediately

@@ -19,23 +19,42 @@ export default function ResetPasswordPage() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
       toast.error(t('alerts.passwordsDontMatch'));
       return;
     }
-
     if (formData.password.length < 8) {
       toast.error(t('alerts.passwordTooShort'));
       return;
     }
+    if (!token) {
+      toast.error('Ogiltig länk. Begär en ny lösenordsåterställning.');
+      return;
+    }
 
-    // TODO: Implement password reset with token
-    console.log('Resetting password with token:', token);
-    router.push('/auth/reset-complete');
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ token, password: formData.password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error ?? 'Något gick fel. Försök igen.');
+        return;
+      }
+      router.push('/auth/reset-complete');
+    } catch {
+      toast.error('Kunde inte återställa lösenordet. Kontrollera din anslutning.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -177,9 +196,10 @@ export default function ResetPasswordPage() {
 
             <button
               type="submit"
-              className="w-full bg-[#FF6B2C] text-white py-3 rounded-lg font-semibold hover:bg-[#e55a1f] transition-colors"
+              disabled={loading}
+              className="w-full bg-[#FF6B2C] text-white py-3 rounded-lg font-semibold hover:bg-[#e55a1f] transition-colors disabled:opacity-60"
             >
-              {t('resetButton')}
+              {loading ? 'Sparar…' : t('resetButton')}
             </button>
           </form>
 
