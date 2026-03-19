@@ -54,7 +54,7 @@ export interface POLineItem {
     size?: string;  // e.g. 'XS' | 'S' | 'M' | 'L' | 'XL' — for sized accessories
 }
 
-export type POStatus = 'Draft' | 'Under Review' | 'Reviewed' | 'Sent' | 'Received';
+export type POStatus = 'Draft' | 'Reviewed' | 'Sent' | 'Received';
 
 // ─── Invoice Types ────────────────────────────────────────────────────────────
 

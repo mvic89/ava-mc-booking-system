@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useInventory } from '@/context/InventoryContext'
 import { Motorcycle, SparePart, Accessory, BaseInventoryItem, InventoryCategory } from '@/utils/types'
 import { AddItemModal } from '@/components/AddItemModal'
+import { ImportInventoryModal } from '@/components/ImportInventoryModal'
+import { EditItemModal } from '@/components/EditItemModal'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -65,11 +67,12 @@ const TABS: { id: InventoryCategory; label: string; icon: string }[] = [
 // ─── Table: Motorcycles ───────────────────────────────────────────────────────
 
 function MotorcycleTable({
-    data,
-    updateStock,
+    data, updateStock, onRowClick, onDelete,
 }: {
     data: Motorcycle[]
     updateStock: (id: string, stock: number) => void
+    onRowClick: (item: Motorcycle) => void
+    onDelete:   (id: string) => void
 }) {
     return (
         <div className="overflow-x-auto">
@@ -91,13 +94,14 @@ function MotorcycleTable({
                         <th className="px-4 py-3">Sell Price</th>
                         <th className="px-4 py-3">Margin</th>
                         <th className="px-4 py-3">Vendor</th>
+                        <th className="px-4 py-3" />
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                     {data.map((item) => {
                         const margin = (((item.sellingPrice - item.cost) / item.sellingPrice) * 100).toFixed(1)
                         return (
-                            <tr key={item.id} className="group hover:bg-orange-50 transition-colors">
+                            <tr key={item.id} onClick={() => onRowClick(item)} className="group hover:bg-orange-50 transition-colors cursor-pointer">
                                 <td className="px-4 py-3 font-mono text-xs text-gray-400">{item.id}</td>
                                 <td className="px-4 py-3">
                                     <div className="font-semibold text-gray-800">{item.name}</div>
@@ -119,21 +123,20 @@ function MotorcycleTable({
                                         item.mcType === 'New'        ? 'bg-green-100 text-green-700' :
                                         item.mcType === 'Trade-In'   ? 'bg-blue-100 text-blue-700' :
                                                                        'bg-purple-100 text-purple-700'
-                                    }`}>
-                                        {item.mcType}
-                                    </span>
+                                    }`}>{item.mcType}</span>
                                 </td>
                                 <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">{item.warehouse}</td>
-                                <td className="px-4 py-3">
+                                <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                                     <StockCell item={item} updateStock={updateStock} />
                                 </td>
                                 <td className="px-4 py-3 text-gray-600">{item.reorderQty}</td>
                                 <td className="px-4 py-3 text-gray-700">{formatSEK(item.cost)}</td>
                                 <td className="px-4 py-3 font-semibold text-gray-800">{formatSEK(item.sellingPrice)}</td>
-                                <td className="px-4 py-3">
-                                    <span className="text-green-600 font-medium">{margin}%</span>
-                                </td>
+                                <td className="px-4 py-3"><span className="text-green-600 font-medium">{margin}%</span></td>
                                 <td className="px-4 py-3 text-xs text-gray-500 max-w-35 truncate" title={item.vendor}>{item.vendor}</td>
+                                <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                                    <button onClick={() => onDelete(item.id)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all text-sm" title="Delete">🗑️</button>
+                                </td>
                             </tr>
                         )
                     })}
@@ -146,11 +149,12 @@ function MotorcycleTable({
 // ─── Table: Spare Parts ───────────────────────────────────────────────────────
 
 function SparePartsTable({
-    data,
-    updateStock,
+    data, updateStock, onRowClick, onDelete,
 }: {
     data: SparePart[]
     updateStock: (id: string, stock: number) => void
+    onRowClick: (item: SparePart) => void
+    onDelete:   (id: string) => void
 }) {
     return (
         <div className="overflow-x-auto">
@@ -167,13 +171,14 @@ function SparePartsTable({
                         <th className="px-4 py-3">Sell Price</th>
                         <th className="px-4 py-3">Margin</th>
                         <th className="px-4 py-3">Vendor</th>
+                        <th className="px-4 py-3" />
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                     {data.map((item) => {
                         const margin = (((item.sellingPrice - item.cost) / item.sellingPrice) * 100).toFixed(1)
                         return (
-                            <tr key={item.id} className="group hover:bg-orange-50 transition-colors">
+                            <tr key={item.id} onClick={() => onRowClick(item)} className="group hover:bg-orange-50 transition-colors cursor-pointer">
                                 <td className="px-4 py-3 font-mono text-xs text-gray-400">{item.id}</td>
                                 <td className="px-4 py-3">
                                     <div className="font-semibold text-gray-800">{item.name}</div>
@@ -184,16 +189,17 @@ function SparePartsTable({
                                 <td className="px-4 py-3">
                                     <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium">{item.category}</span>
                                 </td>
-                                <td className="px-4 py-3">
+                                <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                                     <StockCell item={item} updateStock={updateStock} />
                                 </td>
                                 <td className="px-4 py-3 text-gray-600">{item.reorderQty}</td>
                                 <td className="px-4 py-3 text-gray-700">{formatCurrency(item.cost)}</td>
                                 <td className="px-4 py-3 font-semibold text-gray-800">{formatCurrency(item.sellingPrice)}</td>
-                                <td className="px-4 py-3">
-                                    <span className="text-green-600 font-medium">{margin}%</span>
-                                </td>
+                                <td className="px-4 py-3"><span className="text-green-600 font-medium">{margin}%</span></td>
                                 <td className="px-4 py-3 text-xs text-gray-500 max-w-35 truncate" title={item.vendor}>{item.vendor}</td>
+                                <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                                    <button onClick={() => onDelete(item.id)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all text-sm" title="Delete">🗑️</button>
+                                </td>
                             </tr>
                         )
                     })}
@@ -206,11 +212,12 @@ function SparePartsTable({
 // ─── Table: Accessories ───────────────────────────────────────────────────────
 
 function AccessoriesTable({
-    data,
-    updateStock,
+    data, updateStock, onRowClick, onDelete,
 }: {
     data: Accessory[]
     updateStock: (id: string, stock: number) => void
+    onRowClick: (item: Accessory) => void
+    onDelete:   (id: string) => void
 }) {
     return (
         <div className="overflow-x-auto">
@@ -228,13 +235,14 @@ function AccessoriesTable({
                         <th className="px-4 py-3">Sell Price</th>
                         <th className="px-4 py-3">Margin</th>
                         <th className="px-4 py-3">Vendor</th>
+                        <th className="px-4 py-3" />
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                     {data.map((item) => {
                         const margin = (((item.sellingPrice - item.cost) / item.sellingPrice) * 100).toFixed(1)
                         return (
-                            <tr key={item.id} className="group hover:bg-orange-50 transition-colors">
+                            <tr key={item.id} onClick={() => onRowClick(item)} className="group hover:bg-orange-50 transition-colors cursor-pointer">
                                 <td className="px-4 py-3 font-mono text-xs text-gray-400">{item.id}</td>
                                 <td className="px-4 py-3">
                                     <div className="font-semibold text-gray-800">{item.name}</div>
@@ -246,16 +254,17 @@ function AccessoriesTable({
                                     <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full font-medium">{item.category}</span>
                                 </td>
                                 <td className="px-4 py-3 text-gray-700 font-medium">{item.size ?? '—'}</td>
-                                <td className="px-4 py-3">
+                                <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                                     <StockCell item={item} updateStock={updateStock} />
                                 </td>
                                 <td className="px-4 py-3 text-gray-600">{item.reorderQty}</td>
                                 <td className="px-4 py-3 text-gray-700">{formatCurrency(item.cost)}</td>
                                 <td className="px-4 py-3 font-semibold text-gray-800">{formatCurrency(item.sellingPrice)}</td>
-                                <td className="px-4 py-3">
-                                    <span className="text-green-600 font-medium">{margin}%</span>
-                                </td>
+                                <td className="px-4 py-3"><span className="text-green-600 font-medium">{margin}%</span></td>
                                 <td className="px-4 py-3 text-xs text-gray-500 max-w-35 truncate" title={item.vendor}>{item.vendor}</td>
+                                <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                                    <button onClick={() => onDelete(item.id)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all text-sm" title="Delete">🗑️</button>
+                                </td>
                             </tr>
                         )
                     })}
@@ -295,22 +304,126 @@ function SummaryCards({ data }: { data: BaseInventoryItem[] }) {
 
 // ─── Empty State ──────────────────────────────────────────────────────────────
 
-function EmptyState() {
+function EmptyState({ onImport, isFiltered }: { onImport: () => void; isFiltered: boolean }) {
+    if (isFiltered) {
+        return (
+            <div className="flex flex-col items-center justify-center h-48 text-gray-400">
+                <span className="text-4xl mb-2">🔍</span>
+                <p className="text-sm">No items match your search</p>
+            </div>
+        )
+    }
     return (
-        <div className="flex flex-col items-center justify-center h-48 text-gray-400">
-            <span className="text-4xl mb-2">🔍</span>
-            <p className="text-sm">No items match your search</p>
+        <div className="flex flex-col items-center justify-center h-64 gap-4">
+            <span className="text-5xl">📦</span>
+            <div className="text-center">
+                <p className="text-gray-700 font-semibold">No inventory yet</p>
+                <p className="text-gray-400 text-sm mt-1">Import from Excel or add items one by one</p>
+            </div>
+            <button
+                onClick={onImport}
+                className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors flex items-center gap-2"
+            >
+                ⬆ Import from Excel
+            </button>
         </div>
     )
+}
+
+// ─── Download helpers ─────────────────────────────────────────────────────────
+
+function downloadExcel(data: BaseInventoryItem[], tabName: string) {
+    import('xlsx').then((XLSX) => {
+        const rows = data.map((item) => {
+            const base: Record<string, unknown> = {
+                ID:              item.id,
+                Name:            item.name,
+                Brand:           item.brand,
+                'Article No.':   item.articleNumber,
+                Stock:           item.stock,
+                'Reorder Qty':   item.reorderQty,
+                'Cost (SEK)':    item.cost,
+                'Sell Price (SEK)': item.sellingPrice,
+                Vendor:          item.vendor,
+            }
+            const mc = item as Motorcycle
+            if (mc.vin)      base['VIN']       = mc.vin
+            if (mc.year)     base['Year']      = mc.year
+            if (mc.engineCC) base['Engine CC'] = mc.engineCC
+            if (mc.color)    base['Color']     = mc.color
+            if (mc.mcType)   base['MC Type']   = mc.mcType
+            if (mc.warehouse)base['Warehouse'] = mc.warehouse
+            const acc = item as Accessory
+            if (acc.size)    base['Size']      = acc.size
+            return base
+        })
+        const ws = XLSX.utils.json_to_sheet(rows)
+        const wb = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(wb, ws, tabName)
+        XLSX.writeFile(wb, `inventory_${tabName}_${new Date().toISOString().split('T')[0]}.xlsx`)
+    })
+}
+
+async function downloadInventoryPDF(data: BaseInventoryItem[], tabName: string) {
+    const { default: jsPDF }    = await import('jspdf')
+    const { default: autoTable } = await import('jspdf-autotable')
+
+    const doc   = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
+    const pageW = doc.internal.pageSize.getWidth()
+    const navy  = [30, 58, 95] as [number, number, number]
+
+    doc.setFillColor(...navy)
+    doc.rect(0, 0, pageW, 22, 'F')
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.text('INVENTORY REPORT', 14, 14)
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(147, 197, 253)
+    doc.text(`${tabName} · ${data.length} items · ${new Date().toLocaleDateString('en-GB')}`, pageW - 14, 14, { align: 'right' })
+
+    autoTable(doc, {
+        startY: 28,
+        head: [['ID', 'Name', 'Brand', 'Article No.', 'Stock', 'Reorder', 'Cost', 'Sell Price', 'Vendor']],
+        body: data.map(i => [
+            i.id, i.name, i.brand, i.articleNumber,
+            i.stock, i.reorderQty,
+            i.cost.toLocaleString('sv-SE'),
+            i.sellingPrice.toLocaleString('sv-SE'),
+            i.vendor,
+        ]),
+        headStyles:  { fillColor: navy, fontSize: 7, fontStyle: 'bold' },
+        bodyStyles:  { fontSize: 7 },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        columnStyles: { 0: { cellWidth: 22 }, 8: { cellWidth: 35 } },
+        margin: { left: 14, right: 14 },
+    })
+
+    doc.save(`inventory_${tabName}_${new Date().toISOString().split('T')[0]}.pdf`)
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function InventoryPage() {
-    const { motorcycles, spareParts, accessories, updateStock, autoPOs } = useInventory()
+    const { motorcycles, spareParts, accessories, updateStock, deleteItem, autoPOs } = useInventory()
     const [activeTab, setActiveTab]     = useState<InventoryCategory>('motorcycles')
     const [search, setSearch]           = useState('')
-    const [showAddModal, setShowAddModal] = useState(false)
+    const [showAddModal,    setShowAddModal]    = useState(false)
+    const [showImportModal, setShowImportModal] = useState(false)
+    const [showDownload,    setShowDownload]    = useState(false)
+    const [selectedItem,    setSelectedItem]    = useState<Motorcycle | SparePart | Accessory | null>(null)
+    const [selectedCategory, setSelectedCategory] = useState<InventoryCategory>('motorcycles')
+
+    function handleRowClick(item: Motorcycle | SparePart | Accessory, category: InventoryCategory) {
+        setSelectedItem(item)
+        setSelectedCategory(category)
+    }
+
+    async function handleDelete(id: string) {
+        if (!confirm('Delete this item permanently? This cannot be undone.')) return
+        await deleteItem(id)
+    }
 
     const q = search.toLowerCase()
 
@@ -334,7 +447,7 @@ export default function InventoryPage() {
         activeTab === 'motorcycles' ? motorcycles :
         activeTab === 'spareParts'  ? spareParts  : accessories
 
-    const pendingPOs = autoPOs.filter((p) => p.status === 'Under Review').length
+    const pendingPOs = autoPOs.filter((p) => p.status === 'Draft').length
 
     return (
         <div className="lg:ml-64 min-h-screen p-6 flex flex-col">
@@ -352,6 +465,67 @@ export default function InventoryPage() {
                             ⚠️ {pendingPOs} PO{pendingPOs > 1 ? 's' : ''} pending approval
                         </span>
                     )}
+                    <button
+                        onClick={() => setShowImportModal(true)}
+                        className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+                    >
+                        ⬆ Import Excel
+                    </button>
+
+                    {/* Download dropdown */}
+                    <div className="relative">
+                        <button
+                            onClick={() => setShowDownload(v => !v)}
+                            className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+                        >
+                            ⬇ Download
+                            <span className="text-gray-400 text-xs">▾</span>
+                        </button>
+                        {showDownload && (
+                            <>
+                                <div className="fixed inset-0 z-10" onClick={() => setShowDownload(false)} />
+                                <div className="absolute right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-20 w-48 overflow-hidden">
+                                    <div className="px-3 py-2 border-b border-gray-100">
+                                        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                                            {activeTab === 'motorcycles' ? 'Motorcycles' : activeTab === 'spareParts' ? 'Spare Parts' : 'Accessories'} · {
+                                                activeTab === 'motorcycles' ? filteredMotorcycles.length :
+                                                activeTab === 'spareParts'  ? filteredSpareParts.length  : filteredAccessories.length
+                                            } items
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            const d = activeTab === 'motorcycles' ? filteredMotorcycles : activeTab === 'spareParts' ? filteredSpareParts : filteredAccessories
+                                            downloadExcel(d, activeTab)
+                                            setShowDownload(false)
+                                        }}
+                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 transition-colors"
+                                    >
+                                        <span className="text-base">📊</span>
+                                        <div className="text-left">
+                                            <div className="font-semibold text-xs">Excel (.xlsx)</div>
+                                            <div className="text-[10px] text-gray-400">Spreadsheet format</div>
+                                        </div>
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            const d = activeTab === 'motorcycles' ? filteredMotorcycles : activeTab === 'spareParts' ? filteredSpareParts : filteredAccessories
+                                            downloadInventoryPDF(d, activeTab)
+                                            setShowDownload(false)
+                                        }}
+                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 transition-colors"
+                                    >
+                                        <span className="text-base">📄</span>
+                                        <div className="text-left">
+                                            <div className="font-semibold text-xs">PDF</div>
+                                            <div className="text-[10px] text-gray-400">Print-ready format</div>
+                                        </div>
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+
                     <button
                         onClick={() => setShowAddModal(true)}
                         className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
@@ -406,24 +580,38 @@ export default function InventoryPage() {
             <div className="flex-1 bg-white rounded-xl border border-gray-200 shadow-sm overflow-auto">
                 {activeTab === 'motorcycles' && (
                     filteredMotorcycles.length > 0
-                        ? <MotorcycleTable data={filteredMotorcycles} updateStock={updateStock} />
-                        : <EmptyState />
+                        ? <MotorcycleTable data={filteredMotorcycles} updateStock={updateStock} onRowClick={item => handleRowClick(item, 'motorcycles')} onDelete={handleDelete} />
+                        : <EmptyState onImport={() => setShowImportModal(true)} isFiltered={search !== ''} />
                 )}
                 {activeTab === 'spareParts' && (
                     filteredSpareParts.length > 0
-                        ? <SparePartsTable data={filteredSpareParts} updateStock={updateStock} />
-                        : <EmptyState />
+                        ? <SparePartsTable data={filteredSpareParts} updateStock={updateStock} onRowClick={item => handleRowClick(item, 'spareParts')} onDelete={handleDelete} />
+                        : <EmptyState onImport={() => setShowImportModal(true)} isFiltered={search !== ''} />
                 )}
                 {activeTab === 'accessories' && (
                     filteredAccessories.length > 0
-                        ? <AccessoriesTable data={filteredAccessories} updateStock={updateStock} />
-                        : <EmptyState />
+                        ? <AccessoriesTable data={filteredAccessories} updateStock={updateStock} onRowClick={item => handleRowClick(item, 'accessories')} onDelete={handleDelete} />
+                        : <EmptyState onImport={() => setShowImportModal(true)} isFiltered={search !== ''} />
                 )}
             </div>
 
             {/* Add Item Modal */}
             {showAddModal && (
                 <AddItemModal onClose={() => setShowAddModal(false)} />
+            )}
+
+            {/* Import Modal */}
+            {showImportModal && (
+                <ImportInventoryModal onClose={() => setShowImportModal(false)} />
+            )}
+
+            {/* Edit Item Modal */}
+            {selectedItem && (
+                <EditItemModal
+                    item={selectedItem}
+                    category={selectedCategory}
+                    onClose={() => setSelectedItem(null)}
+                />
             )}
         </div>
     )

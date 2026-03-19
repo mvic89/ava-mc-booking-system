@@ -3,38 +3,48 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useInventory }   from '@/context/InventoryContext'
 import { supabase }       from '@/lib/supabase'
-import { getDealershipId } from '@/lib/tenant'
+import { getDealershipId, getDealershipTag } from '@/lib/tenant'
 import { vendorDetails }  from '@/data/vendors'
 import { POModal, STATUS_STYLE, formatCurrency, qtyKey, VendorItem } from '@/components/POModal'
 import { CreatePOModal, FlatInventoryItem } from '@/components/CreatePOModal'
+import { ImportPOModal } from '@/components/ImportPOModal'
 import { POLineItem, POStatus, PurchaseOrder } from '@/utils/types'
 
-const ALL_STATUSES: POStatus[] = ['Draft', 'Under Review', 'Reviewed', 'Sent', 'Received']
+const ALL_STATUSES: POStatus[] = ['Draft', 'Reviewed', 'Sent', 'Received']
 
 // ─── PO number generator ──────────────────────────────────────────────────────
+// Queries Supabase directly so the ID is always based on the true DB count,
+// not just what happens to be loaded in the UI.
 
-function generateNextPOId(allPOs: PurchaseOrder[]): string {
+async function generateNextPOId(tag: string): Promise<string> {
     const year = new Date().getFullYear()
-    const nums = allPOs.map((po) => {
-        const m = po.id.match(/^PO-\d{4}-(\d+)$/)
-        return m ? parseInt(m[1], 10) : 0
-    })
-    const max = nums.length > 0 ? Math.max(...nums) : 0
-    return `PO-${year}-${String(max + 1).padStart(3, '0')}`
+    const prefix = `PO-${tag}-${year}-`
+    // No dealership_id filter — check ALL rows with this prefix so we never
+    // collide with rows that have null dealership_id from old data.
+    const { data } = await supabase
+        .from('purchase_orders')
+        .select('id')
+        .like('id', `${prefix}%`)
+        .order('id', { ascending: false })
+        .limit(1)
+    const lastNum = data?.[0]?.id
+        ? parseInt(data[0].id.split('-').pop() ?? '0', 10)
+        : 0
+    return `${prefix}${String(lastNum + 1).padStart(3, '0')}`
 }
 
 // ─── Summary cards ────────────────────────────────────────────────────────────
 
 function SummaryCards({ allPOs, filtered }: { allPOs: PurchaseOrder[]; filtered: PurchaseOrder[] }) {
-    const totalValue  = filtered.reduce((s, p) => s + p.totalCost, 0)
-    const underReview = allPOs.filter((p) => p.status === 'Under Review').length
-    const draft       = allPOs.filter((p) => p.status === 'Draft').length
+    const totalValue = filtered.reduce((s, p) => s + p.totalCost, 0)
+    const draft      = allPOs.filter((p) => p.status === 'Draft').length
+    const sent       = allPOs.filter((p) => p.status === 'Sent').length
 
     const cards = [
-        { label: 'Total POs',       value: String(allPOs.length),       icon: '📦', color: 'bg-blue-50 text-blue-700'   },
-        { label: 'Under Review',    value: String(underReview),         icon: '🔍', color: 'bg-amber-50 text-amber-700' },
-        { label: 'Draft',           value: String(draft),               icon: '📝', color: 'bg-gray-100 text-gray-700'  },
-        { label: 'Displayed Value', value: formatCurrency(totalValue),  icon: '💰', color: 'bg-green-50 text-green-700' },
+        { label: 'Total POs',       value: String(allPOs.length),      icon: '📦', color: 'bg-blue-50 text-blue-700'  },
+        { label: 'Draft',           value: String(draft),              icon: '📝', color: 'bg-gray-100 text-gray-700' },
+        { label: 'Sent',            value: String(sent),               icon: '📤', color: 'bg-orange-50 text-orange-700' },
+        { label: 'Displayed Value', value: formatCurrency(totalValue), icon: '💰', color: 'bg-green-50 text-green-700' },
     ]
 
     return (
@@ -55,8 +65,7 @@ function SummaryCards({ allPOs, filtered }: { allPOs: PurchaseOrder[]; filtered:
 function AutoPOBanner({ autoPOs, allInventoryCount }: { autoPOs: PurchaseOrder[]; allInventoryCount: number }) {
     const [open, setOpen] = useState(false)
 
-    const critical = autoPOs.filter((p) => p.status === 'Under Review')
-    const draft    = autoPOs.filter((p) => p.status === 'Draft')
+    const draft = autoPOs.filter((p) => p.status === 'Draft')
 
     if (autoPOs.length === 0) {
         return (
@@ -77,11 +86,6 @@ function AutoPOBanner({ autoPOs, allInventoryCount }: { autoPOs: PurchaseOrder[]
                     <span>⚡</span>
                     <span>
                         {autoPOs.length} auto-generated PO{autoPOs.length > 1 ? 's' : ''} from low-stock inventory
-                        {critical.length > 0 && (
-                            <span className="ml-2 bg-amber-200 text-amber-900 text-xs px-2 py-0.5 rounded-full font-bold">
-                                {critical.length} urgent
-                            </span>
-                        )}
                     </span>
                 </div>
                 <span className="text-amber-500 text-xs shrink-0 ml-4">{open ? '▲ hide' : '▼ show'}</span>
@@ -92,31 +96,24 @@ function AutoPOBanner({ autoPOs, allInventoryCount }: { autoPOs: PurchaseOrder[]
                     <p className="text-xs text-amber-700 mb-3">
                         These POs are auto-generated and update live when inventory stock changes.
                     </p>
-                    {[...critical, ...draft].map((po) => {
-                        const isCritical = po.status === 'Under Review'
-                        return (
-                            <div
-                                key={po.id}
-                                className={`rounded-lg border px-3 py-2 flex items-start justify-between gap-4 text-xs ${
-                                    isCritical ? 'border-amber-300 bg-amber-100' : 'border-gray-200 bg-white'
-                                }`}
-                            >
-                                <div>
-                                    <span className="font-mono font-bold text-gray-700">{po.id}</span>
-                                    <span className="mx-2 text-gray-400">·</span>
-                                    <span className="font-medium text-gray-700">{po.vendor}</span>
-                                    <span className="mx-2 text-gray-400">·</span>
-                                    <span className="text-gray-500">{po.items.length} item{po.items.length > 1 ? 's' : ''}</span>
-                                </div>
-                                <div className="shrink-0 text-right">
-                                    <div className="font-bold text-gray-800">{formatCurrency(po.totalCost)}</div>
-                                    <div className={`mt-0.5 font-semibold ${isCritical ? 'text-amber-700' : 'text-gray-400'}`}>
-                                        {po.status}
-                                    </div>
-                                </div>
+                    {draft.map((po) => (
+                        <div
+                            key={po.id}
+                            className="rounded-lg border border-gray-200 bg-white px-3 py-2 flex items-start justify-between gap-4 text-xs"
+                        >
+                            <div>
+                                <span className="font-mono font-bold text-gray-700">{po.id}</span>
+                                <span className="mx-2 text-gray-400">·</span>
+                                <span className="font-medium text-gray-700">{po.vendor}</span>
+                                <span className="mx-2 text-gray-400">·</span>
+                                <span className="text-gray-500">{po.items.length} item{po.items.length > 1 ? 's' : ''}</span>
                             </div>
-                        )
-                    })}
+                            <div className="shrink-0 text-right">
+                                <div className="font-bold text-gray-800">{formatCurrency(po.totalCost)}</div>
+                                <div className="mt-0.5 font-semibold text-gray-400">{po.status}</div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             )}
         </div>
@@ -134,11 +131,14 @@ export default function PurchasePage() {
     const [selectedPO,        setSelectedPO]        = useState<PurchaseOrder | null>(null)
     const [qtyOverrides,      setQtyOverrides]      = useState<Record<string, number>>({})
     const [showCreatePO,      setShowCreatePO]      = useState(false)
+    const [showImportPO,      setShowImportPO]      = useState(false)
     const [userPOs,           setUserPOs]           = useState<PurchaseOrder[]>([])
     const [historicalPOs,     setHistoricalPOs]     = useState<PurchaseOrder[]>([])
     const [poStatusOverrides, setPoStatusOverrides] = useState<Record<string, POStatus>>({})
     const [poItemOverrides,   setPoItemOverrides]   = useState<Record<string, POLineItem[]>>({})
     const [poEtaOverrides,    setPoEtaOverrides]    = useState<Record<string, string>>({})
+    const [dealerSuppliers,   setDealerSuppliers]   = useState<string[]>([])
+    const [supplierEmails,    setSupplierEmails]    = useState<Record<string, string>>({})
 
     // Fetch POs from Supabase on mount; also load status overrides for auto-POs
     useEffect(() => {
@@ -178,14 +178,34 @@ export default function PurchasePage() {
             }))
             setHistoricalPOs(mapped)
         }
+
+        async function loadSuppliers() {
+            const dealershipId = getDealershipId()
+            if (!dealershipId) return
+            const { data } = await supabase
+                .from('vendors')
+                .select('name, email')
+                .eq('dealership_id', dealershipId)
+                .eq('is_manual', true)
+                .order('name')
+            if (data) {
+                setDealerSuppliers(data.map((r) => r.name))
+                const emailMap: Record<string, string> = {}
+                data.forEach((r) => { if (r.email) emailMap[r.name] = r.email })
+                setSupplierEmails(emailMap)
+            }
+        }
+
         loadHistoricalPOs()
+        loadSuppliers()
     }, [])
 
     const autoIds = useMemo(() => new Set(autoPOs.map((p) => p.id)), [autoPOs])
-    // Deduplicate: auto-POs come from live inventory; filter them out of historicalPOs to avoid duplicate keys
+    const userIds = useMemo(() => new Set(userPOs.map((p) => p.id)), [userPOs])
+    // Deduplicate: auto-POs and user-created POs (optimistic) take priority over DB-loaded copies
     const allPOs  = useMemo<PurchaseOrder[]>(
-        () => [...autoPOs, ...userPOs, ...historicalPOs.filter((p) => !autoIds.has(p.id))],
-        [autoPOs, userPOs, historicalPOs, autoIds],
+        () => [...autoPOs, ...userPOs, ...historicalPOs.filter((p) => !autoIds.has(p.id) && !userIds.has(p.id))],
+        [autoPOs, userPOs, historicalPOs, autoIds, userIds],
     )
 
     const allPOsResolved = useMemo<PurchaseOrder[]>(
@@ -242,26 +262,97 @@ export default function PurchasePage() {
         })
     }
 
-    function handleSavePO(po: PurchaseOrder) {
+    async function handleSavePO(po: PurchaseOrder) {
         const dealershipId = getDealershipId()
-        if (!dealershipId) return
+        if (!dealershipId) {
+            console.error('[PO save] No dealershipId in localStorage — cannot save')
+            return
+        }
+        // Generate a fresh ID from DB right before saving to avoid collisions
+        const tag = getDealershipTag()
+        const freshId = await generateNextPOId(tag)
+        const poToSave = { ...po, id: freshId }
         // Optimistic update
-        setUserPOs((prev) => [po, ...prev])
-        // Persist to Supabase in background
-        supabase.from('purchase_orders').insert({
-            id:            po.id,
-            vendor:        po.vendor,
-            date:          po.date,
-            eta:           po.eta,
-            status:        po.status,
-            total_cost:    po.totalCost,
-            notes:         po.notes ?? null,
+        setUserPOs((prev) => [poToSave, ...prev])
+        // Refresh next ID for the next PO
+        generateNextPOId(tag).then(setNextPOId)
+        // Persist to Supabase
+        const { error: poErr } = await supabase.from('purchase_orders').insert({
+            id:            poToSave.id,
+            vendor:        poToSave.vendor,
+            date:          poToSave.date,
+            eta:           poToSave.eta,
+            status:        poToSave.status,
+            total_cost:    poToSave.totalCost,
+            notes:         poToSave.notes ?? null,
             dealership_id: dealershipId,
-        }).then(() => {
-            if (po.items.length > 0) {
-                supabase.from('po_line_items').insert(
-                    po.items.map((li) => ({
-                        po_id:          po.id,
+        })
+        if (poErr) {
+            console.error('[PO save] purchase_orders insert failed:', poErr.message)
+            return
+        }
+        if (poToSave.items.length > 0) {
+            const { error: liErr } = await supabase.from('po_line_items').insert(
+                poToSave.items.map((li) => ({
+                    po_id:          poToSave.id,
+                    inventory_id:   li.inventoryId,
+                    name:           li.name,
+                    article_number: li.articleNumber,
+                    order_qty:      li.orderQty,
+                    unit_cost:      li.unitCost,
+                    line_total:     li.lineTotal,
+                    size:           li.size ?? null,
+                }))
+            )
+            if (liErr) console.error('[PO save] po_line_items insert failed:', liErr.message)
+        }
+    }
+
+    async function handleAddToExistingPO(poId: string, newItems: POLineItem[], newEta?: string) {
+        const dealershipId = getDealershipId()
+        const existingPO   = allPOsResolved.find((p) => p.id === poId)
+        if (!existingPO) return
+
+        // Items flagged _replaceExisting update qty on an existing line (merge).
+        // All others are genuinely new lines to append.
+        type ItemWithFlag = POLineItem & { _replaceExisting?: boolean }
+        const replaceItems = (newItems as ItemWithFlag[]).filter((i) => i._replaceExisting)
+        const appendItems  = (newItems as ItemWithFlag[]).filter((i) => !i._replaceExisting)
+
+        // Build merged list for optimistic update
+        const updated = existingPO.items.map((ex) => {
+            const r = replaceItems.find(
+                (ri) => ri.inventoryId === ex.inventoryId && (ri.size ?? '') === (ex.size ?? '')
+            )
+            return r ? { ...ex, orderQty: r.orderQty, lineTotal: r.lineTotal } : ex
+        })
+        const merged   = [...updated, ...appendItems]
+        const newTotal = merged.reduce((s, li) => s + li.lineTotal, 0)
+
+        // Optimistic update
+        setPoItemOverrides((prev) => ({ ...prev, [poId]: merged }))
+        if (newEta) setPoEtaOverrides((prev) => ({ ...prev, [poId]: newEta }))
+
+        if (dealershipId) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const updatePayload: any = { total_cost: newTotal }
+            if (newEta) updatePayload.eta = newEta
+            await supabase.from('purchase_orders').update(updatePayload).eq('id', poId)
+
+            // Update qty on merged (existing) lines
+            for (const r of replaceItems) {
+                await supabase
+                    .from('po_line_items')
+                    .update({ order_qty: r.orderQty, line_total: r.lineTotal })
+                    .eq('po_id', poId)
+                    .eq('inventory_id', r.inventoryId)
+            }
+
+            // Insert genuinely new lines
+            if (appendItems.length > 0) {
+                const { error: liErr } = await supabase.from('po_line_items').insert(
+                    appendItems.map((li) => ({
+                        po_id:          poId,
                         inventory_id:   li.inventoryId,
                         name:           li.name,
                         article_number: li.articleNumber,
@@ -271,23 +362,26 @@ export default function PurchasePage() {
                         size:           li.size ?? null,
                     }))
                 )
+                if (liErr) console.error('[PO add-to-existing] po_line_items insert failed:', liErr.message)
             }
-        })
+        }
     }
 
     async function handleSentPO(poId: string) {
+        const dealershipId = getDealershipId()
         setPoStatusOverrides((prev) => ({ ...prev, [poId]: 'Sent' }))
         setSelectedPO(null)
         const po = allPOs.find((p) => p.id === poId)
-        if (po) {
+        if (po && dealershipId) {
             await supabase.from('purchase_orders').upsert({
-                id:         poId,
-                vendor:     po.vendor,
-                date:       po.date,
-                eta:        po.eta,
-                status:     'Sent',
-                total_cost: po.totalCost,
-                notes:      po.notes ?? null,
+                id:            poId,
+                vendor:        po.vendor,
+                date:          po.date,
+                eta:           po.eta,
+                status:        'Sent',
+                total_cost:    po.totalCost,
+                notes:         po.notes ?? null,
+                dealership_id: dealershipId,
             }, { onConflict: 'id' })
             await supabase.from('po_line_items').delete().eq('po_id', poId)
             if (po.items.length > 0) {
@@ -308,21 +402,23 @@ export default function PurchasePage() {
     }
 
     async function handleReviewedPO(poId: string, items: POLineItem[], eta: string) {
+        const dealershipId = getDealershipId()
         setPoStatusOverrides((prev) => ({ ...prev, [poId]: 'Reviewed' }))
         setPoItemOverrides((prev)   => ({ ...prev, [poId]: items }))
         setPoEtaOverrides((prev)    => ({ ...prev, [poId]: eta }))
         setSelectedPO(null)
         const po = allPOs.find((p) => p.id === poId)
-        if (po) {
+        if (po && dealershipId) {
             const total = items.reduce((s, li) => s + li.lineTotal, 0)
             await supabase.from('purchase_orders').upsert({
-                id:         poId,
-                vendor:     po.vendor,
-                date:       po.date,
-                eta:        eta || po.eta,
-                status:     'Reviewed',
-                total_cost: total || po.totalCost,
-                notes:      po.notes ?? null,
+                id:            poId,
+                vendor:        po.vendor,
+                date:          po.date,
+                eta:           eta || po.eta,
+                status:        'Reviewed',
+                total_cost:    total || po.totalCost,
+                notes:         po.notes ?? null,
+                dealership_id: dealershipId,
             }, { onConflict: 'id' })
             await supabase.from('po_line_items').delete().eq('po_id', poId)
             if (items.length > 0) {
@@ -349,7 +445,13 @@ export default function PurchasePage() {
             .map(({ id, name, articleNumber, cost, size }) => ({ id, name, articleNumber, cost, size }))
     }, [selectedPO, allInventoryItems])
 
-    const nextPOId = useMemo(() => generateNextPOId(allPOs), [allPOs])
+    const [nextPOId, setNextPOId] = useState('')
+    useEffect(() => {
+        const id = getDealershipId()
+        const tag = getDealershipTag()
+        if (!id) return
+        generateNextPOId(tag).then(setNextPOId)
+    }, [historicalPOs, userPOs])
     const tabs: (POStatus | 'All')[] = ['All', ...ALL_STATUSES]
 
     return (
@@ -378,12 +480,20 @@ export default function PurchasePage() {
                             Click any row to open the full PO. Auto POs update live with inventory stock.
                         </p>
                     </div>
-                    <button
-                        onClick={() => setShowCreatePO(true)}
-                        className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-                    >
-                        + Create PO
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setShowImportPO(true)}
+                            className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+                        >
+                            ⬆ Import Excel
+                        </button>
+                        <button
+                            onClick={() => setShowCreatePO(true)}
+                            className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                        >
+                            + Create PO
+                        </button>
+                    </div>
                 </div>
 
                 <SummaryCards allPOs={allPOsResolved} filtered={filtered} />
@@ -414,10 +524,26 @@ export default function PurchasePage() {
                 {/* PO table */}
                 <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                     {filtered.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-40 text-gray-400">
-                            <span className="text-3xl mb-2">📭</span>
-                            <p className="text-sm">No purchase orders match your filter</p>
-                        </div>
+                        allPOs.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-64 gap-4">
+                                <span className="text-5xl">📦</span>
+                                <div className="text-center">
+                                    <p className="text-gray-700 font-semibold">No purchase orders yet</p>
+                                    <p className="text-gray-400 text-sm mt-1">Import from Excel or create a PO manually</p>
+                                </div>
+                                <button
+                                    onClick={() => setShowImportPO(true)}
+                                    className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors flex items-center gap-2"
+                                >
+                                    ⬆ Import from Excel
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center h-40 text-gray-400">
+                                <span className="text-3xl mb-2">📭</span>
+                                <p className="text-sm">No purchase orders match your filter</p>
+                            </div>
+                        )
                     ) : (
                         <table className="w-full text-sm">
                             <thead>
@@ -478,12 +604,26 @@ export default function PurchasePage() {
                 </div>
             </div>
 
+            {/* Import PO modal */}
+            {showImportPO && (
+                <ImportPOModal
+                    existingPOs={allPOs}
+                    onImported={(newPOs) => {
+                        setUserPOs((prev) => [...newPOs, ...prev])
+                    }}
+                    onClose={() => setShowImportPO(false)}
+                />
+            )}
+
             {/* Create PO modal — see components/CreatePOModal.tsx */}
             {showCreatePO && (
                 <CreatePOModal
                     nextPOId={nextPOId}
                     allInventoryItems={allInventoryItems}
+                    suppliers={dealerSuppliers}
+                    openPOs={allPOsResolved.filter((p) => p.status !== 'Received')}
                     onSave={handleSavePO}
+                    onAddToExisting={handleAddToExistingPO}
                     onClose={() => setShowCreatePO(false)}
                 />
             )}
@@ -500,6 +640,7 @@ export default function PurchasePage() {
                     onReviewed={(items, eta) => handleReviewedPO(selectedPO.id, items, eta)}
                     vendorItems={selectedVendorItems}
                     freeShippingThreshold={vendorDetails[selectedPO.vendor]?.freeShippingThreshold}
+                    vendorEmailOverride={supplierEmails[selectedPO.vendor]}
                 />
             )}
         </div>

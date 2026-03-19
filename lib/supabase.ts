@@ -1,3 +1,6 @@
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -21,4 +24,15 @@ export const supabase = getSupabaseBrowser();
 // A fresh client per call is fine on the server (no persistent connections needed).
 export function getSupabaseServer() {
   return createClient(url, key);
+}
+
+// ── Service-role client — bypasses RLS, server-side only ─────────────────────
+// Use ONLY in API routes that have their own auth (e.g. webhook secret check).
+// Never expose SUPABASE_SERVICE_ROLE_KEY to the browser.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getSupabaseAdmin(): SupabaseClient<any> {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceKey) throw new Error('SUPABASE_SERVICE_ROLE_KEY is not set');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return createClient<any>(url, serviceKey, { auth: { persistSession: false } });
 }

@@ -13,13 +13,11 @@ function vendorToId(vendor: string): string {
 }
 
 /**
- * Derive a default ETA date from how urgent the PO is.
- * Under Review → 14 days out; Draft → 30 days out.
+ * Derive a default ETA date — 30 days out.
  */
-function etaFor(status: POStatus): string {
-    const daysOut = status === 'Under Review' ? 14 : 30
+function etaFor(_status: POStatus): string {
     const d = new Date()
-    d.setDate(d.getDate() + daysOut)
+    d.setDate(d.getDate() + 30)
     return d.toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
@@ -28,9 +26,7 @@ function etaFor(status: POStatus): string {
  * groups them by vendor, and returns one PurchaseOrder per vendor.
  *
  * Rules:
- *  - stock < reorderQty  → PO status = 'Under Review'  (critically low)
- *  - stock === reorderQty → PO status = 'Draft'          (just hit reorder point)
- *  - If a vendor has a mix, the whole PO becomes 'Under Review'
+ *  - stock <= reorderQty → PO status = 'Draft'
  *  - If an item's stock rises above reorderQty it is automatically
  *    removed from the vendor's PO (or the PO disappears entirely).
  */
@@ -54,16 +50,9 @@ export function generateAutoPOs(
     const autoPOs: PurchaseOrder[] = []
 
     for (const [vendor, items] of byVendor) {
-        const isCritical = items.some((i) => i.stock < i.reorderQty)
-        const status: POStatus = isCritical ? 'Under Review' : 'Draft'
+        const status: POStatus = 'Draft'
 
-        const critical  = items.filter((i) => i.stock < i.reorderQty)
-        const atLimit   = items.filter((i) => i.stock === i.reorderQty)
-        const notes = [
-            critical.length  ? `${critical.length} item(s) critically below reorder point.`  : '',
-            atLimit.length   ? `${atLimit.length} item(s) just reached reorder point.`        : '',
-            'Auto-generated — review quantities before sending to supplier.',
-        ].filter(Boolean).join(' ')
+        const notes = 'Auto-generated — review quantities before sending to supplier.'
 
         const lineItems: POLineItem[] = items.map((item) => ({
             inventoryId: item.id,
@@ -90,10 +79,5 @@ export function generateAutoPOs(
         })
     }
 
-    // Sort: Under Review first, then alphabetically by vendor
-    return autoPOs.sort((a, b) => {
-        if (a.status === 'Under Review' && b.status !== 'Under Review') return -1
-        if (b.status === 'Under Review' && a.status !== 'Under Review') return 1
-        return a.vendor.localeCompare(b.vendor)
-    })
+    return autoPOs.sort((a, b) => a.vendor.localeCompare(b.vendor))
 }

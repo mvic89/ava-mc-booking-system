@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { vendorDetails } from '@/data/vendors'
+import { getDealershipProfile, getDealershipId } from '@/lib/tenant'
 import { POLineItem, POStatus, PurchaseOrder } from '@/utils/types'
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
@@ -19,11 +20,10 @@ export function qtyKey(poId: string, inventoryId: string) {
 }
 
 export const STATUS_STYLE: Record<POStatus, { dot: string; badge: string }> = {
-    'Draft':        { dot: 'bg-gray-400',   badge: 'bg-gray-100 text-gray-600' },
-    'Under Review': { dot: 'bg-amber-500',  badge: 'bg-amber-50 text-amber-700 border border-amber-200' },
-    'Reviewed':     { dot: 'bg-teal-500',   badge: 'bg-teal-50 text-teal-700 border border-teal-200' },
-    'Sent':         { dot: 'bg-purple-500', badge: 'bg-purple-50 text-purple-700' },
-    'Received':     { dot: 'bg-green-500',  badge: 'bg-green-50 text-green-700' },
+    'Draft':    { dot: 'bg-gray-400',   badge: 'bg-gray-100 text-gray-600' },
+    'Reviewed': { dot: 'bg-teal-500',   badge: 'bg-teal-50 text-teal-700 border border-teal-200' },
+    'Sent':     { dot: 'bg-purple-500', badge: 'bg-purple-50 text-purple-700' },
+    'Received': { dot: 'bg-green-500',  badge: 'bg-green-50 text-green-700' },
 }
 
 // Vendor item shape passed from the page
@@ -48,6 +48,7 @@ export function POModal({
     vendorItems = [],
     zIndex = 'z-50',
     freeShippingThreshold,
+    vendorEmailOverride,
 }: {
     po: PurchaseOrder
     isAuto: boolean
@@ -59,6 +60,8 @@ export function POModal({
     vendorItems?: VendorItem[]
     zIndex?: string
     freeShippingThreshold?: number
+    /** Email from Supabase — overrides the static vendorDetails lookup */
+    vendorEmailOverride?: string
 }) {
     // ── Review mode state ───────────────────────────────────────────────────
     const [reviewMode, setReviewMode] = useState(false)
@@ -77,12 +80,14 @@ export function POModal({
     const [addOpen,    setAddOpen]    = useState(false)
 
     // Email send state
-    const [sending,     setSending]     = useState(false)
-    const [emailStatus, setEmailStatus] = useState<'idle' | 'sent' | 'error'>('idle')
+    const [sending,      setSending]      = useState(false)
+    const [emailStatus,  setEmailStatus]  = useState<'idle' | 'sent' | 'error'>('idle')
+    const [downloading,  setDownloading]  = useState(false)
 
     const style       = STATUS_STYLE[po.status] ?? STATUS_STYLE['Draft']
     const vendor      = vendorDetails[po.vendor]
-    const vendorEmail = vendor?.email ?? ''
+    // Prefer Supabase email (passed from parent); fall back to static vendorDetails
+    const vendorEmail = vendorEmailOverride ?? vendor?.email ?? ''
 
     // Sent and Received POs are fully locked — no editing allowed
     const isSent = po.status === 'Sent' || po.status === 'Received'
@@ -158,6 +163,195 @@ export function POModal({
                 vi.name.toLowerCase().includes(addSearch.toLowerCase())
     )
 
+    // ── PDF builder (shared) ─────────────────────────────────────────────────
+
+    async function buildPODoc() {
+        const dealer = getDealershipProfile()
+        const { default: jsPDF }     = await import('jspdf')
+        const { default: autoTable } = await import('jspdf-autotable')
+
+        const doc    = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+        const pageW  = doc.internal.pageSize.getWidth()
+        const pageH  = doc.internal.pageSize.getHeight()
+        const navy   = [30, 58, 95]   as [number, number, number]
+        const gold   = [180, 140, 60] as [number, number, number]
+        const margin = 14
+
+        doc.setFillColor(...navy)
+        doc.rect(0, 0, pageW, 38, 'F')
+        doc.setTextColor(147, 197, 253)
+        doc.setFontSize(7)
+        doc.setFont('helvetica', 'bold')
+        doc.text((dealer.name || 'PROCUREMENT').toUpperCase(), margin, 10)
+        doc.setTextColor(255, 255, 255)
+        doc.setFontSize(20)
+        doc.text('PURCHASE ORDER', margin, 22)
+        doc.setFontSize(11)
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(147, 197, 253)
+        doc.text(po.id, pageW - margin, 22, { align: 'right' })
+        doc.setDrawColor(...gold)
+        doc.setLineWidth(0.8)
+        doc.line(0, 38, pageW, 38)
+
+        doc.setTextColor(80, 80, 80)
+        doc.setFontSize(8.5)
+        doc.setFont('helvetica', 'normal')
+        doc.text(`Date Issued: ${po.date}`, margin, 46)
+        if (editedEta && editedEta !== '—') {
+            doc.text(`Expected Delivery: ${editedEta}`, margin + 65, 46)
+        }
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(...navy)
+        doc.text(`Status: ${po.status}`, pageW - margin, 46, { align: 'right' })
+        doc.setDrawColor(220, 220, 220)
+        doc.setLineWidth(0.3)
+        doc.line(margin, 50, pageW - margin, 50)
+
+        const colMid = pageW / 2 + 4
+        let blockY   = 56
+
+        doc.setFontSize(6.5)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(...navy)
+        doc.text('FROM', margin, blockY)
+        doc.setFontSize(9)
+        doc.setTextColor(20, 20, 20)
+        doc.text(dealer.name || 'Our Company', margin, blockY + 5)
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(7.5)
+        doc.setTextColor(80, 80, 80)
+        doc.text('Procurement Department', margin, blockY + 10)
+        if (dealer.address) doc.text(dealer.address, margin, blockY + 15)
+        if (dealer.email)   doc.text(dealer.email,   margin, blockY + 20)
+
+        doc.setFontSize(6.5)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(...navy)
+        doc.text('BILL TO / VENDOR', colMid, blockY)
+        doc.setFontSize(9)
+        doc.setTextColor(20, 20, 20)
+        doc.text(po.vendor, colMid, blockY + 5, { maxWidth: pageW - colMid - margin })
+        if (vendor) {
+            doc.setFont('helvetica', 'normal')
+            doc.setFontSize(7.5)
+            doc.setTextColor(80, 80, 80)
+            const addrLines = doc.splitTextToSize(vendor.address, pageW - colMid - margin)
+            doc.text(addrLines, colMid, blockY + 10)
+            const afterAddr = blockY + 10 + addrLines.length * 4
+            doc.text(`Ph: ${vendor.phone}`, colMid, afterAddr)
+            doc.text(`Email: ${vendor.email}`, colMid, afterAddr + 4.5)
+        }
+
+        blockY += 30
+        doc.setDrawColor(220, 220, 220)
+        doc.setLineWidth(0.3)
+        doc.line(margin, blockY, pageW - margin, blockY)
+
+        const tableRows = editedItems.map((li) => [
+            li.articleNumber,
+            li.size ? `${li.name}\nSize: ${li.size}` : li.name,
+            String(li.orderQty),
+            formatCurrency(li.unitCost),
+            formatCurrency(li.lineTotal),
+        ])
+        const pdfTotal = editedItems.reduce((s, li) => s + li.lineTotal, 0)
+
+        autoTable(doc, {
+            startY: blockY + 3,
+            head: [['Article No.', 'Item Description', 'Qty', 'Unit Cost', 'Line Total']],
+            body: tableRows,
+            foot: [
+                ['', '', '', 'Subtotal',    formatCurrency(pdfTotal)],
+                ['', '', '', 'Tax (0%)',    formatCurrency(0)],
+                ['', '', '', 'GRAND TOTAL', formatCurrency(pdfTotal)],
+            ],
+            styles:             { fontSize: 8, cellPadding: { top: 3.5, bottom: 3.5, left: 4, right: 4 } },
+            headStyles:         { fillColor: navy, textColor: 255, fontStyle: 'bold', fontSize: 7.5 },
+            bodyStyles:         { textColor: [40, 40, 40] },
+            alternateRowStyles: { fillColor: [246, 248, 252] },
+            footStyles:         { fillColor: [240, 244, 250], textColor: navy, fontStyle: 'bold', fontSize: 8 },
+            columnStyles: {
+                0: { cellWidth: 30, textColor: [100, 100, 100] },
+                2: { halign: 'center', cellWidth: 16 },
+                3: { halign: 'right',  cellWidth: 32 },
+                4: { halign: 'right',  cellWidth: 32 },
+            },
+            didParseCell(data) {
+                if (data.section === 'foot' && data.row.index === 2) {
+                    data.cell.styles.fillColor = navy
+                    data.cell.styles.textColor = [255, 255, 255]
+                    data.cell.styles.fontSize  = 8.5
+                }
+            },
+        })
+
+        type DocWithTable = InstanceType<typeof jsPDF> & { lastAutoTable: { finalY: number } }
+        let curY = (doc as DocWithTable).lastAutoTable.finalY + 8
+
+        if (po.notes) {
+            doc.setFillColor(255, 251, 235)
+            doc.setDrawColor(253, 230, 138)
+            doc.roundedRect(margin, curY, pageW - margin * 2, 12, 1.5, 1.5, 'FD')
+            doc.setFontSize(7.5)
+            doc.setFont('helvetica', 'bold')
+            doc.setTextColor(120, 80, 0)
+            doc.text('Note:', margin + 3, curY + 5)
+            doc.setFont('helvetica', 'normal')
+            doc.text(po.notes, margin + 14, curY + 5, { maxWidth: pageW - margin * 2 - 18 })
+            curY += 18
+        }
+
+        doc.setFillColor(246, 248, 252)
+        doc.setDrawColor(203, 213, 225)
+        doc.roundedRect(margin, curY, pageW - margin * 2, 38, 2, 2, 'FD')
+        doc.setFontSize(7)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(...navy)
+        doc.text('TERMS & CONDITIONS', margin + 4, curY + 6)
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(70, 70, 70)
+        const dealerName = dealer.name || 'The Buyer'
+        const terms = [
+            '1. Payment Terms: Net 30 days from invoice date unless otherwise agreed in writing.',
+            '2. Delivery: Goods must be delivered to the address specified. Partial deliveries must be notified in advance.',
+            `3. Quality: All items must conform to agreed specifications. Non-conforming goods will be returned at supplier's cost.`,
+            `4. Cancellation: ${dealerName} reserves the right to cancel this order if delivery date is not met.`,
+            '5. Acceptance: This PO is subject to acceptance by the vendor within 3 business days of receipt.',
+        ]
+        terms.forEach((line, i) => {
+            doc.text(line, margin + 4, curY + 13 + i * 5.5, { maxWidth: pageW - margin * 2 - 8 })
+        })
+
+        doc.setFillColor(...navy)
+        doc.rect(0, pageH - 12, pageW, 12, 'F')
+        doc.setFontSize(7)
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(147, 197, 253)
+        doc.text(`${dealer.name || 'Procurement'} — Procurement Department`, margin, pageH - 4.5)
+        doc.setTextColor(200, 200, 200)
+        doc.text(
+            `Generated: ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`,
+            pageW - margin, pageH - 4.5, { align: 'right' },
+        )
+
+        return { doc, dealer }
+    }
+
+    // ── Download PDF ─────────────────────────────────────────────────────────
+
+    async function downloadPDF() {
+        setDownloading(true)
+        try {
+            const { doc } = await buildPODoc()
+            doc.save(`${po.id}.pdf`)
+        } catch (err) {
+            console.error('Download error:', err)
+        } finally {
+            setDownloading(false)
+        }
+    }
+
     // ── PDF + Email ─────────────────────────────────────────────────────────
 
     async function generateAndEmailPDF() {
@@ -165,192 +359,23 @@ export function POModal({
         setEmailStatus('idle')
 
         try {
-            const { default: jsPDF } = await import('jspdf')
-            const { default: autoTable } = await import('jspdf-autotable')
-
-            const doc    = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-            const pageW  = doc.internal.pageSize.getWidth()
-            const pageH  = doc.internal.pageSize.getHeight()
-            const navy   = [30, 58, 95]   as [number, number, number]
-            const gold   = [180, 140, 60] as [number, number, number]
-            const margin = 14
-
-            // ── Header band ──────────────────────────────────────────────
-            doc.setFillColor(...navy)
-            doc.rect(0, 0, pageW, 38, 'F')
-            doc.setTextColor(147, 197, 253)
-            doc.setFontSize(7)
-            doc.setFont('helvetica', 'bold')
-            doc.text('AVA MOTORCYCLE CENTRE', margin, 10)
-            doc.setTextColor(255, 255, 255)
-            doc.setFontSize(20)
-            doc.text('PURCHASE ORDER', margin, 22)
-            doc.setFontSize(11)
-            doc.setFont('helvetica', 'normal')
-            doc.setTextColor(147, 197, 253)
-            doc.text(po.id, pageW - margin, 22, { align: 'right' })
-            doc.setDrawColor(...gold)
-            doc.setLineWidth(0.8)
-            doc.line(0, 38, pageW, 38)
-
-            // ── Meta strip ───────────────────────────────────────────────
-            doc.setTextColor(80, 80, 80)
-            doc.setFontSize(8.5)
-            doc.setFont('helvetica', 'normal')
-            doc.text(`Date Issued: ${po.date}`, margin, 46)
-            if (editedEta && editedEta !== '—') {
-                doc.text(`Expected Delivery: ${editedEta}`, margin + 65, 46)
-            }
-            doc.setFont('helvetica', 'bold')
-            doc.setTextColor(...navy)
-            doc.text(`Status: Sent`, pageW - margin, 46, { align: 'right' })
-            doc.setDrawColor(220, 220, 220)
-            doc.setLineWidth(0.3)
-            doc.line(margin, 50, pageW - margin, 50)
-
-            // ── Two-column: FROM / VENDOR ─────────────────────────────────
-            const colMid = pageW / 2 + 4
-            let blockY   = 56
-
-            doc.setFontSize(6.5)
-            doc.setFont('helvetica', 'bold')
-            doc.setTextColor(...navy)
-            doc.text('FROM', margin, blockY)
-            doc.setFontSize(9)
-            doc.setTextColor(20, 20, 20)
-            doc.text('AVA Motorcycle Centre', margin, blockY + 5)
-            doc.setFont('helvetica', 'normal')
-            doc.setFontSize(7.5)
-            doc.setTextColor(80, 80, 80)
-            doc.text('Procurement Department', margin, blockY + 10)
-            doc.text('Kuala Lumpur, Malaysia', margin, blockY + 15)
-            doc.text('procurement@avamotorcycle.com', margin, blockY + 20)
-
-            doc.setFontSize(6.5)
-            doc.setFont('helvetica', 'bold')
-            doc.setTextColor(...navy)
-            doc.text('BILL TO / VENDOR', colMid, blockY)
-            doc.setFontSize(9)
-            doc.setTextColor(20, 20, 20)
-            doc.text(po.vendor, colMid, blockY + 5, { maxWidth: pageW - colMid - margin })
-            if (vendor) {
-                doc.setFont('helvetica', 'normal')
-                doc.setFontSize(7.5)
-                doc.setTextColor(80, 80, 80)
-                const addrLines = doc.splitTextToSize(vendor.address, pageW - colMid - margin)
-                doc.text(addrLines, colMid, blockY + 10)
-                const afterAddr = blockY + 10 + addrLines.length * 4
-                doc.text(`Ph: ${vendor.phone}`, colMid, afterAddr)
-                doc.text(`Email: ${vendor.email}`, colMid, afterAddr + 4.5)
-            }
-
-            blockY += 30
-            doc.setDrawColor(220, 220, 220)
-            doc.setLineWidth(0.3)
-            doc.line(margin, blockY, pageW - margin, blockY)
-
-            // ── Items table — use editedItems ─────────────────────────────
-            const tableRows = editedItems.map((li) => [
-                li.articleNumber,
-                li.name,
-                String(li.orderQty),
-                formatCurrency(li.unitCost),
-                formatCurrency(li.lineTotal),
-            ])
-            const pdfTotal = editedItems.reduce((s, li) => s + li.lineTotal, 0)
-
-            autoTable(doc, {
-                startY: blockY + 3,
-                head: [['Article No.', 'Item Description', 'Qty', 'Unit Cost', 'Line Total']],
-                body: tableRows,
-                foot: [
-                    ['', '', '', 'Subtotal',    formatCurrency(pdfTotal)],
-                    ['', '', '', 'Tax (0%)',    formatCurrency(0)],
-                    ['', '', '', 'GRAND TOTAL', formatCurrency(pdfTotal)],
-                ],
-                styles:             { fontSize: 8, cellPadding: { top: 3.5, bottom: 3.5, left: 4, right: 4 } },
-                headStyles:         { fillColor: navy, textColor: 255, fontStyle: 'bold', fontSize: 7.5 },
-                bodyStyles:         { textColor: [40, 40, 40] },
-                alternateRowStyles: { fillColor: [246, 248, 252] },
-                footStyles:         { fillColor: [240, 244, 250], textColor: navy, fontStyle: 'bold', fontSize: 8 },
-                columnStyles: {
-                    0: { cellWidth: 30, textColor: [100, 100, 100] },
-                    2: { halign: 'center', cellWidth: 16 },
-                    3: { halign: 'right',  cellWidth: 32 },
-                    4: { halign: 'right',  cellWidth: 32 },
-                },
-                didParseCell(data) {
-                    if (data.section === 'foot' && data.row.index === 2) {
-                        data.cell.styles.fillColor = navy
-                        data.cell.styles.textColor = [255, 255, 255]
-                        data.cell.styles.fontSize  = 8.5
-                    }
-                },
-            })
-
-            type DocWithTable = InstanceType<typeof jsPDF> & { lastAutoTable: { finalY: number } }
-            let curY = (doc as DocWithTable).lastAutoTable.finalY + 8
-
-            // ── Notes ────────────────────────────────────────────────────
-            if (po.notes) {
-                doc.setFillColor(255, 251, 235)
-                doc.setDrawColor(253, 230, 138)
-                doc.roundedRect(margin, curY, pageW - margin * 2, 12, 1.5, 1.5, 'FD')
-                doc.setFontSize(7.5)
-                doc.setFont('helvetica', 'bold')
-                doc.setTextColor(120, 80, 0)
-                doc.text('Note:', margin + 3, curY + 5)
-                doc.setFont('helvetica', 'normal')
-                doc.text(po.notes, margin + 14, curY + 5, { maxWidth: pageW - margin * 2 - 18 })
-                curY += 18
-            }
-
-            // ── Terms & Conditions ───────────────────────────────────────
-            doc.setFillColor(246, 248, 252)
-            doc.setDrawColor(203, 213, 225)
-            doc.roundedRect(margin, curY, pageW - margin * 2, 38, 2, 2, 'FD')
-            doc.setFontSize(7)
-            doc.setFont('helvetica', 'bold')
-            doc.setTextColor(...navy)
-            doc.text('TERMS & CONDITIONS', margin + 4, curY + 6)
-            doc.setFont('helvetica', 'normal')
-            doc.setTextColor(70, 70, 70)
-            const terms = [
-                '1. Payment Terms: Net 30 days from invoice date unless otherwise agreed in writing.',
-                '2. Delivery: Goods must be delivered to the address specified. Partial deliveries must be notified in advance.',
-                "3. Quality: All items must conform to agreed specifications. Non-conforming goods will be returned at supplier's cost.",
-                '4. Cancellation: AVA Motorcycle Centre reserves the right to cancel this order if delivery date is not met.',
-                '5. Acceptance: This PO is subject to acceptance by the vendor within 3 business days of receipt.',
-            ]
-            terms.forEach((line, i) => {
-                doc.text(line, margin + 4, curY + 13 + i * 5.5, { maxWidth: pageW - margin * 2 - 8 })
-            })
-
-            // ── Footer band ───────────────────────────────────────────────
-            doc.setFillColor(...navy)
-            doc.rect(0, pageH - 12, pageW, 12, 'F')
-            doc.setFontSize(7)
-            doc.setFont('helvetica', 'normal')
-            doc.setTextColor(147, 197, 253)
-            doc.text('AVA Motorcycle Centre — Procurement Department', margin, pageH - 4.5)
-            doc.setTextColor(200, 200, 200)
-            doc.text(
-                `Generated: ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`,
-                pageW - margin, pageH - 4.5, { align: 'right' },
-            )
-
+            const { doc, dealer } = await buildPODoc()
             const pdfBase64 = doc.output('datauristring')
 
             const res = await fetch('/api/send-po-email', {
                 method:  'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    toEmail:    vendorEmail,
-                    poId:       po.id,
-                    vendorName: po.vendor,
-                    poDate:     po.date,
-                    eta:        editedEta,
+                    toEmail:       vendorEmail,
+                    poId:          po.id,
+                    vendorName:    po.vendor,
+                    poDate:        po.date,
+                    eta:           editedEta,
                     pdfBase64,
+                    fromName:      dealer.name  || 'Procurement',
+                    replyTo:       dealer.email || undefined,
+                    dealerPhone:   dealer.phone || undefined,
+                    dealershipId:  getDealershipId() ?? undefined,
                 }),
             })
 
@@ -387,7 +412,7 @@ export function POModal({
                     <div>
                         <div className="flex items-center gap-3 mb-1">
                             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400">
-                                Purchase Order
+                              Purchase Order
                             </h2>
                             {isAuto && (
                                 <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-bold">
@@ -500,8 +525,8 @@ export function POModal({
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
-                                    {displayItems.map((li) => (
-                                        <tr key={li.inventoryId} className="hover:bg-orange-50 transition-colors">
+                                    {displayItems.map((li, idx) => (
+                                        <tr key={`${li.inventoryId}-${idx}`} className="hover:bg-orange-50 transition-colors">
                                             <td className="px-4 py-3 font-mono text-xs text-gray-500">{li.articleNumber}</td>
                                             <td className="px-4 py-3">
                                                 <div className="font-semibold text-gray-800 text-sm">{li.name}</div>
@@ -611,7 +636,7 @@ export function POModal({
                         }`}>
                             {emailStatus === 'sent'
                                 ? `✓ Email sent to ${vendorEmail} — status updated to Sent`
-                                : '✗ Failed to send — check EMAIL_USER / EMAIL_PASS in .env.local'}
+                                : '✗ Failed to send — check RESEND_API_KEY + RESEND_FROM_EMAIL in .env.local'}
                         </div>
                     )}
 
@@ -650,6 +675,20 @@ export function POModal({
                                         </span>
                                     ) : (
                                         <>
+                                            <button
+                                                onClick={downloadPDF}
+                                                disabled={downloading || displayItems.length === 0}
+                                                className="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 disabled:opacity-60 text-gray-700 text-sm font-semibold rounded-lg transition-colors flex items-center gap-2"
+                                            >
+                                                {downloading ? (
+                                                    <>
+                                                        <span className="inline-block w-3.5 h-3.5 border-2 border-gray-300 border-t-gray-700 rounded-full animate-spin" />
+                                                        Downloading…
+                                                    </>
+                                                ) : (
+                                                    '⬇ Download PDF'
+                                                )}
+                                            </button>
                                             <button
                                                 onClick={generateAndEmailPDF}
                                                 disabled={sending || displayItems.length === 0}

@@ -4,23 +4,34 @@ import { useState, useMemo, useEffect, useRef } from 'react'
 import { useInventory } from '@/context/InventoryContext'
 import { AddSupplierModal } from '@/components/AddSupplierModal'
 import { supabase } from '@/lib/supabase'
+import { getDealershipId, getDealershipTag } from '@/lib/tenant'
 import type { InventoryCategory, MCType, Warehouse } from '@/utils/types'
 import type { SupplierRow } from '@/components/SupplierFormShared'
 
 // ─── ID generator ─────────────────────────────────────────────────────────────
+// IDs are globally unique: MC-AVA-4D85-001, SP-AVA-4D85-001, ACC-AVA-4D85-001
+// Format: {TYPE}-{NAME_TAG}-{UUID_FINGERPRINT}-{SEQ}
+//   NAME_TAG        = first 3 chars of dealership name (e.g. "AVA")
+//   UUID_FINGERPRINT = first 4 hex chars of dealership UUID (e.g. "4D85")
+// This ensures two dealers with the same name tag never collide in Supabase.
 
-function generateNextId(type: InventoryCategory, existingIds: string[]): string {
+function generateNextId(type: InventoryCategory, existingIds: string[], dealershipId: string | null): string {
     const prefix = type === 'motorcycles' ? 'MC' : type === 'spareParts' ? 'SP' : 'ACC'
+    const tag    = getDealershipTag()
+    // Take first 4 hex chars of the UUID (strips dashes first) as a short fingerprint
+    const fp     = (dealershipId ?? '').replace(/-/g, '').substring(0, 4).toUpperCase() || 'XXXX'
+    const taggedPrefix = `${prefix}-${tag}-${fp}-`
     const nums = existingIds
-        .filter((id) => id.startsWith(prefix + '-'))
-        .map((id) => parseInt(id.replace(prefix + '-', ''), 10))
+        .filter((id) => id.startsWith(taggedPrefix))
+        .map((id) => parseInt(id.replace(taggedPrefix, ''), 10))
         .filter((n) => !isNaN(n))
     const next = nums.length > 0 ? Math.max(...nums) + 1 : 1
-    return `${prefix}-${String(next).padStart(3, '0')}`
+    return `${taggedPrefix}${String(next).padStart(3, '0')}`
 }
 
 function supNum(n: number) {
-    return `SUP-${String(n).padStart(3, '0')}`
+    const tag = getDealershipTag()
+    return `SUP-${tag}-${String(n).padStart(3, '0')}`
 }
 
 // ─── Reusable field components ────────────────────────────────────────────────
@@ -65,7 +76,7 @@ function Section({ title }: { title: string }) {
 // ─── Main modal ───────────────────────────────────────────────────────────────
 
 export function AddItemModal({ onClose }: { onClose: () => void }) {
-    const { motorcycles, spareParts, accessories, addItem } = useInventory()
+    const { motorcycles, spareParts, accessories, addItem, updateItem } = useInventory()
 
     const [type, setType]           = useState<InventoryCategory | ''>('')
     const [saving, setSaving]       = useState(false)
@@ -87,9 +98,13 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
         return names
     }, [motorcycles, spareParts, accessories])
 
-    // Fetch manual vendors from Supabase and merge with context vendors
+    // Fetch manual vendors from Supabase (scoped to this dealership) and merge with context vendors
     useEffect(() => {
-        supabase.from('vendors').select('name').then(({ data }) => {
+        const dealershipId = getDealershipId()
+        const query = dealershipId
+            ? supabase.from('vendors').select('name').eq('dealership_id', dealershipId)
+            : supabase.from('vendors').select('name')
+        query.then(({ data }) => {
             const all = new Set(contextVendors)
             if (data) data.forEach((r) => r.name && all.add(r.name))
             setDbSuppliers([...all].filter(Boolean).sort())
@@ -124,15 +139,29 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
     const [accCategory, setAccCategory] = useState('')
     const [size, setSize]               = useState('')
 
-    // Auto-generate item ID when type is chosen
+    // Auto-generate item ID when type is chosen (includes dealership UUID fingerprint)
     const autoId = useMemo(() => {
         if (!type) return ''
+        const dealershipId = getDealershipId()
         const existingIds =
             type === 'motorcycles' ? motorcycles.map((m) => m.id) :
             type === 'spareParts'  ? spareParts.map((s) => s.id)  :
                                      accessories.map((a) => a.id)
-        return generateNextId(type, existingIds)
+        return generateNextId(type, existingIds, dealershipId)
     }, [type, motorcycles, spareParts, accessories])
+
+    // ── Duplicate detection state ────────────────────────────────────────────────
+    // When the user tries to save, if an item with the same name or article number
+    // already exists in this dealer's inventory, we show a conflict step.
+    type AnyItem = (typeof motorcycles)[0] | (typeof spareParts)[0] | (typeof accessories)[0]
+    const [duplicateStep,   setDuplicateStep]   = useState(false)
+    const [duplicateItem,   setDuplicateItem]   = useState<AnyItem | null>(null)
+    // Why was the duplicate flagged?
+    // 'exact'       – same name + same article number
+    // 'nameAndBrand'– same name + same brand, but different article number
+    // 'nameOnly'    – same name only (different brand + different article)
+    // 'articleOnly' – same article number, but different name/brand
+    const [duplicateReason, setDuplicateReason] = useState<'exact' | 'nameAndBrand' | 'nameOnly' | 'articleOnly'>('exact')
 
     const typeLabel =
         type === 'motorcycles' ? 'Motorcycle' :
@@ -153,10 +182,30 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
         (s) => s.toLowerCase() === vendor.trim().toLowerCase()
     )
 
-    // VIN error: shown when the user has typed something but it's invalid
+    // VIN error: format check (shown while typing)
     const vinError = vin.trim() !== '' && !VIN_REGEX.test(vin.trim().toUpperCase())
         ? `VIN must be exactly 17 alphanumeric characters (I, O, Q not allowed). Currently ${vin.trim().length} character${vin.trim().length !== 1 ? 's' : ''}.`
         : ''
+
+    // VIN duplicate check: query ALL dealerships (VINs are globally unique)
+    const [vinChecking,  setVinChecking]  = useState(false)
+    const [vinDuplicate, setVinDuplicate] = useState<string | null>(null) // null = no dupe, string = existing item name
+
+    useEffect(() => {
+        const v = vin.trim().toUpperCase()
+        if (!VIN_REGEX.test(v)) { setVinDuplicate(null); return }
+        setVinChecking(true)
+        const timer = setTimeout(async () => {
+            const { data } = await supabase
+                .from('motorcycles')
+                .select('name')
+                .eq('vin', v)
+                .limit(1)
+            setVinDuplicate(data && data.length > 0 ? (data[0].name as string) : null)
+            setVinChecking(false)
+        }, 400)
+        return () => clearTimeout(timer)
+    }, [vin])
 
     const canSubmit =
         !!type &&
@@ -168,12 +217,43 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
         reorderQty !== '' &&
         cost !== '' &&
         sellingPrice !== '' &&
-        (type !== 'motorcycles' || (vin.trim() !== '' && VIN_REGEX.test(vin.trim().toUpperCase()))) &&
+        (type !== 'motorcycles' || (vin.trim() !== '' && VIN_REGEX.test(vin.trim().toUpperCase()) && !vinDuplicate && !vinChecking)) &&
         (type !== 'spareParts'  || spCategory !== '') &&
         (type !== 'accessories' || (accCategory !== '' && size.trim() !== ''))
 
-    async function handleSubmit() {
+    async function handleSubmit(skipDuplicateCheck = false) {
         if (!canSubmit || !type) return
+
+        // ── Duplicate check ─────────────────────────────────────────────────────
+        if (!skipDuplicateCheck) {
+            const pool =
+                type === 'motorcycles' ? (motorcycles as AnyItem[]) :
+                type === 'spareParts'  ? (spareParts  as AnyItem[]) :
+                                         (accessories as AnyItem[])
+            const nameLower    = name.trim().toLowerCase()
+            const articleLower = articleNumber.trim().toLowerCase()
+            const found = pool.find(
+                (item) =>
+                    item.name.trim().toLowerCase() === nameLower ||
+                    // Only match on article number if both sides are non-empty (null-safe)
+                    (articleLower !== '' && (item.articleNumber ?? '').trim().toLowerCase() === articleLower),
+            )
+            if (found) {
+                const nameSame    = found.name.trim().toLowerCase()          === nameLower
+                const brandSame   = (found.brand ?? '').trim().toLowerCase() === brand.trim().toLowerCase()
+                const articleSame = articleLower !== '' && (found.articleNumber ?? '').trim().toLowerCase() === articleLower
+                const reason =
+                    nameSame && articleSame ? 'exact' :
+                    nameSame && brandSame   ? 'nameAndBrand' :
+                    nameSame                ? 'nameOnly' :
+                                             'articleOnly'
+                setDuplicateItem(found)
+                setDuplicateReason(reason)
+                setDuplicateStep(true)
+                return
+            }
+        }
+
         setSaving(true)
         setError('')
         try {
@@ -224,7 +304,52 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
             }
             onClose()
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Failed to save item')
+            const msg = err instanceof Error ? err.message : 'Failed to save item'
+            // If the DB unique constraint fired (article number already exists for this dealer),
+            // fall back to showing the conflict screen instead of a raw error message.
+            if (msg.includes('article_dealer_uniq') || msg.includes('duplicate key')) {
+                const pool =
+                    type === 'motorcycles' ? (motorcycles as AnyItem[]) :
+                    type === 'spareParts'  ? (spareParts  as AnyItem[]) :
+                                             (accessories as AnyItem[])
+                const articleLower = articleNumber.trim().toLowerCase()
+                const nameLower    = name.trim().toLowerCase()
+                const existing = pool.find(
+                    (item) =>
+                        (articleLower !== '' && (item.articleNumber ?? '').trim().toLowerCase() === articleLower) ||
+                        item.name.trim().toLowerCase() === nameLower,
+                )
+                if (existing) {
+                    const nameSame    = existing.name.trim().toLowerCase()          === nameLower
+                    const brandSame   = (existing.brand ?? '').trim().toLowerCase() === brand.trim().toLowerCase()
+                    const articleSame = articleLower !== '' && (existing.articleNumber ?? '').trim().toLowerCase() === articleLower
+                    const reason =
+                        nameSame && articleSame ? 'exact' :
+                        nameSame && brandSame   ? 'nameAndBrand' :
+                        nameSame                ? 'nameOnly' :
+                                                 'articleOnly'
+                    setDuplicateItem(existing)
+                    setDuplicateReason(reason)
+                    setDuplicateStep(true)
+                    return
+                }
+            }
+            setError(msg)
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    // Called when user picks "Add to existing stock" in the duplicate step
+    async function handleAddToExistingStock() {
+        if (!duplicateItem || !type) return
+        setSaving(true)
+        try {
+            const addQty = parseInt(stock) || 0
+            await updateItem(type, { ...duplicateItem, stock: duplicateItem.stock + addQty })
+            onClose()
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Failed to update stock')
         } finally {
             setSaving(false)
         }
@@ -234,6 +359,7 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
     async function handleSupplierSaved(s: SupplierRow) {
         await supabase.from('vendors').upsert({
             name:                    s.name,
+            dealership_id:           getDealershipId(),
             address:                 s.address,
             phone:                   s.phone,
             org_number:              s.orgNumber,
@@ -241,17 +367,26 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
             supplier_number:         s.supplierNumber,
             categories:              [],
             is_manual:               true,
-        }, { onConflict: 'name' })
+        }, { onConflict: 'name,dealership_id' })
         setDbSuppliers((prev) => [...prev, s.name].sort())
         setVendor(s.name)
         setShowAddSupplier(false)
+    }
+
+    const isDirty = type !== '' || name !== '' || brand !== '' || articleNumber !== '' || vendor !== '' || cost !== '' || sellingPrice !== ''
+
+    function handleBackdropClick() {
+        if (isDirty) {
+            if (!window.confirm('You have unsaved changes. Discard them and close?')) return
+        }
+        onClose()
     }
 
     return (
         <>
             <div
                 className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
-                onClick={onClose}
+                onClick={handleBackdropClick}
             >
                 <div
                     className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden"
@@ -275,15 +410,142 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                             </div>
                         </div>
                         <button
-                            onClick={onClose}
+                            onClick={handleBackdropClick}
                             className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors text-sm font-bold shrink-0"
                         >
                             ✕
                         </button>
                     </div>
 
+                    {/* ── Duplicate item conflict screen ───────────────────── */}
+                    {duplicateStep && duplicateItem && (
+                        <>
+                            <div className="flex-1 overflow-y-auto px-7 py-6 space-y-5">
+                                <div className="flex items-start gap-3">
+                                    <span className="text-2xl mt-0.5">⚠️</span>
+                                    <div>
+                                        {duplicateReason === 'exact' && (
+                                            <>
+                                                <p className="text-sm font-semibold text-gray-800 mb-0.5">This exact item already exists</p>
+                                                <p className="text-xs text-gray-500">Same name and article number found in your inventory.</p>
+                                            </>
+                                        )}
+                                        {duplicateReason === 'nameAndBrand' && (
+                                            <>
+                                                <p className="text-sm font-semibold text-gray-800 mb-0.5">Same name &amp; brand — different article number</p>
+                                                <p className="text-xs text-gray-500">
+                                                    An item with the same name and brand exists but has a different article number.
+                                                    You can add stock to it, or save yours as a separate product.
+                                                </p>
+                                            </>
+                                        )}
+                                        {duplicateReason === 'nameOnly' && (
+                                            <>
+                                                <p className="text-sm font-semibold text-gray-800 mb-0.5">Same item name — different brand &amp; article</p>
+                                                <p className="text-xs text-gray-500">
+                                                    An item with the same name was found but from a different brand.
+                                                    You can add stock to it, or save yours as a separate product.
+                                                </p>
+                                            </>
+                                        )}
+                                        {duplicateReason === 'articleOnly' && (
+                                            <>
+                                                <p className="text-sm font-semibold text-gray-800 mb-0.5">
+                                                    Article number already taken by &ldquo;{duplicateItem.name}&rdquo;
+                                                </p>
+                                                <p className="text-xs text-gray-500">
+                                                    Article number <span className="font-mono font-semibold">{articleNumber.trim()}</span> belongs
+                                                    to a different product. You can add stock to that item, or go back and use a different article number.
+                                                </p>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Existing item card */}
+                                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                                    <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-2">Existing Item</p>
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-800">{duplicateItem.name}</p>
+                                            <p className="text-xs text-gray-500 mt-0.5">
+                                                {duplicateItem.brand}
+                                                <span className="mx-1.5 text-gray-300">·</span>
+                                                <span className="font-mono">{duplicateItem.articleNumber}</span>
+                                                <span className="mx-1.5 text-gray-300">·</span>
+                                                {duplicateItem.id}
+                                            </p>
+                                        </div>
+                                        <div className="text-right text-xs text-gray-500 shrink-0">
+                                            <div>Stock: <span className="font-semibold text-gray-700">{duplicateItem.stock}</span></div>
+                                            <div>Reorder at: <span className="font-semibold text-gray-700">{duplicateItem.reorderQty}</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* What the user is adding */}
+                                <div className="rounded-xl border border-orange-200 bg-orange-50 p-4">
+                                    <p className="text-[10px] uppercase tracking-widest text-orange-400 font-semibold mb-2">You Are Adding</p>
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-800">{name.trim()}</p>
+                                            <p className="text-xs text-gray-500 mt-0.5">
+                                                {brand.trim()}
+                                                <span className="mx-1.5 text-gray-300">·</span>
+                                                <span className="font-mono">{articleNumber.trim()}</span>
+                                            </p>
+                                        </div>
+                                        <div className="text-right text-xs text-gray-500 shrink-0">
+                                            <div>Stock to add: <span className="font-semibold text-orange-600">+{parseInt(stock) || 0}</span></div>
+                                            <div>New total: <span className="font-semibold text-gray-700">{duplicateItem.stock + (parseInt(stock) || 0)}</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Choices */}
+                                <div className="space-y-2">
+                                    <button
+                                        onClick={handleAddToExistingStock}
+                                        disabled={saving}
+                                        className="w-full px-4 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-40 text-white text-sm font-semibold text-left flex items-center justify-between transition-colors"
+                                    >
+                                        <span>Add stock to existing item</span>
+                                        <span className="text-xs opacity-80">
+                                            Stock: {duplicateItem.stock} → {duplicateItem.stock + (parseInt(stock) || 0)}
+                                        </span>
+                                    </button>
+                                    {(duplicateReason === 'exact' || duplicateReason === 'articleOnly') ? (
+                                        <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                                            Article number <span className="font-mono font-semibold">{articleNumber.trim()}</span> is already taken.
+                                            Go back and use a different article number to save as a separate item.
+                                        </p>
+                                    ) : (
+                                        <button
+                                            onClick={() => handleSubmit(true)}
+                                            disabled={saving}
+                                            className="w-full px-4 py-3 rounded-xl bg-white hover:bg-gray-50 disabled:opacity-40 border border-gray-200 text-gray-700 text-sm font-semibold text-left flex items-center justify-between transition-colors"
+                                        >
+                                            <span>Save as a separate new item</span>
+                                            <span className="text-xs text-gray-400">New ID: {autoId}</span>
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="px-7 py-4 border-t border-gray-100 flex items-center justify-between shrink-0">
+                                <button
+                                    onClick={() => { setDuplicateStep(false); setDuplicateItem(null) }}
+                                    className="text-sm text-gray-500 hover:text-gray-700 font-medium"
+                                >
+                                    ← Back to form
+                                </button>
+                                {error && <p className="text-xs text-red-500">{error}</p>}
+                            </div>
+                        </>
+                    )}
+
                     {/* ── Scrollable body ──────────────────────────────────── */}
-                    <div className="flex-1 overflow-y-auto px-7 py-5 space-y-5">
+                    {!duplicateStep && <div className="flex-1 overflow-y-auto px-7 py-5 space-y-5">
 
                         {/* Type selection */}
                         <div>
@@ -424,22 +686,29 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                                             <Field label="VIN / Chassis No." required>
                                                 <div className="relative">
                                                     <input
-                                                        className={inputCls + (vinError ? ' border-red-400 focus:ring-red-400' : '')}
+                                                        className={inputCls + (vinError || vinDuplicate ? ' border-red-400 focus:ring-red-400' : '')}
                                                         placeholder="e.g. ME4RG3227P8000001"
                                                         value={vin}
                                                         maxLength={17}
                                                         onChange={(e) => setVin(e.target.value.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, ''))}
                                                     />
                                                     <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono font-semibold ${
-                                                        vin.length === 0 ? 'text-gray-300'
+                                                        vin.length === 0    ? 'text-gray-300'
+                                                        : vinChecking       ? 'text-gray-400'
+                                                        : vinDuplicate      ? 'text-red-500'
                                                         : vin.length === 17 ? 'text-green-500'
                                                         : 'text-red-400'
                                                     }`}>
-                                                        {vin.length}/17
+                                                        {vinChecking ? '…' : `${vin.length}/17`}
                                                     </span>
                                                 </div>
                                                 {vinError && (
                                                     <p className="mt-1 text-xs text-red-500">{vinError}</p>
+                                                )}
+                                                {vinDuplicate && !vinError && (
+                                                    <p className="mt-1 text-xs text-red-600 font-medium">
+                                                        VIN already registered to &ldquo;{vinDuplicate}&rdquo;. Please check the VIN number.
+                                                    </p>
                                                 )}
                                             </Field>
                                             <Field label="Engine CC">
@@ -525,10 +794,10 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                                 {error}
                             </p>
                         )}
-                    </div>
+                    </div>}
 
                     {/* ── Footer ──────────────────────────────────────────── */}
-                    <div className="px-7 py-4 border-t border-gray-100 flex items-center justify-between shrink-0">
+                    {!duplicateStep && <div className="px-7 py-4 border-t border-gray-100 flex items-center justify-between shrink-0">
                         <p className="text-xs text-gray-400">
                             {autoId
                                 ? <>ID <span className="font-semibold text-gray-600">{autoId}</span> auto-assigned</>
@@ -536,7 +805,7 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                         </p>
                         <div className="flex gap-3">
                             <button
-                                onClick={onClose}
+                                onClick={handleBackdropClick}
                                 className="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg transition-colors"
                             >
                                 Cancel
@@ -549,7 +818,7 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                                 {saving ? 'Adding…' : '+ Add Item'}
                             </button>
                         </div>
-                    </div>
+                    </div>}
                 </div>
             </div>
 

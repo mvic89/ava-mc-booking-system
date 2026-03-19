@@ -2,8 +2,103 @@
 
 import { useState, useEffect } from 'react';
 import { PurchaseInvoice, PurchaseInvoiceStatus } from '@/utils/types';
-import { historicalPOs } from '@/data/purchaseOrders';
 import { supabase } from '@/lib/supabase';
+import { getDealershipId, getDealershipTag, getDealershipProfile } from '@/lib/tenant';
+import { ImportInvoiceModal } from '@/components/ImportInvoiceModal';
+
+// ── Download helpers ────────────────────────────────────────────────────────
+
+function downloadInvoiceExcel(invoices: PurchaseInvoice[]) {
+  import('xlsx').then((XLSX) => {
+    const rows = invoices.map(inv => ({
+      'System Ref #':        inv.id,
+      'Supplier Invoice #':  inv.supplierInvoiceNumber || '',
+      'PO #':                inv.poId || '',
+      Vendor:                inv.vendor,
+      'Invoice Date':        inv.invoiceDate,
+      'Due Date':            inv.dueDate,
+      'Amount (SEK)':        inv.amount,
+      Status:                inv.status,
+      Notes:                 inv.notes || '',
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Invoices');
+    XLSX.writeFile(wb, `purchase_invoices_${new Date().toISOString().split('T')[0]}.xlsx`);
+  });
+}
+
+async function downloadInvoicePDF(invoices: PurchaseInvoice[]) {
+  const { default: jsPDF }     = await import('jspdf');
+  const { default: autoTable } = await import('jspdf-autotable');
+  const dealer = getDealershipProfile();
+
+  const doc   = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const navy  = [30, 58, 95] as [number, number, number];
+
+  doc.setFillColor(...navy);
+  doc.rect(0, 0, pageW, 22, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('PURCHASE INVOICES', 14, 14);
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(147, 197, 253);
+  doc.text(
+    `${dealer.name || 'Procurement'} · ${invoices.length} invoice${invoices.length !== 1 ? 's' : ''} · ${new Date().toLocaleDateString('en-GB')}`,
+    pageW - 14, 14, { align: 'right' },
+  );
+
+  const STATUS_COLORS: Record<PurchaseInvoiceStatus, [number, number, number]> = {
+    Pending:  [180, 120, 0],
+    Paid:     [21, 128, 61],
+    Overdue:  [185, 28, 28],
+    Disputed: [109, 40, 217],
+  };
+
+  autoTable(doc, {
+    startY: 28,
+    head: [['System Ref #', 'Supplier Inv #', 'PO #', 'Vendor', 'Invoice Date', 'Due Date', 'Amount (SEK)', 'Status', 'Notes']],
+    body: invoices.map(inv => [
+      inv.id,
+      inv.supplierInvoiceNumber || '—',
+      inv.poId || '—',
+      inv.vendor,
+      inv.invoiceDate,
+      inv.dueDate,
+      inv.amount.toLocaleString('sv-SE'),
+      inv.status,
+      inv.notes || '',
+    ]),
+    foot: [[
+      '', '', '', '', '', 'Total',
+      invoices.reduce((s, i) => s + i.amount, 0).toLocaleString('sv-SE'),
+      '', '',
+    ]],
+    headStyles:  { fillColor: navy, fontSize: 7, fontStyle: 'bold' },
+    bodyStyles:  { fontSize: 7 },
+    footStyles:  { fillColor: [240, 244, 250], textColor: navy, fontStyle: 'bold', fontSize: 7.5 },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
+    columnStyles: { 3: { cellWidth: 40 }, 7: { cellWidth: 18 }, 8: { cellWidth: 35 } },
+    didDrawCell(data) {
+      if (data.section === 'body' && data.column.index === 7 && data.cell.raw) {
+        const status = data.cell.raw as PurchaseInvoiceStatus;
+        const color  = STATUS_COLORS[status];
+        if (color) {
+          data.doc.setTextColor(...color);
+          data.doc.setFontSize(6.5);
+          data.doc.setFont('helvetica', 'bold');
+          data.doc.text(String(status), data.cell.x + 2, data.cell.y + data.cell.height / 2 + 1);
+        }
+      }
+    },
+    margin: { left: 14, right: 14 },
+  });
+
+  doc.save(`purchase_invoices_${new Date().toISOString().split('T')[0]}.pdf`);
+}
 
 // ── Mock seed data tied to existing POs ────────────────────────────────────────
 const SEED_INVOICES: PurchaseInvoice[] = [
@@ -95,11 +190,12 @@ const STATUS_STYLES: Record<PurchaseInvoiceStatus, { badge: string; row: string 
 
 function generateInvoiceId(existing: PurchaseInvoice[]): string {
   const year = new Date().getFullYear();
+  const tag  = getDealershipTag();
   const nums = existing
     .map(i => parseInt(i.id.split('-').at(-1) ?? '0'))
     .filter(n => !isNaN(n));
   const next = nums.length ? Math.max(...nums) + 1 : 1;
-  return `PINV-${year}-${String(next).padStart(3, '0')}`;
+  return `PINV-${tag}-${year}-${String(next).padStart(3, '0')}`;
 }
 
 const EMPTY_FORM = {
@@ -113,26 +209,37 @@ const EMPTY_FORM = {
   notes: '',
 };
 
+interface SupabasePO { id: string; vendor: string; total_cost: number }
+interface SupabaseVendor { id: string; name: string }
+
 export default function PurchaseInvoicePage() {
-  const [invoices, setInvoices] = useState<PurchaseInvoice[]>([]);
-  const [showModal, setShowModal] = useState(false);
+  const [invoices,      setInvoices]      = useState<PurchaseInvoice[]>([]);
+  const [showModal,     setShowModal]     = useState(false);
+  const [showImport,    setShowImport]    = useState(false);
+  const [showDownload,  setShowDownload]  = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editId, setEditId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<PurchaseInvoiceStatus | 'All'>('All');
+  const [selectedInvoice, setSelectedInvoice] = useState<PurchaseInvoice | null>(null);
+  const [dealerPOs,  setDealerPOs]  = useState<SupabasePO[]>([]);
+  const [vendors,    setVendors]    = useState<SupabaseVendor[]>([]);
 
-  // ── Load from Supabase; seed if empty ────────────────────────────────────────
+  // ── Load from Supabase; scoped to this dealership ────────────────────────────
   useEffect(() => {
     async function load() {
-      const { data, error } = await supabase
-        .from('purchase_invoices')
-        .select('*')
-        .order('id', { ascending: false });
+      const dealershipId = getDealershipId();
+      if (!dealershipId) return;
 
-      if (error) { console.error('Failed to load invoices:', error); return; }
+      const [invRes, poRes, vendorRes] = await Promise.all([
+        supabase.from('purchase_invoices').select('*').eq('dealership_id', dealershipId).order('id', { ascending: false }),
+        supabase.from('purchase_orders').select('id, vendor, total_cost').eq('dealership_id', dealershipId).order('id', { ascending: false }),
+        supabase.from('vendors').select('id, name').eq('dealership_id', dealershipId).order('name'),
+      ]);
 
-      if (data && data.length > 0) {
-        setInvoices(data.map(r => ({
+      if (invRes.error) { console.error('Failed to load invoices:', invRes.error); }
+      if (invRes.data && invRes.data.length > 0) {
+        setInvoices(invRes.data.map(r => ({
           id:                     r.id,
           supplierInvoiceNumber:  r.supplier_invoice_number,
           poId:                   r.po_id ?? undefined,
@@ -143,34 +250,21 @@ export default function PurchaseInvoicePage() {
           status:                 r.status as PurchaseInvoiceStatus,
           notes:                  r.notes ?? undefined,
         })));
-      } else {
-        // Seed with mock data on first run
-        setInvoices(SEED_INVOICES);
-        await supabase.from('purchase_invoices').insert(
-          SEED_INVOICES.map(i => ({
-            id:                      i.id,
-            supplier_invoice_number: i.supplierInvoiceNumber,
-            po_id:                   i.poId ?? null,
-            vendor:                  i.vendor,
-            invoice_date:            i.invoiceDate,
-            due_date:                i.dueDate,
-            amount:                  i.amount,
-            status:                  i.status,
-            notes:                   i.notes ?? null,
-          }))
-        );
       }
+
+      if (poRes.data) setDealerPOs(poRes.data as SupabasePO[]);
+      if (vendorRes.data) setVendors(vendorRes.data as SupabaseVendor[]);
     }
     load();
   }, []);
 
   const handlePoChange = (poId: string) => {
-    const po = historicalPOs.find(p => p.id === poId);
+    const po = dealerPOs.find(p => p.id === poId);
     setForm(f => ({
       ...f,
       poId,
       vendor: po ? po.vendor : f.vendor,
-      amount: po ? String(po.totalCost) : f.amount,
+      amount: po ? String(po.total_cost) : f.amount,
     }));
   };
 
@@ -220,6 +314,7 @@ export default function PurchaseInvoicePage() {
       setInvoices(prev => [newInvoice, ...prev]);
       await supabase.from('purchase_invoices').insert({
         id:                      newInvoice.id,
+        dealership_id:           getDealershipId(),
         supplier_invoice_number: newInvoice.supplierInvoiceNumber,
         po_id:                   newInvoice.poId ?? null,
         vendor:                  newInvoice.vendor,
@@ -309,12 +404,64 @@ export default function PurchaseInvoicePage() {
           <h1 className="text-2xl font-bold text-gray-900">Purchase Invoices</h1>
           <p className="text-sm text-gray-400 mt-0.5">Track and manage invoices received from suppliers</p>
         </div>
-        <button
-          onClick={openCreate}
-          className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-        >
-          + Create New Invoice
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowImport(true)}
+            className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+          >
+            ⬆ Import Excel
+          </button>
+
+          {/* Download dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setShowDownload(v => !v)}
+              className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+            >
+              ⬇ Download
+              <span className="text-gray-400 text-xs">▾</span>
+            </button>
+            {showDownload && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowDownload(false)} />
+                <div className="absolute right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-20 w-48 overflow-hidden">
+                  <div className="px-3 py-2 border-b border-gray-100">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                      {filtered.length} invoice{filtered.length !== 1 ? 's' : ''} (current view)
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => { downloadInvoiceExcel(filtered); setShowDownload(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 transition-colors"
+                  >
+                    <span className="text-base">📊</span>
+                    <div className="text-left">
+                      <div className="font-semibold text-xs">Excel (.xlsx)</div>
+                      <div className="text-[10px] text-gray-400">Spreadsheet format</div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => { downloadInvoicePDF(filtered); setShowDownload(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 transition-colors"
+                  >
+                    <span className="text-base">📄</span>
+                    <div className="text-left">
+                      <div className="font-semibold text-xs">PDF</div>
+                      <div className="text-[10px] text-gray-400">Print-ready format</div>
+                    </div>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+
+          <button
+            onClick={openCreate}
+            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+          >
+            + Create New Invoice
+          </button>
+        </div>
       </div>
 
       {/* Alert banners */}
@@ -385,11 +532,26 @@ export default function PurchaseInvoicePage() {
       {/* Table */}
       <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
         {filtered.length === 0 ? (
-          <div className="py-16 text-center">
-            <p className="text-4xl mb-3">🧾</p>
-            <p className="text-gray-500 text-sm font-medium">No invoices found</p>
-            <p className="text-gray-400 text-xs mt-1">Click &quot;Create New Invoice&quot; to add one</p>
-          </div>
+          invoices.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-64 gap-4">
+              <span className="text-5xl">🧾</span>
+              <div className="text-center">
+                <p className="text-gray-700 font-semibold">No purchase invoices yet</p>
+                <p className="text-gray-400 text-sm mt-1">Import from Excel or create an invoice manually</p>
+              </div>
+              <button
+                onClick={() => setShowImport(true)}
+                className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors flex items-center gap-2"
+              >
+                ⬆ Import from Excel
+              </button>
+            </div>
+          ) : (
+            <div className="py-16 text-center">
+              <p className="text-4xl mb-3">🧾</p>
+              <p className="text-gray-500 text-sm font-medium">No invoices match your filter</p>
+            </div>
+          )
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -408,7 +570,11 @@ export default function PurchaseInvoicePage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filtered.map(inv => (
-                  <tr key={inv.id} className={`hover:bg-gray-50 transition-colors ${STATUS_STYLES[inv.status].row}`}>
+                  <tr
+                    key={inv.id}
+                    onClick={() => setSelectedInvoice(inv)}
+                    className={`hover:bg-orange-50/40 transition-colors cursor-pointer ${STATUS_STYLES[inv.status].row}`}
+                  >
                     <td className="px-4 py-3 font-mono text-xs font-bold text-[#FF6B2C] whitespace-nowrap">{inv.id}</td>
                     <td className="px-4 py-3 font-mono text-xs text-gray-600 whitespace-nowrap">{inv.supplierInvoiceNumber || '—'}</td>
                     <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{inv.poId || '—'}</td>
@@ -427,7 +593,7 @@ export default function PurchaseInvoicePage() {
                         {inv.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                       <div className="flex items-center gap-2">
                         <button onClick={() => openEdit(inv)} title="Edit" className="text-gray-400 hover:text-[#FF6B2C] transition-colors text-xs">✏️</button>
                         <button onClick={() => handleDelete(inv.id)} title="Delete" className="text-gray-400 hover:text-red-500 transition-colors text-xs">🗑️</button>
@@ -484,7 +650,7 @@ export default function PurchaseInvoicePage() {
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#FF6B2C]"
                 >
                   <option value="">— No PO linked —</option>
-                  {historicalPOs.map(po => (
+                  {dealerPOs.map(po => (
                     <option key={po.id} value={po.id}>{po.id} — {po.vendor}</option>
                   ))}
                 </select>
@@ -506,13 +672,24 @@ export default function PurchaseInvoicePage() {
 
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1.5">Vendor <span className="text-red-500">*</span></label>
-                <input
-                  type="text"
-                  placeholder="Supplier / vendor name"
-                  value={form.vendor}
-                  onChange={e => setForm(f => ({ ...f, vendor: e.target.value }))}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#FF6B2C]"
-                />
+                {vendors.length > 0 ? (
+                  <select
+                    value={form.vendor}
+                    onChange={e => setForm(f => ({ ...f, vendor: e.target.value }))}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#FF6B2C]"
+                  >
+                    <option value="">— Select vendor —</option>
+                    {vendors.map(v => <option key={v.id} value={v.name}>{v.name}</option>)}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    placeholder="Supplier / vendor name"
+                    value={form.vendor}
+                    onChange={e => setForm(f => ({ ...f, vendor: e.target.value }))}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#FF6B2C]"
+                  />
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -568,6 +745,94 @@ export default function PurchaseInvoicePage() {
         </div>
       )}
       </div>
+
+      {/* Import Invoice modal */}
+      {showImport && (
+        <ImportInvoiceModal
+          existingInvoices={invoices}
+          onImported={(newInvoices) => {
+            setInvoices((prev) => [...newInvoices, ...prev])
+          }}
+          onClose={() => setShowImport(false)}
+        />
+      )}
+
+      {/* Invoice detail modal */}
+      {selectedInvoice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setSelectedInvoice(null)}>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div
+            className="relative z-10 bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-gray-100">
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-0.5">
+                  Purchase Invoice · <span className="font-mono">{selectedInvoice.id}</span>
+                </p>
+                <h2 className="text-lg font-bold text-gray-900">{selectedInvoice.vendor}</h2>
+                <span className={`inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold ${STATUS_STYLES[selectedInvoice.status].badge}`}>
+                  {selectedInvoice.status}
+                </span>
+              </div>
+              <button
+                onClick={() => setSelectedInvoice(null)}
+                className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 text-sm font-bold shrink-0"
+              >✕</button>
+            </div>
+
+            {/* Body */}
+            <div className="px-6 py-5 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <DetailField label="System Ref #" value={selectedInvoice.id} mono />
+                <DetailField label="Supplier Invoice #" value={selectedInvoice.supplierInvoiceNumber || '—'} mono />
+                <DetailField label="Linked PO #" value={selectedInvoice.poId || '—'} />
+                <DetailField label="Vendor" value={selectedInvoice.vendor} />
+                <DetailField label="Invoice Date" value={selectedInvoice.invoiceDate} />
+                <DetailField label="Due Date" value={selectedInvoice.dueDate} />
+              </div>
+              <div className="bg-orange-50 rounded-xl px-4 py-3 flex items-center justify-between">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Amount</p>
+                <p className="text-xl font-bold text-gray-900">
+                  {selectedInvoice.amount.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}
+                </p>
+              </div>
+              {selectedInvoice.notes && (
+                <div>
+                  <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Notes</p>
+                  <p className="text-sm text-gray-700 bg-gray-50 rounded-xl px-4 py-3">{selectedInvoice.notes}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+              <button
+                onClick={() => { setSelectedInvoice(null); openEdit(selectedInvoice); }}
+                className="px-4 py-2 text-sm font-semibold text-[#FF6B2C] border border-[#FF6B2C]/30 hover:bg-orange-50 rounded-lg transition-colors"
+              >
+                ✏️ Edit
+              </button>
+              <button
+                onClick={() => setSelectedInvoice(null)}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DetailField({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div>
+      <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">{label}</p>
+      <p className={`text-sm text-gray-800 ${mono ? 'font-mono' : 'font-medium'}`}>{value}</p>
     </div>
   );
 }

@@ -158,6 +158,20 @@ export function SalesInvoiceModal({ invoice, onClose, onSave, onDelete }: Props)
         setQuickAdd('')
     }
 
+    const isDirty = isNew
+        ? customerName !== '' || customerEmail !== '' || customerPhone !== '' || dueDate !== '' || notes !== '' || items.length > 0
+        : customerName !== (invoice?.customerName ?? '') ||
+          customerEmail !== (invoice?.customerEmail ?? '') ||
+          dueDate !== (invoice?.dueDate ?? '') ||
+          notes !== (invoice?.notes ?? '')
+
+    function handleBackdropClick() {
+        if (isDirty) {
+            if (!window.confirm('You have unsaved changes. Discard them and close?')) return
+        }
+        onClose()
+    }
+
     function handleSave() {
         if (!customerName.trim() || !invoiceDate || !dueDate) return
         onSave({
@@ -175,8 +189,8 @@ export function SalesInvoiceModal({ invoice, onClose, onSave, onDelete }: Props)
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={handleBackdropClick}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
 
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
@@ -188,7 +202,7 @@ export function SalesInvoiceModal({ invoice, onClose, onSave, onDelete }: Props)
                             <p className="text-xs text-gray-400 mt-0.5">Customer: {invoice!.customerName}</p>
                         )}
                     </div>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+                    <button onClick={handleBackdropClick} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
                 </div>
 
                 {/* Body */}
@@ -366,7 +380,7 @@ export function SalesInvoiceModal({ invoice, onClose, onSave, onDelete }: Props)
 
                     <div className="flex gap-2 ml-auto">
                         <button
-                            onClick={onClose}
+                            onClick={handleBackdropClick}
                             className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50"
                         >Cancel</button>
                         <button

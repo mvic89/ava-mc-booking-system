@@ -23,7 +23,7 @@
     "inventory": "المخزون",
     "purchaseOrders": "أوامر الشراء",
     "suppliers": "الموردون",
-    "purchaseinvoices": "فواتير الشراء",
+      "purchaseinvoices": "فواتير الشراء",
     "salesPipeline": "خط المبيعات",
     "pipeline": "خط الأنابيب",
     "customers": "العملاء",
@@ -1064,6 +1064,6 @@
     "labelCompany": "الشركة",
     "goToLogin": "الذهاب إلى تسجيل الدخول",
     "alreadyHaveAccount": "هل لديك حساب بالفعل؟",
-    "loginLink": "تسجيل الدخول"
+    "loginLink":          "تسجيل الدخول"
   }
 }

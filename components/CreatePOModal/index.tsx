@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { vendorDetails } from '@/data/vendors'
 import { formatCurrency } from '@/components/POModal'
 import { PurchaseOrder, POLineItem } from '@/utils/types'
 
@@ -38,33 +37,65 @@ function emptyRow(): DraftRow {
 // ─── Create PO Modal ──────────────────────────────────────────────────────────
 // Shown when the user clicks "+ Create PO" on the Purchase Orders page.
 // Lets the user pick a supplier, add line items, and set an expected delivery date.
-// The new PO is saved as Draft.
+// If the supplier already has an open PO, prompts the user to add items to it
+// or create a separate new PO.
 
 export function CreatePOModal({
     nextPOId,
     allInventoryItems,
+    suppliers,
+    openPOs,
     onSave,
+    onAddToExisting,
     onClose,
 }: {
     nextPOId:          string
     allInventoryItems: FlatInventoryItem[]
+    /** Supplier names scoped to the current dealership — loaded from Supabase */
+    suppliers:         string[]
+    /** Open POs (Draft / Reviewed / Sent) for duplicate detection */
+    openPOs:           PurchaseOrder[]
     onSave:            (po: PurchaseOrder) => void
+    /** Called when user chooses to append items to an existing PO */
+    onAddToExisting:   (poId: string, newItems: POLineItem[], newEta?: string) => void
     onClose:           () => void
 }) {
     const todayStr   = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-    const allVendors = useMemo(() => Object.keys(vendorDetails).sort(), [])
+    const allVendors = useMemo(() => [...suppliers].sort(), [suppliers])
 
     const [vendorSearch,  setVendorSearch]  = useState('')
     const [vendor,        setVendor]        = useState('')
     const [vendorOpen,    setVendorOpen]    = useState(false)
     const [rows,          setRows]          = useState<DraftRow[]>([emptyRow(), emptyRow(), emptyRow()])
     const [deliveryDate,  setDeliveryDate]  = useState('')
+    // 'new' = user chose to create a new PO despite existing open one
+    // 'existing' = user chose to add items to the existing PO
+    // null = not decided yet (banner is visible)
+    const [addMode,       setAddMode]       = useState<'new' | 'existing' | null>(null)
 
-    // Items belonging to the selected supplier
+    // ── Conflict resolution state ───────────────────────────────────────────────
+    // Populated when the user clicks "Add to PO" and some new items already exist
+    // in the existing PO with the same inventoryId + size.
+    interface ConflictItem {
+        newItem:      POLineItem
+        existingItem: POLineItem
+        action:       'merge' | 'separate'  // user's choice
+    }
+    const [conflictStep,        setConflictStep]        = useState(false)
+    const [conflictResolutions, setConflictResolutions] = useState<ConflictItem[]>([])
+
+    // Items matching the selected supplier (used for the badge only)
     const vendorItems = useMemo(
         () => vendor ? allInventoryItems.filter((i) => i.vendor === vendor) : [],
         [vendor, allInventoryItems],
     )
+
+    // Find any open PO for the selected supplier
+    const existingOpenPO = useMemo(() => {
+        if (!vendor) return null
+        const openStatuses = new Set(['Draft', 'Reviewed', 'Sent'])
+        return openPOs.find((p) => p.vendor === vendor && openStatuses.has(p.status)) ?? null
+    }, [vendor, openPOs])
 
     const filteredVendors = vendorSearch
         ? allVendors.filter((v) => v.toLowerCase().includes(vendorSearch.toLowerCase()))
@@ -75,6 +106,7 @@ export function CreatePOModal({
         setVendorSearch(v)
         setVendorOpen(false)
         setRows([emptyRow(), emptyRow(), emptyRow()])
+        setAddMode(null)   // reset choice when supplier changes
     }
 
     function updateRow(rowId: string, patch: Partial<DraftRow>) {
@@ -99,39 +131,121 @@ export function CreatePOModal({
 
     const grandTotal = rows.reduce((s, r) => s + (r.selectedItem ? r.qty * r.selectedItem.cost : 0), 0)
     const canSubmit  = vendor.trim() !== '' && rows.some((r) => r.selectedItem && r.qty > 0)
+    // If there's an open PO and the user hasn't chosen yet, block submit until they decide
+    const needsDecision = !!existingOpenPO && addMode === null
+
+    function buildItems(): POLineItem[] {
+        return rows
+            .filter((r) => r.selectedItem && r.qty > 0)
+            .map((r) => ({
+                inventoryId:   r.selectedItem!.id,
+                name:          r.selectedItem!.name,
+                articleNumber: r.selectedItem!.articleNumber,
+                orderQty:      r.qty,
+                unitCost:      r.selectedItem!.cost,
+                lineTotal:     r.qty * r.selectedItem!.cost,
+                size:          r.selectedItem!.size,
+            }))
+    }
 
     function handleSubmit() {
-        if (!canSubmit) return
-        const validRows = rows.filter((r) => r.selectedItem && r.qty > 0)
-        const items: POLineItem[] = validRows.map((r) => ({
-            inventoryId:   r.selectedItem!.id,
-            name:          r.selectedItem!.name,
-            articleNumber: r.selectedItem!.articleNumber,
-            orderQty:      r.qty,
-            unitCost:      r.selectedItem!.cost,
-            lineTotal:     r.qty * r.selectedItem!.cost,
-            size:          r.selectedItem!.size,
-        }))
+        if (!canSubmit || needsDecision) return
+        const items  = buildItems()
         const etaStr = deliveryDate
             ? new Date(deliveryDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
             : '—'
-        const po: PurchaseOrder = {
-            id:        nextPOId,
-            vendor:    vendor.trim(),
-            date:      todayStr,
-            eta:       etaStr,
-            status:    'Draft',
-            items,
-            totalCost: items.reduce((s, i) => s + i.lineTotal, 0),
+
+        if (addMode === 'existing' && existingOpenPO) {
+            // Check for conflicts: same inventoryId AND same size (or both have no size)
+            const conflicts: ConflictItem[] = []
+            for (const newItem of items) {
+                const existing = existingOpenPO.items.find(
+                    (ex) =>
+                        ex.inventoryId === newItem.inventoryId &&
+                        (ex.size ?? '') === (newItem.size ?? ''),
+                )
+                if (existing) {
+                    conflicts.push({ newItem, existingItem: existing, action: 'merge' })
+                }
+            }
+            if (conflicts.length > 0) {
+                // Show conflict resolution step before saving
+                setConflictResolutions(conflicts)
+                setConflictStep(true)
+                return
+            }
+            // No conflicts — add directly
+            onAddToExisting(existingOpenPO.id, items, etaStr !== '—' ? etaStr : undefined)
+        } else {
+            const po: PurchaseOrder = {
+                id:        nextPOId,
+                vendor:    vendor.trim(),
+                date:      todayStr,
+                eta:       etaStr,
+                status:    'Draft',
+                items,
+                totalCost: items.reduce((s, i) => s + i.lineTotal, 0),
+            }
+            onSave(po)
         }
-        onSave(po)
+        onClose()
+    }
+
+    function handleConflictAction(idx: number, action: 'merge' | 'separate') {
+        setConflictResolutions((prev) =>
+            prev.map((c, i) => (i === idx ? { ...c, action } : c)),
+        )
+    }
+
+    function handleConflictConfirm() {
+        if (!existingOpenPO) return
+        const etaStr = deliveryDate
+            ? new Date(deliveryDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+            : undefined
+
+        const allNewItems = buildItems()
+        // Items with no conflict go through as-is
+        const conflictIds = new Set(
+            conflictResolutions.map((c) => `${c.newItem.inventoryId}::${c.newItem.size ?? ''}`)
+        )
+        const nonConflicting = allNewItems.filter(
+            (item) => !conflictIds.has(`${item.inventoryId}::${item.size ?? ''}`)
+        )
+        // Apply resolutions
+        const resolved: POLineItem[] = []
+        for (const conflict of conflictResolutions) {
+            if (conflict.action === 'merge') {
+                // Update qty on the existing item — pass as a "merged" item with the
+                // combined qty. handleAddToExistingPO will upsert based on inventoryId+size.
+                resolved.push({
+                    ...conflict.newItem,
+                    orderQty:  conflict.existingItem.orderQty + conflict.newItem.orderQty,
+                    lineTotal: (conflict.existingItem.orderQty + conflict.newItem.orderQty) * conflict.newItem.unitCost,
+                    _replaceExisting: true,  // signal to page to replace, not append
+                } as POLineItem & { _replaceExisting?: boolean })
+            } else {
+                // Add as a separate new line item
+                resolved.push(conflict.newItem)
+            }
+        }
+        onAddToExisting(existingOpenPO.id, [...nonConflicting, ...resolved], etaStr)
+        onClose()
+    }
+
+    // ── Backdrop click guard ────────────────────────────────────────────────────
+    const isDirty = vendor !== '' || rows.some((r) => r.selectedItem !== null || r.itemSearch !== '') || deliveryDate !== ''
+
+    function handleBackdropClick() {
+        if (isDirty) {
+            if (!window.confirm('You have unsaved changes. Discard them and close?')) return
+        }
         onClose()
     }
 
     return (
         <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
-            onClick={onClose}
+            onClick={handleBackdropClick}
         >
             <div
                 className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[92vh] flex flex-col overflow-hidden"
@@ -144,22 +258,102 @@ export function CreatePOModal({
                             New Purchase Order
                         </p>
                         <div className="flex items-center gap-2.5">
-                            <span className="text-2xl font-bold text-gray-900 font-mono">{nextPOId}</span>
+                            <span className="text-2xl font-bold text-gray-900 font-mono">
+                                {addMode === 'existing' && existingOpenPO ? existingOpenPO.id : nextPOId}
+                            </span>
                             <span className="text-xs bg-gray-100 text-gray-500 px-2.5 py-0.5 rounded-full font-semibold">
-                                Draft
+                                {addMode === 'existing' ? existingOpenPO?.status : 'Draft'}
                             </span>
                         </div>
                     </div>
                     <button
-                        onClick={onClose}
+                        onClick={handleBackdropClick}
                         className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors text-sm font-bold shrink-0"
                     >
                         ✕
                     </button>
                 </div>
 
+                {/* ── Conflict resolution screen ──────────────────────────────────── */}
+                {conflictStep && (
+                    <>
+                        <div className="flex-1 overflow-y-auto px-7 py-5 space-y-4">
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="text-base">⚠️</span>
+                                <p className="text-sm font-semibold text-gray-800">
+                                    {conflictResolutions.length} item{conflictResolutions.length !== 1 ? 's' : ''} already exist{conflictResolutions.length === 1 ? 's' : ''} in {existingOpenPO?.id}
+                                </p>
+                            </div>
+                            <p className="text-xs text-gray-500 -mt-2">
+                                Choose how to handle each duplicate. Items with different sizes are added separately automatically.
+                            </p>
+
+                            <div className="space-y-3">
+                                {conflictResolutions.map((c, idx) => (
+                                    <div key={idx} className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                                        <div className="flex items-start justify-between gap-3 mb-3">
+                                            <div>
+                                                <p className="text-sm font-semibold text-gray-800">
+                                                    {c.newItem.name}
+                                                    {c.newItem.size && (
+                                                        <span className="ml-2 px-1.5 py-0.5 text-xs bg-orange-100 text-orange-700 rounded font-semibold">
+                                                            {c.newItem.size}
+                                                        </span>
+                                                    )}
+                                                </p>
+                                                <p className="text-xs font-mono text-gray-400 mt-0.5">{c.newItem.articleNumber}</p>
+                                            </div>
+                                            <div className="text-right text-xs text-gray-500 shrink-0">
+                                                <div>In PO: <span className="font-semibold text-gray-700">×{c.existingItem.orderQty}</span></div>
+                                                <div>Adding: <span className="font-semibold text-orange-600">×{c.newItem.orderQty}</span></div>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => handleConflictAction(idx, 'merge')}
+                                                className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${
+                                                    c.action === 'merge'
+                                                        ? 'bg-orange-500 border-orange-500 text-white'
+                                                        : 'bg-white border-gray-200 text-gray-700 hover:border-orange-300 hover:text-orange-700'
+                                                }`}
+                                            >
+                                                Increase qty to ×{c.existingItem.orderQty + c.newItem.orderQty}
+                                            </button>
+                                            <button
+                                                onClick={() => handleConflictAction(idx, 'separate')}
+                                                className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${
+                                                    c.action === 'separate'
+                                                        ? 'bg-blue-500 border-blue-500 text-white'
+                                                        : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300 hover:text-blue-700'
+                                                }`}
+                                            >
+                                                Add as separate line (×{c.newItem.orderQty})
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="px-7 py-4 border-t border-gray-100 flex items-center justify-between shrink-0">
+                            <button
+                                onClick={() => setConflictStep(false)}
+                                className="text-sm text-gray-500 hover:text-gray-700 font-medium"
+                            >
+                                ← Back
+                            </button>
+                            <button
+                                onClick={handleConflictConfirm}
+                                className="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-lg transition-colors"
+                            >
+                                Confirm &amp; Add to PO
+                            </button>
+                        </div>
+                    </>
+                )}
+
                 {/* Body */}
-                <div className="flex-1 overflow-y-auto px-7 py-5 space-y-5">
+                {!conflictStep && <div className="flex-1 overflow-y-auto px-7 py-5 space-y-5">
 
                     {/* Supplier + PO Date + Delivery Date */}
                     <div className="grid grid-cols-[1fr_auto_auto] gap-4 items-start">
@@ -227,6 +421,61 @@ export function CreatePOModal({
                         </div>
                     </div>
 
+                    {/* ── Open PO decision banner ─────────────────────────────────────── */}
+                    {existingOpenPO && addMode === null && (
+                        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-4">
+                            <div className="flex items-start gap-3">
+                                <span className="text-lg mt-0.5">📋</span>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-amber-800 mb-0.5">
+                                        Open PO already exists for {vendor}
+                                    </p>
+                                    <p className="text-xs text-amber-700 mb-3">
+                                        <span className="font-mono font-semibold">{existingOpenPO.id}</span>
+                                        {' · '}{existingOpenPO.status}
+                                        {existingOpenPO.eta && existingOpenPO.eta !== '—' ? ` · ETA ${existingOpenPO.eta}` : ''}
+                                        {' · '}{existingOpenPO.items.length} item{existingOpenPO.items.length !== 1 ? 's' : ''}
+                                    </p>
+                                    <div className="flex gap-2 flex-wrap">
+                                        <button
+                                            onClick={() => setAddMode('existing')}
+                                            className="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                                        >
+                                            Add items to existing PO
+                                        </button>
+                                        <button
+                                            onClick={() => setAddMode('new')}
+                                            className="px-4 py-1.5 bg-white hover:bg-gray-50 border border-amber-300 text-amber-800 text-xs font-semibold rounded-lg transition-colors"
+                                        >
+                                            Create a separate new PO
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Confirmation strip once decided */}
+                    {existingOpenPO && addMode !== null && (
+                        <div className={`rounded-xl border px-4 py-2.5 flex items-center justify-between text-xs ${
+                            addMode === 'existing'
+                                ? 'bg-amber-50 border-amber-200 text-amber-800'
+                                : 'bg-blue-50 border-blue-200 text-blue-800'
+                        }`}>
+                            <span>
+                                {addMode === 'existing'
+                                    ? `Items will be added to ${existingOpenPO.id}`
+                                    : `Creating a new separate PO (${nextPOId})`}
+                            </span>
+                            <button
+                                onClick={() => setAddMode(null)}
+                                className="text-xs underline opacity-70 hover:opacity-100 ml-3"
+                            >
+                                Change
+                            </button>
+                        </div>
+                    )}
+
                     {/* Items table */}
                     <div>
                         <div className="flex items-center justify-between mb-3">
@@ -235,13 +484,13 @@ export function CreatePOModal({
                                 <span className="text-xs text-gray-400 italic">Select a supplier first to see their items</span>
                             )}
                             {vendor && vendorItems.length === 0 && (
-                                <span className="text-xs text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
-                                    ⚠ No inventory items found for this supplier
+                                <span className="text-xs text-gray-500 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-full">
+                                    No items linked to this supplier — search all inventory below
                                 </span>
                             )}
                             {vendor && vendorItems.length > 0 && (
                                 <span className="text-xs text-green-600 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full">
-                                    {vendorItems.length} item{vendorItems.length !== 1 ? 's' : ''} available
+                                    {vendorItems.length} item{vendorItems.length !== 1 ? 's' : ''} linked to supplier
                                 </span>
                             )}
                         </div>
@@ -261,7 +510,9 @@ export function CreatePOModal({
                                 <tbody className="divide-y divide-gray-100">
                                     {rows.map((row, idx) => {
                                         const q = row.itemSearch.toLowerCase()
-                                        const filteredItems = vendorItems.filter(
+                                        // Search ALL inventory items (not just supplier-matched ones)
+                                        // so items linked to slightly different vendor names still appear
+                                        const filteredItems = (q ? allInventoryItems : vendorItems).filter(
                                             (item) =>
                                                 !q ||
                                                 item.name.toLowerCase().includes(q) ||
@@ -278,7 +529,7 @@ export function CreatePOModal({
                                                 <td className="px-4 py-3 relative">
                                                     <input
                                                         type="text"
-                                                        placeholder={vendor ? 'Search item…' : 'Select supplier first'}
+                                                        placeholder={vendor ? 'Search any inventory item…' : 'Select supplier first'}
                                                         disabled={!vendor}
                                                         value={row.itemSearch}
                                                         onFocus={() => vendor && updateRow(row.rowId, { itemDropdownOpen: true })}
@@ -299,6 +550,14 @@ export function CreatePOModal({
                                                             !vendor ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-50'
                                                         }`}
                                                     />
+                                                    {row.selectedItem?.size && (
+                                                        <div className="mt-1 flex items-center gap-1">
+                                                            <span className="text-xs text-gray-500">Size:</span>
+                                                            <span className="px-2 py-0.5 text-xs bg-orange-100 text-orange-700 rounded-full font-semibold">
+                                                                {row.selectedItem.size}
+                                                            </span>
+                                                        </div>
+                                                    )}
                                                     {row.itemDropdownOpen && filteredItems.length > 0 && (
                                                         <div className="absolute left-4 right-0 z-30 top-full mt-0.5 bg-white border border-gray-200 rounded-xl shadow-xl max-h-48 overflow-y-auto">
                                                             {filteredItems.map((item) => (
@@ -307,7 +566,14 @@ export function CreatePOModal({
                                                                     onMouseDown={() => selectItem(row.rowId, item)}
                                                                     className="w-full text-left px-3 py-2.5 hover:bg-orange-50 transition-colors"
                                                                 >
-                                                                    <div className="text-sm font-medium text-gray-800">{item.name}</div>
+                                                                    <div className="text-sm font-medium text-gray-800 flex items-center gap-2">
+                                                                        {item.name}
+                                                                        {item.size && (
+                                                                            <span className="px-1.5 py-0.5 text-xs bg-orange-100 text-orange-700 rounded font-semibold">
+                                                                                {item.size}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
                                                                     <div className="text-xs text-gray-400 font-mono mt-0.5">
                                                                         {item.articleNumber} · {item.id}
                                                                     </div>
@@ -381,29 +647,34 @@ export function CreatePOModal({
                             Add Item
                         </button>
                     </div>
-                </div>
+                </div>}
 
-                {/* Footer */}
+                {/* Footer — hidden during conflict step (it has its own footer) */}
+                {!conflictStep && <>
                 <div className="px-7 py-4 border-t border-gray-100 flex items-center justify-between shrink-0">
                     <p className="text-xs text-gray-400">
-                        PO will be saved as <span className="font-semibold text-gray-600">Draft</span>
+                        {addMode === 'existing'
+                            ? <span>Items will be appended to <span className="font-semibold text-gray-600">{existingOpenPO?.id}</span></span>
+                            : <span>PO will be saved as <span className="font-semibold text-gray-600">Draft</span></span>
+                        }
                     </p>
                     <div className="flex gap-3">
                         <button
-                            onClick={onClose}
+                            onClick={handleBackdropClick}
                             className="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={handleSubmit}
-                            disabled={!canSubmit}
+                            disabled={!canSubmit || needsDecision}
+                            title={needsDecision ? 'Choose to add to existing PO or create new one above' : undefined}
                             className="px-5 py-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold rounded-lg transition-colors"
                         >
-                            Create PO
+                            {addMode === 'existing' ? 'Add to PO' : 'Create PO'}
                         </button>
                     </div>
-                </div>
+                </div></>}
             </div>
         </div>
     )

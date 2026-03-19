@@ -10,7 +10,7 @@ import React, {
 } from 'react'
 
 import { supabase }         from '@/lib/supabase'
-import { getDealershipId }  from '@/lib/tenant'
+import { getDealershipId, getDealershipProfile }  from '@/lib/tenant'
 import { generateAutoPOs }  from '@/utils/generateAutoPOs'
 import { emit, useAutoRefresh } from '@/lib/realtime'
 
@@ -87,6 +87,10 @@ interface InventoryContextValue {
     updateStock: (id: string, newStock: number) => void
     /** Insert a new item into the correct Supabase table and update local state. */
     addItem: (category: InventoryCategory, item: Motorcycle | SparePart | Accessory) => Promise<void>
+    /** Update all fields of an existing item in Supabase and local state. */
+    updateItem: (category: InventoryCategory, item: Motorcycle | SparePart | Accessory) => Promise<void>
+    /** Delete an item from Supabase and remove from local state. */
+    deleteItem: (id: string) => Promise<void>
 }
 
 const InventoryContext = createContext<InventoryContextValue | null>(null)
@@ -103,6 +107,28 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
     const loadInventory = useCallback(async () => {
         const dealershipId = getDealershipId()
         if (!dealershipId) { setLoading(false); return }
+
+        // Ensure this dealership row exists before any FK-constrained insert.
+        // First check if it already exists — if so, skip. If not, insert.
+        const { data: existing } = await supabase
+            .from('dealerships')
+            .select('id')
+            .eq('id', dealershipId)
+            .maybeSingle()
+
+        if (!existing) {
+            const profile = getDealershipProfile()
+            const { error: insertErr } = await supabase.from('dealerships').insert({
+                id:    dealershipId,
+                name:  profile.name  || 'Dealership',
+                email: profile.email || null,
+                phone: profile.phone || null,
+            })
+            if (insertErr) {
+                console.error('[dealerships] Failed to register dealership row:', insertErr.message)
+            }
+        }
+
         const [mcs, sps, accs] = await Promise.all([
             supabase.from('motorcycles').select('*').eq('dealership_id', dealershipId).order('id'),
             supabase.from('spare_parts').select('*').eq('dealership_id', dealershipId).order('id'),
@@ -132,7 +158,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                     : 'accessories'
         const dealershipId = getDealershipId()
         if (!dealershipId) return
-        supabase.from(table).update({ stock: qty }).eq('id', id).eq('dealership_id', dealershipId)
+        supabase.from(table).update({ stock: qty }).eq('id', id).eq('dealership_id', dealershipId).then()
         emit({ type: 'data:refresh' })
     }, [])
 
@@ -150,6 +176,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
             const mc = item as Motorcycle
             const { error } = await supabase.from('motorcycles').insert({
                 id:            mc.id,
+                dealership_id: dealershipId,
                 article_number: mc.articleNumber,
                 name:          mc.name,
                 brand:         mc.brand,
@@ -165,7 +192,6 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 cost:          mc.cost,
                 selling_price: mc.sellingPrice,
                 vendor:        mc.vendor,
-                dealership_id: dealershipId,
             })
             if (error) throw new Error(error.message)
             setMotorcycles((prev) => [mc, ...prev])
@@ -173,6 +199,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
             const sp = item as SparePart
             const { error } = await supabase.from('spare_parts').insert({
                 id:            sp.id,
+                dealership_id: dealershipId,
                 article_number: sp.articleNumber,
                 name:          sp.name,
                 brand:         sp.brand,
@@ -183,7 +210,6 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 cost:          sp.cost,
                 selling_price: sp.sellingPrice,
                 vendor:        sp.vendor,
-                dealership_id: dealershipId,
             })
             if (error) throw new Error(error.message)
             setSpareParts((prev) => [sp, ...prev])
@@ -191,6 +217,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
             const acc = item as Accessory
             const { error } = await supabase.from('accessories').insert({
                 id:            acc.id,
+                dealership_id: dealershipId,
                 article_number: acc.articleNumber,
                 name:          acc.name,
                 brand:         acc.brand,
@@ -202,11 +229,59 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 cost:          acc.cost,
                 selling_price: acc.sellingPrice,
                 vendor:        acc.vendor,
-                dealership_id: dealershipId,
             })
             if (error) throw new Error(error.message)
             setAccessories((prev) => [acc, ...prev])
         }
+    }, [])
+
+    const updateItem = useCallback(async (
+        category: InventoryCategory,
+        item: Motorcycle | SparePart | Accessory,
+    ) => {
+        const dealershipId = getDealershipId()
+        if (category === 'motorcycles') {
+            const mc = item as Motorcycle
+            await supabase.from('motorcycles').update({
+                name: mc.name, brand: mc.brand, description: mc.description,
+                article_number: mc.articleNumber, vin: mc.vin, year: mc.year,
+                engine_cc: mc.engineCC, color: mc.color, mc_type: mc.mcType,
+                warehouse: mc.warehouse, stock: mc.stock, reorder_qty: mc.reorderQty,
+                cost: mc.cost, selling_price: mc.sellingPrice, vendor: mc.vendor,
+            }).eq('id', mc.id).eq('dealership_id', dealershipId)
+            setMotorcycles(prev => prev.map(m => m.id === mc.id ? mc : m))
+        } else if (category === 'spareParts') {
+            const sp = item as SparePart
+            await supabase.from('spare_parts').update({
+                name: sp.name, brand: sp.brand, description: sp.description,
+                article_number: sp.articleNumber, category: sp.category,
+                stock: sp.stock, reorder_qty: sp.reorderQty,
+                cost: sp.cost, selling_price: sp.sellingPrice, vendor: sp.vendor,
+            }).eq('id', sp.id).eq('dealership_id', dealershipId)
+            setSpareParts(prev => prev.map(s => s.id === sp.id ? sp : s))
+        } else {
+            const acc = item as Accessory
+            await supabase.from('accessories').update({
+                name: acc.name, brand: acc.brand, description: acc.description,
+                article_number: acc.articleNumber, category: acc.category,
+                size: acc.size ?? null, stock: acc.stock, reorder_qty: acc.reorderQty,
+                cost: acc.cost, selling_price: acc.sellingPrice, vendor: acc.vendor,
+            }).eq('id', acc.id).eq('dealership_id', dealershipId)
+            setAccessories(prev => prev.map(a => a.id === acc.id ? acc : a))
+        }
+        emit({ type: 'data:refresh' })
+    }, [])
+
+    const deleteItem = useCallback(async (id: string) => {
+        const dealershipId = getDealershipId()
+        const table = id.startsWith('MC-') ? 'motorcycles'
+                    : id.startsWith('SP-') ? 'spare_parts'
+                    : 'accessories'
+        await supabase.from(table).delete().eq('id', id).eq('dealership_id', dealershipId)
+        setMotorcycles(prev => prev.filter(m => m.id !== id))
+        setSpareParts (prev => prev.filter(s => s.id !== id))
+        setAccessories(prev => prev.filter(a => a.id !== id))
+        emit({ type: 'data:refresh' })
     }, [])
 
     /**
@@ -219,7 +294,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
     )
 
     return (
-        <InventoryContext.Provider value={{ motorcycles, spareParts, accessories, autoPOs, loading, updateStock, addItem }}>
+        <InventoryContext.Provider value={{ motorcycles, spareParts, accessories, autoPOs, loading, updateStock, addItem, updateItem, deleteItem }}>
             {children}
         </InventoryContext.Provider>
     )

@@ -81,6 +81,8 @@ export default function IntegrationsSettingsPage() {
   const [integrationStates, setIntegrationStates] = useState<Record<string, IntegrationState>>({});
   const [showPasswords,    setShowPasswords]    = useState<Record<string, boolean>>({});
   const [restartBanner,    setRestartBanner]    = useState(false);
+  const [zapierToken,      setZapierToken]      = useState<string | null>(null);
+  const [zapierCopied,     setZapierCopied]     = useState(false);
 
   useEffect(() => {
     const raw = localStorage.getItem('user');
@@ -97,6 +99,19 @@ export default function IntegrationsSettingsPage() {
     setDealerId(id);
     setDealerName(name);
     loadConfig(id, name);
+
+    // Load Zapier token for this dealership
+    const { getDealershipId } = await import('@/lib/tenant');
+    const { supabase }        = await import('@/lib/supabase');
+    const dealershipId        = getDealershipId();
+    if (dealershipId) {
+      const { data } = await supabase
+        .from('dealerships')
+        .select('zapier_token')
+        .eq('id', dealershipId)
+        .single();
+      if (data?.zapier_token) setZapierToken(data.zapier_token);
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadConfig = useCallback(async (id: string, name: string) => {
@@ -290,6 +305,58 @@ export default function IntegrationsSettingsPage() {
               <button onClick={() => setRestartBanner(false)} className="text-amber-400 hover:text-amber-700 text-lg leading-none shrink-0">×</button>
             </div>
           )}
+
+          {/* ── Zapier / Email Automation card ──────────────────────────── */}
+          {zapierToken && (() => {
+            const origin   = typeof window !== 'undefined' ? window.location.origin : ''
+            const zapierUrl = `${origin}/api/goods-receipt?token=${zapierToken}`
+            return (
+              <div className="bg-white border border-gray-200 rounded-2xl p-5 mb-6 animate-fade-up">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-xl shrink-0">⚡</div>
+                  <div>
+                    <p className="text-sm font-bold text-gray-900">Zapier — Delivery Note Automation</p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      Paste your unique webhook URL into Zapier to auto-capture delivery notes from email and update your stock.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-3 flex items-center gap-3">
+                  <code className="flex-1 text-xs font-mono text-orange-600 break-all">{zapierUrl}</code>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(zapierUrl);
+                      setZapierCopied(true);
+                      setTimeout(() => setZapierCopied(false), 2000);
+                    }}
+                    className="shrink-0 px-3 py-1.5 text-xs font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"
+                  >
+                    {zapierCopied ? '✓ Copied!' : 'Copy URL'}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3 text-xs text-gray-600">
+                  {[
+                    { step: '1', label: 'Trigger', desc: 'Gmail / Outlook — New Email matching "delivery note"' },
+                    { step: '2', label: 'Action', desc: 'Webhooks by Zapier → POST → paste your URL above' },
+                    { step: '3', label: 'Body field', desc: 'pdf_base64 = file contents (base64) from email attachment' },
+                  ].map(s => (
+                    <div key={s.step} className="bg-gray-50 rounded-xl p-3">
+                      <div className="w-5 h-5 bg-orange-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center mb-1.5">{s.step}</div>
+                      <p className="font-semibold text-gray-700 mb-0.5">{s.label}</p>
+                      <p className="text-gray-400 leading-relaxed">{s.desc}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <p className="text-[10px] text-gray-400 mt-3">
+                  🔒 This URL is unique to your dealership — keep it private. Stock updates only affect your account.
+                  If compromised, contact support to regenerate your token.
+                </p>
+              </div>
+            )
+          })()}
 
           {/* Integration categories */}
           {CATEGORIES.map(category => {

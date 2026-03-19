@@ -69,10 +69,19 @@ export function AddSupplierModal({
         onClose()
     }
 
+    const isDirty = Object.values(form).some((v) => v.trim() !== '')
+
+    function handleBackdropClick() {
+        if (isDirty) {
+            if (!window.confirm('You have unsaved changes. Discard them and close?')) return
+        }
+        onClose()
+    }
+
     return (
         <div
             className="fixed inset-0 z-60 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
-            onClick={onClose}
+            onClick={handleBackdropClick}
         >
             <div
                 className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden"
@@ -103,7 +112,7 @@ export function AddSupplierModal({
                         </div>
                     </div>
                     <button
-                        onClick={onClose}
+                        onClick={handleBackdropClick}
                         className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors text-sm font-bold shrink-0"
                     >
                         ✕
@@ -130,7 +139,7 @@ export function AddSupplierModal({
                             </button>
                         ) : (
                             <button
-                                onClick={onClose}
+                                onClick={handleBackdropClick}
                                 className="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg transition-colors"
                             >
                                 Cancel

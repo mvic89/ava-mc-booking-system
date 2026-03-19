@@ -108,3 +108,4 @@ export default function LanguageSwitcher({ variant = 'default' }: LanguageSwitch
     </div>
   );
 }
+

@@ -56,6 +56,21 @@ export function PurchaseInvoiceModal({ invoice, poIds, onClose, onSave, onDelete
     const vendorNames = Object.keys(vendorDetails).sort()
     const isLocked = !isNew && (status === 'Paid')
 
+    const isDirty = isNew
+        ? supplierInvoiceNumber !== '' || vendor !== '' || dueDate !== '' || amount !== 0 || notes !== ''
+        : supplierInvoiceNumber !== (invoice?.supplierInvoiceNumber ?? '') ||
+          vendor !== (invoice?.vendor ?? '') ||
+          dueDate !== (invoice?.dueDate ?? '') ||
+          amount !== (invoice?.amount ?? 0) ||
+          notes !== (invoice?.notes ?? '')
+
+    function handleBackdropClick() {
+        if (isDirty) {
+            if (!window.confirm('You have unsaved changes. Discard them and close?')) return
+        }
+        onClose()
+    }
+
     function handleSave() {
         if (!supplierInvoiceNumber.trim() || !vendor || !invoiceDate || !dueDate || amount <= 0) return
         onSave({
@@ -72,8 +87,8 @@ export function PurchaseInvoiceModal({ invoice, poIds, onClose, onSave, onDelete
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={handleBackdropClick}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
 
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
@@ -85,7 +100,7 @@ export function PurchaseInvoiceModal({ invoice, poIds, onClose, onSave, onDelete
                             <p className="text-xs text-gray-400 mt-0.5">Supplier invoice from {invoice!.vendor}</p>
                         )}
                     </div>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+                    <button onClick={handleBackdropClick} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
                 </div>
 
                 {/* Body */}
@@ -228,7 +243,7 @@ export function PurchaseInvoiceModal({ invoice, poIds, onClose, onSave, onDelete
                     {/* Cancel / Save */}
                     <div className="flex gap-2 ml-auto">
                         <button
-                            onClick={onClose}
+                            onClick={handleBackdropClick}
                             className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50"
                         >Cancel</button>
                         <button

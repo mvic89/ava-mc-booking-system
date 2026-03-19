@@ -2,59 +2,25 @@
 
 import { useMemo, useState, useEffect } from 'react'
 import { useInventory }  from '@/context/InventoryContext'
-import { vendorDetails } from '@/data/vendors'
 import { historicalPOs } from '@/data/purchaseOrders'
 import { POModal, STATUS_STYLE, formatCurrency, qtyKey } from '@/components/POModal'
 import { SupplierRow, CATEGORY_STYLE } from '@/components/SupplierFormShared'
-import { AddSupplierModal }     from '@/components/AddSupplierModal'
-import { SupplierDetailModal }  from '@/components/SupplierDetailModal'
-import { BaseInventoryItem, POLineItem, POStatus, PurchaseOrder } from '@/utils/types'
+import { AddSupplierModal }       from '@/components/AddSupplierModal'
+import { SupplierDetailModal }    from '@/components/SupplierDetailModal'
+import { ImportSuppliersModal }   from '@/components/ImportSuppliersModal'
+import { POLineItem, POStatus, PurchaseOrder } from '@/utils/types'
 import { supabase } from '@/lib/supabase'
+import { getDealershipId, getDealershipTag } from '@/lib/tenant'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const STATUS_ORDER = ['Under Review', 'Draft', 'Reviewed', 'Sent', 'Received']
+const STATUS_ORDER = ['Draft', 'Reviewed', 'Sent', 'Received']
 
 function supNum(n: number) {
-    return `SUP-${String(n).padStart(3, '0')}`
+    const tag = getDealershipTag()
+    return `SUP-${tag}-${String(n).padStart(3, '0')}`
 }
 
-// ─── Build supplier rows from inventory ───────────────────────────────────────
-
-function buildSuppliers(
-    motorcycles: BaseInventoryItem[],
-    spareParts:  BaseInventoryItem[],
-    accessories: BaseInventoryItem[],
-): Omit<SupplierRow, 'supplierNumber'>[] {
-    const map = new Map<string, Omit<SupplierRow, 'supplierNumber'>>()
-
-    function absorb(items: BaseInventoryItem[], category: string) {
-        for (const item of items) {
-            const detail   = vendorDetails[item.vendor]
-            const existing = map.get(item.vendor) ?? {
-                name:                  item.vendor,
-                address:               detail?.address               ?? '—',
-                phone:                 detail?.phone                 ?? '—',
-                orgNumber:             detail?.orgNumber             ?? '—',
-                itemCount:             0,
-                categories:            [],
-                lowStockCount:         0,
-                hasDetails:            !!detail,
-                freeShippingThreshold: detail?.freeShippingThreshold,
-            }
-            existing.itemCount++
-            if (!existing.categories.includes(category)) existing.categories.push(category)
-            if (item.stock <= item.reorderQty) existing.lowStockCount++
-            map.set(item.vendor, existing)
-        }
-    }
-
-    absorb(motorcycles, 'Motorcycles')
-    absorb(spareParts,  'Spare Parts')
-    absorb(accessories, 'Accessories')
-
-    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name))
-}
 
 // ─── Summary cards ────────────────────────────────────────────────────────────
 
@@ -190,6 +156,11 @@ function SupplierPOListModal({
 
 export default function SuppliersPage() {
     const { autoPOs, motorcycles, spareParts, accessories } = useInventory()
+    // SKU counts per supplier (computed from inventory, not used to auto-generate rows)
+    const inventoryItems = useMemo(
+        () => [...motorcycles, ...spareParts, ...accessories],
+        [motorcycles, spareParts, accessories],
+    )
 
     const [search,          setSearch]          = useState('')
     const [detailSupplier,  setDetailSupplier]  = useState<SupplierRow | null>(null)
@@ -197,6 +168,7 @@ export default function SuppliersPage() {
     const [selectedPO,      setSelectedPO]      = useState<PurchaseOrder | null>(null)
     const [qtyOverrides,      setQtyOverrides]      = useState<Record<string, number>>({})
     const [showAddSupplier,   setShowAddSupplier]   = useState(false)
+    const [showImportModal,   setShowImportModal]   = useState(false)
     const [manualSuppliers,   setManualSuppliers]   = useState<SupplierRow[]>([])
     const [supplierEdits,     setSupplierEdits]     = useState<Record<string, Partial<SupplierRow>>>({})
     const [poStatusOverrides, setPoStatusOverrides] = useState<Record<string, POStatus>>({})
@@ -209,27 +181,23 @@ export default function SuppliersPage() {
     )
     const autoIds = useMemo(() => new Set(autoPOs.map((p) => p.id)), [autoPOs])
 
-    const inventorySuppliers = useMemo(
-        () => buildSuppliers(motorcycles, spareParts, accessories),
-        [motorcycles, spareParts, accessories],
-    )
-
+    // Suppliers only come from Supabase (imported or manually added — never auto-generated)
     const suppliers = useMemo<SupplierRow[]>(() => {
-        const inventoryNames = new Set(inventorySuppliers.map((s) => s.name))
-        const uniqueManual   = manualSuppliers.filter((m) => !inventoryNames.has(m.name))
-        const numberedInv: SupplierRow[] = inventorySuppliers.map((s, i) => ({
-            ...s,
-            ...(supplierEdits[s.name] ?? {}),
-            supplierNumber: supNum(i + 1),
-        }))
-        const editedManual: SupplierRow[] = uniqueManual.map((m) => ({
-            ...m,
-            ...(supplierEdits[m.name] ?? {}),
-        }))
-        return [...numberedInv, ...editedManual]
-    }, [inventorySuppliers, manualSuppliers, supplierEdits])
+        return manualSuppliers.map((s, i) => {
+            const items       = inventoryItems.filter((item) => item.vendor === s.name)
+            const itemCount   = items.length
+            const lowStockCount = items.filter((item) => item.stock <= item.reorderQty).length
+            return {
+                ...s,
+                ...(supplierEdits[s.name] ?? {}),
+                itemCount,
+                lowStockCount,
+                supplierNumber: s.supplierNumber || supNum(i + 1),
+            }
+        })
+    }, [manualSuppliers, supplierEdits, inventoryItems])
 
-    const nextSupplierNumber = supNum(inventorySuppliers.length + manualSuppliers.length + 1)
+    const nextSupplierNumber = supNum(manualSuppliers.length + 1)
 
     const filtered = useMemo(() => {
         const q = search.toLowerCase()
@@ -256,10 +224,14 @@ export default function SuppliersPage() {
     // ─── Load persisted data from Supabase on mount ───────────────────────────
     useEffect(() => {
         async function load() {
+            const dealershipId = getDealershipId()
+            if (!dealershipId) return
+
             // Load PO status overrides
             const { data: poData } = await supabase
                 .from('purchase_orders')
                 .select('id, status')
+                .eq('dealership_id', dealershipId)
             if (poData && poData.length > 0) {
                 const overrides: Record<string, POStatus> = {}
                 for (const row of poData) {
@@ -272,24 +244,34 @@ export default function SuppliersPage() {
             const { data: vendorData } = await supabase
                 .from('vendors')
                 .select('*')
+                .eq('dealership_id', dealershipId)
             if (vendorData && vendorData.length > 0) {
                 const edits: Record<string, Partial<SupplierRow>> = {}
                 const manual: SupplierRow[] = []
                 for (const row of vendorData) {
                     const { name, is_manual, supplier_number, ...rest } = row
                     edits[name] = {
-                        address:               rest.address,
-                        phone:                 rest.phone,
-                        orgNumber:             rest.org_number,
-                        freeShippingThreshold: rest.free_shipping_threshold,
+                        address:               rest.address               ?? undefined,
+                        phone:                 rest.phone                 ?? undefined,
+                        orgNumber:             rest.org_number            ?? undefined,
+                        email:                 rest.email                 ?? undefined,
+                        contactPerson:         rest.contact_person        ?? undefined,
+                        bankName:              rest.bank_name             ?? undefined,
+                        bankAccount:           rest.bank_account          ?? undefined,
+                        freeShippingThreshold: rest.free_shipping_threshold ?? undefined,
+                        hasDetails:            true,
                     }
                     if (is_manual) {
                         manual.push({
                             name,
                             supplierNumber: supplier_number ?? '',
-                            address:        rest.address   ?? '—',
-                            phone:          rest.phone     ?? '—',
-                            orgNumber:      rest.org_number ?? '—',
+                            address:        rest.address        ?? '—',
+                            phone:          rest.phone          ?? '—',
+                            orgNumber:      rest.org_number     ?? '—',
+                            email:          rest.email          ?? undefined,
+                            contactPerson:  rest.contact_person ?? undefined,
+                            bankName:       rest.bank_name      ?? undefined,
+                            bankAccount:    rest.bank_account   ?? undefined,
                             itemCount:      0,
                             categories:     rest.categories ?? [],
                             lowStockCount:  0,
@@ -381,12 +363,13 @@ export default function SuppliersPage() {
         setDetailSupplier((prev) => (prev?.name === name ? { ...prev, ...updates } : prev))
         await supabase.from('vendors').upsert({
             name,
-            address:                updates.address,
-            phone:                  updates.phone,
-            org_number:             updates.orgNumber,
+            dealership_id:           getDealershipId(),
+            address:                 updates.address,
+            phone:                   updates.phone,
+            org_number:              updates.orgNumber,
             free_shipping_threshold: updates.freeShippingThreshold,
-            is_manual:              false,
-        }, { onConflict: 'name' })
+            is_manual:               false,
+        }, { onConflict: 'name,dealership_id' })
     }
 
     const supplierPOs = useMemo(
@@ -417,15 +400,23 @@ export default function SuppliersPage() {
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Suppliers</h1>
                         <p className="text-sm text-gray-400 mt-0.5">
-                            Click any row to view supplier details. All vendors matched from inventory.
+                            Click any row to view or edit supplier details.
                         </p>
                     </div>
-                    <button
-                        onClick={() => setShowAddSupplier(true)}
-                        className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
-                    >
-                        + Add Supplier
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setShowImportModal(true)}
+                            className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+                        >
+                            ⬆ Import Excel
+                        </button>
+                        <button
+                            onClick={() => setShowAddSupplier(true)}
+                            className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                        >
+                            + Add Supplier
+                        </button>
+                    </div>
                 </div>
 
                 <SummaryCards suppliers={suppliers} />
@@ -433,10 +424,26 @@ export default function SuppliersPage() {
                 {/* Supplier table */}
                 <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                     {filtered.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-40 text-gray-400">
-                            <span className="text-3xl mb-2">🔍</span>
-                            <p className="text-sm">No suppliers match your search</p>
-                        </div>
+                        suppliers.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-64 gap-4">
+                                <span className="text-5xl">🏭</span>
+                                <div className="text-center">
+                                    <p className="text-gray-700 font-semibold">No suppliers yet</p>
+                                    <p className="text-gray-400 text-sm mt-1">Import from Excel or add suppliers one by one</p>
+                                </div>
+                                <button
+                                    onClick={() => setShowImportModal(true)}
+                                    className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors flex items-center gap-2"
+                                >
+                                    ⬆ Import from Excel
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center h-40 text-gray-400">
+                                <span className="text-3xl mb-2">🔍</span>
+                                <p className="text-sm">No suppliers match your search</p>
+                            </div>
+                        )
                     ) : (
                         <table className="w-full text-sm">
                             <thead>
@@ -498,7 +505,12 @@ export default function SuppliersPage() {
                                                 </div>
                                             </td>
                                             <td className="px-4 py-3.5">
-                                                {s.lowStockCount > 0 ? (
+                                                {s.itemCount === 0 ? (
+                                                    <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-400 text-xs px-2.5 py-1 rounded-full font-medium">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0" />
+                                                        No inventory
+                                                    </span>
+                                                ) : s.lowStockCount > 0 ? (
                                                     <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-medium">
                                                         <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
                                                         {s.lowStockCount} low stock
@@ -519,6 +531,43 @@ export default function SuppliersPage() {
                 </div>
             </div>
 
+            {/* Import Suppliers modal */}
+            {showImportModal && (
+                <ImportSuppliersModal
+                    nextSupplierNumber={nextSupplierNumber}
+                    existingCount={suppliers.length}
+                    onImported={(newSuppliers) => {
+                        // Apply details to inventory-derived suppliers immediately
+                        setSupplierEdits((prev) => {
+                            const next = { ...prev }
+                            for (const s of newSuppliers) {
+                                next[s.name] = {
+                                    ...(prev[s.name] ?? {}),
+                                    address:               s.address,
+                                    phone:                 s.phone,
+                                    orgNumber:             s.orgNumber,
+                                    email:                 s.email,
+                                    contactPerson:         s.contactPerson,
+                                    bankName:              s.bankName,
+                                    bankAccount:           s.bankAccount,
+                                    freeShippingThreshold: s.freeShippingThreshold,
+                                    hasDetails:            true,
+                                }
+                            }
+                            return next
+                        })
+                        // Add any suppliers that aren't already inventory-derived
+                        setManualSuppliers((prev) => {
+                            const existingNames = new Set(prev.map((s) => s.name))
+                            const fresh = newSuppliers.filter((s) => !existingNames.has(s.name))
+                            return [...prev, ...fresh]
+                        })
+                        // Modal stays open to show success screen; user clicks Close → onClose fires
+                    }}
+                    onClose={() => setShowImportModal(false)}
+                />
+            )}
+
             {/* Add Supplier modal — see components/AddSupplierModal.tsx */}
             {showAddSupplier && (
                 <AddSupplierModal
@@ -527,6 +576,7 @@ export default function SuppliersPage() {
                         setManualSuppliers((prev) => [...prev, s])
                         await supabase.from('vendors').upsert({
                             name:                    s.name,
+                            dealership_id:           getDealershipId(),
                             address:                 s.address,
                             phone:                   s.phone,
                             org_number:              s.orgNumber,
@@ -534,7 +584,7 @@ export default function SuppliersPage() {
                             supplier_number:         s.supplierNumber,
                             categories:              s.categories,
                             is_manual:               true,
-                        }, { onConflict: 'name' })
+                        }, { onConflict: 'name,dealership_id' })
                     }}
                     onClose={() => setShowAddSupplier(false)}
                 />
@@ -573,6 +623,7 @@ export default function SuppliersPage() {
                     onSent={() => handleSentPO(selectedPO.id)}
                     zIndex="z-60"
                     freeShippingThreshold={poListSupplier?.freeShippingThreshold}
+                    vendorEmailOverride={supplierEdits[selectedPO.vendor]?.email ?? poListSupplier?.email}
                 />
             )}
         </div>
