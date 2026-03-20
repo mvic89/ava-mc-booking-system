@@ -8,11 +8,12 @@ import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
 import PhoneInput from '@/components/PhoneInput';
 import { notify } from '@/lib/notifications';
+import { createInvoice, markInvoicePaid } from '@/lib/invoices';
+import { convertLeadToCustomer, upsertCustomerFromLead } from '@/lib/leads';
 import { emit } from '@/lib/realtime';
 import { getDealerInfo } from '@/lib/dealer';
 import { getSupabaseBrowser } from '@/lib/supabase';
 import { getDealershipId } from '@/lib/tenant';
-import { toast } from 'sonner';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -145,42 +146,61 @@ export default function AgreementPaymentPage() {
   // Cleanup on unmount
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
 
-  // ── Shared helper: call the server-side route to persist customer + invoice ───
-  async function recordPayment(status: 'pending' | 'paid') {
-    const dealershipId = getDealershipId();
-    if (!dealershipId) {
-      toast.error('Sessionen har gått ut — logga in igen');
-      return;
-    }
-    const res = await fetch('/api/payment/record', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        leadId:        id,
-        dealershipId,
-        status,
-        paymentMethod: selected?.name ?? '—',
-        vehicle:       deal.vehicle,
-        customerName:  deal.customer,
-        agreementRef:  deal.agreementId,
-        totalAmount:   deal.amountSek,
-      }),
-    });
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      console.error('[payment/record] API error:', body);
-      toast.error('Kunde inte spara betalning', { description: body.error ?? res.statusText });
-    } else {
-      emit({ type: 'data:refresh' });
-    }
-  }
-
-  // Fire notification + persist paid invoice once when payment succeeds
+  // Fire notification + create/mark invoice once when payment succeeds
   useEffect(() => {
     if (flowStep !== 'success') return;
     const paymentMethod = selected?.name ?? '—';
+    const vatAmount     = Math.round(deal.amountSek - deal.amountSek / 1.25);
 
-    recordPayment('paid');
+    // Convert lead → customer (finds or creates), then create invoice linked to that customer
+    convertLeadToCustomer(Number(id))
+      .then(async ({ customerId }) => {
+        // Resolve canonical customer name from customers table (so invoice matches Supabase record)
+        let customerName = deal.customer;
+        if (customerId) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const sb = getSupabaseBrowser() as any;
+          const dealershipId = getDealershipId();
+          const { data: cust } = await sb
+            .from('customers')
+            .select('first_name, last_name')
+            .eq('id', customerId)
+            .eq('dealership_id', dealershipId)
+            .maybeSingle();
+          if (cust) customerName = `${cust.first_name} ${cust.last_name}`.trim();
+        }
+        return createInvoice({
+          leadId:        id,
+          customerId:    customerId ?? undefined,
+          customerName,
+          vehicle:       deal.vehicle,
+          agreementRef:  deal.agreementId,
+          totalAmount:   deal.amountSek,
+          vatAmount,
+          netAmount:     deal.amountSek - vatAmount,
+          paymentMethod,
+          status:        'paid',
+          paidDate:      new Date().toISOString(),
+        });
+      })
+      .catch(() => {
+        // Customer conversion failed — still create invoice with lead name as fallback
+        createInvoice({
+          leadId:        id,
+          customerName:  deal.customer,
+          vehicle:       deal.vehicle,
+          agreementRef:  deal.agreementId,
+          totalAmount:   deal.amountSek,
+          vatAmount,
+          netAmount:     deal.amountSek - vatAmount,
+          paymentMethod,
+          status:        'paid',
+          paidDate:      new Date().toISOString(),
+        });
+      });
+
+    // Also mark any pending invoice for this lead as paid (in case one was pre-created)
+    markInvoicePaid(id, paymentMethod);
 
     emit({ type: 'payment:received', payload: { leadId: id, amount: deal.amountSek, method: paymentMethod } });
     notify('paymentReceived', {
@@ -195,7 +215,36 @@ export default function AgreementPaymentPage() {
   // Create pending invoice + ensure customer exists as soon as payment is initiated
   useEffect(() => {
     if (flowStep !== 'waiting') return;
-    recordPayment('pending');
+    const vatAmount = Math.round(deal.amountSek - deal.amountSek / 1.25);
+    const method    = selected?.name ?? '—';
+
+    async function handlePending() {
+      // 1. Ensure the customer record exists (without closing the lead)
+      let customerId: number | undefined;
+      try {
+        const result = await upsertCustomerFromLead(Number(id));
+        customerId = result.customerId ?? undefined;
+      } catch { /* best-effort */ }
+
+      // 2. Create a pending invoice so it appears in the invoices list immediately
+      try {
+        await createInvoice({
+          leadId:        id,
+          customerId,
+          customerName:  deal.customer,
+          vehicle:       deal.vehicle,
+          agreementRef:  deal.agreementId,
+          totalAmount:   deal.amountSek,
+          vatAmount,
+          netAmount:     deal.amountSek - vatAmount,
+          paymentMethod: method,
+          status:        'pending',
+        });
+        emit({ type: 'data:refresh' });
+      } catch { /* best-effort */ }
+    }
+
+    handlePending();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flowStep]);
 

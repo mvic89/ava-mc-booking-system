@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import PasswordInput from '@/components/PasswordInput';
 import { useRouter } from 'next/navigation';
@@ -266,125 +265,148 @@ export default function LoginPage() {
     }
   };
 
+  const features = [
+    { icon: '⚡', label: t('login.branding.zeroInput'),  desc: t('login.branding.zeroInputDesc') },
+    { icon: '🔒', label: t('login.branding.secured'),    desc: t('login.branding.securedDesc')   },
+    { icon: '📊', label: t('login.branding.analytics'),  desc: t('login.branding.analyticsDesc') },
+    { icon: '🏍',  label: t('login.branding.dealers'),   desc: t('login.branding.dealersDesc')   },
+  ];
+
+  const stats = [
+    { value: '47+',   label: 'Dealers'  },
+    { value: '4.9★',  label: 'Rating'   },
+    { value: '99.9%', label: 'Uptime'   },
+  ];
+
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
-      {/* Left Side - Branding */}
-      <div className="hidden md:flex md:w-[45%] bg-[#0f1f2e] text-white p-8 lg:p-16 flex-col justify-between">
-        <div>
-          <div className="bg-white rounded-2xl px-4 py-2 inline-block mb-4">
-            <Image src="/BikeMeNow_logo_test.png" alt="BikeMeNow" width={200} height={64} className="h-16 w-auto object-contain" unoptimized />
+
+      {/* ── Left panel — dark hero ─────────────────────────────────────────── */}
+      <div className="hidden md:flex md:w-[48%] bg-[#0a1628] text-white flex-col justify-between p-10 lg:p-14 relative overflow-hidden">
+        {/* Ambient glow */}
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#FF6B2C] opacity-[0.08] rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-blue-600 opacity-[0.06] rounded-full blur-3xl pointer-events-none" />
+
+        {/* Logo mark */}
+        <div className="flex items-center gap-3 relative z-10">
+          <div className="w-9 h-9 rounded-xl bg-[#FF6B2C] flex items-center justify-center shrink-0">
+            <span className="text-white font-black text-lg leading-none">B</span>
           </div>
-          <p className="text-slate-300 text-lg mb-12">{t('login.branding.tagline')}</p>
+          <span className="text-white font-bold text-xl tracking-tight">BikeMeNow</span>
+        </div>
 
-          <div className="space-y-8">
-            <div className="flex items-start gap-4">
-              <div className="text-3xl">🚀</div>
-              <div>
-                <h3 className="text-xl font-bold mb-2">{t('login.branding.zeroInput')}</h3>
-                <p className="text-slate-400">{t('login.branding.zeroInputDesc')}</p>
-              </div>
-            </div>
+        {/* Hero copy */}
+        <div className="relative z-10 my-auto">
+          <h1 className="text-4xl lg:text-5xl font-black leading-[1.1] mb-4">
+            Run your dealership.<br />
+            <span className="text-[#FF6B2C]">Smarter, faster.</span>
+          </h1>
+          <p className="text-slate-400 text-lg mb-12 max-w-sm leading-relaxed">
+            {t('login.branding.tagline')}
+          </p>
 
-            <div className="flex items-start gap-4">
-              <div className="text-3xl">🔒</div>
-              <div>
-                <h3 className="text-xl font-bold mb-2">{t('login.branding.secured')}</h3>
-                <p className="text-slate-400">{t('login.branding.securedDesc')}</p>
+          <div className="space-y-5">
+            {features.map(f => (
+              <div key={f.label} className="flex items-start gap-4">
+                <div className="w-9 h-9 rounded-lg bg-white/[0.06] border border-white/10 flex items-center justify-center text-lg shrink-0">
+                  {f.icon}
+                </div>
+                <div>
+                  <p className="font-semibold text-sm text-white">{f.label}</p>
+                  <p className="text-slate-400 text-xs leading-relaxed">{f.desc}</p>
+                </div>
               </div>
-            </div>
+            ))}
+          </div>
 
-            <div className="flex items-start gap-4">
-              <div className="text-3xl">📊</div>
-              <div>
-                <h3 className="text-xl font-bold mb-2">{t('login.branding.analytics')}</h3>
-                <p className="text-slate-400">{t('login.branding.analyticsDesc')}</p>
+          {/* Social proof */}
+          <div className="flex gap-8 mt-12">
+            {stats.map(s => (
+              <div key={s.label}>
+                <p className="text-2xl font-black text-white">{s.value}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{s.label}</p>
               </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="text-3xl">🏍</div>
-              <div>
-                <h3 className="text-xl font-bold mb-2">{t('login.branding.dealers')}</h3>
-                <p className="text-slate-400">{t('login.branding.dealersDesc')}</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
-        <div className="text-sm text-slate-500">
-          <p>{t('login.branding.copyright')}</p>
-          <p>{t('login.branding.security')}</p>
-        </div>
+        {/* Footer */}
+        <p className="text-xs text-slate-600 relative z-10">{t('login.branding.copyright')}</p>
       </div>
 
-      {/* Right Side - Login Form */}
-      <div className="flex-1 bg-[#f5f7fa] flex items-center justify-center p-6 md:p-12 relative">
-        {/* Language Switcher */}
+      {/* ── Right panel — login form ───────────────────────────────────────── */}
+      <div className="flex-1 bg-[#f8fafc] flex items-center justify-center p-6 md:p-12 relative">
+
+        {/* Language switcher */}
         <div className="absolute top-4 right-4 md:top-6 md:right-6">
           <LanguageSwitcher variant="compact" />
         </div>
 
-        {/* Mobile Logo */}
-        <div className="md:hidden absolute top-4 left-4">
-          <div className="bg-white rounded-lg p-0.5">
-            <Image src="/BikeMeNow_logo_test.png" alt="BikeMeNow" width={100} height={24} className="h-6 w-auto object-contain" unoptimized />
+        {/* Mobile wordmark */}
+        <div className="md:hidden absolute top-4 left-4 flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-[#FF6B2C] flex items-center justify-center">
+            <span className="text-white font-black text-sm leading-none">B</span>
           </div>
+          <span className="font-bold text-slate-900 text-sm">BikeMeNow</span>
         </div>
 
         <div className="w-full max-w-md mt-12 md:mt-0">
-          <div className="text-center mb-6 md:mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">{t('login.title')}</h2>
-            <p className="text-sm md:text-base text-slate-600">{t('login.subtitle')}</p>
+          {/* Heading */}
+          <div className="mb-8">
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-1">{t('login.title')}</h2>
+            <p className="text-slate-500 text-sm">{t('login.subtitle')}</p>
           </div>
 
-          {/* BankID Sign In */}
+          {/* BankID */}
           <button
             onClick={() => setShowBankID(true)}
             disabled={loading}
-            className="w-full bg-[#235971] text-white py-3.5 rounded-lg font-semibold mb-2 hover:bg-[#1a4557] transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+            className="w-full bg-[#1a3a4a] hover:bg-[#142e3a] active:scale-[0.99] text-white py-3.5 rounded-xl font-semibold mb-1.5 transition-all flex items-center justify-center gap-2.5 disabled:opacity-60 shadow-sm"
           >
-            <span className="text-xl">🆔</span>
+            <span className="text-lg">🆔</span>
             {t('login.signInWithBankID')}
           </button>
-          <p className="text-center text-xs text-slate-500 mb-6">
+          <p className="text-center text-[11px] text-slate-400 mb-6 font-medium tracking-wide uppercase">
             {t('login.recommended')}
           </p>
 
           {/* Divider */}
           <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-300"></div>
+              <div className="w-full border-t border-slate-200" />
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-[#f5f7fa] text-slate-500">{t('login.or')}</span>
+            <div className="relative flex justify-center">
+              <span className="px-3 bg-[#f8fafc] text-[11px] text-slate-400 font-semibold uppercase tracking-widest">
+                {t('login.or')}
+              </span>
             </div>
           </div>
 
-          {/* Error banner */}
+          {/* Error */}
           {loginError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            <div className="mb-5 p-3.5 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
               {loginError}
             </div>
           )}
 
-          {/* Email/Password Form */}
+          {/* Form */}
           <form onSubmit={handleEmailLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">
                 {t('login.emailAddress')}
               </label>
               <input
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-[#FF6B2C] focus:ring-2 focus:ring-[#FF6B2C]/20 outline-none text-slate-900 placeholder:text-slate-300 transition-all"
                 placeholder="namn@aterforsaljare.se"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">
                 {t('login.password')}
               </label>
               <PasswordInput
@@ -395,17 +417,17 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2">
+            <div className="flex items-center justify-between pt-0.5">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={formData.rememberDevice}
                   onChange={(e) => setFormData({ ...formData, rememberDevice: e.target.checked })}
-                  className="w-4 h-4 text-green-600 border-slate-300 rounded focus:ring-green-500"
+                  className="w-4 h-4 accent-[#FF6B2C] border-slate-300 rounded"
                 />
-                <span className="text-sm text-slate-700">{t('login.rememberDevice')}</span>
+                <span className="text-sm text-slate-600">{t('login.rememberDevice')}</span>
               </label>
-              <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:underline">
+              <Link href="/auth/forgot-password" className="text-sm text-[#FF6B2C] font-semibold hover:underline">
                 {t('login.forgotPassword')}
               </Link>
             </div>
@@ -413,19 +435,19 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#FF6B2C] text-white py-3 rounded-lg font-semibold hover:bg-[#e55a1f] transition-colors disabled:opacity-60"
+              className="w-full bg-[#FF6B2C] hover:bg-[#e55a1f] active:scale-[0.99] text-white py-3.5 rounded-xl font-bold transition-all disabled:opacity-60 shadow-sm mt-1"
             >
               {loading ? 'Signing in…' : t('login.signIn')}
             </button>
           </form>
 
-          <p className="text-center text-sm text-slate-600 mt-6">
+          <p className="text-center text-xs text-slate-400 mt-5">
             {t('login.security')}
           </p>
 
-          <p className="text-center text-sm text-slate-600 mt-8">
+          <p className="text-center text-sm text-slate-500 mt-8">
             {t('login.noAccount')}{' '}
-            <Link href="/auth/signup" className="text-[#FF6B2C] font-semibold hover:underline">
+            <Link href="/auth/signup" className="text-[#FF6B2C] font-bold hover:underline">
               Start free trial →
             </Link>
           </p>
