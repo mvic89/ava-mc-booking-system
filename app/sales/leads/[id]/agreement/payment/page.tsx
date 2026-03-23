@@ -8,7 +8,6 @@ import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
 import PhoneInput from '@/components/PhoneInput';
 import { notify } from '@/lib/notifications';
-import { createInvoice, markInvoicePaid } from '@/lib/invoices';
 import { convertLeadToCustomer, upsertCustomerFromLead } from '@/lib/leads';
 import { emit } from '@/lib/realtime';
 import { getDealerInfo } from '@/lib/dealer';
@@ -146,16 +145,51 @@ export default function AgreementPaymentPage() {
   // Cleanup on unmount
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
 
-  // Fire notification + create/mark invoice once when payment succeeds
+  // ── Server-side invoice helper (uses service-role to bypass RLS) ─────────────
+  async function postInvoice(opts: {
+    customerId?:   number | null;
+    customerName:  string;
+    paymentMethod: string;
+    status:        'pending' | 'paid';
+    paidDate?:     string;
+  }) {
+    const dealershipId = getDealershipId();
+    if (!dealershipId) return;
+    try {
+      const res = await fetch('/api/invoice/create', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dealershipId,
+          leadId:        id,
+          customerId:    opts.customerId ?? null,
+          customerName:  opts.customerName,
+          vehicle:       deal.vehicle,
+          agreementRef:  deal.agreementId,
+          totalAmount:   deal.amountSek,
+          paymentMethod: opts.paymentMethod,
+          status:        opts.status,
+          paidDate:      opts.paidDate,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        console.error('[payment] postInvoice server error:', res.status, body);
+      }
+    } catch (err) {
+      console.error('[payment] postInvoice network error:', err);
+    }
+  }
+
+  // Fire notification + create invoice once when payment succeeds
   useEffect(() => {
     if (flowStep !== 'success') return;
     const paymentMethod = selected?.name ?? '—';
-    const vatAmount     = Math.round(deal.amountSek - deal.amountSek / 1.25);
 
-    // Convert lead → customer (finds or creates), then create invoice linked to that customer
+    // Convert lead → customer (finds or creates) — unchanged, working
     convertLeadToCustomer(Number(id))
       .then(async ({ customerId }) => {
-        // Resolve canonical customer name from customers table (so invoice matches Supabase record)
+        // Resolve canonical customer name from customers table
         let customerName = deal.customer;
         if (customerId) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -169,38 +203,15 @@ export default function AgreementPaymentPage() {
             .maybeSingle();
           if (cust) customerName = `${cust.first_name} ${cust.last_name}`.trim();
         }
-        return createInvoice({
-          leadId:        id,
-          customerId:    customerId ?? undefined,
-          customerName,
-          vehicle:       deal.vehicle,
-          agreementRef:  deal.agreementId,
-          totalAmount:   deal.amountSek,
-          vatAmount,
-          netAmount:     deal.amountSek - vatAmount,
-          paymentMethod,
-          status:        'paid',
-          paidDate:      new Date().toISOString(),
-        });
+        // Create paid invoice via server route (service-role bypasses RLS)
+        await postInvoice({ customerId, customerName, paymentMethod, status: 'paid', paidDate: new Date().toISOString() });
+        emit({ type: 'data:refresh' });
       })
-      .catch(() => {
+      .catch(async () => {
         // Customer conversion failed — still create invoice with lead name as fallback
-        createInvoice({
-          leadId:        id,
-          customerName:  deal.customer,
-          vehicle:       deal.vehicle,
-          agreementRef:  deal.agreementId,
-          totalAmount:   deal.amountSek,
-          vatAmount,
-          netAmount:     deal.amountSek - vatAmount,
-          paymentMethod,
-          status:        'paid',
-          paidDate:      new Date().toISOString(),
-        });
+        await postInvoice({ customerName: deal.customer, paymentMethod, status: 'paid', paidDate: new Date().toISOString() });
+        emit({ type: 'data:refresh' });
       });
-
-    // Also mark any pending invoice for this lead as paid (in case one was pre-created)
-    markInvoicePaid(id, paymentMethod);
 
     emit({ type: 'payment:received', payload: { leadId: id, amount: deal.amountSek, method: paymentMethod } });
     notify('paymentReceived', {
@@ -215,8 +226,7 @@ export default function AgreementPaymentPage() {
   // Create pending invoice + ensure customer exists as soon as payment is initiated
   useEffect(() => {
     if (flowStep !== 'waiting') return;
-    const vatAmount = Math.round(deal.amountSek - deal.amountSek / 1.25);
-    const method    = selected?.name ?? '—';
+    const method = selected?.name ?? '—';
 
     async function handlePending() {
       // 1. Ensure the customer record exists (without closing the lead)
@@ -226,22 +236,9 @@ export default function AgreementPaymentPage() {
         customerId = result.customerId ?? undefined;
       } catch { /* best-effort */ }
 
-      // 2. Create a pending invoice so it appears in the invoices list immediately
-      try {
-        await createInvoice({
-          leadId:        id,
-          customerId,
-          customerName:  deal.customer,
-          vehicle:       deal.vehicle,
-          agreementRef:  deal.agreementId,
-          totalAmount:   deal.amountSek,
-          vatAmount,
-          netAmount:     deal.amountSek - vatAmount,
-          paymentMethod: method,
-          status:        'pending',
-        });
-        emit({ type: 'data:refresh' });
-      } catch { /* best-effort */ }
+      // 2. Create a pending invoice via server route so it appears in the invoices list
+      await postInvoice({ customerId, customerName: deal.customer, paymentMethod: method, status: 'pending' });
+      emit({ type: 'data:refresh' });
     }
 
     handlePending();
@@ -319,9 +316,37 @@ export default function AgreementPaymentPage() {
   };
 
   // Final: save to sessionStorage and navigate to complete
-  const handleConfirm = () => {
+  // Also ensures customer + paid invoice are created for ALL payment methods,
+  // including manual "Markera som betald" flows that never set flowStep='success'.
+  // The route deduplicates, so this is safe for polling-based flows too.
+  const handleConfirm = async () => {
     if (!selected) return;
     setConfirming(true);
+
+    const paymentMethod = selected.name;
+    const paidDate = new Date().toISOString();
+
+    try {
+      const { customerId } = await convertLeadToCustomer(Number(id));
+      let customerName = deal.customer;
+      if (customerId) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const sb = getSupabaseBrowser() as any;
+        const dealershipId = getDealershipId();
+        const { data: cust } = await sb
+          .from('customers')
+          .select('first_name, last_name')
+          .eq('id', customerId)
+          .eq('dealership_id', dealershipId)
+          .maybeSingle();
+        if (cust) customerName = `${cust.first_name} ${cust.last_name}`.trim();
+      }
+      await postInvoice({ customerId, customerName, paymentMethod, status: 'paid', paidDate });
+    } catch {
+      await postInvoice({ customerName: deal.customer, paymentMethod, status: 'paid', paidDate });
+    }
+    emit({ type: 'data:refresh' });
+
     sessionStorage.setItem('selectedPaymentMethod',
       JSON.stringify({ id: selected.id, name: selected.name, icon: selected.icon, category: selected.category }));
     setTimeout(() => router.push(`/sales/leads/${id}/agreement/complete`), 700);
