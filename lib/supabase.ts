@@ -18,7 +18,14 @@ export function getSupabaseBrowser() {
 // ── Named export — reuses the browser singleton so there is exactly one
 //    GoTrueClient instance per browser context (avoids the "Multiple GoTrueClient
 //    instances detected" warning and undefined auth behaviour).
-export const supabase = getSupabaseBrowser();
+// Guard: do NOT call createClient at module-load time on the server.  API routes
+// import this file and the module-level call would crash before any try-catch,
+// returning a non-JSON HTML 500 page (the "500 {}" symptom on Vercel).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const supabase: SupabaseClient<any> = typeof window !== 'undefined'
+  ? getSupabaseBrowser()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  : (null as unknown as SupabaseClient<any>);
 
 // ── Server / API-route client ─────────────────────────────────────────────────
 // A fresh client per call is fine on the server (no persistent connections needed).
