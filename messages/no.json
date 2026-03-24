@@ -703,6 +703,7 @@
       "customer": "Kunde:",
       "vehicle": "Kjøretøy:",
       "vin": "VIN:",
+      "registrationNumber": "Reg.nummer:",
       "accessories": "Tilbehør:",
       "tradeIn": "Innbytte:",
       "totalPrice": "Totalpris:",
@@ -719,6 +720,7 @@
       "personnummer": "Personnummer",
       "vehicleModel": "År Merke Modell",
       "vin": "17-tegns VIN",
+      "registrationNumber": "f.eks. ABC 123",
       "accessories": "f.eks. Akrapovic + Tankpute",
       "vehicleMakeModel": "Kjøretøymerke/-modell"
     },

@@ -21,21 +21,6 @@ interface SignedAgreement {
   dealer:   SignRecord;
 }
 
-const AGR_BASE = {
-  agreementNumber:   'AGR-2024-0089',
-  date:              '10 feb 2026',
-  buyerName:         'Lars Bergman',
-  buyerAddress:      'Sveavägen 42, Stockholm',
-  vehicle:           'Kawasaki Ninja ZX-6R 2024',
-  vin:               'JKBZXR636PA012345',
-  accessories:       'Akrapovic, Tank Pad, Crash Protectors (15 280 kr)',
-  tradeIn:           'Kawasaki Ninja 300 2020 — Inbytesvärde: 32 000 kr',
-  totalPrice:        '133 280 kr (inkl. moms 26 656 kr)',
-  financing:         '36 mån × 4 092 kr/mån vid 4,9 % eff. årsränta',
-  warranty:          '3 år fabriksgaranti + 1 år återförsäljargaranti',
-  returnPolicy:      '14 dagar per Distansavtalslagen (2005:59)',
-};
-
 export default function SignedAgreementPage() {
   const router = useRouter();
   const params = useParams();
@@ -53,6 +38,22 @@ export default function SignedAgreementPage() {
   const [buyerName, setBuyerName]     = useState('');
   const [buyerAddress, setBuyerAddress] = useState('');
 
+  // Agreement data from localStorage (written by agreement editor)
+  const [storedAgr, setStoredAgr] = useState({
+    agreementNumber: '',
+    date: '',
+    vehicle: '',
+    vin: '',
+    accessories: '',
+    tradeIn: '',
+    tradeInCredit: 0,
+    totalPrice: 0,
+    vatAmount: 0,
+    financingMonths: 0,
+    financingMonthly: 0,
+    financingApr: 0,
+  });
+
   useEffect(() => {
     const user = localStorage.getItem('user');
     if (!user) { router.replace('/auth/login'); return; }
@@ -67,6 +68,27 @@ export default function SignedAgreementPage() {
     } catch {
       // ignore
     }
+
+    // Read agreement data from localStorage
+    try {
+      const stored = JSON.parse(localStorage.getItem(`agreement_${id}`) ?? '{}');
+      const autoAgrNum = `AGR-${new Date().getFullYear()}-${String(id).padStart(4, '0')}`;
+      setStoredAgr({
+        agreementNumber:  stored.agreementNumber  || autoAgrNum,
+        date:             new Date().toLocaleDateString('sv-SE'),
+        vehicle:          stored.vehicle          || '',
+        vin:              stored.vin              || '',
+        accessories:      stored.accessories      || '',
+        tradeIn:          stored.tradeIn          || '',
+        tradeInCredit:    stored.tradeInCredit    ?? 0,
+        totalPrice:       stored.totalPrice       ?? 0,
+        vatAmount:        stored.vatAmount        ?? (stored.totalPrice ? Math.round(stored.totalPrice * 0.2) : 0),
+        financingMonths:  stored.financingMonths  ?? 0,
+        financingMonthly: stored.financingMonthly ?? 0,
+        financingApr:     stored.financingApr     ?? 0,
+      });
+      if (stored.customerName) setBuyerName(stored.customerName as string);
+    } catch { /* ignore */ }
 
     // Fetch live buyer name + address from Supabase
     const leadId       = Number(id);
@@ -110,6 +132,18 @@ export default function SignedAgreementPage() {
     setReady(true);
   }, [router, id]);
 
+  const fmt = (n: number) => n.toLocaleString('sv-SE');
+  const hasFinancing = storedAgr.financingMonths > 0;
+
+  const totalStr = storedAgr.totalPrice > 0
+    ? `${fmt(storedAgr.totalPrice)} kr (inkl. moms ${fmt(storedAgr.vatAmount)} kr)`
+    : '—';
+  const financingStr = hasFinancing
+    ? `${storedAgr.financingMonths} mån × ${fmt(storedAgr.financingMonthly)} kr/mån vid ${storedAgr.financingApr} % eff. årsränta`
+    : '—';
+
+  const pdfFilename = `Purchase-Agreement-${storedAgr.agreementNumber || 'AGR'}-SIGNED.pdf`;
+
   // Build a jsPDF document with all agreement fields and signatures
   const buildPDF = (): jsPDF => {
     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
@@ -122,7 +156,7 @@ export default function SignedAgreementPage() {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
     doc.setTextColor(255, 107, 44); // #FF6B2C
-    doc.text('MOTOOS', marginL, y);
+    doc.text(sellerName || 'AVA MC', marginL, y);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
@@ -150,7 +184,7 @@ export default function SignedAgreementPage() {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(148, 163, 184);
-    doc.text(`${AGR_BASE.agreementNumber}  •  Datum: ${AGR_BASE.date}`, 105, y, { align: 'center' });
+    doc.text(`${storedAgr.agreementNumber}  •  Datum: ${storedAgr.date}`, 105, y, { align: 'center' });
     y += 8;
 
     doc.setDrawColor(226, 232, 240);
@@ -158,20 +192,25 @@ export default function SignedAgreementPage() {
     y += 8;
 
     // Fields
-    const fields = [
-      { label: 'SÄLJARE',       value: `${sellerName}, ${sellerAddress}` },
-      { label: 'KÖPARE',        value: [buyerName, buyerAddress].filter(Boolean).join(', ') || '—' },
-      { label: 'FORDON',        value: `${AGR_BASE.vehicle}, VIN: ${AGR_BASE.vin}` },
-      { label: 'TILLBEHÖR',     value: AGR_BASE.accessories },
-      { label: 'INBYTE',        value: AGR_BASE.tradeIn },
-      { label: 'TOTALPRIS',     value: AGR_BASE.totalPrice },
-      { label: 'FINANSIERING',  value: AGR_BASE.financing },
-      { label: 'GARANTI',       value: AGR_BASE.warranty },
-      { label: 'ÅNGERRÄTT',     value: AGR_BASE.returnPolicy },
-      { label: 'LEVERANS',      value: `Beräknad 14 feb 2026, ${sellerAddress}` },
+    const vehicleStr = [storedAgr.vehicle, storedAgr.vin ? `VIN: ${storedAgr.vin}` : ''].filter(Boolean).join(', ') || '—';
+    const tradeInStr = storedAgr.tradeIn
+      ? `${storedAgr.tradeIn}${storedAgr.tradeInCredit > 0 ? ` — Inbytesvärde: ${fmt(storedAgr.tradeInCredit)} kr` : ''}`
+      : '—';
+
+    const pdfFields: Array<{ label: string; value: string }> = [
+      { label: 'SÄLJARE',      value: [sellerName, sellerAddress].filter(Boolean).join(', ') || '—' },
+      { label: 'KÖPARE',       value: [buyerName, buyerAddress].filter(Boolean).join(', ') || '—' },
+      { label: 'FORDON',       value: vehicleStr },
+      ...(storedAgr.accessories ? [{ label: 'TILLBEHÖR', value: storedAgr.accessories }] : []),
+      ...(storedAgr.tradeIn    ? [{ label: 'INBYTE',    value: tradeInStr }] : []),
+      { label: 'TOTALPRIS',    value: totalStr },
+      ...(hasFinancing         ? [{ label: 'FINANSIERING', value: financingStr }] : []),
+      { label: 'GARANTI',      value: '3 år fabriksgaranti + 1 år återförsäljargaranti' },
+      { label: 'ÅNGERRÄTT',    value: '14 dagar per Distansavtalslagen (2005:59)' },
+      { label: 'LEVERANS',     value: `${sellerAddress || '—'}` },
     ];
 
-    for (const row of fields) {
+    for (const row of pdfFields) {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8);
       doc.setTextColor(148, 163, 184);
@@ -237,8 +276,6 @@ export default function SignedAgreementPage() {
     return doc;
   };
 
-  const pdfFilename = `Purchase-Agreement-${AGR_BASE.agreementNumber}-SIGNED.pdf`;
-
   const handleDownloadPDF = () => {
     const doc = buildPDF();
     doc.save(pdfFilename);
@@ -257,8 +294,8 @@ export default function SignedAgreementPage() {
       try {
         await navigator.share({
           files: [file],
-          title: `Signed Purchase Agreement — ${AGR_BASE.agreementNumber}`,
-          text: `Your signed purchase agreement for ${AGR_BASE.vehicle} (${AGR_BASE.totalPrice}) is attached.`,
+          title: `Signed Purchase Agreement — ${storedAgr.agreementNumber}`,
+          text: `Your signed purchase agreement for ${storedAgr.vehicle || 'the vehicle'} (${totalStr}) is attached.`,
         });
         setSendStatus('Shared successfully via native share sheet.');
         return;
@@ -269,12 +306,12 @@ export default function SignedAgreementPage() {
 
     // Fallback: download the PDF then open email client
     doc.save(pdfFilename);
-    const subject = encodeURIComponent(`Your Signed Purchase Agreement — ${AGR_BASE.agreementNumber}`);
+    const subject = encodeURIComponent(`Your Signed Purchase Agreement — ${storedAgr.agreementNumber}`);
     const body = encodeURIComponent(
-      `Dear ${signatures?.customer.name ?? 'Customer'},\n\n` +
-      `Your purchase agreement (${AGR_BASE.agreementNumber}) has been signed by both parties and is now legally binding.\n\n` +
-      `Vehicle: ${AGR_BASE.vehicle}\n` +
-      `Total: ${AGR_BASE.totalPrice}\n\n` +
+      `Dear ${signatures?.customer.name ?? buyerName ?? 'Customer'},\n\n` +
+      `Your purchase agreement (${storedAgr.agreementNumber}) has been signed by both parties and is now legally binding.\n\n` +
+      `Vehicle: ${storedAgr.vehicle || '—'}\n` +
+      `Total: ${totalStr}\n\n` +
       `The signed PDF has been downloaded to your device — please attach it to this email before sending.\n\n` +
       `Best regards,\n${sellerName}`
     );
@@ -295,8 +332,8 @@ export default function SignedAgreementPage() {
       try {
         await navigator.share({
           files: [file],
-          title: `Signed Agreement — ${AGR_BASE.agreementNumber}`,
-          text: `Hi ${signatures?.customer.name ?? 'there'}, your signed purchase agreement (${AGR_BASE.agreementNumber}) is attached.`,
+          title: `Signed Agreement — ${storedAgr.agreementNumber}`,
+          text: `Hi ${signatures?.customer.name ?? buyerName ?? 'there'}, your signed purchase agreement (${storedAgr.agreementNumber}) is attached.`,
         });
         setSendStatus('Shared successfully via native share sheet.');
         return;
@@ -308,7 +345,7 @@ export default function SignedAgreementPage() {
     // Fallback: download then open SMS
     doc.save(pdfFilename);
     const smsBody = encodeURIComponent(
-      `Hi ${signatures?.customer.name ?? 'there'}, your signed purchase agreement (${AGR_BASE.agreementNumber}) for ${AGR_BASE.vehicle} is ready. ` +
+      `Hi ${signatures?.customer.name ?? buyerName ?? 'there'}, your signed purchase agreement (${storedAgr.agreementNumber}) for ${storedAgr.vehicle || 'the vehicle'} is ready. ` +
       `The PDF has been downloaded — please check your device downloads folder.`
     );
     window.open(`sms:${contact.phone}?body=${smsBody}`);
@@ -321,17 +358,21 @@ export default function SignedAgreementPage() {
     </div>
   );
 
-  const fields = [
-    { label: 'SÄLJARE',       value: `${sellerName}, ${sellerAddress}` },
-    { label: 'KÖPARE',        value: [buyerName, buyerAddress].filter(Boolean).join(', ') || '—' },
-    { label: 'FORDON',        value: `${AGR_BASE.vehicle}, VIN: ${AGR_BASE.vin}` },
-    { label: 'TILLBEHÖR',     value: AGR_BASE.accessories },
-    { label: 'INBYTE',        value: AGR_BASE.tradeIn },
-    { label: 'TOTALPRIS',     value: AGR_BASE.totalPrice },
-    { label: 'FINANSIERING',  value: AGR_BASE.financing },
-    { label: 'GARANTI',       value: AGR_BASE.warranty },
-    { label: 'ÅNGERRÄTT',     value: AGR_BASE.returnPolicy },
-    { label: 'LEVERANS',      value: `Beräknad 14 feb 2026, ${sellerAddress}` },
+  const vehicleStr = [storedAgr.vehicle, storedAgr.vin ? `VIN: ${storedAgr.vin}` : ''].filter(Boolean).join(', ') || '—';
+  const tradeInStr = storedAgr.tradeIn
+    ? `${storedAgr.tradeIn}${storedAgr.tradeInCredit > 0 ? ` — Inbytesvärde: ${fmt(storedAgr.tradeInCredit)} kr` : ''}`
+    : '—';
+
+  const fields: Array<{ label: string; value: string }> = [
+    { label: 'SÄLJARE',      value: [sellerName, sellerAddress].filter(Boolean).join(', ') || '—' },
+    { label: 'KÖPARE',       value: [buyerName, buyerAddress].filter(Boolean).join(', ') || '—' },
+    { label: 'FORDON',       value: vehicleStr },
+    ...(storedAgr.accessories ? [{ label: 'TILLBEHÖR', value: storedAgr.accessories }] : []),
+    ...(storedAgr.tradeIn    ? [{ label: 'INBYTE',    value: tradeInStr }] : []),
+    { label: 'TOTALPRIS',    value: totalStr },
+    ...(hasFinancing         ? [{ label: 'FINANSIERING', value: financingStr }] : []),
+    { label: 'GARANTI',      value: '3 år fabriksgaranti + 1 år återförsäljargaranti' },
+    { label: 'ÅNGERRÄTT',    value: '14 dagar per Distansavtalslagen (2005:59)' },
   ];
 
   return (
@@ -353,7 +394,7 @@ export default function SignedAgreementPage() {
           <div className="flex items-center gap-3">
             <span className="text-2xl">✅</span>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">{t('signed.title')} {AGR_BASE.agreementNumber}</h1>
+              <h1 className="text-2xl font-bold text-slate-900">{t('signed.title')} {storedAgr.agreementNumber}</h1>
               <p className="text-sm text-green-600 font-medium mt-0.5">{t('signed.subtitle')}</p>
             </div>
           </div>
@@ -400,7 +441,7 @@ export default function SignedAgreementPage() {
 
               {/* Document header */}
               <div className="flex items-start justify-between mb-6 pb-4 border-b border-slate-100">
-                <span className="text-xl font-extrabold tracking-tight text-[#FF6B2C]">BikeMeNow</span>
+                <span className="text-xl font-extrabold tracking-tight text-[#FF6B2C]">{sellerName || 'AVA MC'}</span>
                 <div className="text-right">
                   <p className="text-xs text-slate-500">{sellerName}{sellerOrgNr ? ` • Org.nr ${sellerOrgNr}` : ''}</p>
                   <span className="inline-flex items-center gap-1 mt-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
@@ -415,7 +456,7 @@ export default function SignedAgreementPage() {
                   {t('signed.docTitle')}
                 </h2>
                 <p className="text-xs text-slate-400 mt-1">
-                  {AGR_BASE.agreementNumber} • Datum: {AGR_BASE.date}
+                  {storedAgr.agreementNumber} • Datum: {storedAgr.date}
                 </p>
               </div>
 

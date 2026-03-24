@@ -33,31 +33,6 @@ interface AgreementData {
   deliveryLocation: string;
 }
 
-const MOCK_AGREEMENT: AgreementData = {
-  agreementNumber: 'AGR-2024-0089',
-  date: 'Feb 10, 2026',
-  sellerName: '',
-  sellerAddress: '',
-  buyerName: 'Lars Bergman',
-  buyerAddress: 'Sveavägen 42, Stockholm',
-  personnummer: '197506123456',
-  vehicle: 'Kawasaki Ninja ZX-6R 2024',
-  vin: 'JKBZXR636PA012345',
-  accessories: 'Akrapovic, Tank Pad, Crash Protectors',
-  accessoriesPrice: 15280,
-  tradeIn: 'Kawasaki Ninja 300 2020',
-  tradeInCredit: 32000,
-  totalPrice: 133280,
-  vatAmount: 26656,
-  financingMonths: 36,
-  financingMonthly: 4092,
-  financingApr: 4.9,
-  warrantyManufacturer: 3,
-  warrantyDealer: 1,
-  deliveryDate: 'Feb 14, 2026',
-  deliveryLocation: '',
-};
-
 export default function AgreementPreviewPage() {
   const router = useRouter();
   const params = useParams();
@@ -65,14 +40,34 @@ export default function AgreementPreviewPage() {
   const t = useTranslations('agreement');
   const [ready, setReady] = useState(false);
   const [dealer, setDealer] = useState({ name: '', orgNr: '', city: '', email: '' });
-  const [buyerName, setBuyerName] = useState(MOCK_AGREEMENT.buyerName);
-  const [personnummer, setPersonnummer] = useState(MOCK_AGREEMENT.personnummer);
+
+  // Agreement data — loaded from localStorage (written by agreement editor)
+  const [storedAgr, setStoredAgr] = useState({
+    agreementNumber: '',
+    vehicle: '',
+    vin: '',
+    accessories: '',
+    accessoriesPrice: 0,
+    tradeIn: '',
+    tradeInCredit: 0,
+    totalPrice: 0,
+    vatAmount: 0,
+    financingMonths: 0,
+    financingMonthly: 0,
+    financingApr: 0,
+  });
+
+  // Buyer info — read from localStorage first, then overridden by Supabase lead
+  const [buyerName, setBuyerName] = useState('');
+  const [personnummer, setPersonnummer] = useState('');
   const [buyerAddress, setBuyerAddress] = useState('');
 
   useEffect(() => {
     const raw = localStorage.getItem('user');
     if (!raw) { router.replace('/auth/login'); return; }
     const user = JSON.parse(raw);
+
+    // Dealer profile
     try {
       const p = JSON.parse(localStorage.getItem('dealership_profile') || '{}');
       setDealer({
@@ -85,7 +80,29 @@ export default function AgreementPreviewPage() {
       setDealer({ name: user.dealershipName || 'My Dealership', orgNr: '—', city: '—', email: '—' });
     }
 
-    // Fetch real buyer name and personnummer from the lead
+    // Read agreement data from localStorage (saved by agreement/page.tsx on load + save)
+    try {
+      const stored = JSON.parse(localStorage.getItem(`agreement_${id}`) ?? '{}');
+      const autoAgrNum = `AGR-${new Date().getFullYear()}-${String(id).padStart(4, '0')}`;
+      setStoredAgr({
+        agreementNumber:  stored.agreementNumber  || autoAgrNum,
+        vehicle:          stored.vehicle          || '',
+        vin:              stored.vin              || '',
+        accessories:      stored.accessories      || '',
+        accessoriesPrice: stored.accessoriesPrice ?? 0,
+        tradeIn:          stored.tradeIn          || '',
+        tradeInCredit:    stored.tradeInCredit    ?? 0,
+        totalPrice:       stored.totalPrice       ?? 0,
+        vatAmount:        stored.vatAmount        ?? (stored.totalPrice ? Math.round(stored.totalPrice * 0.2) : 0),
+        financingMonths:  stored.financingMonths  ?? 0,
+        financingMonthly: stored.financingMonthly ?? 0,
+        financingApr:     stored.financingApr     ?? 0,
+      });
+      if (stored.customerName) setBuyerName(stored.customerName as string);
+      if (stored.personnummer) setPersonnummer(stored.personnummer as string);
+    } catch { /* ignore */ }
+
+    // Fetch canonical buyer info from Supabase (overrides localStorage fallback)
     const leadId = Number(id);
     if (!Number.isNaN(leadId)) {
       (async () => {
@@ -116,14 +133,59 @@ export default function AgreementPreviewPage() {
     </div>
   );
 
-  const agr = { ...MOCK_AGREEMENT, buyerName, personnummer, buyerAddress };
+  const today = new Date().toLocaleDateString('sv-SE', { year: 'numeric', month: 'long', day: 'numeric' });
 
-  // Konsumentkreditlagen 2010:1846 — computed credit totals
-  const creditAmount = agr.totalPrice - agr.tradeInCredit;
-  const totalRepayable = agr.financingMonthly * agr.financingMonths;
+  const agr: AgreementData = {
+    agreementNumber:     storedAgr.agreementNumber,
+    date:                today,
+    sellerName:          dealer.name,
+    sellerAddress:       dealer.city,
+    buyerName,
+    buyerAddress,
+    personnummer,
+    vehicle:             storedAgr.vehicle,
+    vin:                 storedAgr.vin,
+    accessories:         storedAgr.accessories,
+    accessoriesPrice:    storedAgr.accessoriesPrice,
+    tradeIn:             storedAgr.tradeIn,
+    tradeInCredit:       storedAgr.tradeInCredit,
+    totalPrice:          storedAgr.totalPrice,
+    vatAmount:           storedAgr.vatAmount,
+    financingMonths:     storedAgr.financingMonths,
+    financingMonthly:    storedAgr.financingMonthly,
+    financingApr:        storedAgr.financingApr,
+    warrantyManufacturer: 3,
+    warrantyDealer:       1,
+    deliveryDate:        '',
+    deliveryLocation:    dealer.city,
+  };
+
+  // Konsumentkreditlagen 2010:1846 — computed credit totals (only if financing is set)
+  const hasFinancing = agr.financingMonths > 0;
+  const creditAmount    = hasFinancing ? agr.totalPrice - agr.tradeInCredit : 0;
+  const totalRepayable  = agr.financingMonthly * agr.financingMonths;
   const totalCreditCost = totalRepayable - creditAmount;
 
   const fmt = (n: number) => n.toLocaleString('sv-SE');
+
+  // Build data rows — omit optional rows when value is empty
+  const dataRows: Array<{ label: string; value: string }> = [
+    { label: 'SÄLJARE',       value: `${dealer.name || '—'}, ${dealer.city || '—'} • Org.nr ${dealer.orgNr || '—'}` },
+    { label: 'KÖPARE',        value: `${agr.buyerName || '—'}, ${agr.buyerAddress || '—'} • Personnr: ${agr.personnummer || '—'}` },
+    { label: 'FORDON',        value: agr.vehicle || '—' },
+    ...(agr.vin        ? [{ label: 'VIN',       value: agr.vin }] : []),
+    ...(agr.accessories ? [{ label: 'TILLBEHÖR', value: `${agr.accessories}${agr.accessoriesPrice > 0 ? ` (${fmt(agr.accessoriesPrice)} kr)` : ''}` }] : []),
+    ...(agr.tradeIn    ? [{ label: 'INBYTE',    value: `${agr.tradeIn}${agr.tradeInCredit > 0 ? ` — Kreditvärde: ${fmt(agr.tradeInCredit)} kr` : ''}` }] : []),
+    { label: 'TOTALPRIS',     value: agr.totalPrice > 0 ? `${fmt(agr.totalPrice)} kr (inkl. 25% moms ${fmt(agr.vatAmount)} kr)` : '—' },
+    ...(hasFinancing ? [
+      { label: 'FINANSIERING',   value: `${agr.financingMonths} mån × ${fmt(agr.financingMonthly)} kr/mån vid ${agr.financingApr}% eff. årsränta` },
+      { label: 'KREDITBELOPP',   value: `${fmt(creditAmount)} kr` },
+      { label: 'TOTAL ATT BETALA', value: `${fmt(totalRepayable)} kr (varav ränta & avg. ${fmt(totalCreditCost)} kr)` },
+    ] : []),
+    { label: 'GARANTI',       value: `${agr.warrantyManufacturer} år fabriksgaranti + ${agr.warrantyDealer} år återförsäljargaranti • Lagstadgad reklamationsrätt 3 år per Konsumentköplagen (2022:260)` },
+    { label: 'ÅNGERRÄTT',     value: '14 dagar per Distansavtalslagen (2005:59) om avtal ingås på distans' },
+    { label: 'LEVERANS',      value: `Beräknad ${agr.deliveryDate || '—'} på ${agr.deliveryLocation || '—'}` },
+  ];
 
   return (
     <div className="flex min-h-screen bg-[#f5f7fa]">
@@ -173,7 +235,7 @@ export default function AgreementPreviewPage() {
 
               {/* Document header */}
               <div className="flex items-start justify-between mb-6 pb-4 border-b border-slate-100">
-                <span className="text-xl font-extrabold tracking-tight text-[#FF6B2C]">MOTOOS</span>
+                <span className="text-xl font-extrabold tracking-tight text-[#FF6B2C]">{dealer.name || 'AVA MC'}</span>
                 <div className="text-right">
                   <p className="text-xs text-slate-500">{dealer.name} • Org.nr {dealer.orgNr}</p>
                   <p className="text-xs text-slate-400">{dealer.city} • {dealer.email}</p>
@@ -195,21 +257,7 @@ export default function AgreementPreviewPage() {
 
               {/* Data fields — Swedish labels */}
               <div className="space-y-2.5 text-sm">
-                {[
-                  { label: 'SÄLJARE', value: `${dealer.name}, ${dealer.city} • Org.nr ${dealer.orgNr}` },
-                  { label: 'KÖPARE', value: `${agr.buyerName}, ${agr.buyerAddress} • Personnr: ${agr.personnummer}` },
-                  { label: 'FORDON', value: agr.vehicle },
-                  { label: 'VIN', value: agr.vin },
-                  { label: 'TILLBEHÖR', value: `${agr.accessories} (${fmt(agr.accessoriesPrice)} kr)` },
-                  { label: 'INBYTE', value: `${agr.tradeIn} — Kreditvärde: ${fmt(agr.tradeInCredit)} kr` },
-                  { label: 'TOTALPRIS', value: `${fmt(agr.totalPrice)} kr (inkl. 25% moms ${fmt(agr.vatAmount)} kr)` },
-                  { label: 'FINANSIERING', value: `${agr.financingMonths} mån × ${fmt(agr.financingMonthly)} kr/mån vid ${agr.financingApr}% eff. årsränta` },
-                  { label: 'KREDITBELOPP', value: `${fmt(creditAmount)} kr` },
-                  { label: 'TOTAL ATT BETALA', value: `${fmt(totalRepayable)} kr (varav ränta & avg. ${fmt(totalCreditCost)} kr)` },
-                  { label: 'GARANTI', value: `${agr.warrantyManufacturer} år fabriksgaranti + ${agr.warrantyDealer} år återförsäljargaranti • Lagstadgad reklamationsrätt 3 år per Konsumentköplagen (2022:260)` },
-                  { label: 'ÅNGERRÄTT', value: '14 dagar per Distansavtalslagen (2005:59) om avtal ingås på distans' },
-                  { label: 'LEVERANS', value: `Beräknad ${agr.deliveryDate} på ${agr.deliveryLocation}` },
-                ].map(row => (
+                {dataRows.map(row => (
                   <div key={row.label} className="flex gap-3">
                     <span className="text-slate-400 font-semibold text-xs w-36 shrink-0 pt-0.5">{row.label}:</span>
                     <span className="text-slate-800">{row.value}</span>
@@ -224,46 +272,46 @@ export default function AgreementPreviewPage() {
                 {[
                   {
                     para: '§ 1 PARTER',
-                    body: `Säljare: ${dealer.name}, org.nr ${dealer.orgNr}, ${dealer.city}. Köpare: ${agr.buyerName}, personnr ${agr.personnummer}, ${agr.buyerAddress}.`,
+                    body: `Säljare: ${dealer.name}, org.nr ${dealer.orgNr}, ${dealer.city}. Köpare: ${agr.buyerName || '—'}, personnr ${agr.personnummer || '—'}, ${agr.buyerAddress || '—'}.`,
                   },
                   {
                     para: '§ 2 FORDON',
-                    body: `${agr.vehicle}, VIN ${agr.vin}, säljs i befintligt skick per Konsumentköplagen (2022:260). Säljaren garanterar att fordonet är fritt från dolda fel, belastningar och pantsättningar, samt uppfyller svenska myndighetskrav.`,
+                    body: `${agr.vehicle || '—'}${agr.vin ? `, VIN ${agr.vin}` : ''}, säljs i befintligt skick per Konsumentköplagen (2022:260). Säljaren garanterar att fordonet är fritt från dolda fel, belastningar och pantsättningar, samt uppfyller svenska myndighetskrav.`,
                   },
                   {
                     para: '§ 3 PRIS OCH BETALNING',
-                    body: `Totalpris ${fmt(agr.totalPrice)} kr inkl. 25% moms per Prisinformationslagen (2004:347). Moms: ${fmt(agr.vatAmount)} kr. Betalning sker via avtalad finansiering eller kontant vid leverans.`,
+                    body: `Totalpris ${agr.totalPrice > 0 ? fmt(agr.totalPrice) : '—'} kr inkl. 25% moms per Prisinformationslagen (2004:347). Moms: ${agr.vatAmount > 0 ? fmt(agr.vatAmount) : '—'} kr. Betalning sker via avtalad finansiering eller kontant vid leverans.`,
                   },
-                  {
+                  ...(hasFinancing ? [{
                     para: '§ 4 FINANSIERING (Konsumentkreditlagen 2010:1846)',
                     body: `Kreditbelopp: ${fmt(creditAmount)} kr · Löptid: ${agr.financingMonths} månader · Månadskostnad: ${fmt(agr.financingMonthly)} kr/mån · Effektiv årsränta: ${agr.financingApr} % · Total kreditkostnad: ${fmt(totalCreditCost)} kr · Total att betala: ${fmt(totalRepayable)} kr. Köparen har rätt att betala i förtid (§ 32 KkrL). Ångerrätt för krediten 14 dagar från avtal (§ 21 KkrL).`,
-                  },
+                  }] : []),
                   {
-                    para: '§ 5 GARANTI',
+                    para: hasFinancing ? '§ 5 GARANTI' : '§ 4 GARANTI',
                     body: `${agr.warrantyManufacturer} års fabriksgaranti och ${agr.warrantyDealer} års återförsäljargaranti gäller från leveransdatum. Utöver avtalad garanti gäller lagstadgad reklamationsrätt i 3 år per Konsumentköplagen (2022:260) § 23, i enlighet med EU-direktiv 2019/771.`,
                   },
                   {
-                    para: '§ 6 LEVERANS',
-                    body: `Fordonet levereras ${agr.deliveryDate} på ${agr.deliveryLocation}. Äganderätt och risk för fordonet övergår till köparen vid full betalning och kvitterad leverans.`,
+                    para: hasFinancing ? '§ 6 LEVERANS' : '§ 5 LEVERANS',
+                    body: `Fordonet levereras ${agr.deliveryDate || '—'} på ${agr.deliveryLocation || '—'}. Äganderätt och risk för fordonet övergår till köparen vid full betalning och kvitterad leverans.`,
                   },
                   {
-                    para: '§ 7 ÅNGERRÄTT',
+                    para: hasFinancing ? '§ 7 ÅNGERRÄTT' : '§ 6 ÅNGERRÄTT',
                     body: 'Om avtalet ingås på distans eller utanför affärslokaler gäller 14 dagars ångerrätt per Distansavtalslagen (2005:59). Fordonet ska återlämnas i ursprungligt skick. Köparen ansvarar för värdeminskning som beror på hantering utöver vad som krävs för att fastställa varans egenskaper.',
                   },
                   {
-                    para: '§ 8 TRANSPORTSTYRELSEN — ÄGARBYTE',
+                    para: hasFinancing ? '§ 8 TRANSPORTSTYRELSEN — ÄGARBYTE' : '§ 7 TRANSPORTSTYRELSEN — ÄGARBYTE',
                     body: 'Säljaren ansvarar för att anmäla ägarbytet till Transportstyrelsen senast på leveransdagen. Köparen samtycker till ägarbytet och förbinder sig att omedelbart teckna trafikförsäkring för fordonet från och med ägarbytet.',
                   },
                   {
-                    para: '§ 9 REKLAMATION',
-                    body: `Fel i fordonet ska reklameras inom skälig tid från det att köparen märkt eller borde ha märkt felet. Reklamation görs skriftligen till ${dealer.email}. Vid tvist hänvisas i första hand till Allmänna Reklamationsnämnden (ARN, www.arn.se).`,
+                    para: hasFinancing ? '§ 9 REKLAMATION' : '§ 8 REKLAMATION',
+                    body: `Fel i fordonet ska reklameras inom skälig tid från det att köparen märkt eller borde ha märkt felet. Reklamation görs skriftligen till ${dealer.email || '—'}. Vid tvist hänvisas i första hand till Allmänna Reklamationsnämnden (ARN, www.arn.se).`,
                   },
                   {
-                    para: '§ 10 PERSONUPPGIFTER',
+                    para: hasFinancing ? '§ 10 PERSONUPPGIFTER' : '§ 9 PERSONUPPGIFTER',
                     body: `Personuppgifter behandlas i enlighet med GDPR (EU 2016/679) och ${dealer.name}s integritetspolicy. Uppgifterna sparas i 7 år per Bokföringslagen (1999:1078). Köparen har rätt till tillgång, rättelse, radering och portabilitet av sina uppgifter.`,
                   },
                   {
-                    para: '§ 11 TILLÄMPLIG LAG OCH TVIST',
+                    para: hasFinancing ? '§ 11 TILLÄMPLIG LAG OCH TVIST' : '§ 10 TILLÄMPLIG LAG OCH TVIST',
                     body: 'Detta avtal regleras av svensk lag. Tvist avgörs i första hand av Allmänna Reklamationsnämnden (ARN, www.arn.se). Om ARN inte lämnar rekommendation, avgörs tvisten av Stockholms tingsrätt.',
                   },
                 ].map(({ para, body }) => (
