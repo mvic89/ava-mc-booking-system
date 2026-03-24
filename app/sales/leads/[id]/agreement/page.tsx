@@ -16,6 +16,7 @@ interface AgreementData {
   personnummer: string;
   vehicle: string;
   vin: string;
+  registrationNumber: string;
   accessories: string;
   tradeIn: string;
   tradeInCredit: number;
@@ -32,6 +33,7 @@ const BLANK_AGREEMENT: AgreementData = {
   personnummer: '',
   vehicle: 'Kawasaki Ninja ZX-6R 2024',
   vin: 'JKBZXR636PA012345',
+  registrationNumber: '',
   accessories: 'Akrapovic + Tank Pad + Crash Protectors',
   tradeIn: 'Kawasaki Ninja 300 2020',
   tradeInCredit: 32000,
@@ -185,15 +187,25 @@ export default function CreateAgreementPage() {
           totalPrice:   resolvedPrice,
         }));
 
-        // Always persist to localStorage so the payment page can read the latest values
+        // Always persist to localStorage so the payment/preview/signed pages can read the latest values
         try {
           const existing = JSON.parse(localStorage.getItem(`agreement_${leadId}`) ?? '{}');
           localStorage.setItem(`agreement_${leadId}`, JSON.stringify({
             ...existing,
-            vehicle:         resolvedVehicle,
-            totalPrice:      resolvedPrice,
-            agreementNumber: existing.agreementNumber ?? BLANK_AGREEMENT.agreementNumber,
-            vin:             existing.vin             ?? BLANK_AGREEMENT.vin,
+            customerName:     (lead.name          as string) ?? '',
+            personnummer:     (lead.personnummer   as string) ?? '',
+            vehicle:          resolvedVehicle,
+            totalPrice:       resolvedPrice,
+            agreementNumber:  existing.agreementNumber  ?? BLANK_AGREEMENT.agreementNumber,
+            vin:              existing.vin              ?? BLANK_AGREEMENT.vin,
+            registrationNumber: existing.registrationNumber ?? BLANK_AGREEMENT.registrationNumber,
+            accessories:      existing.accessories      ?? BLANK_AGREEMENT.accessories,
+            tradeIn:          existing.tradeIn          ?? BLANK_AGREEMENT.tradeIn,
+            tradeInCredit:    existing.tradeInCredit    ?? BLANK_AGREEMENT.tradeInCredit,
+            vatAmount:        existing.vatAmount        ?? BLANK_AGREEMENT.vatAmount,
+            financingMonths:  existing.financingMonths  ?? BLANK_AGREEMENT.financingMonths,
+            financingMonthly: existing.financingMonthly ?? BLANK_AGREEMENT.financingMonthly,
+            financingApr:     existing.financingApr     ?? BLANK_AGREEMENT.financingApr,
           }));
         } catch { /* ignore */ }
 
@@ -226,15 +238,25 @@ export default function CreateAgreementPage() {
   const saveEdit   = async () => {
     if (draft) {
       setAgr(draft);
-      // Persist to localStorage so the payment page always has the latest values
+      // Persist to localStorage so the payment/preview/signed pages always have the latest values
       try {
         const existing = JSON.parse(localStorage.getItem(`agreement_${id}`) ?? '{}');
         localStorage.setItem(`agreement_${id}`, JSON.stringify({
           ...existing,
-          totalPrice:      draft.totalPrice,
-          vehicle:         draft.vehicle,
-          agreementNumber: draft.agreementNumber,
-          vin:             draft.vin,
+          agreementNumber:  draft.agreementNumber,
+          customerName:     draft.customerName,
+          personnummer:     draft.personnummer,
+          vehicle:          draft.vehicle,
+          vin:              draft.vin,
+          registrationNumber: draft.registrationNumber,
+          accessories:      draft.accessories,
+          tradeIn:          draft.tradeIn,
+          tradeInCredit:    draft.tradeInCredit,
+          totalPrice:       draft.totalPrice,
+          vatAmount:        draft.vatAmount,
+          financingMonths:  draft.financingMonths,
+          financingMonthly: draft.financingMonthly,
+          financingApr:     draft.financingApr,
         }));
       } catch { /* ignore */ }
       // Sync deal amount + vehicle back to the leads row so kanban cards show the correct value
@@ -382,6 +404,24 @@ export default function CreateAgreementPage() {
                 <FieldRow
                   label={t('fields.vin')}
                   value={d.vin}
+                  badge={t('badges.fromOffer')}
+                  badgeColor="text-[#FF6B2C]"
+                />
+              )}
+
+              {/* Registration Number (reg plate — used for Transportstyrelsen ägarbyte) */}
+              {isEditing ? (
+                <EditRow label={t('fields.registrationNumber')} badge={t('badges.fromOffer')} badgeColor="text-[#FF6B2C]">
+                  <TextInput
+                    value={draft!.registrationNumber}
+                    onChange={v => update('registrationNumber', v.toUpperCase())}
+                    placeholder={t('placeholders.registrationNumber')}
+                  />
+                </EditRow>
+              ) : (
+                <FieldRow
+                  label={t('fields.registrationNumber')}
+                  value={d.registrationNumber || '—'}
                   badge={t('badges.fromOffer')}
                   badgeColor="text-[#FF6B2C]"
                 />

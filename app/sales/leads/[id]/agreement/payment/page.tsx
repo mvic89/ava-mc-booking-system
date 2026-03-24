@@ -245,6 +245,21 @@ export default function AgreementPaymentPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flowStep]);
 
+  // Bank transfer: flowStep never reaches 'waiting', so create a pending invoice
+  // as soon as the user selects bank transfer (and the deal amount is loaded).
+  // The API deduplicates by lead_id + status so this is safe to call multiple times.
+  useEffect(() => {
+    if (selected?.category !== 'bank_transfer') return;
+    if (!deal.amountSek) return; // deal not yet loaded
+    const method = selected.name;
+
+    upsertCustomerFromLead(Number(id))
+      .then(({ customerId }) => postInvoice({ customerId, customerName: deal.customer, paymentMethod: method, status: 'pending' }))
+      .catch(() => postInvoice({ customerName: deal.customer, paymentMethod: method, status: 'pending' }))
+      .then(() => emit({ type: 'data:refresh' }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected?.id, deal.amountSek]);
+
   // Auth + load providers + load live deal data from Supabase
   useEffect(() => {
     const raw = localStorage.getItem('user');

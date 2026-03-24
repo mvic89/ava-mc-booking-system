@@ -702,6 +702,7 @@
       "customer": "Kund:",
       "vehicle": "Fordon:",
       "vin": "VIN:",
+      "registrationNumber": "Reg.nummer:",
       "accessories": "Tillbehör:",
       "tradeIn": "Inbytesbil:",
       "totalPrice": "Totalpris:",
@@ -718,6 +719,7 @@
       "personnummer": "Personnummer",
       "vehicleModel": "År Märke Modell",
       "vin": "17-tecken VIN",
+      "registrationNumber": "t.ex. ABC 123",
       "accessories": "t.ex. Akrapovic + Tankskydd",
       "vehicleMakeModel": "Fordonsmärke/-modell"
     },

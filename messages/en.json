@@ -702,6 +702,7 @@
       "customer": "Customer:",
       "vehicle": "Vehicle:",
       "vin": "VIN:",
+      "registrationNumber": "Reg. plate:",
       "accessories": "Accessories:",
       "tradeIn": "Trade-In:",
       "totalPrice": "Total Price:",
@@ -718,6 +719,7 @@
       "personnummer": "Personnummer",
       "vehicleModel": "Year Make Model",
       "vin": "17-character VIN",
+      "registrationNumber": "e.g. ABC 123",
       "accessories": "e.g. Akrapovic + Tank Pad",
       "vehicleMakeModel": "Vehicle make/model"
     },

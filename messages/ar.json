@@ -702,6 +702,7 @@
       "customer": "العميل:",
       "vehicle": "المركبة:",
       "vin": "رقم الهيكل:",
+      "registrationNumber": "رقم اللوحة:",
       "accessories": "الملحقات:",
       "tradeIn": "المقايضة:",
       "totalPrice": "السعر الإجمالي:",
@@ -718,6 +719,7 @@
       "personnummer": "الرقم الشخصي",
       "vehicleModel": "السنة الصنع الطراز",
       "vin": "رقم هيكل 17 حرفاً",
+      "registrationNumber": "مثال: ABC 123",
       "accessories": "مثال: Akrapovic + واقي الخزان",
       "vehicleMakeModel": "صنع/طراز المركبة"
     },
