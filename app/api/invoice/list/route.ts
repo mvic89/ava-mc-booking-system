@@ -1,7 +1,3 @@
-// ─── GET /api/invoice/list?dealershipId=… ──────────────────────────────────────
-// Server-side invoice reads using the service-role client so Supabase RLS on
-// the invoices table never blocks the SELECT.
-
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
