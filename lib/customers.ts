@@ -598,26 +598,31 @@ async function seedCustomersIfEmpty(): Promise<void> {
 export async function getCustomers(): Promise<Customer[]> {
   const dealershipId = getDealershipId();
   if (!dealershipId) return [];
-  const { data, error } = await db()
-    .from('customers')
-    .select('*')
-    .eq('dealership_id', dealershipId)
-    .order('last_activity', { ascending: false });
-  if (error) { console.error('[customers] getCustomers:', error.message); return []; }
-  return (data ?? []).map((r: Record<string, unknown>) => mapDbToCustomer(r));
+  // Use server-side route so service-role key bypasses RLS on the customers table.
+  try {
+    const res = await fetch(`/api/customers/list?dealershipId=${encodeURIComponent(dealershipId)}`);
+    if (!res.ok) { console.error('[customers] getCustomers HTTP', res.status); return []; }
+    const json = await res.json() as { customers?: unknown[] };
+    return (json.customers ?? []).map((r) => mapDbToCustomer(r as Record<string, unknown>));
+  } catch (err) {
+    console.error('[customers] getCustomers:', err);
+    return [];
+  }
 }
 
 export async function getCustomerById(id: number): Promise<Customer | undefined> {
   const dealershipId = getDealershipId();
   if (!dealershipId) return undefined;
-  const { data, error } = await db()
-    .from('customers')
-    .select('*')
-    .eq('id', id)
-    .eq('dealership_id', dealershipId)
-    .single();
-  if (error || !data) return undefined;
-  return mapDbToCustomer(data as Record<string, unknown>);
+  // Use server-side route so service-role key bypasses RLS on the customers table.
+  try {
+    const res = await fetch(`/api/customers/list?dealershipId=${encodeURIComponent(dealershipId)}&id=${id}`);
+    if (!res.ok) return undefined;
+    const json = await res.json() as { customer?: unknown };
+    if (!json.customer) return undefined;
+    return mapDbToCustomer(json.customer as Record<string, unknown>);
+  } catch {
+    return undefined;
+  }
 }
 
 // ── Write ──────────────────────────────────────────────────────────────────────
