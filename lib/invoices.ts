@@ -59,12 +59,12 @@ function mapInvoiceToDb(inv: Omit<Invoice, 'id' | 'issueDate'>): Record<string, 
 
 // ── ID generator ───────────────────────────────────────────────────────────────
 
-async function nextInvoiceId(dealershipId: string): Promise<string> {
+async function nextInvoiceId(_dealershipId: string): Promise<string> {
   const year = new Date().getFullYear();
+  // Global max — invoices.id is a global PK, so omit dealership filter.
   const { data } = await db()
     .from('invoices')
     .select('id')
-    .eq('dealership_id', dealershipId)
     .like('id', `INV-${year}-%`)
     .order('id', { ascending: false })
     .limit(1);

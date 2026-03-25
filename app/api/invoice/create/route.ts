@@ -98,12 +98,14 @@ async function resolveCustomer(
 
 // ── Sequential invoice ID generator ────────────────────────────────────────────
 
-async function nextInvoiceId(dealershipId: string): Promise<string> {
+async function nextInvoiceId(_dealershipId: string): Promise<string> {
   const year = new Date().getFullYear();
+  // Query the GLOBAL max — invoices.id is a global PK so any two dealerships
+  // sharing the same ID would cause a 23505.  Removing the dealership filter
+  // ensures we always increment past every existing row, not just our own.
   const { data } = await sb()
     .from('invoices')
     .select('id')
-    .eq('dealership_id', dealershipId)
     .like('id', `INV-${year}-%`)
     .order('id', { ascending: false })
     .limit(1);
