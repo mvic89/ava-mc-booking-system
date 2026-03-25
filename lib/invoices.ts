@@ -59,12 +59,12 @@ function mapInvoiceToDb(inv: Omit<Invoice, 'id' | 'issueDate'>): Record<string, 
 
 // ── ID generator ───────────────────────────────────────────────────────────────
 
-async function nextInvoiceId(dealershipId: string): Promise<string> {
+async function nextInvoiceId(_dealershipId: string): Promise<string> {
   const year = new Date().getFullYear();
+  // Global max — invoices.id is a global PK, so omit dealership filter.
   const { data } = await db()
     .from('invoices')
     .select('id')
-    .eq('dealership_id', dealershipId)
     .like('id', `INV-${year}-%`)
     .order('id', { ascending: false })
     .limit(1);
@@ -78,13 +78,19 @@ async function nextInvoiceId(dealershipId: string): Promise<string> {
 export async function getInvoices(): Promise<Invoice[]> {
   const dealershipId = getDealershipId();
   if (!dealershipId) return [];
-  const { data, error } = await db()
-    .from('invoices')
-    .select('*')
-    .eq('dealership_id', dealershipId)
-    .order('issue_date', { ascending: false });
-  if (error) { console.error('[invoices] getInvoices:', error.message); return []; }
-  return (data ?? []).map((r: Record<string, unknown>) => mapDbToInvoice(r));
+  // Use the server-side route so the service-role key bypasses RLS on the invoices table.
+  try {
+    const res = await fetch(`/api/invoice/list?dealershipId=${encodeURIComponent(dealershipId)}`);
+    if (!res.ok) {
+      console.error('[invoices] getInvoices HTTP', res.status);
+      return [];
+    }
+    const json = await res.json() as { invoices?: unknown[] };
+    return (json.invoices ?? []).map((r) => mapDbToInvoice(r as Record<string, unknown>));
+  } catch (err) {
+    console.error('[invoices] getInvoices:', err);
+    return [];
+  }
 }
 
 /** Fetch all invoices for a specific customer (by customer_id FK). */

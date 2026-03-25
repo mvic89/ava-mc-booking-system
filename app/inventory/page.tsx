@@ -78,7 +78,7 @@ function MotorcycleTable({
         <div className="overflow-x-auto">
             <table className="w-full text-sm">
                 <thead>
-                    <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs uppercase text-gray-500 tracking-wider">
+                    <tr className="border-b border-slate-100 text-left text-xs uppercase text-slate-400 tracking-wider font-semibold">
                         <th className="px-4 py-3">ID</th>
                         <th className="px-4 py-3">Name / Brand</th>
                         <th className="px-4 py-3">Article No.</th>
@@ -97,23 +97,23 @@ function MotorcycleTable({
                         <th className="px-4 py-3" />
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-slate-50">
                     {data.map((item) => {
                         const margin = (((item.sellingPrice - item.cost) / item.sellingPrice) * 100).toFixed(1)
                         return (
-                            <tr key={item.id} onClick={() => onRowClick(item)} className="group hover:bg-orange-50 transition-colors cursor-pointer">
-                                <td className="px-4 py-3 font-mono text-xs text-gray-400">{item.id}</td>
+                            <tr key={item.id} onClick={() => onRowClick(item)} className="group hover:bg-[#FF6B2C]/5 transition-colors cursor-pointer">
+                                <td className="px-4 py-3 font-mono text-xs text-slate-400">{item.id}</td>
                                 <td className="px-4 py-3">
-                                    <div className="font-semibold text-gray-800">{item.name}</div>
-                                    <div className="text-xs text-orange-500 font-medium">{item.brand}</div>
-                                    <div className="text-xs text-gray-400 mt-0.5 max-w-xs truncate" title={item.description}>{item.description}</div>
+                                    <div className="font-semibold text-slate-800">{item.name}</div>
+                                    <div className="text-xs text-[#FF6B2C] font-medium">{item.brand}</div>
+                                    <div className="text-xs text-slate-400 mt-0.5 max-w-xs truncate" title={item.description}>{item.description}</div>
                                 </td>
-                                <td className="px-4 py-3 font-mono text-xs text-gray-600">{item.articleNumber}</td>
+                                <td className="px-4 py-3 font-mono text-xs text-slate-500">{item.articleNumber}</td>
                                 <td className="px-4 py-3 font-mono text-xs text-blue-600">{item.vin}</td>
-                                <td className="px-4 py-3 text-gray-700">{item.year}</td>
-                                <td className="px-4 py-3 text-gray-700">{item.engineCC}cc</td>
+                                <td className="px-4 py-3 text-slate-700">{item.year}</td>
+                                <td className="px-4 py-3 text-slate-700">{item.engineCC}cc</td>
                                 <td className="px-4 py-3">
-                                    <span className="inline-flex items-center gap-1.5 text-xs text-gray-700">
+                                    <span className="inline-flex items-center gap-1.5 text-xs text-slate-700">
                                         <span className="w-2.5 h-2.5 rounded-full border border-gray-300 shrink-0" style={{ background: item.color.toLowerCase().includes('black') ? '#1f2937' : item.color.toLowerCase().includes('white') ? '#f9fafb' : item.color.toLowerCase().includes('red') ? '#dc2626' : item.color.toLowerCase().includes('green') ? '#16a34a' : item.color.toLowerCase().includes('blue') ? '#2563eb' : item.color.toLowerCase().includes('yellow') || item.color.toLowerCase().includes('gold') ? '#ca8a04' : item.color.toLowerCase().includes('gray') || item.color.toLowerCase().includes('grey') ? '#6b7280' : item.color.toLowerCase().includes('orange') ? '#ea580c' : '#d1d5db' }} />
                                         {item.color}
                                     </span>
@@ -125,15 +125,15 @@ function MotorcycleTable({
                                                                        'bg-purple-100 text-purple-700'
                                     }`}>{item.mcType}</span>
                                 </td>
-                                <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">{item.warehouse}</td>
+                                <td className="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">{item.warehouse}</td>
                                 <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                                     <StockCell item={item} updateStock={updateStock} />
                                 </td>
-                                <td className="px-4 py-3 text-gray-600">{item.reorderQty}</td>
-                                <td className="px-4 py-3 text-gray-700">{formatSEK(item.cost)}</td>
-                                <td className="px-4 py-3 font-semibold text-gray-800">{formatSEK(item.sellingPrice)}</td>
+                                <td className="px-4 py-3 text-slate-500">{item.reorderQty}</td>
+                                <td className="px-4 py-3 text-slate-700">{formatSEK(item.cost)}</td>
+                                <td className="px-4 py-3 font-semibold text-slate-900">{formatSEK(item.sellingPrice)}</td>
                                 <td className="px-4 py-3"><span className="text-green-600 font-medium">{margin}%</span></td>
-                                <td className="px-4 py-3 text-xs text-gray-500 max-w-35 truncate" title={item.vendor}>{item.vendor}</td>
+                                <td className="px-4 py-3 text-xs text-slate-400 max-w-35 truncate" title={item.vendor}>{item.vendor}</td>
                                 <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                                     <button onClick={() => onDelete(item.id)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all text-sm" title="Delete">🗑️</button>
                                 </td>
@@ -160,7 +160,7 @@ function SparePartsTable({
         <div className="overflow-x-auto">
             <table className="w-full text-sm">
                 <thead>
-                    <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs uppercase text-gray-500 tracking-wider">
+                    <tr className="border-b border-slate-100 text-left text-xs uppercase text-slate-400 tracking-wider font-semibold">
                         <th className="px-4 py-3">ID</th>
                         <th className="px-4 py-3">Name / Brand</th>
                         <th className="px-4 py-3">Article No.</th>
@@ -174,29 +174,29 @@ function SparePartsTable({
                         <th className="px-4 py-3" />
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-slate-50">
                     {data.map((item) => {
                         const margin = (((item.sellingPrice - item.cost) / item.sellingPrice) * 100).toFixed(1)
                         return (
-                            <tr key={item.id} onClick={() => onRowClick(item)} className="group hover:bg-orange-50 transition-colors cursor-pointer">
-                                <td className="px-4 py-3 font-mono text-xs text-gray-400">{item.id}</td>
+                            <tr key={item.id} onClick={() => onRowClick(item)} className="group hover:bg-[#FF6B2C]/5 transition-colors cursor-pointer">
+                                <td className="px-4 py-3 font-mono text-xs text-slate-400">{item.id}</td>
                                 <td className="px-4 py-3">
-                                    <div className="font-semibold text-gray-800">{item.name}</div>
-                                    <div className="text-xs text-orange-500 font-medium">{item.brand}</div>
-                                    <div className="text-xs text-gray-400 mt-0.5 max-w-xs truncate" title={item.description}>{item.description}</div>
+                                    <div className="font-semibold text-slate-800">{item.name}</div>
+                                    <div className="text-xs text-[#FF6B2C] font-medium">{item.brand}</div>
+                                    <div className="text-xs text-slate-400 mt-0.5 max-w-xs truncate" title={item.description}>{item.description}</div>
                                 </td>
-                                <td className="px-4 py-3 font-mono text-xs text-gray-600">{item.articleNumber}</td>
+                                <td className="px-4 py-3 font-mono text-xs text-slate-500">{item.articleNumber}</td>
                                 <td className="px-4 py-3">
                                     <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium">{item.category}</span>
                                 </td>
                                 <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                                     <StockCell item={item} updateStock={updateStock} />
                                 </td>
-                                <td className="px-4 py-3 text-gray-600">{item.reorderQty}</td>
-                                <td className="px-4 py-3 text-gray-700">{formatCurrency(item.cost)}</td>
-                                <td className="px-4 py-3 font-semibold text-gray-800">{formatCurrency(item.sellingPrice)}</td>
+                                <td className="px-4 py-3 text-slate-500">{item.reorderQty}</td>
+                                <td className="px-4 py-3 text-slate-700">{formatCurrency(item.cost)}</td>
+                                <td className="px-4 py-3 font-semibold text-slate-900">{formatCurrency(item.sellingPrice)}</td>
                                 <td className="px-4 py-3"><span className="text-green-600 font-medium">{margin}%</span></td>
-                                <td className="px-4 py-3 text-xs text-gray-500 max-w-35 truncate" title={item.vendor}>{item.vendor}</td>
+                                <td className="px-4 py-3 text-xs text-slate-400 max-w-35 truncate" title={item.vendor}>{item.vendor}</td>
                                 <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                                     <button onClick={() => onDelete(item.id)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all text-sm" title="Delete">🗑️</button>
                                 </td>
@@ -223,7 +223,7 @@ function AccessoriesTable({
         <div className="overflow-x-auto">
             <table className="w-full text-sm">
                 <thead>
-                    <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs uppercase text-gray-500 tracking-wider">
+                    <tr className="border-b border-slate-100 text-left text-xs uppercase text-slate-400 tracking-wider font-semibold">
                         <th className="px-4 py-3">ID</th>
                         <th className="px-4 py-3">Name / Brand</th>
                         <th className="px-4 py-3">Article No.</th>
@@ -238,30 +238,30 @@ function AccessoriesTable({
                         <th className="px-4 py-3" />
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-slate-50">
                     {data.map((item) => {
                         const margin = (((item.sellingPrice - item.cost) / item.sellingPrice) * 100).toFixed(1)
                         return (
-                            <tr key={item.id} onClick={() => onRowClick(item)} className="group hover:bg-orange-50 transition-colors cursor-pointer">
-                                <td className="px-4 py-3 font-mono text-xs text-gray-400">{item.id}</td>
+                            <tr key={item.id} onClick={() => onRowClick(item)} className="group hover:bg-[#FF6B2C]/5 transition-colors cursor-pointer">
+                                <td className="px-4 py-3 font-mono text-xs text-slate-400">{item.id}</td>
                                 <td className="px-4 py-3">
-                                    <div className="font-semibold text-gray-800">{item.name}</div>
-                                    <div className="text-xs text-orange-500 font-medium">{item.brand}</div>
-                                    <div className="text-xs text-gray-400 mt-0.5 max-w-xs truncate" title={item.description}>{item.description}</div>
+                                    <div className="font-semibold text-slate-800">{item.name}</div>
+                                    <div className="text-xs text-[#FF6B2C] font-medium">{item.brand}</div>
+                                    <div className="text-xs text-slate-400 mt-0.5 max-w-xs truncate" title={item.description}>{item.description}</div>
                                 </td>
-                                <td className="px-4 py-3 font-mono text-xs text-gray-600">{item.articleNumber}</td>
+                                <td className="px-4 py-3 font-mono text-xs text-slate-500">{item.articleNumber}</td>
                                 <td className="px-4 py-3">
                                     <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full font-medium">{item.category}</span>
                                 </td>
-                                <td className="px-4 py-3 text-gray-700 font-medium">{item.size ?? '—'}</td>
+                                <td className="px-4 py-3 text-slate-700 font-medium">{item.size ?? '—'}</td>
                                 <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                                     <StockCell item={item} updateStock={updateStock} />
                                 </td>
-                                <td className="px-4 py-3 text-gray-600">{item.reorderQty}</td>
-                                <td className="px-4 py-3 text-gray-700">{formatCurrency(item.cost)}</td>
-                                <td className="px-4 py-3 font-semibold text-gray-800">{formatCurrency(item.sellingPrice)}</td>
+                                <td className="px-4 py-3 text-slate-500">{item.reorderQty}</td>
+                                <td className="px-4 py-3 text-slate-700">{formatCurrency(item.cost)}</td>
+                                <td className="px-4 py-3 font-semibold text-slate-900">{formatCurrency(item.sellingPrice)}</td>
                                 <td className="px-4 py-3"><span className="text-green-600 font-medium">{margin}%</span></td>
-                                <td className="px-4 py-3 text-xs text-gray-500 max-w-35 truncate" title={item.vendor}>{item.vendor}</td>
+                                <td className="px-4 py-3 text-xs text-slate-400 max-w-35 truncate" title={item.vendor}>{item.vendor}</td>
                                 <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                                     <button onClick={() => onDelete(item.id)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all text-sm" title="Delete">🗑️</button>
                                 </td>
@@ -283,19 +283,21 @@ function SummaryCards({ data }: { data: BaseInventoryItem[] }) {
     const totalValue = data.reduce((s, i) => s + i.sellingPrice * i.stock, 0)
 
     const cards = [
-        { label: 'Total SKUs',        value: String(totalItems),       icon: '📦', color: 'bg-blue-50 text-blue-700'   },
-        { label: 'Units in Stock',    value: String(totalStock),       icon: '🗃️', color: 'bg-green-50 text-green-700' },
-        { label: 'Low Stock Alerts',  value: String(lowStock),         icon: '⚠️', color: 'bg-red-50 text-red-700'    },
-        { label: 'Stock Value (Sell)', value: formatCurrency(totalValue), icon: '💰', color: 'bg-orange-50 text-orange-700' },
+        { label: 'Total SKUs',         value: String(totalItems),         icon: '📦', color: 'text-[#FF6B2C]'   },
+        { label: 'Units in Stock',     value: String(totalStock),         icon: '🗃️', color: 'text-green-600'   },
+        { label: 'Low Stock Alerts',   value: String(lowStock),           icon: '⚠️', color: 'text-red-600'     },
+        { label: 'Stock Value (Sell)', value: formatCurrency(totalValue), icon: '💰', color: 'text-slate-900'   },
     ]
 
     return (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {cards.map((c) => (
-                <div key={c.label} className={`rounded-xl p-4 ${c.color}`}>
-                    <div className="text-2xl mb-1">{c.icon}</div>
-                    <div className="text-xs font-medium opacity-70 mb-0.5">{c.label}</div>
-                    <div className="text-xl font-bold">{c.value}</div>
+                <div key={c.label} className="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+                    <span className="text-2xl">{c.icon}</span>
+                    <div>
+                        <p className={`text-xl font-extrabold ${c.color}`}>{c.value}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">{c.label}</p>
+                    </div>
                 </div>
             ))}
         </div>
@@ -307,9 +309,9 @@ function SummaryCards({ data }: { data: BaseInventoryItem[] }) {
 function EmptyState({ onImport, isFiltered }: { onImport: () => void; isFiltered: boolean }) {
     if (isFiltered) {
         return (
-            <div className="flex flex-col items-center justify-center h-48 text-gray-400">
+            <div className="flex flex-col items-center justify-center h-48 text-slate-400">
                 <span className="text-4xl mb-2">🔍</span>
-                <p className="text-sm">No items match your search</p>
+                <p className="text-sm font-medium">No items match your search</p>
             </div>
         )
     }
@@ -317,12 +319,12 @@ function EmptyState({ onImport, isFiltered }: { onImport: () => void; isFiltered
         <div className="flex flex-col items-center justify-center h-64 gap-4">
             <span className="text-5xl">📦</span>
             <div className="text-center">
-                <p className="text-gray-700 font-semibold">No inventory yet</p>
-                <p className="text-gray-400 text-sm mt-1">Import from Excel or add items one by one</p>
+                <p className="text-slate-700 font-semibold">No inventory yet</p>
+                <p className="text-slate-400 text-sm mt-1">Import from Excel or add items one by one</p>
             </div>
             <button
                 onClick={onImport}
-                className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors flex items-center gap-2"
+                className="bg-[#FF6B2C] hover:bg-[#e55a1f] text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2"
             >
                 ⬆ Import from Excel
             </button>
@@ -450,111 +452,118 @@ export default function InventoryPage() {
     const pendingPOs = autoPOs.filter((p) => p.status === 'Draft').length
 
     return (
-        <div className="lg:ml-64 min-h-screen p-6 flex flex-col">
+        <div className="lg:ml-64 min-h-screen bg-[#f5f7fa] flex flex-col">
+            <div className="brand-top-bar" />
+
             {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Inventory</h1>
-                    <p className="text-sm text-gray-500 mt-0.5">
-                        Hover any row to adjust stock — POs update instantly
-                    </p>
-                </div>
-                <div className="flex items-center gap-3">
-                    {pendingPOs > 0 && (
-                        <span className="flex items-center gap-1.5 text-xs font-semibold bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-full">
-                            ⚠️ {pendingPOs} PO{pendingPOs > 1 ? 's' : ''} pending approval
-                        </span>
-                    )}
-                    <button
-                        onClick={() => setShowImportModal(true)}
-                        className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
-                    >
-                        ⬆ Import Excel
-                    </button>
-
-                    {/* Download dropdown */}
-                    <div className="relative">
-                        <button
-                            onClick={() => setShowDownload(v => !v)}
-                            className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
-                        >
-                            ⬇ Download
-                            <span className="text-gray-400 text-xs">▾</span>
-                        </button>
-                        {showDownload && (
-                            <>
-                                <div className="fixed inset-0 z-10" onClick={() => setShowDownload(false)} />
-                                <div className="absolute right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-20 w-48 overflow-hidden">
-                                    <div className="px-3 py-2 border-b border-gray-100">
-                                        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                                            {activeTab === 'motorcycles' ? 'Motorcycles' : activeTab === 'spareParts' ? 'Spare Parts' : 'Accessories'} · {
-                                                activeTab === 'motorcycles' ? filteredMotorcycles.length :
-                                                activeTab === 'spareParts'  ? filteredSpareParts.length  : filteredAccessories.length
-                                            } items
-                                        </p>
-                                    </div>
-                                    <button
-                                        onClick={() => {
-                                            const d = activeTab === 'motorcycles' ? filteredMotorcycles : activeTab === 'spareParts' ? filteredSpareParts : filteredAccessories
-                                            downloadExcel(d, activeTab)
-                                            setShowDownload(false)
-                                        }}
-                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 transition-colors"
-                                    >
-                                        <span className="text-base">📊</span>
-                                        <div className="text-left">
-                                            <div className="font-semibold text-xs">Excel (.xlsx)</div>
-                                            <div className="text-[10px] text-gray-400">Spreadsheet format</div>
-                                        </div>
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            const d = activeTab === 'motorcycles' ? filteredMotorcycles : activeTab === 'spareParts' ? filteredSpareParts : filteredAccessories
-                                            downloadInventoryPDF(d, activeTab)
-                                            setShowDownload(false)
-                                        }}
-                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 transition-colors"
-                                    >
-                                        <span className="text-base">📄</span>
-                                        <div className="text-left">
-                                            <div className="font-semibold text-xs">PDF</div>
-                                            <div className="text-[10px] text-gray-400">Print-ready format</div>
-                                        </div>
-                                    </button>
-                                </div>
-                            </>
-                        )}
+            <div className="px-5 md:px-8 py-6 bg-white border-b border-slate-100 animate-fade-up">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold mb-1">Lager</p>
+                        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                            🏍 Inventory
+                        </h1>
+                        <p className="text-sm text-slate-400 mt-1">Hover any row to adjust stock — POs update instantly</p>
                     </div>
+                    <div className="flex items-center gap-2">
+                        {pendingPOs > 0 && (
+                            <span className="flex items-center gap-1.5 text-xs font-semibold bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1.5 rounded-full">
+                                ⚠️ {pendingPOs} PO{pendingPOs > 1 ? 's' : ''} pending
+                            </span>
+                        )}
+                        <button
+                            onClick={() => setShowImportModal(true)}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-sm font-medium transition-colors"
+                        >
+                            ⬆ Import Excel
+                        </button>
 
-                    <button
-                        onClick={() => setShowAddModal(true)}
-                        className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-                    >
-                        + Add Item
-                    </button>
+                        {/* Download dropdown */}
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowDownload(v => !v)}
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-sm font-medium transition-colors"
+                            >
+                                ⬇ Download
+                                <span className="text-slate-400 text-xs">▾</span>
+                            </button>
+                            {showDownload && (
+                                <>
+                                    <div className="fixed inset-0 z-10" onClick={() => setShowDownload(false)} />
+                                    <div className="absolute right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-20 w-48 overflow-hidden">
+                                        <div className="px-3 py-2 border-b border-slate-100">
+                                            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                                                {activeTab === 'motorcycles' ? 'Motorcycles' : activeTab === 'spareParts' ? 'Spare Parts' : 'Accessories'} · {
+                                                    activeTab === 'motorcycles' ? filteredMotorcycles.length :
+                                                    activeTab === 'spareParts'  ? filteredSpareParts.length  : filteredAccessories.length
+                                                } items
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                const d = activeTab === 'motorcycles' ? filteredMotorcycles : activeTab === 'spareParts' ? filteredSpareParts : filteredAccessories
+                                                downloadExcel(d, activeTab)
+                                                setShowDownload(false)
+                                            }}
+                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-[#FF6B2C]/5 hover:text-[#FF6B2C] transition-colors"
+                                        >
+                                            <span className="text-base">📊</span>
+                                            <div className="text-left">
+                                                <div className="font-semibold text-xs">Excel (.xlsx)</div>
+                                                <div className="text-[10px] text-slate-400">Spreadsheet format</div>
+                                            </div>
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                const d = activeTab === 'motorcycles' ? filteredMotorcycles : activeTab === 'spareParts' ? filteredSpareParts : filteredAccessories
+                                                downloadInventoryPDF(d, activeTab)
+                                                setShowDownload(false)
+                                            }}
+                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-[#FF6B2C]/5 hover:text-[#FF6B2C] transition-colors"
+                                        >
+                                            <span className="text-base">📄</span>
+                                            <div className="text-left">
+                                                <div className="font-semibold text-xs">PDF</div>
+                                                <div className="text-[10px] text-slate-400">Print-ready format</div>
+                                            </div>
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        <button
+                            onClick={() => setShowAddModal(true)}
+                            className="flex items-center gap-2 bg-[#FF6B2C] hover:bg-[#e55a1f] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+                        >
+                            + Add Item
+                        </button>
+                    </div>
                 </div>
             </div>
+
+            <div className="flex-1 px-5 md:px-8 py-6 space-y-5">
 
             {/* Summary Cards — driven by live context state */}
             <SummaryCards data={activeData} />
 
             {/* Tabs + Search */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
-                <div className="flex gap-1 bg-gray-100 p-1 rounded-lg w-fit">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit">
                     {TABS.map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                                 activeTab === tab.id
-                                    ? 'bg-white text-gray-800 shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700'
+                                    ? 'bg-white text-slate-800 shadow-sm'
+                                    : 'text-slate-500 hover:text-slate-700'
                             }`}
                         >
                             <span>{tab.icon}</span>
                             <span>{tab.label}</span>
                             <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${
-                                activeTab === tab.id ? 'bg-orange-100 text-orange-600' : 'bg-gray-200 text-gray-500'
+                                activeTab === tab.id ? 'bg-[#FF6B2C]/10 text-[#FF6B2C]' : 'bg-slate-200 text-slate-500'
                             }`}>
                                 {counts[tab.id]}
                             </span>
@@ -564,20 +573,22 @@ export default function InventoryPage() {
 
                 <div className="ml-auto">
                     <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+                        </svg>
                         <input
                             type="text"
                             placeholder="Search inventory..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent w-64"
+                            className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#FF6B2C]/30 focus:border-[#FF6B2C]/50 w-64 bg-white"
                         />
                     </div>
                 </div>
             </div>
 
             {/* Table */}
-            <div className="flex-1 bg-white rounded-xl border border-gray-200 shadow-sm overflow-auto">
+            <div className="bg-white rounded-2xl border border-slate-100 overflow-auto">
                 {activeTab === 'motorcycles' && (
                     filteredMotorcycles.length > 0
                         ? <MotorcycleTable data={filteredMotorcycles} updateStock={updateStock} onRowClick={item => handleRowClick(item, 'motorcycles')} onDelete={handleDelete} />
@@ -594,6 +605,8 @@ export default function InventoryPage() {
                         : <EmptyState onImport={() => setShowImportModal(true)} isFiltered={search !== ''} />
                 )}
             </div>
+
+            </div>{/* end flex-1 px-5 */}
 
             {/* Add Item Modal */}
             {showAddModal && (

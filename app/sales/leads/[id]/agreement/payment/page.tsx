@@ -8,7 +8,6 @@ import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
 import PhoneInput from '@/components/PhoneInput';
 import { notify } from '@/lib/notifications';
-import { convertLeadToCustomer, upsertCustomerFromLead } from '@/lib/leads';
 import { emit } from '@/lib/realtime';
 import { getDealerInfo } from '@/lib/dealer';
 import { getSupabaseBrowser } from '@/lib/supabase';
@@ -146,9 +145,9 @@ export default function AgreementPaymentPage() {
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
 
   // ── Server-side invoice helper (uses service-role to bypass RLS) ─────────────
+  // Customer resolution (find-or-create) is now handled entirely inside the route
+  // so the browser anon key is never used for writes — works on Vercel with RLS.
   async function postInvoice(opts: {
-    customerId?:   number | null;
-    customerName:  string;
     paymentMethod: string;
     status:        'pending' | 'paid';
     paidDate?:     string;
@@ -162,8 +161,7 @@ export default function AgreementPaymentPage() {
         body: JSON.stringify({
           dealershipId,
           leadId:        id,
-          customerId:    opts.customerId ?? null,
-          customerName:  opts.customerName,
+          customerName:  deal.customer,
           vehicle:       deal.vehicle,
           agreementRef:  deal.agreementId,
           totalAmount:   deal.amountSek,
@@ -186,32 +184,9 @@ export default function AgreementPaymentPage() {
     if (flowStep !== 'success') return;
     const paymentMethod = selected?.name ?? '—';
 
-    // Convert lead → customer (finds or creates) — unchanged, working
-    convertLeadToCustomer(Number(id))
-      .then(async ({ customerId }) => {
-        // Resolve canonical customer name from customers table
-        let customerName = deal.customer;
-        if (customerId) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const sb = getSupabaseBrowser() as any;
-          const dealershipId = getDealershipId();
-          const { data: cust } = await sb
-            .from('customers')
-            .select('first_name, last_name')
-            .eq('id', customerId)
-            .eq('dealership_id', dealershipId)
-            .maybeSingle();
-          if (cust) customerName = `${cust.first_name} ${cust.last_name}`.trim();
-        }
-        // Create paid invoice via server route (service-role bypasses RLS)
-        await postInvoice({ customerId, customerName, paymentMethod, status: 'paid', paidDate: new Date().toISOString() });
-        emit({ type: 'data:refresh' });
-      })
-      .catch(async () => {
-        // Customer conversion failed — still create invoice with lead name as fallback
-        await postInvoice({ customerName: deal.customer, paymentMethod, status: 'paid', paidDate: new Date().toISOString() });
-        emit({ type: 'data:refresh' });
-      });
+    // Customer resolution + lead closure now handled server-side in /api/invoice/create
+    postInvoice({ paymentMethod, status: 'paid', paidDate: new Date().toISOString() })
+      .then(() => emit({ type: 'data:refresh' }));
 
     emit({ type: 'payment:received', payload: { leadId: id, amount: deal.amountSek, method: paymentMethod } });
     notify('paymentReceived', {
@@ -223,25 +198,13 @@ export default function AgreementPaymentPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flowStep]);
 
-  // Create pending invoice + ensure customer exists as soon as payment is initiated
+  // Create pending invoice as soon as payment is initiated (customer resolved server-side)
   useEffect(() => {
     if (flowStep !== 'waiting') return;
     const method = selected?.name ?? '—';
 
-    async function handlePending() {
-      // 1. Ensure the customer record exists (without closing the lead)
-      let customerId: number | undefined;
-      try {
-        const result = await upsertCustomerFromLead(Number(id));
-        customerId = result.customerId ?? undefined;
-      } catch { /* best-effort */ }
-
-      // 2. Create a pending invoice via server route so it appears in the invoices list
-      await postInvoice({ customerId, customerName: deal.customer, paymentMethod: method, status: 'pending' });
-      emit({ type: 'data:refresh' });
-    }
-
-    handlePending();
+    postInvoice({ paymentMethod: method, status: 'pending' })
+      .then(() => emit({ type: 'data:refresh' }));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flowStep]);
 
@@ -253,9 +216,7 @@ export default function AgreementPaymentPage() {
     if (!deal.amountSek) return; // deal not yet loaded
     const method = selected.name;
 
-    upsertCustomerFromLead(Number(id))
-      .then(({ customerId }) => postInvoice({ customerId, customerName: deal.customer, paymentMethod: method, status: 'pending' }))
-      .catch(() => postInvoice({ customerName: deal.customer, paymentMethod: method, status: 'pending' }))
+    postInvoice({ paymentMethod: method, status: 'pending' })
       .then(() => emit({ type: 'data:refresh' }));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected?.id, deal.amountSek]);
@@ -341,25 +302,8 @@ export default function AgreementPaymentPage() {
     const paymentMethod = selected.name;
     const paidDate = new Date().toISOString();
 
-    try {
-      const { customerId } = await convertLeadToCustomer(Number(id));
-      let customerName = deal.customer;
-      if (customerId) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const sb = getSupabaseBrowser() as any;
-        const dealershipId = getDealershipId();
-        const { data: cust } = await sb
-          .from('customers')
-          .select('first_name, last_name')
-          .eq('id', customerId)
-          .eq('dealership_id', dealershipId)
-          .maybeSingle();
-        if (cust) customerName = `${cust.first_name} ${cust.last_name}`.trim();
-      }
-      await postInvoice({ customerId, customerName, paymentMethod, status: 'paid', paidDate });
-    } catch {
-      await postInvoice({ customerName: deal.customer, paymentMethod, status: 'paid', paidDate });
-    }
+    // Customer resolution + lead closure handled server-side in /api/invoice/create
+    await postInvoice({ paymentMethod, status: 'paid', paidDate });
     emit({ type: 'data:refresh' });
 
     sessionStorage.setItem('selectedPaymentMethod',

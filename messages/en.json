@@ -292,7 +292,7 @@
       "lastActivity": "Last Activity",
       "tags": "Tags",
       "noResults": "No customers found",
-      "showing": "Showing 1–{count} of 342 customers"
+      "showing": "Showing {count} customers"
     },
     "sourceBadge": {
       "manual": "Manual"

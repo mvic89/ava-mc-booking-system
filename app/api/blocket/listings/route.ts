@@ -21,6 +21,12 @@ export async function GET(req: NextRequest) {
     const ads = await listActiveAds(apiKey, accountId);
     return NextResponse.json({ ads });
   } catch (error: any) {
+    // A 404 from Blocket means the account ID is wrong or credentials are
+    // placeholders — treat it as "not configured" rather than a server error.
+    if (/404/.test(error.message)) {
+      console.warn('[blocket/listings GET] Blocket account not found — credentials not configured');
+      return NextResponse.json({ ads: [] });
+    }
     console.error('[blocket/listings GET]', error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

@@ -43,9 +43,9 @@ export default function SettingsPage() {
 
           {/* Header */}
           <div className="mb-6">
-            <p className="text-xs text-slate-400 uppercase tracking-widest mb-1">{t('breadcrumb')}</p>
-            <h1 className="text-2xl font-black text-[#0b1524]">{t('title')}</h1>
-            <p className="text-sm text-slate-500 mt-1">{t('subtitle')}</p>
+            <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold mb-1">{t('breadcrumb')}</p>
+            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">⚙️ {t('title')}</h1>
+            <p className="text-sm text-slate-400 mt-1">{t('subtitle')}</p>
           </div>
 
           {!isAdmin && (

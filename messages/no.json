@@ -292,7 +292,7 @@
       "lastActivity": "Siste aktivitet",
       "tags": "Tagger",
       "noResults": "Ingen kunder funnet",
-      "showing": "Viser 1–{count} av 342 kunder"
+      "showing": "Viser {count} kunder"
     },
     "sourceBadge": {
       "manual": "Manuell"

@@ -7,7 +7,6 @@ import { useTranslations } from 'next-intl';
 import jsPDF from 'jspdf';
 import Sidebar from '@/components/Sidebar';
 import { getDealerInfo } from '@/lib/dealer';
-import { convertLeadToCustomer } from '@/lib/leads';
 import { emit } from '@/lib/realtime';
 import { toast } from 'sonner';
 import { getSupabaseBrowser } from '@/lib/supabase';
@@ -283,20 +282,63 @@ export default function AgreementCompletePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router, id]);
 
-  // Close lead + create customer once page is ready (runs once)
+  // Close lead + auto-create customer once page is ready (runs once).
+  // Uses the server-side /api/customers/create route (service-role key) so
+  // Supabase RLS on the customers table never blocks the INSERT.
   useEffect(() => {
     if (!ready) return;
     const leadId = Number(id);
-    if (Number.isNaN(leadId)) return;
+    // Read dealershipId directly from localStorage as a fallback
+    let dealershipId = getDealershipId();
+    if (!dealershipId) {
+      try {
+        const u = JSON.parse(localStorage.getItem('user') ?? '{}');
+        dealershipId = (u.dealershipId as string) || null;
+      } catch { /* ignore */ }
+    }
+    console.log('[complete] ready, leadId:', leadId, 'dealershipId:', dealershipId);
+    if (Number.isNaN(leadId)) {
+      toast.error('Fel: ogiltigt lead-ID');
+      return;
+    }
+    if (!dealershipId) {
+      toast.error('Fel: ingen återförsäljar-session — logga in på nytt');
+      console.error('[complete] no dealershipId in localStorage user object');
+      return;
+    }
 
-    convertLeadToCustomer(leadId).then(({ customerId, created }) => {
-      emit({ type: 'lead:updated', payload: { id: String(leadId), status: 'closed' } });
+    console.log('[complete] calling /api/customers/create — leadId:', leadId, 'dealershipId:', dealershipId);
 
-      if (created && customerId) {
-        emit({ type: 'customer:created', payload: { id: customerId, name: '' } });
-        toast.success('Lead converted to customer and saved in the customer database.');
-      }
-    });
+    fetch('/api/customers/create', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ leadId, dealershipId }),
+    })
+      .then(async r => {
+        const res = await r.json() as { customerId?: number | null; created?: boolean; error?: string; code?: string; hint?: string };
+        console.log('[complete] /api/customers/create response:', res);
+
+        emit({ type: 'lead:updated', payload: { id: String(leadId), status: 'closed' } });
+
+        if (res.error) {
+          console.error('[complete] customer create error:', res.error, res.code, res.hint);
+          toast.error('Kund kunde inte skapas', {
+            description: `${res.error}${res.hint ? ` — ${res.hint}` : ''}`,
+          });
+          return;
+        }
+        if (res.created && res.customerId) {
+          emit({ type: 'customer:created', payload: { id: res.customerId, name: '' } });
+          toast.success('Kund skapad automatiskt och sparad i kundregistret.');
+        } else if (!res.created && res.customerId) {
+          emit({ type: 'data:refresh' });
+          toast.success('Kund uppdaterad i kundregistret.');
+        }
+      })
+      .catch(err => {
+        console.error('[complete] customer create fetch error:', err);
+        toast.error('Fel vid kundregistrering', { description: String(err) });
+      });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready]);
 
