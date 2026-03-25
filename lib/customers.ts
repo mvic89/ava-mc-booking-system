@@ -556,7 +556,7 @@ function mapDbToCustomer(row: Record<string, unknown>): Customer {
   };
 }
 
-function mapCustomerToDb(c: Customer, includeId = true): Record<string, unknown> {
+export function mapCustomerToDb(c: Customer, includeId = true): Record<string, unknown> {
   const row: Record<string, unknown> = {
     first_name:         c.firstName,
     last_name:          c.lastName,

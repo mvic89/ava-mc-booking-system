@@ -55,19 +55,20 @@ async function resolveCustomer(
   const { data: newCust, error: insertErr } = await sb()
     .from('customers')
     .insert({
-      first_name:      firstName,
-      last_name:       lastName,
-      personnummer:    lead.personnummer || null,
-      email:           lead.email        || null,
-      phone:           lead.phone        || null,
-      address:         lead.address      || null,
-      city:            lead.city         || null,
-      source:          lead.source === 'BankID' ? 'BankID' : 'Manual',
-      bankid_verified: lead.source === 'BankID',
-      tag:             'New',
-      lifetime_value:  lead.value        || 0,
-      last_activity:   new Date().toISOString(),
-      dealership_id:   dealershipId,
+      first_name:         firstName,
+      last_name:          lastName,
+      personnummer:       lead.personnummer || null,
+      email:              lead.email        || null,
+      phone:              lead.phone        || null,
+      address:            lead.address      || null,
+      source:             lead.source === 'BankID' ? 'BankID' : 'Manual',
+      bankid_verified:    lead.source === 'BankID',
+      protected_identity: false,
+      gender:             'Man',
+      tag:                'New',
+      lifetime_value:     lead.value        || 0,
+      last_activity:      new Date().toISOString(),
+      dealership_id:      dealershipId,
     })
     .select('id')
     .single();
@@ -92,7 +93,7 @@ async function resolveCustomer(
     }
   }
 
-  console.error('[invoice/create] resolveCustomer insert failed:', insertErr?.message);
+  console.error('[invoice/create] resolveCustomer insert failed:', insertErr?.code, insertErr?.message);
   return { customerId: null, customerName: fallbackName };
 }
 

@@ -109,25 +109,18 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
         if (!dealershipId) { setLoading(false); return }
 
         // Ensure this dealership row exists before any FK-constrained insert.
-        // First check if it already exists — if so, skip. If not, insert.
-        const { data: existing } = await supabase
-            .from('dealerships')
-            .select('id')
-            .eq('id', dealershipId)
-            .maybeSingle()
-
-        if (!existing) {
-            const profile = getDealershipProfile()
-            const { error: insertErr } = await supabase.from('dealerships').insert({
-                id:    dealershipId,
+        // Uses a server-side route (service-role) so RLS never blocks the write.
+        const profile = getDealershipProfile()
+        fetch('/api/dealership/ensure', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                dealershipId,
                 name:  profile.name  || 'Dealership',
                 email: profile.email || null,
                 phone: profile.phone || null,
-            })
-            if (insertErr) {
-                console.error('[dealerships] Failed to register dealership row:', insertErr.message)
-            }
-        }
+            }),
+        }).catch((err) => console.error('[dealerships] ensure fetch error:', err))
 
         const [mcs, sps, accs] = await Promise.all([
             supabase.from('motorcycles').select('*').eq('dealership_id', dealershipId).order('id'),
