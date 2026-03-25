@@ -183,10 +183,14 @@ export async function createCustomer(
 export async function deleteCustomers(ids: number[]): Promise<void> {
   const dealershipId = getDealershipId();
   if (!dealershipId || ids.length === 0) return;
-  const { error } = await db()
-    .from('customers')
-    .delete()
-    .in('id', ids)
-    .eq('dealership_id', dealershipId);
-  if (error) throw new Error(error.message);
+  // Use server-side route so service-role key bypasses RLS on the customers table.
+  const res = await fetch('/api/customers/delete', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ dealershipId, ids }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(body.error ?? `Delete failed (${res.status})`);
+  }
 }
