@@ -9,6 +9,26 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function sb() { return getSupabaseAdmin() as any; }
 
+// ── Personnummer utilities ─────────────────────────────────────────────────────
+function genderFromPnr(pnr: string | null | undefined): 'Man' | 'Kvinna' {
+  if (!pnr) return 'Man';
+  const d = pnr.replace(/\D/g, '');
+  const idx = d.length === 12 ? 10 : 8;
+  const digit = parseInt(d[idx] ?? '1', 10);
+  return digit % 2 !== 0 ? 'Man' : 'Kvinna';
+}
+function birthDateFromPnr(pnr: string | null | undefined): string | null {
+  if (!pnr) return null;
+  const d = pnr.replace(/\D/g, '');
+  if (d.length === 12) return `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`;
+  if (d.length >= 10) {
+    const yy = parseInt(d.slice(0, 2), 10);
+    const century = yy > (new Date().getFullYear() % 100) ? 1900 : 2000;
+    return `${century + yy}-${d.slice(2, 4)}-${d.slice(4, 6)}`;
+  }
+  return null;
+}
+
 // ── Server-side customer resolution ────────────────────────────────────────────
 // Finds the existing customer for a lead, or creates one.  Uses the service-role
 // client so Supabase RLS on the customers table never blocks the INSERT.
@@ -61,11 +81,14 @@ async function resolveCustomer(
       email:              lead.email        || null,
       phone:              lead.phone        || null,
       address:            lead.address      || null,
+      postal_code:        lead.postal_code   || null,
+      city:               lead.city          || null,
+      birth_date:         birthDateFromPnr(lead.personnummer as string),
+      gender:             genderFromPnr(lead.personnummer as string),
       source:             lead.source === 'BankID' ? 'BankID' : 'Manual',
       bankid_verified:    lead.source === 'BankID',
       protected_identity: false,
-      gender:             'Man',
-      tag:                'New',
+      tag:                'Active',
       lifetime_value:     lead.value        || 0,
       last_activity:      new Date().toISOString(),
       dealership_id:      dealershipId,

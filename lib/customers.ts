@@ -13,17 +13,23 @@ export interface Customer {
   personnummer:      string;
   email:             string;
   phone:             string;
+  address:           string;
+  postalCode:        string;
+  city:              string;
+  birthDate:         string;
+  gender:            'Man' | 'Kvinna';
   source:            Source;
-  vehicles:          number;
-  lifetimeValue:     number;
-  lastActivity:      string;
   tag:               Tag;
   bankidVerified:    boolean;
   protectedIdentity: boolean;
-  address:           string;
-  gender:            'Man' | 'Kvinna';
-  birthDate:         string;
-  notes?:            string;   // free-form notes + extra imported columns
+  lifetimeValue:     number;
+  lastActivity:      string;
+  customerSince:     string;
+  riskLevel:         string;
+  citizenship:       string;
+  deceased:          boolean;
+  notes?:            string;
+  vehicles:          number;   // computed client-side (not a DB column)
 }
 
 
@@ -59,22 +65,28 @@ function formatLastActivity(ts: string | null): string {
 function mapDbToCustomer(row: Record<string, unknown>): Customer {
   return {
     id:                row.id as number,
-    firstName:         (row.first_name  as string) ?? '',
-    lastName:          (row.last_name   as string) ?? '',
-    personnummer:      (row.personnummer as string) ?? '',
-    email:             (row.email       as string) ?? '',
-    phone:             (row.phone       as string) ?? '',
-    source:            (row.source      as Source) ?? 'Manual',
-    vehicles:          0,
-    lifetimeValue:     parseFloat(String(row.lifetime_value ?? '0')),
-    lastActivity:      formatLastActivity(row.last_activity as string | null),
-    tag:               (row.tag         as Tag)    ?? 'New',
+    firstName:         (row.first_name        as string)  ?? '',
+    lastName:          (row.last_name         as string)  ?? '',
+    personnummer:      (row.personnummer       as string)  ?? '',
+    email:             (row.email             as string)  ?? '',
+    phone:             (row.phone             as string)  ?? '',
+    address:           (row.address           as string)  ?? '',
+    postalCode:        (row.postal_code        as string)  ?? '',
+    city:              (row.city              as string)  ?? '',
+    birthDate:         (row.birth_date         as string)  ?? '',
+    gender:            (row.gender            as 'Man' | 'Kvinna') ?? 'Man',
+    source:            (row.source            as Source)  ?? 'Manual',
+    tag:               (row.tag               as Tag)     ?? 'New',
     bankidVerified:    (row.bankid_verified    as boolean) ?? false,
     protectedIdentity: (row.protected_identity as boolean) ?? false,
-    address:           (row.address     as string) ?? '',
-    gender:            (row.gender      as 'Man' | 'Kvinna') ?? 'Man',
-    birthDate:         (row.birth_date  as string) ?? '',
-    notes:             (row.notes       as string) ?? undefined,
+    lifetimeValue:     parseFloat(String(row.lifetime_value ?? '0')),
+    lastActivity:      formatLastActivity(row.last_activity as string | null),
+    customerSince:     formatLastActivity(row.customer_since as string | null),
+    riskLevel:         (row.risk_level        as string)  ?? 'low',
+    citizenship:       (row.citizenship       as string)  ?? '',
+    deceased:          (row.deceased          as boolean) ?? false,
+    notes:             (row.notes             as string)  ?? undefined,
+    vehicles:          0,
   };
 }
 
@@ -85,15 +97,20 @@ function mapCustomerToDb(c: Customer, includeId = true): Record<string, unknown>
     personnummer:       c.personnummer  || null,
     email:              c.email         || null,
     phone:              c.phone         || null,
+    address:            c.address       || null,
+    postal_code:        c.postalCode    || null,
+    city:               c.city          || null,
+    birth_date:         c.birthDate     || null,
+    gender:             c.gender,
     source:             c.source,
-    lifetime_value:     c.lifetimeValue,
-    last_activity:      parseLastActivity(c.lastActivity),
     tag:                c.tag,
     bankid_verified:    c.bankidVerified,
     protected_identity: c.protectedIdentity,
-    address:            c.address       || null,
-    gender:             c.gender,
-    birth_date:         c.birthDate     || null,
+    lifetime_value:     c.lifetimeValue,
+    last_activity:      parseLastActivity(c.lastActivity),
+    risk_level:         c.riskLevel     || 'low',
+    citizenship:        c.citizenship   || null,
+    deceased:           c.deceased,
     notes:              c.notes         || null,
   };
   if (includeId) row.id = c.id;

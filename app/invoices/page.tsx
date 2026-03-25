@@ -206,9 +206,37 @@ export default function InvoicesPage() {
 
         {/* ── Header ─────────────────────────────────────────────────────── */}
         <div className="px-5 md:px-8 py-6 bg-white border-b border-slate-100 animate-fade-up">
-          <p className="text-xs text-slate-400 uppercase tracking-widest mb-1">{t('breadcrumb')}</p>
-          <h1 className="text-2xl font-black text-[#0b1524]">{t('title')}</h1>
-          <p className="text-sm text-slate-500 mt-1">{t('subtitle')}</p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold mb-1">{t('breadcrumb')}</p>
+              <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                📄 {t('title')}
+              </h1>
+              <p className="text-sm text-slate-400 mt-1">{t('subtitle')}</p>
+            </div>
+            <button
+              onClick={() => {
+                const csv = [
+                  ['Faktura', 'Datum', 'Kund', 'Fordon', 'Metod', 'Belopp', 'Status'].join(','),
+                  ...visible.map(i => [
+                    i.id, i.issueDate.slice(0, 10), i.customerName, i.vehicle,
+                    i.paymentMethod, i.totalAmount, i.status,
+                  ].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))
+                ].join('\n');
+                const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+                const url  = URL.createObjectURL(blob);
+                const a    = document.createElement('a');
+                a.href = url; a.download = `fakturor-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-sm font-medium transition-colors whitespace-nowrap"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l4 4m0 0l4-4m-4 4V4" />
+              </svg>
+              Exportera CSV
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 px-5 md:px-8 py-6 space-y-5">

@@ -292,7 +292,7 @@
       "lastActivity": "Seneste aktivitet",
       "tags": "Tags",
       "noResults": "Ingen kunder fundet",
-      "showing": "Viser 1–{count} af 342 kunder"
+      "showing": "Viser {count} kunder"
     },
     "sourceBadge": {
       "manual": "Manuel"

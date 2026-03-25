@@ -292,7 +292,7 @@
       "lastActivity": "آخر نشاط",
       "tags": "التصنيفات",
       "noResults": "لم يتم العثور على عملاء",
-      "showing": "عرض 1–{count} من 342 عميل"
+      "showing": "عرض {count} عملاء"
     },
     "sourceBadge": {
       "manual": "يدوي"
