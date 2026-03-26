@@ -86,7 +86,7 @@ function mapDbToCustomer(row: Record<string, unknown>): Customer {
     citizenship:       (row.citizenship       as string)  ?? '',
     deceased:          (row.deceased          as boolean) ?? false,
     notes:             (row.notes             as string)  ?? undefined,
-    vehicles:          0,
+    vehicles:          (row.vehicle_count as number) ?? 0,
   };
 }
 

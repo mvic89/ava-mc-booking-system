@@ -590,6 +590,7 @@
       "contacted": "تم التواصل",
       "testRide": "تجربة القيادة",
       "negotiating": "تفاوض",
+      "pendingPayment": "بانتظار الدفع",
       "closed": "مغلق"
     },
     "status": {

@@ -323,7 +323,7 @@ export default function CustomersPage() {
                     {/* Email */}
                     <td className="px-5 py-3.5 text-sm text-slate-600">{c.email}</td>
                     {/* Phone */}
-                    <td className="px-5 py-3.5 text-sm text-slate-600">{c.phone}</td>
+                    <td className="px-5 py-3.5 text-sm text-slate-600 whitespace-nowrap">{c.phone}</td>
                     {/* Source */}
                     <td className="px-5 py-3.5">
                       {c.source === 'BankID' ? (
@@ -339,7 +339,7 @@ export default function CustomersPage() {
                     {/* Vehicles */}
                     <td className="px-5 py-3.5 text-sm text-slate-700 font-medium">{c.vehicles}</td>
                     {/* Lifetime Value */}
-                    <td className="px-5 py-3.5 text-sm font-semibold text-slate-900">
+                    <td className="px-5 py-3.5 text-sm font-semibold text-slate-900 whitespace-nowrap">
                       {c.lifetimeValue > 0 ? `${c.lifetimeValue.toLocaleString('sv-SE')} kr` : '—'}
                     </td>
                     {/* Last Activity */}

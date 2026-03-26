@@ -45,6 +45,21 @@ export default function NewLeadPage() {
     notes: '', interest: '', estimatedValue: 0,
   });
 
+  // Pre-fill from customer profile "New quote" button
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const name   = params.get('name')  ?? '';
+    const email  = params.get('email') ?? '';
+    const phone  = params.get('phone') ?? '';
+    if (name || email || phone) {
+      setActiveTab('manual');
+      setFormData(prev => ({ ...prev, name, email, phone }));
+      setGdprConsent(true); // existing customer already consented
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [vehicleSearch, setVehicleSearch] = useState('');
 
   // ── Live vehicles: in-stock motorcycles ranked by interest-field relevance ──

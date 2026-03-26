@@ -272,6 +272,18 @@ export default function AgreementPaymentPage() {
           storedAgreementId,
           storedVin,
         ));
+
+        // Advance lead to pending_payment as soon as the payment page is opened.
+        // Uses the service-role API route so RLS never blocks the update.
+        fetch(`/api/leads/${id}/stage`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            dealershipId,
+            stage:      'pending_payment',
+            fromStages: ['new', 'contacted', 'testride', 'negotiating'],
+          }),
+        }).catch(() => { /* non-critical — pipeline will still show correct state */ });
       }).catch(() => { /* keep DEAL_DEFAULTS */ });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -131,8 +131,9 @@ export default function CustomerProfilePage() {
   const [tab, setTab] = useState<ProfileTab>('overview');
   const [dealerEmail, setDealerEmail] = useState('');
   const [customer, setCustomer] = useState<Customer | null>(null);
-  const [liveInvoices, setLiveInvoices]   = useState<any[]>([]);
-  const [liveTimeline, setLiveTimeline]   = useState<any[]>([]);
+  const [liveInvoices,   setLiveInvoices]   = useState<any[]>([]);
+  const [liveTimeline,   setLiveTimeline]   = useState<any[]>([]);
+  const [liveBankidLogs, setLiveBankidLogs] = useState<any[]>([]);
 
   // Fetch real invoices (direct customer_id FK) + build timeline from leads+invoices
   const loadLiveData = useCallback(async () => {
@@ -142,6 +143,18 @@ export default function CustomerProfilePage() {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sb = getSupabaseBrowser() as any;
+
+    // 0. BankID logs for this customer
+    const { data: bankidRows } = await sb
+      .from('customer_bankid_logs')
+      .select('id, action, status, risk_level, created_at')
+      .eq('customer_id', custId)
+      .order('created_at', { ascending: false });
+    setLiveBankidLogs((bankidRows ?? []).map((r: any) => ({
+      date:   new Date(r.created_at).toLocaleString('sv-SE'),
+      action: `${r.action.replace(/_/g, ' ')}${r.risk_level ? ` — Risk: ${r.risk_level}` : ''}`,
+      status: r.status === 'success' ? 'Godkänd' : r.status === 'failed' ? 'Nekad' : 'Väntande',
+    })));
 
     // 1. Invoices directly linked to this customer (fast — uses customer_id FK index)
     const invoices = await getInvoicesByCustomer(custId);
@@ -189,6 +202,39 @@ export default function CustomerProfilePage() {
 
   // Re-fetch when any data changes on another device
   useAutoRefresh(loadLiveData);
+
+  function handleGdprExport() {
+    if (!c) return;
+    const exportData = {
+      exportedAt:      new Date().toISOString(),
+      exportedBy:      'BikeMeNow Dealership System',
+      legalBasis:      'GDPR Art. 15 — Rätt till tillgång',
+      retentionPolicy: 'Bokföringslagen 7 år (fakturor) · GDPR 3 år (övriga kunduppgifter)',
+      customer: {
+        id:             c.id,
+        firstName:      c.firstName,
+        lastName:       c.lastName,
+        personnummer:   c.personnummer,
+        email:          c.email,
+        phone:          c.phone,
+        address:        c.address,
+        birthDate:      c.birthDate,
+        gender:         c.gender,
+        bankidVerified: c.bankidVerified,
+        protectedIdentity: c.protectedIdentity,
+      },
+      invoices:    liveInvoices,
+      bankidLogs:  liveBankidLogs,
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `gdpr-export-${c.id}-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('GDPR-data exporterad (Art. 15)');
+  }
 
   const mockC = MOCK_DB[id];
   const c = customer
@@ -308,10 +354,18 @@ export default function CustomerProfilePage() {
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <button className="bg-[#FF6B2C] hover:bg-[#e55a1f] text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors">
+              <button
+                onClick={() => router.push(
+                  `/sales/leads/new?customerId=${c.id}&name=${encodeURIComponent(`${c.firstName} ${c.lastName}`)}&email=${encodeURIComponent(c.email ?? '')}&phone=${encodeURIComponent(c.phone ?? '')}`
+                )}
+                className="bg-[#FF6B2C] hover:bg-[#e55a1f] text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
+              >
                 {t('profile.actions.newQuote')}
               </button>
-              <button className="border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium px-4 py-2 rounded-xl transition-colors">
+              <button
+                onClick={handleGdprExport}
+                className="border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium px-4 py-2 rounded-xl transition-colors"
+              >
                 {t('profile.actions.gdprExport')}
               </button>
             </div>
@@ -382,24 +436,26 @@ export default function CustomerProfilePage() {
                 {/* BankID history */}
                 <div className="bg-white rounded-2xl border border-slate-100 p-6">
                   <h2 className="text-sm font-bold text-slate-900 mb-4">{t('profile.bankidHistory')}</h2>
-                  {(c.bankidHistory?.length ?? 0) === 0 ? (
+                  {liveBankidLogs.length === 0 ? (
                     <p className="text-sm text-slate-400">{t('profile.noBankIDHistory')}</p>
                   ) : (
                     <div className="space-y-3">
-                      {c.bankidHistory.map((h: any, i: number) => (
+                      {liveBankidLogs.map((h: any, i: number) => (
                         <div key={i} className="flex items-start justify-between gap-2">
                           <div>
                             <div className="text-xs text-slate-400">{h.date}</div>
-                            <div className="text-sm text-slate-700">{h.action}</div>
+                            <div className="text-sm text-slate-700 capitalize">{h.action}</div>
                           </div>
-                          <span className="text-[11px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded shrink-0">
+                          <span className={`text-[11px] font-bold px-2 py-0.5 rounded shrink-0 ${
+                            h.status === 'Godkänd' ? 'bg-green-100 text-green-700' :
+                            h.status === 'Nekad'   ? 'bg-red-100 text-red-600' :
+                                                     'bg-amber-100 text-amber-700'
+                          }`}>
                             {h.status}
                           </span>
                         </div>
                       ))}
-                      {(c.bankidHistory?.length ?? 0) > 0 && (
-                        <p className="text-[11px] text-slate-400 mt-2">Signatur + OCSP lagrad för varje verifiering (rättsligt bevis)</p>
-                      )}
+                      <p className="text-[11px] text-slate-400 mt-2">Signatur + OCSP lagrad för varje verifiering (rättsligt bevis)</p>
                     </div>
                   )}
                 </div>
@@ -567,8 +623,8 @@ export default function CustomerProfilePage() {
                         { label: t('profile.gdprTab.name'),    src: t('profile.gdprTab.sourceBankID'),  ok: !!c.personnummer },
                         { label: t('profile.gdprTab.address'), src: t('profile.gdprTab.sourceSPAR'),    ok: !!c.address },
                         { label: t('profile.gdprTab.contact'), src: t('profile.gdprTab.sourceManual'),  ok: !!c.email },
-                        { label: t('profile.gdprTab.purchases', { n: c.invoices?.length ?? 0 }),   src: 'System',                          ok: (c.invoices?.length ?? 0) > 0 },
-                        { label: t('profile.gdprTab.bankidLogs', { n: c.bankidHistory?.length ?? 0 }), src: t('profile.gdprTab.sourceBankID'), ok: (c.bankidHistory?.length ?? 0) > 0 },
+                        { label: t('profile.gdprTab.purchases', { n: liveInvoices.length }),   src: 'System',                          ok: liveInvoices.length > 0 },
+                        { label: t('profile.gdprTab.bankidLogs', { n: liveBankidLogs.length }), src: t('profile.gdprTab.sourceBankID'), ok: liveBankidLogs.length > 0 },
                       ].map(row => (
                         <div key={row.label} className="flex items-center justify-between py-1.5 border-b border-slate-50 last:border-0">
                           <span className="text-sm text-slate-700">{row.label}</span>
@@ -608,27 +664,7 @@ export default function CustomerProfilePage() {
                     <h3 className="text-sm font-bold text-slate-900 mb-1">{t('profile.gdprTab.accessTitle')}</h3>
                     <p className="text-xs text-slate-500 mb-3">{t('profile.gdprTab.accessDesc')}</p>
                     <button
-                      onClick={() => {
-                        const data = {
-                          name: `${c.firstName} ${c.lastName}`,
-                          personnummer: c.personnummer,
-                          address: c.address,
-                          email: c.email,
-                          phone: c.phone,
-                          birthDate: c.birthDate,
-                          gender: c.gender,
-                          invoices: c.invoices ?? [],
-                          bankidHistory: c.bankidHistory ?? [],
-                          exportedAt: new Date().toISOString(),
-                        };
-                        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `gdpr-export-${c.id}.json`;
-                        a.click();
-                        URL.revokeObjectURL(url);
-                      }}
+                      onClick={handleGdprExport}
                       className="px-4 py-2 rounded-xl bg-[#0f1923] hover:bg-[#1a2a3a] text-white text-xs font-semibold transition-colors"
                     >
                       {t('profile.gdprTab.exportBtn')}

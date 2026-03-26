@@ -590,6 +590,7 @@
       "contacted": "Kontaktet",
       "testRide": "Prøvekørsel",
       "negotiating": "Forhandling",
+      "pendingPayment": "Afventer betaling",
       "closed": "Afsluttet"
     },
     "status": {
