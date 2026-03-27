@@ -166,6 +166,7 @@ export default function Sidebar() {
       label: 'PLATFORM',
       items: [
         { icon: '🏢', label: 'All Dealerships',    href: '/admin',           roles: ['platform_admin'] },
+        { icon: '🔐', label: 'System Admins',      href: '/admin/users',     roles: ['platform_admin'] },
         { icon: '📊', label: 'Platform Analytics', href: '/admin/analytics', roles: ['platform_admin'] },
         { icon: '💳', label: 'Subscriptions',      href: '/admin/billing',   roles: ['platform_admin'] },
         { icon: '⚙',  label: 'Platform Settings',  href: '/admin/settings',  roles: ['platform_admin'] },

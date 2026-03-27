@@ -473,3 +473,35 @@ ALTER TABLE password_reset_tokens ENABLE ROW LEVEL SECURITY;
 DROP   POLICY IF EXISTS "Allow all — password_reset_tokens" ON password_reset_tokens;
 CREATE POLICY "Allow all — password_reset_tokens"
   ON password_reset_tokens FOR ALL USING (true) WITH CHECK (true);
+
+-- ══════════════════════════════════════════════════════════════════════════════
+-- PLATFORM ADMIN SUPPORT
+-- ══════════════════════════════════════════════════════════════════════════════
+
+-- Platform admin (andrew.kalumba@bikeme.now) has no dealership, so
+-- dealership_id must be nullable. The old NOT NULL constraint prevented
+-- storing platform_admin in staff_users, which forced reliance on
+-- localStorage — causing login failures on new browsers/devices.
+
+-- 1. Make dealership_id nullable
+ALTER TABLE staff_users ALTER COLUMN dealership_id DROP NOT NULL;
+
+-- 2. Old unique constraint used (email, dealership_id) — NULL != NULL in SQL,
+--    so it wouldn't catch duplicate platform_admin rows. Replace with a
+--    partial unique index: email must be unique when there is no dealership.
+DROP INDEX IF EXISTS staff_users_email_no_dealer_uidx;
+CREATE UNIQUE INDEX staff_users_email_no_dealer_uidx
+  ON staff_users(email) WHERE dealership_id IS NULL;
+
+-- 3. Insert the platform admin row (safe to re-run: ON CONFLICT DO NOTHING).
+--    password_hash starts as NULL — use "Forgot Password" on first login to set it.
+INSERT INTO staff_users (name, email, role, status, dealership_id, password_hash)
+VALUES (
+  'Andrew Kalumba',
+  'andrew.kalumba@bikeme.now',
+  'platform_admin',
+  'active',
+  NULL,
+  NULL
+)
+ON CONFLICT DO NOTHING;

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
 import { Resend } from 'resend';
-import { getSupabaseServer } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const TOKEN_TTL_HOURS = 1;
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     const normalised = email.toLowerCase().trim();
-    const sb = getSupabaseServer();
+    const sb = getSupabaseAdmin();
 
     // Look up staff user — silently skip if not found (prevents email enumeration)
     // Select only the base columns that are guaranteed to exist
