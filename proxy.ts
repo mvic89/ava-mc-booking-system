@@ -28,6 +28,7 @@ const PUBLIC_PREFIXES = [
   '/api/auth/session',
   '/api/auth/forgot-password',
   '/api/auth/reset-password',
+  '/api/auth/login',
 ];
 
 const COOKIE_NAME = 'ava_session';
