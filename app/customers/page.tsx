@@ -330,7 +330,7 @@ export default function CustomersPage() {
                     <th className="px-5 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('table.vehicles')}</th>
                     <th className="px-5 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('table.lifetimeValue')}</th>
                     <th className="px-5 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('table.lastActivity')}</th>
-                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('table.tag')}</th>
+                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{t('table.tags')}</th>
                     <th className="w-12" />
                   </tr>
                 </thead>
