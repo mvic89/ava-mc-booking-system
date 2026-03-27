@@ -590,6 +590,7 @@
       "contacted": "Contacted",
       "testRide": "Test Ride",
       "negotiating": "Negotiating",
+      "pendingPayment": "Pending Payment",
       "closed": "Closed"
     },
     "status": {

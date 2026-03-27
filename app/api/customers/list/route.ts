@@ -46,5 +46,27 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ customers: data ?? [] });
+  const customers = data ?? [];
+
+  // Count paid invoices per customer (proxy for vehicles purchased)
+  const customerIds = customers.map((c: any) => c.id);
+  const vehicleCountMap: Record<number, number> = {};
+  if (customerIds.length > 0) {
+    const { data: invoiceRows } = await sb()
+      .from('invoices')
+      .select('customer_id')
+      .in('customer_id', customerIds)
+      .eq('status', 'paid')
+      .not('vehicle', 'is', null);
+    for (const row of (invoiceRows ?? [])) {
+      vehicleCountMap[row.customer_id] = (vehicleCountMap[row.customer_id] ?? 0) + 1;
+    }
+  }
+
+  const enriched = customers.map((c: any) => ({
+    ...c,
+    vehicle_count: vehicleCountMap[c.id] ?? 0,
+  }));
+
+  return NextResponse.json({ customers: enriched });
 }

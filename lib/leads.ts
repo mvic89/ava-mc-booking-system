@@ -6,7 +6,7 @@ import { getDealershipId } from './tenant';
 function db() { return getSupabaseBrowser() as any; }
 
 export type Status = 'hot' | 'warm' | 'cold';
-export type Stage  = 'new' | 'contacted' | 'testride' | 'negotiating' | 'closed';
+export type Stage  = 'new' | 'contacted' | 'testride' | 'negotiating' | 'pending_payment' | 'closed';
 
 export interface Lead {
   id:       number;

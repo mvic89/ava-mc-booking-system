@@ -22,11 +22,12 @@ interface LeadDetail {
 }
 
 const STAGE_LABELS: Record<string, string> = {
-  new:         'Ny',
-  contacted:   'Kontaktad',
-  testride:    'Provkörning',
-  negotiating: 'Förhandling',
-  closed:      'Avslutad',
+  new:             'Ny',
+  contacted:       'Kontaktad',
+  testride:        'Provkörning',
+  negotiating:     'Förhandling',
+  pending_payment: 'Betalning pågår',
+  closed:          'Avslutad',
 };
 
 const STATUS_CFG: Record<string, { cls: string; dot: string; label: string }> = {

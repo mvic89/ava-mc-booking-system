@@ -192,6 +192,16 @@ export async function POST(req: Request) {
         .eq('dealership_id', dealershipId);
     }
 
+    // Move lead to pending_payment column when a pending invoice is first created
+    if (status === 'pending' && leadId) {
+      await sb()
+        .from('leads')
+        .update({ stage: 'pending_payment' })
+        .eq('id', leadId)
+        .eq('dealership_id', dealershipId)
+        .in('stage', ['new', 'contacted', 'testride', 'negotiating']);
+    }
+
     // Deduplicate — return the existing invoice if one already exists for this lead+status
     if (leadId) {
       const { data: existing } = await sb()
