@@ -11,6 +11,7 @@ import { createLead } from '@/lib/leads';
 import BankIDModal from '@/components/bankIdModel';
 import PhoneInput from '@/components/PhoneInput';
 import { useInventory } from '@/context/InventoryContext';
+import { isValidEmail, isValidPhone } from '@/lib/validation';
 import type { BankIDResult } from '@/types';
 
 type TabType = 'bankid' | 'manual' | 'phone';
@@ -38,6 +39,7 @@ export default function NewLeadPage() {
   const [bankIDData,  setBankIDData]  = useState<BankIDResult | null>(null);
   const [user,        setUser]        = useState<Record<string,unknown> | null>(null);
   const [gdprConsent, setGdprConsent] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; phone?: string }>({});
 
   const [formData, setFormData] = useState({
     name: '', address: '', dateOfBirth: '', gender: '',
@@ -132,6 +134,11 @@ export default function NewLeadPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const errs: { email?: string; phone?: string } = {};
+    if (formData.email && !isValidEmail(formData.email)) errs.email = 'Enter a valid email address (e.g. name@domain.com)';
+    if (formData.phone && !isValidPhone(formData.phone)) errs.phone = 'Enter a valid phone number (at least 7 digits)';
+    if (Object.keys(errs).length) { setFieldErrors(errs); return; }
+    setFieldErrors({});
     try {
       // Parse address string "street, postalCode city" back into parts
       const addrRaw  = formData.address || '';
@@ -327,11 +334,13 @@ export default function NewLeadPage() {
                 <input
                   type="email"
                   value={formData.email}
-                  onChange={e => setFormData({ ...formData, email: e.target.value })}
-                  className={inputCls(false, false)}
+                  onChange={e => { setFormData({ ...formData, email: e.target.value }); setFieldErrors(prev => ({ ...prev, email: undefined })); }}
+                  onBlur={() => { if (formData.email && !isValidEmail(formData.email)) setFieldErrors(prev => ({ ...prev, email: 'Enter a valid email address (e.g. name@domain.com)' })); }}
+                  className={fieldErrors.email ? 'w-full px-4 py-2.5 rounded-xl border border-red-400 bg-red-50 focus:outline-none text-sm' : inputCls(false, false)}
                   placeholder={t('newLead.placeholders.email')}
                   required
                 />
+                {fieldErrors.email && <p className="mt-1 text-xs text-red-500">{fieldErrors.email}</p>}
               </div>
 
               {/* Phone */}
@@ -342,11 +351,12 @@ export default function NewLeadPage() {
                 </div>
                 <PhoneInput
                   value={formData.phone}
-                  onChange={v => setFormData({ ...formData, phone: v })}
+                  onChange={v => { setFormData({ ...formData, phone: v }); setFieldErrors(prev => ({ ...prev, phone: undefined })); }}
                   placeholder={t('newLead.placeholders.phone')}
-                  className="rounded-xl border border-slate-200 focus-within:border-[#FF6B2C] focus-within:ring-2 focus-within:ring-[#FF6B2C]/20 transition-all bg-white"
+                  error={!!fieldErrors.phone}
                   required
                 />
+                {fieldErrors.phone && <p className="mt-1 text-xs text-red-500">{fieldErrors.phone}</p>}
               </div>
 
               {/* Divider */}

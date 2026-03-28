@@ -10,6 +10,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { toast } from 'sonner';
 import { getSupabaseBrowser } from '@/lib/supabase';
 import { emit } from '@/lib/realtime';
+import { isValidEmail } from '@/lib/validation';
 import type { BankIDResult } from '@/types';
 
 type UserRole = 'admin' | 'sales' | 'service' | 'platform_admin';
@@ -178,6 +179,10 @@ export default function LoginPage() {
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
+    if (!isValidEmail(formData.email)) {
+      setLoginError('Enter a valid email address (e.g. name@domain.com)');
+      return;
+    }
     setLoading(true);
     try {
       // Password verification runs server-side (pbkdf2Sync is Node-only, not available in browser)
