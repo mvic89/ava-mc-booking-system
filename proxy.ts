@@ -29,6 +29,9 @@ const PUBLIC_PREFIXES = [
   '/api/auth/forgot-password',
   '/api/auth/reset-password',
   '/api/auth/login',
+  '/api/auth/send-otp',      // signup email verification (no session yet)
+  '/api/auth/verify-otp',    // signup OTP check (no session yet)
+  '/api/postal-lookup',      // postal code lookup during signup step 1
 ];
 
 const COOKIE_NAME = 'ava_session';

@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import PhoneInput from '@/components/PhoneInput';
 import PasswordInput from '@/components/PasswordInput';
 import { supabase } from '@/lib/supabase';
-import { isValidEmail, isValidPhone } from '@/lib/validation';
+import { isValidEmail, isValidPhone, isValidOrgNumber, isValidWebsite } from '@/lib/validation';
 import BankIDModal from '@/components/bankIdModel';
 import type { BankIDResult } from '@/types';
 
@@ -43,13 +43,6 @@ const QUICK_START = [
   { key: 'lead',          icon: '💰', title: '4. Create your first lead',      desc: 'Start managing your sales pipeline',                                       href: '/sales/leads/new' },
 ];
 
-function formatCardNumber(v: string) {
-  return v.replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim();
-}
-function formatExpiry(v: string) {
-  const d = v.replace(/\D/g, '').slice(0, 4);
-  return d.length >= 3 ? `${d.slice(0, 2)}/${d.slice(2)}` : d;
-}
 
 export default function SignupPage() {
   const router = useRouter();
@@ -101,14 +94,14 @@ export default function SignupPage() {
     setPostalLookup('loading');
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`https://api.zippopotam.us/se/${digits}`);
-        if (!res.ok) { setPostalLookup('notfound'); return; }
-        const data = await res.json();
-        const place = data.places?.[0];
-        if (place) {
+        // Server-side proxy — tries zippopotam.us → Nominatim → Nominatim free-text
+        const res = await fetch(`/api/postal-lookup?code=${digits}`);
+        const { city: cityName } = res.ok ? await res.json() : { city: null };
+
+        if (cityName) {
           setBusiness(b => ({
             ...b,
-            city: b.city || place['place name'], // only fill if user hasn't typed one
+            city: b.city || cityName, // only fill if user hasn't typed one
           }));
           setPostalLookup('found');
           setErrors(e => ({ ...e, city: '', postalCode: '' }));
@@ -127,21 +120,32 @@ export default function SignupPage() {
     fullName: '', email: '', mobile: '',
     password: '', confirmPassword: '', agreeToTerms: false,
   });
-  const [payment, setPayment] = useState({
-    cardNumber: '', expiry: '', cvc: '',
-    cardholderName: '', billingSameAsBusiness: true,
-  });
+  // OTP email verification (Step 3)
+  const [otpToken,   setOtpToken]   = useState('');
+  const [otpCode,    setOtpCode]    = useState('');
+  const [otpSending, setOtpSending] = useState(false);
 
   // ── Validation ──────────────────────────────────────────────────────────────
 
   function validateStep1(): boolean {
     const e: Record<string, string> = {};
     if (!business.dealershipName.trim()) e.dealershipName = 'Required';
-    if (!business.orgNumber.trim())      e.orgNumber      = 'Required';
+    if (!business.orgNumber.trim())
+      e.orgNumber = 'Required';
+    else if (!isValidOrgNumber(business.orgNumber))
+      e.orgNumber = 'Enter a valid org number (e.g. 556123-4567)';
     if (!business.streetAddress.trim())  e.streetAddress  = 'Required';
-    if (!business.postalCode.trim())     e.postalCode     = 'Required';
+    if (!business.postalCode.trim())
+      e.postalCode = 'Required';
+    else if (business.postalCode.replace(/\D/g, '').length !== 5)
+      e.postalCode = 'Enter a valid 5-digit postal code';
     if (!business.city.trim())           e.city           = 'Required';
-    if (!business.phone.trim())          e.phone          = 'Required';
+    if (!business.phone.trim())
+      e.phone = 'Required';
+    else if (!isValidPhone(business.phone))
+      e.phone = 'Enter a valid phone number (at least 7 digits)';
+    if (business.website.trim() && !isValidWebsite(business.website))
+      e.website = 'Enter a valid URL (e.g. https://yoursite.com)';
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -166,16 +170,6 @@ export default function SignupPage() {
     return Object.keys(e).length === 0;
   }
 
-  function validateStep3(): boolean {
-    const e: Record<string, string> = {};
-    const cleanCard = payment.cardNumber.replace(/\s/g, '');
-    if (cleanCard.length < 16)          e.cardNumber     = 'Enter a valid 16-digit card number';
-    if (payment.expiry.length < 5)      e.expiry         = 'Enter a valid expiry date (MM/YY)';
-    if (payment.cvc.length < 3)         e.cvc            = 'Enter a valid 3-digit CVC';
-    if (!payment.cardholderName.trim()) e.cardholderName = 'Required';
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  }
 
   // ── Quick Start helpers ──────────────────────────────────────────────────────
 
@@ -377,8 +371,15 @@ export default function SignupPage() {
                   <input
                     type="text"
                     value={business.orgNumber}
-                    onChange={e => { setBusiness({ ...business, orgNumber: e.target.value }); setErrors(p => ({ ...p, orgNumber: '' })); }}
-                    placeholder="XXXXXX-XXXX"
+                    onChange={e => {
+                      // Auto-format as XXXXXX-XXXX (strip non-digits, insert dash after 6)
+                      const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      const formatted = digits.length > 6 ? `${digits.slice(0, 6)}-${digits.slice(6)}` : digits;
+                      setBusiness({ ...business, orgNumber: formatted });
+                      setErrors(p => ({ ...p, orgNumber: '' }));
+                    }}
+                    placeholder="556123-4567"
+                    maxLength={11}
                     className={fc('orgNumber')}
                   />
                   {errors.orgNumber && <p className="text-xs text-red-500 mt-1">{errors.orgNumber}</p>}
@@ -456,12 +457,17 @@ export default function SignupPage() {
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Website (optional)</label>
                   <input
-                    type="url"
+                    type="text"
                     value={business.website}
-                    onChange={e => setBusiness({ ...business, website: e.target.value })}
-                    placeholder="https://"
-                    className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C] outline-none text-sm"
+                    onChange={e => { setBusiness({ ...business, website: e.target.value }); setErrors(p => ({ ...p, website: '' })); }}
+                    onBlur={() => {
+                      if (business.website.trim() && !isValidWebsite(business.website))
+                        setErrors(p => ({ ...p, website: 'Enter a valid URL (e.g. https://yoursite.com)' }));
+                    }}
+                    placeholder="https://yoursite.com"
+                    className={fc('website')}
                   />
+                  {errors.website && <p className="text-xs text-red-500 mt-1">{errors.website}</p>}
                 </div>
               </div>
             </div>
@@ -630,107 +636,145 @@ export default function SignupPage() {
                 ← Back
               </button>
               <button
-                onClick={() => { if (validateStep2()) { setErrors({}); setStep(3); } }}
-                className="flex-1 bg-[#FF6B2C] text-white py-3 rounded-xl font-semibold hover:bg-[#e55a1f] transition-colors"
+                disabled={otpSending}
+                onClick={async () => {
+                  if (!validateStep2()) return;
+                  setOtpSending(true);
+                  setErrors({});
+                  try {
+                    const res = await fetch('/api/auth/send-otp', {
+                      method:  'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        email: admin.email,
+                        name:  adminVerified?.user.name ?? admin.fullName,
+                      }),
+                    });
+                    if (!res.ok) {
+                      const errBody = await res.json().catch(() => ({}));
+                      throw new Error(errBody.error ?? 'send failed');
+                    }
+                    const { token, devCode } = await res.json();
+                    setOtpToken(token);
+                    if (devCode) {
+                      // Dev-mode fallback: email delivery failed but code returned in response
+                      setOtpCode(devCode);
+                      toast.success(`Dev mode: code auto-filled (${devCode})`);
+                    } else {
+                      setOtpCode('');
+                    }
+                    setStep(3);
+                  } catch (err) {
+                    toast.error(`Failed to send verification email: ${String(err)}`);
+                  } finally {
+                    setOtpSending(false);
+                  }
+                }}
+                className="flex-1 bg-[#FF6B2C] text-white py-3 rounded-xl font-semibold hover:bg-[#e55a1f] transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Continue →
+                {otpSending ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Sending…
+                  </>
+                ) : 'Continue →'}
               </button>
             </div>
           </div>
         )}
 
-        {/* ── Step 3: Payment ── */}
+        {/* ── Step 3: Email verification ── */}
         {step === 3 && (
           <div className="w-full max-w-lg">
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
-              <h2 className="text-2xl font-bold text-slate-900 mb-1">Payment Information</h2>
-              <p className="text-slate-500 text-sm mb-7">Start your 14-day free trial • No charge today</p>
 
-              {/* Plan summary */}
-              <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center justify-between mb-6">
-                <div>
-                  <p className="font-semibold text-slate-900 text-sm">{plan.name} Plan</p>
-                  <p className="text-xs text-slate-500 mt-0.5">Billed monthly after trial</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-green-700">{plan.price}</p>
-                  <p className="text-xs text-slate-400">per month</p>
+              {/* Icon */}
+              <div className="flex justify-center mb-5">
+                <div className="w-16 h-16 rounded-full bg-orange-50 border border-orange-100 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-[#FF6B2C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Card Number *</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={payment.cardNumber}
-                      onChange={e => { setPayment({ ...payment, cardNumber: formatCardNumber(e.target.value) }); setErrors(p => ({ ...p, cardNumber: '' })); }}
-                      placeholder="1234 5678 9012 3456"
-                      maxLength={19}
-                      className={`${fc('cardNumber')} pr-12`}
-                    />
-                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-lg">💳</span>
-                  </div>
-                  {errors.cardNumber && <p className="text-xs text-red-500 mt-1">{errors.cardNumber}</p>}
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Expiry Date *</label>
-                    <input
-                      type="text"
-                      value={payment.expiry}
-                      onChange={e => { setPayment({ ...payment, expiry: formatExpiry(e.target.value) }); setErrors(p => ({ ...p, expiry: '' })); }}
-                      placeholder="MM / YY"
-                      maxLength={5}
-                      className={fc('expiry')}
-                    />
-                    {errors.expiry && <p className="text-xs text-red-500 mt-1">{errors.expiry}</p>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">CVC *</label>
-                    <input
-                      type="text"
-                      value={payment.cvc}
-                      onChange={e => { setPayment({ ...payment, cvc: e.target.value.replace(/\D/g, '').slice(0, 3) }); setErrors(p => ({ ...p, cvc: '' })); }}
-                      placeholder="123"
-                      maxLength={3}
-                      className={fc('cvc')}
-                    />
-                    {errors.cvc && <p className="text-xs text-red-500 mt-1">{errors.cvc}</p>}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Cardholder Name *</label>
-                  <input
-                    type="text"
-                    value={payment.cardholderName}
-                    onChange={e => { setPayment({ ...payment, cardholderName: e.target.value }); setErrors(p => ({ ...p, cardholderName: '' })); }}
-                    placeholder="Name on card"
-                    className={fc('cardholderName')}
-                  />
-                  {errors.cardholderName && <p className="text-xs text-red-500 mt-1">{errors.cardholderName}</p>}
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <input
-                    type="checkbox"
-                    id="billing"
-                    checked={payment.billingSameAsBusiness}
-                    onChange={e => setPayment({ ...payment, billingSameAsBusiness: e.target.checked })}
-                    className="w-4 h-4 rounded border-slate-300 accent-[#FF6B2C]"
-                  />
-                  <label htmlFor="billing" className="text-sm text-slate-600">
-                    Billing address same as business address
-                  </label>
-                </div>
+              <h2 className="text-2xl font-bold text-slate-900 mb-1 text-center">Check your inbox</h2>
+              <p className="text-slate-500 text-sm text-center mb-1">
+                We sent a 6-digit code to
+              </p>
+              <p className="text-[#FF6B2C] font-semibold text-sm text-center mb-7 break-all">{admin.email}</p>
 
-                {/* Trial info box */}
-                <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 space-y-1">
-                  <p className="text-sm font-semibold text-orange-800">🎉 Your trial starts today</p>
-                  <p className="text-sm text-orange-700">You won't be charged until {trialEndStr}</p>
-                  <p className="text-sm text-orange-600">Cancel anytime before then at no cost</p>
-                </div>
+              {/* Code input */}
+              <div className="mb-5">
+                <label className="block text-sm font-medium text-slate-700 mb-2 text-center">
+                  Enter verification code
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  value={otpCode}
+                  onChange={e => {
+                    const digits = e.target.value.replace(/\D/g, '').slice(0, 6);
+                    setOtpCode(digits);
+                    setErrors(p => ({ ...p, otpCode: '' }));
+                  }}
+                  placeholder="______"
+                  maxLength={6}
+                  className={`w-full px-4 py-4 rounded-xl border text-center text-3xl font-bold tracking-[0.4em] ${
+                    errors.otpCode
+                      ? 'border-red-400 bg-red-50 focus:ring-red-400'
+                      : 'border-slate-300 focus:border-[#FF6B2C] focus:ring-[#FF6B2C]'
+                  } focus:ring-1 outline-none`}
+                />
+                {errors.otpCode && (
+                  <p className="text-xs text-red-500 mt-1.5 text-center">{errors.otpCode}</p>
+                )}
               </div>
+
+              {/* Resend */}
+              <p className="text-center text-sm text-slate-500">
+                Didn't receive it?{' '}
+                <button
+                  type="button"
+                  disabled={otpSending}
+                  onClick={async () => {
+                    setOtpSending(true);
+                    try {
+                      const res = await fetch('/api/auth/send-otp', {
+                        method:  'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          email: admin.email,
+                          name:  adminVerified?.user.name ?? admin.fullName,
+                        }),
+                      });
+                      if (!res.ok) {
+                        const errBody = await res.json().catch(() => ({}));
+                        throw new Error(errBody.error ?? 'send failed');
+                      }
+                      const { token, devCode } = await res.json();
+                      setOtpToken(token);
+                      if (devCode) {
+                        setOtpCode(devCode);
+                        toast.success(`Dev mode: new code auto-filled (${devCode})`);
+                      } else {
+                        setOtpCode('');
+                        toast.success('New code sent!');
+                      }
+                    } catch {
+                      toast.error('Failed to resend — please try again.');
+                    } finally {
+                      setOtpSending(false);
+                    }
+                  }}
+                  className="text-[#FF6B2C] font-medium hover:underline disabled:opacity-50"
+                >
+                  {otpSending ? 'Sending…' : 'Resend code'}
+                </button>
+              </p>
+
+              <p className="text-center text-xs text-slate-400 mt-2">Code expires in 10 minutes</p>
             </div>
 
             <div className="flex gap-4 mt-5">
@@ -742,109 +786,156 @@ export default function SignupPage() {
               </button>
               <button
                 onClick={async () => {
-                  if (!validateStep3()) return;
-
-                  // 1. Generate a stable UUID for this dealership so we always
-                  //    know the ID even if the Supabase insert is slow.
-                  const dealershipId = crypto.randomUUID();
-
-                  // 2. Create the dealership row in Supabase (non-blocking on error).
-                  const { error: dealerErr } = await supabase
-                    .from('dealerships')
-                    .insert({
-                      id:          dealershipId,
-                      name:        business.dealershipName,
-                      org_nr:      business.orgNumber || null,
-                      address:     business.streetAddress || null,
-                      postal_code: business.postalCode || null,
-                      city:        business.city || null,
-                      phone:       business.phone || null,
-                      email:       admin.email,
-                      website:     business.website || null,
-                      plan:        selectedPlan,
-                    });
-                  if (dealerErr) console.error('[signup] dealerships insert:', dealerErr.message);
-
-                  const resolvedName = adminVerified?.user.name ?? admin.fullName;
-
-                  // 3. Create the admin staff_users row in Supabase.
-                  const { error: staffErr } = await supabase
-                    .from('staff_users')
-                    .insert({
-                      dealership_id:   dealershipId,
-                      name:            resolvedName,
-                      email:           admin.email,
-                      role:            'admin',
-                      status:          'active',
-                      bankid_verified: !!adminVerified,
-                      personal_number: adminVerified?.user.personalNumber ?? '',
-                    });
-                  if (staffErr) console.error('[signup] staff_users insert:', staffErr.message);
-
-                  // 4. Persist to localStorage — dealershipId is the tenant key
-                  //    used by every Supabase query from this browser.
-                  const profile = {
-                    name:            resolvedName,
-                    givenName:       adminVerified?.user.givenName ?? admin.fullName.split(' ')[0],
-                    personalNumber:  adminVerified?.user.personalNumber ?? '',
-                    email:           admin.email,
-                    dealershipName:  business.dealershipName,
-                    dealershipId,                        // ← tenant isolation key
-                    orgNr:           business.orgNumber,
-                    city:            business.city,
-                    postalCode:      business.postalCode,
-                    streetAddress:   business.streetAddress,
-                    phone:           business.phone,
-                    website:         business.website,
-                    plan:            selectedPlan,
-                    role:            'admin' as const,
-                  };
-                  localStorage.setItem('user', JSON.stringify(profile));
-                  localStorage.setItem('dealership_profile', JSON.stringify({
-                    name:       business.dealershipName,
-                    orgNr:      business.orgNumber,
-                    city:       business.city,
-                    postalCode: business.postalCode,
-                    address:    business.streetAddress,
-                    phone:      business.phone,
-                    website:    business.website,
-                    email:      admin.email,
-                  }));
-                  const accounts = JSON.parse(localStorage.getItem('accounts') || '{}');
-                  accounts[admin.email] = profile;
-                  localStorage.setItem('accounts', JSON.stringify(accounts));
-                  if (!localStorage.getItem('staff_users')) {
-                    localStorage.setItem('staff_users', JSON.stringify([{
-                      id:              crypto.randomUUID(),
-                      name:            resolvedName,
-                      email:           admin.email,
-                      role:            'admin' as const,
-                      status:          'active' as const,
-                      lastLogin:       new Date().toISOString(),
-                      bankidVerified:  !!adminVerified,
-                      personalNumber:  adminVerified?.user.personalNumber ?? '',
-                    }]));
+                  if (otpCode.length !== 6) {
+                    setErrors({ otpCode: 'Enter the 6-digit code from your email' });
+                    return;
                   }
+                  setErrors({});
+                  setOtpSending(true);
 
-                  // 5. Create server-side httpOnly session cookie — this is what
-                  //    the middleware checks on every page load.
-                  await fetch('/api/auth/session', {
-                    method:  'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      dealershipId,
-                      dealershipName: business.dealershipName,
+                  try {
+                    const verifyRes = await fetch('/api/auth/verify-otp', {
+                      method:  'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ code: otpCode, token: otpToken, email: admin.email }),
+                    });
+                    const { valid, error: verifyErr } = await verifyRes.json();
+
+                    if (!valid) {
+                      setErrors({
+                        otpCode: verifyErr === 'expired'
+                          ? 'Code expired — click "Resend code" to get a new one'
+                          : 'Incorrect code — please try again',
+                      });
+                      return;
+                    }
+
+                    // ── OTP verified: create dealership + admin account ──────────
+
+                    const dealershipId = crypto.randomUUID();
+                    const emailDomain  = admin.email.includes('@') ? admin.email.split('@')[1].toLowerCase() : '';
+
+                    const { error: dealerErr } = await supabase
+                      .from('dealerships')
+                      .insert({
+                        id:          dealershipId,
+                        name:        business.dealershipName,
+                        org_nr:      business.orgNumber || null,
+                        address:     business.streetAddress || null,
+                        postal_code: business.postalCode || null,
+                        city:        business.city || null,
+                        phone:       business.phone || null,
+                        email:       admin.email,
+                        website:     business.website || null,
+                        plan:        selectedPlan,
+                      });
+                    if (dealerErr) {
+                      console.error('[signup] dealerships insert:', dealerErr.message);
+                      toast.error('Failed to create dealership — please try again.');
+                      return;
+                    }
+
+                    if (emailDomain) {
+                      await supabase
+                        .from('dealership_settings')
+                        .upsert({ dealership_id: dealershipId, email_domain: emailDomain }, { onConflict: 'dealership_id' });
+                    }
+
+                    const resolvedName = adminVerified?.user.name ?? admin.fullName;
+
+                    const { error: staffErr } = await supabase
+                      .from('staff_users')
+                      .insert({
+                        dealership_id:   dealershipId,
+                        name:            resolvedName,
+                        email:           admin.email,
+                        role:            'admin',
+                        status:          'active',
+                        bankid_verified: !!adminVerified,
+                        personal_number: adminVerified?.user.personalNumber ?? '',
+                      });
+                    if (staffErr) {
+                      console.warn('[signup] staff_users insert:', staffErr.message);
+                      if (staffErr.code === '23505') {
+                        toast.error('An account with this email already exists — please log in instead.');
+                      } else {
+                        toast.error('Failed to create account — please try again.');
+                      }
+                      return;
+                    }
+
+                    const profile = {
                       name:           resolvedName,
+                      givenName:      adminVerified?.user.givenName ?? admin.fullName.split(' ')[0],
+                      personalNumber: adminVerified?.user.personalNumber ?? '',
                       email:          admin.email,
-                      role:           'admin',
-                    }),
-                  });
+                      dealershipName: business.dealershipName,
+                      dealershipId,
+                      orgNr:          business.orgNumber,
+                      city:           business.city,
+                      postalCode:     business.postalCode,
+                      streetAddress:  business.streetAddress,
+                      phone:          business.phone,
+                      website:        business.website,
+                      plan:           selectedPlan,
+                      role:           'admin' as const,
+                    };
+                    localStorage.setItem('user', JSON.stringify(profile));
+                    localStorage.setItem('dealership_profile', JSON.stringify({
+                      name:        business.dealershipName,
+                      orgNr:       business.orgNumber,
+                      city:        business.city,
+                      postalCode:  business.postalCode,
+                      address:     business.streetAddress,
+                      phone:       business.phone,
+                      website:     business.website,
+                      email:       admin.email,
+                      emailDomain,
+                    }));
+                    const accounts = JSON.parse(localStorage.getItem('accounts') || '{}');
+                    accounts[admin.email] = profile;
+                    localStorage.setItem('accounts', JSON.stringify(accounts));
+                    if (!localStorage.getItem('staff_users')) {
+                      localStorage.setItem('staff_users', JSON.stringify([{
+                        id:             crypto.randomUUID(),
+                        name:           resolvedName,
+                        email:          admin.email,
+                        role:           'admin' as const,
+                        status:         'active' as const,
+                        lastLogin:      new Date().toISOString(),
+                        bankidVerified: !!adminVerified,
+                        personalNumber: adminVerified?.user.personalNumber ?? '',
+                      }]));
+                    }
 
-                  setStep(4);
+                    await fetch('/api/auth/session', {
+                      method:  'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        dealershipId,
+                        dealershipName: business.dealershipName,
+                        name:           resolvedName,
+                        email:          admin.email,
+                        role:           'admin',
+                      }),
+                    });
+
+                    setStep(4);
+                  } catch {
+                    toast.error('Something went wrong — please try again.');
+                  } finally {
+                    setOtpSending(false);
+                  }
                 }}
-                className="flex-1 bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors"
+                disabled={otpSending || otpCode.length !== 6}
+                className="flex-1 bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Start Free Trial →
+                {otpSending ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Verifying…
+                  </>
+                ) : 'Verify & Create Account →'}
               </button>
             </div>
           </div>
