@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
 import { storeInvite } from '@/lib/invites';
+import { isValidEmail } from '@/lib/validation';
 import { useAutoRefresh } from '@/lib/realtime';
 import { getSupabaseBrowser } from '@/lib/supabase';
 
@@ -93,6 +94,7 @@ export default function UsersSettingsPage() {
   const [showInvite,    setShowInvite]    = useState(false);
   const [inviteName,    setInviteName]    = useState('');
   const [inviteEmail,   setInviteEmail]   = useState('');
+  const [inviteEmailErr, setInviteEmailErr] = useState('');
   const [inviteRole,    setInviteRole]    = useState<Role>('sales');
   const [inviteLink,    setInviteLink]    = useState('');
   const [inviteSending, setInviteSending] = useState(false);
@@ -260,6 +262,11 @@ export default function UsersSettingsPage() {
   async function handleInvite(e: React.FormEvent) {
     e.preventDefault();
     if (!inviteName.trim() || !inviteEmail.trim()) return;
+    if (!isValidEmail(inviteEmail.trim())) {
+      setInviteEmailErr('Enter a valid email address (e.g. name@domain.com)');
+      return;
+    }
+    setInviteEmailErr('');
     setInviteSending(true);
     const dealershipName = currentUser?.dealershipName ?? 'BikeMeNow';
     const dealershipId   = currentUser?.dealershipId   ?? '';
@@ -635,13 +642,14 @@ export default function UsersSettingsPage() {
                   </label>
                   {emailDomain ? (
                     /* Split input: [username] @ [domain] */
-                    <div className="flex items-center border border-slate-300 rounded-lg overflow-hidden focus-within:border-[#FF6B2C] focus-within:ring-1 focus-within:ring-[#FF6B2C]/20">
+                    <div className={`flex items-center border rounded-lg overflow-hidden focus-within:ring-1 ${inviteEmailErr ? 'border-red-400 focus-within:border-red-400 focus-within:ring-red-400/20' : 'border-slate-300 focus-within:border-[#FF6B2C] focus-within:ring-[#FF6B2C]/20'}`}>
                       <input
                         type="text"
                         value={inviteEmail.replace(`@${emailDomain}`, '')}
                         onChange={e => {
                           const local = e.target.value.replace(/@.*/, '');
                           setInviteEmail(local ? `${local}@${emailDomain}` : '');
+                          setInviteEmailErr('');
                         }}
                         required
                         placeholder="anna"
@@ -655,12 +663,14 @@ export default function UsersSettingsPage() {
                     <input
                       type="email"
                       value={inviteEmail}
-                      onChange={e => setInviteEmail(e.target.value)}
+                      onChange={e => { setInviteEmail(e.target.value); setInviteEmailErr(''); }}
+                      onBlur={() => { if (inviteEmail && !isValidEmail(inviteEmail)) setInviteEmailErr('Enter a valid email address (e.g. name@domain.com)'); }}
                       required
                       placeholder="anna@dealership.se"
-                      className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C]/20"
+                      className={`w-full px-3 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-1 ${inviteEmailErr ? 'border-red-400 focus:border-red-400 focus:ring-red-400/20 bg-red-50' : 'border-slate-300 focus:border-[#FF6B2C] focus:ring-[#FF6B2C]/20'}`}
                     />
                   )}
+                  {inviteEmailErr && <p className="mt-1 text-xs text-red-500">{inviteEmailErr}</p>}
                   {emailDomain && (
                     <p className="text-xs text-slate-400 mt-1">
                       Alla användare hos {currentUser?.dealershipName ?? 'er dealership'} använder <span className="font-mono">@{emailDomain}</span>

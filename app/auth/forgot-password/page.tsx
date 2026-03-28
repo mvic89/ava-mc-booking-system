@@ -6,15 +6,22 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { isValidEmail } from '@/lib/validation';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
   const t = useTranslations('forgotPassword');
   const [email, setEmail] = useState('');
+  const [emailErr, setEmailErr] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isValidEmail(email)) {
+      setEmailErr('Enter a valid email address (e.g. name@domain.com)');
+      return;
+    }
+    setEmailErr('');
     setLoading(true);
     try {
       const res = await fetch('/api/auth/forgot-password', {
@@ -117,11 +124,13 @@ export default function ForgotPasswordPage() {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                onChange={(e) => { setEmail(e.target.value); setEmailErr(''); }}
+                onBlur={() => { if (email && !isValidEmail(email)) setEmailErr('Enter a valid email address (e.g. name@domain.com)'); }}
+                className={`w-full px-4 py-3 rounded-lg border outline-none focus:ring-1 transition-colors ${emailErr ? 'border-red-400 focus:border-red-400 focus:ring-red-400 bg-red-50' : 'border-slate-300 focus:border-blue-500 focus:ring-blue-500'}`}
                 placeholder={t('emailPlaceholder')}
                 required
               />
+              {emailErr && <p className="mt-1.5 text-xs text-red-500">{emailErr}</p>}
             </div>
 
             <button

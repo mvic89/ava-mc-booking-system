@@ -85,6 +85,8 @@ export interface PhoneInputProps {
   required?: boolean;
   disabled?: boolean;
   id?: string;
+  /** When set, overrides the wrapper className to show a red error border. */
+  error?: boolean;
 }
 
 export default function PhoneInput({
@@ -96,6 +98,7 @@ export default function PhoneInput({
   required,
   disabled,
   id,
+  error,
 }: PhoneInputProps) {
   const { code, local } = parsePhone(value);
   const country = EUROPE.find(c => c.code === code) ?? EUROPE[0];
@@ -110,9 +113,10 @@ export default function PhoneInput({
     onChange(l ? `${country.dial} ${l}` : '');
   };
 
-  const wrapper =
-    className ??
-    'rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-[#FF6B2C]/20 focus-within:border-[#FF6B2C] transition-all';
+  const wrapper = error
+    ? 'rounded-xl border border-red-400 focus-within:ring-2 focus-within:ring-red-400/20 focus-within:border-red-400 transition-all bg-red-50'
+    : className ??
+      'rounded-xl border border-slate-200 focus-within:ring-2 focus-within:ring-[#FF6B2C]/20 focus-within:border-[#FF6B2C] transition-all';
 
   return (
     <div className={`flex items-stretch overflow-hidden ${wrapper}`}>
