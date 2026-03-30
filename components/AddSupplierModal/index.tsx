@@ -24,7 +24,8 @@ export function AddSupplierModal({
     onClose:        () => void
     onBack?:        () => void   // provided when launched from AddItemModal
 }) {
-    const [form, setForm] = useState<SupplierFormData>(emptyFormData)
+    const [form,       setForm]       = useState<SupplierFormData>(emptyFormData)
+    const [categories, setCategories] = useState<string[]>([])
 
     function setField(key: keyof SupplierFormData, value: string) {
         setForm((prev) => ({ ...prev, [key]: value }))
@@ -42,7 +43,8 @@ export function AddSupplierModal({
         form.bankAccount.trim()   !== '' &&
         form.bankIBAN.trim()      !== '' &&
         form.bankSwift.trim()     !== '' &&
-        form.freeShippingThreshold.trim() !== ''
+        form.freeShippingThreshold.trim() !== '' &&
+        categories.length > 0
 
     function handleSave() {
         if (!canSubmit) return
@@ -58,9 +60,10 @@ export function AddSupplierModal({
             bankAccount:           form.bankAccount.trim(),
             bankIBAN:              form.bankIBAN.trim(),
             bankSwift:             form.bankSwift.trim(),
+            website:               form.website.trim() || undefined,
             freeShippingThreshold: form.freeShippingThreshold ? Number(form.freeShippingThreshold) : undefined,
             itemCount:             0,
-            categories:            [],
+            categories,
             lowStockCount:         0,
             hasDetails:            true,
             isManual:              true,
@@ -69,7 +72,7 @@ export function AddSupplierModal({
         onClose()
     }
 
-    const isDirty = Object.values(form).some((v) => v.trim() !== '')
+    const isDirty = Object.values(form).some((v) => v.trim() !== '') || categories.length > 0
 
     function handleBackdropClick() {
         if (isDirty) {
@@ -121,7 +124,10 @@ export function AddSupplierModal({
 
                 {/* Body */}
                 <div className="flex-1 overflow-y-auto px-7 py-5">
-                    <SupplierFormBody form={form} setField={setField} allRequired />
+                    <SupplierFormBody
+                        form={form} setField={setField} allRequired
+                        categories={categories} setCategories={setCategories}
+                    />
                 </div>
 
                 {/* Footer */}

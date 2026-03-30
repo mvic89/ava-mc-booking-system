@@ -39,6 +39,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ['pdf-parse'],
   images: {
     unoptimized: true,
   },

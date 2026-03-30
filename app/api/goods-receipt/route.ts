@@ -41,13 +41,15 @@ function normaliseDate(raw: string): string | null {
 }
 
 // ── PDF text extractor (server-side, no external API) ─────────────────────────
+// pdf-parse v2 uses class-based API: new PDFParse({ data: buffer }).getText()
 
 async function extractTextFromPDF(pdfBase64: string): Promise<string> {
-    // pdf-parse ships as CJS; use require() to avoid ESM .default issues on Vercel
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pdfParse = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string }>
-    const buffer   = Buffer.from(pdfBase64, 'base64')
-    const result   = await pdfParse(buffer)
+    const { PDFParse } = require('pdf-parse')
+    const buffer = Buffer.from(pdfBase64, 'base64')
+    const parser = new PDFParse({ data: buffer })
+    const result = await parser.getText() as { text: string }
+    await parser.destroy()
     return result.text
 }
 
@@ -108,32 +110,48 @@ function parseDeliveryNoteText(text: string): ParsedDeliveryNote {
         })
     }
 
-    // Pattern B: if pattern A found nothing, try looser row detection
-    // Look for lines that have at least one number that could be a quantity
+    // Pattern B: looser detection for any table format
+    // Handles article numbers that start with digits (e.g. 501190Z005-A5, 692-3226221-10-6)
     if (items.length === 0) {
         for (const line of lines) {
-            // Skip header-like lines
-            if (/^(item|description|qty|quantity|article|part|price|amount|total|unit)/i.test(line)) continue
+            // Skip header lines (Swedish + English) and address/email lines
+            if (/^(item|description|qty|quantity|article|part|price|amount|total|unit|art|benämning|artikel|storlek|färg|beställt|lev|delivery|ean)/i.test(line)) continue
+            if (line.includes('|') || line.includes('@')) continue   // address or email line
+            if (/^\d+\s*of\s*\d+/.test(line)) continue              // page number line
+            if (line.length < 8) continue
 
-            const nums = line.match(/\b(\d{1,5})\b/g)
-            if (!nums || nums.length < 1) continue
+            const tokens = line.split(/\s+/)
+            if (tokens.length < 3) continue
 
-            // Last number = received qty, second-to-last = ordered qty (if two present)
-            const received = parseInt(nums[nums.length - 1])
-            if (isNaN(received) || received <= 0 || received > 9999) continue
+            const firstToken = tokens[0]
+            // Article number: 3+ chars, must have at least a letter OR a dash (not a plain integer)
+            if (firstToken.length < 3) continue
+            if (!/[A-Za-z\-]/.test(firstToken)) continue        // needs letter or dash
+            if (/^\d+$/.test(firstToken)) continue              // plain integer = not an SKU
+            if (!/^[A-Za-z0-9][A-Za-z0-9\-\.\/]*$/.test(firstToken)) continue  // safe chars only
 
-            // Article number: alphanumeric token before the description
-            const artMatch = line.match(/^([A-Z]{1,4}[\d\-]+)\s+/i)
+            const rest = line.slice(firstToken.length).trim()
 
-            // Name: everything between art# and the first number block
-            const nameMatch = line.replace(/^[A-Z]{1,4}[\d\-]+\s+/i, '').match(/^([A-Za-z][^\d]*[A-Za-z])/)
+            // Scan tokens from right → find rightmost positive integer ≤ 999 (the received qty)
+            // Skip decimals/prices and zeros
+            const restTokens = rest.split(/\s+/).reverse()
+            let received: number | null = null
+            for (const tok of restTokens) {
+                if (/^\d{1,4}$/.test(tok)) {
+                    const n = parseInt(tok)
+                    if (n > 0 && n <= 999) { received = n; break }
+                }
+            }
+            if (!received) continue
 
-            if (!nameMatch) continue
+            // Name: strip trailing numeric-only tokens (quantities, prices, dates)
+            const namePart = rest.replace(/(?:\s+[\d.,]+)+\s*$/, '').trim()
+            if (!namePart || namePart.length < 3 || !/[A-Za-z]/.test(namePart)) continue
 
             items.push({
-                article_number: artMatch ? artMatch[1] : null,
-                name:           nameMatch[1].trim(),
-                ordered_qty:    nums.length >= 2 ? parseInt(nums[nums.length - 2]) : null,
+                article_number: firstToken,
+                name:           namePart,
+                ordered_qty:    null,
                 received_qty:   received,
                 unit_cost:      null,
             })
@@ -191,7 +209,6 @@ export async function POST(req: NextRequest) {
     let body: {
         dealership_id?: string
         pdf_base64?: string   // base64-encoded PDF bytes
-        pdf_url?: string      // Zapier file URL — server fetches & parses it
         pdf_text?: string     // plain text fallback
         vendor?: string
         po_id?: string
@@ -203,63 +220,38 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
     }
 
-    // ── Resolve dealership: token (Zapier) OR dealership_id + secret (direct) ─
-    // URL format: /api/goods-receipt?token=<zapier_token>
-    const token = new URL(req.url).searchParams.get('token')
-    let dealership_id: string
-
-    if (token) {
-        const { data: dealer } = await db
-            .from('dealerships')
-            .select('id')
-            .eq('zapier_token', token)
-            .single()
-        if (!dealer) return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
-        dealership_id = dealer.id
-    } else {
-        const secret = req.headers.get('x-webhook-secret')
-        if (process.env.GOODS_RECEIPT_WEBHOOK_SECRET && secret !== process.env.GOODS_RECEIPT_WEBHOOK_SECRET) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
-        if (!body.dealership_id) {
-            return NextResponse.json({ error: 'token (query param) or dealership_id (body) is required' }, { status: 400 })
-        }
-        dealership_id = body.dealership_id
+    // ── Authenticate via webhook secret header ────────────────────────────────
+    const secret = req.headers.get('x-webhook-secret')
+    if (process.env.GOODS_RECEIPT_WEBHOOK_SECRET && secret !== process.env.GOODS_RECEIPT_WEBHOOK_SECRET) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    if (!body.dealership_id) {
+        return NextResponse.json({ error: 'dealership_id is required' }, { status: 400 })
+    }
+    const dealership_id = body.dealership_id
 
-    const { pdf_base64, pdf_url, pdf_text, vendor: vendorHint, po_id, received_by } = body
+    const { pdf_base64, pdf_text, vendor: vendorHint, po_id, received_by } = body
 
-    if (!pdf_base64 && !pdf_url && !pdf_text) {
-        return NextResponse.json({ error: 'pdf_url, pdf_base64, or pdf_text is required' }, { status: 400 })
+    if (!pdf_base64 && !pdf_text && !vendorHint) {
+        return NextResponse.json({ error: 'pdf_base64, pdf_text, or vendor is required' }, { status: 400 })
     }
 
     // ── Extract text from PDF then parse ──────────────────────────────────────
     let rawText = pdf_text ?? ''
 
-    if (pdf_url) {
-        // Zapier sends the attachment as a URL — fetch it and parse
+    if (pdf_base64) {
         try {
-            const res    = await fetch(pdf_url)
-            const buffer = Buffer.from(await res.arrayBuffer())
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            const pdfParse = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string }>
-            rawText = (await pdfParse(buffer)).text
+            const extracted = await extractTextFromPDF(pdf_base64)
+            if (extracted?.trim()) rawText = extracted
+            // If empty (scanned/image PDF), fall through to pdf_text or proceed with empty
         } catch (err) {
-            console.error('PDF URL fetch/parse error:', err)
-            return NextResponse.json({ error: 'Failed to fetch or parse PDF from URL' }, { status: 422 })
-        }
-    } else if (pdf_base64) {
-        try {
-            rawText = await extractTextFromPDF(pdf_base64)
-        } catch (err) {
-            console.error('PDF text extraction error:', err)
-            return NextResponse.json({ error: 'Failed to extract text from PDF' }, { status: 422 })
+            console.warn('PDF text extraction failed (scanned PDF?), proceeding without text:', err)
         }
     }
 
     const parsed = parseDeliveryNoteText(rawText)
 
-    // ── Resolve dealership name for tag (select name+zapier_token, reuse if token path already fetched) ──
+    // ── Resolve dealership name for receipt tag ───────────────────────────────
     const { data: dealer } = await db
         .from('dealerships')
         .select('name')

@@ -26,6 +26,10 @@ const PUBLIC_PREFIXES = [
   '/api/bankid/',
   '/api/bankid-pay/',
   '/api/auth/session',
+  '/api/webhooks/',     // Postmark inbound webhook — no session needed
+  '/api/cron/',         // Vercel cron jobs — protected by CRON_SECRET header
+  '/api/goods-receipt',       // Called internally by webhooks — protected by x-webhook-secret
+  '/api/notifications/add',   // Called internally by webhooks — protected by x-webhook-secret
 ];
 
 const COOKIE_NAME = 'ava_session';

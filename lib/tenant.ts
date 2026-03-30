@@ -59,17 +59,14 @@ export function getDealershipProfile(): DealershipProfile {
 }
 
 /**
- * Derives a short 3-letter tag from the dealership name for use in IDs.
+ * Derives a short 3-letter tag from a dealership name string.
  * Examples:
  *   "AVA MC"            → "AVA"
  *   "Rotebro Din MC AB" → "ROT"
  *   "Göteborg Bikes"    → "GOT"
- *   null / empty        → "SUP"
+ *   "malmo mc"          → "MAL"
  */
-export function getDealershipTag(): string {
-  const name = getDealershipName();
-  if (!name) return 'SUP';
-  // Strip common suffixes that don't identify the company
+export function tagFromName(name: string): string {
   const STOP = new Set(['AB', 'MC', 'AS', 'INC', 'LTD', 'GMBH', 'SRL', 'BV', 'SA', 'DIN', 'OG']);
   const words = name
     .toUpperCase()
@@ -78,6 +75,17 @@ export function getDealershipTag(): string {
     .filter((w) => w.length > 0 && !STOP.has(w));
   const tag = words.length > 0
     ? words[0].substring(0, 3).replace(/[ÅÄÆ]/g, 'A').replace(/[ÖØ]/g, 'O')
-    : 'SUP';
+    : 'XXX';
   return tag.padEnd(3, 'X').substring(0, 3);
+}
+
+/**
+ * Returns the tag for the currently logged-in dealership.
+ * Reads dealershipName from localStorage. Prefer passing the DB name
+ * directly via tagFromName() when available.
+ */
+export function getDealershipTag(): string {
+  const name = getDealershipName();
+  if (!name) return 'XXX';
+  return tagFromName(name);
 }

@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useRef } from 'react'
 import { useInventory } from '@/context/InventoryContext'
 import { AddSupplierModal } from '@/components/AddSupplierModal'
 import { supabase } from '@/lib/supabase'
-import { getDealershipId, getDealershipTag } from '@/lib/tenant'
+import { getDealershipId, getDealershipTag, tagFromName } from '@/lib/tenant'
 import type { InventoryCategory, MCType, Warehouse } from '@/utils/types'
 import type { SupplierRow } from '@/components/SupplierFormShared'
 
@@ -15,9 +15,9 @@ import type { SupplierRow } from '@/components/SupplierFormShared'
 //   UUID_FINGERPRINT = first 4 hex chars of dealership UUID (e.g. "4D85")
 // This ensures two dealers with the same name tag never collide in Supabase.
 
-function generateNextId(type: InventoryCategory, existingIds: string[], dealershipId: string | null): string {
+function generateNextId(type: InventoryCategory, existingIds: string[], dealershipId: string | null, dbName?: string | null): string {
     const prefix = type === 'motorcycles' ? 'MC' : type === 'spareParts' ? 'SP' : 'ACC'
-    const tag    = getDealershipTag()
+    const tag    = dbName ? tagFromName(dbName) : getDealershipTag()
     // Take first 4 hex chars of the UUID (strips dashes first) as a short fingerprint
     const fp     = (dealershipId ?? '').replace(/-/g, '').substring(0, 4).toUpperCase() || 'XXXX'
     const taggedPrefix = `${prefix}-${tag}-${fp}-`
@@ -29,9 +29,16 @@ function generateNextId(type: InventoryCategory, existingIds: string[], dealersh
     return `${taggedPrefix}${String(next).padStart(3, '0')}`
 }
 
-function supNum(n: number) {
-    const tag = getDealershipTag()
-    return `SUP-${tag}-${String(n).padStart(3, '0')}`
+function supNum(existingNumbers: string[], dealershipId: string | null, dbName?: string | null): string {
+    const tag    = dbName ? tagFromName(dbName) : getDealershipTag()
+    const fp     = (dealershipId ?? '').replace(/-/g, '').substring(0, 4).toUpperCase() || 'XXXX'
+    const prefix = `SUP-${tag}-${fp}-`
+    const nums   = existingNumbers
+        .filter((id) => id.startsWith(prefix))
+        .map((id) => parseInt(id.replace(prefix, ''), 10))
+        .filter((n) => !isNaN(n))
+    const next = nums.length > 0 ? Math.max(...nums) + 1 : 1
+    return `${prefix}${String(next).padStart(3, '0')}`
 }
 
 // ─── Reusable field components ────────────────────────────────────────────────
@@ -84,9 +91,11 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
     const [showAddSupplier, setShowAddSupplier] = useState(false)
 
     // Supplier list loaded from DB + derived from context
-    const [dbSuppliers, setDbSuppliers]           = useState<string[]>([])
-    const [loadingSuppliers, setLoadingSuppliers] = useState(true)
-    const [showVendorDrop, setShowVendorDrop]     = useState(false)
+    const [dbSuppliers,       setDbSuppliers]       = useState<string[]>([])
+    const [dbSupplierNumbers, setDbSupplierNumbers] = useState<string[]>([])
+    const [dbDealershipName,  setDbDealershipName]  = useState<string | null>(null)
+    const [loadingSuppliers,  setLoadingSuppliers]  = useState(true)
+    const [showVendorDrop,    setShowVendorDrop]     = useState(false)
     const vendorRef = useRef<HTMLDivElement>(null)
 
     // Derive vendor names from all inventory items in context
@@ -102,14 +111,19 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
     useEffect(() => {
         const dealershipId = getDealershipId()
         const query = dealershipId
-            ? supabase.from('vendors').select('name').eq('dealership_id', dealershipId)
-            : supabase.from('vendors').select('name')
+            ? supabase.from('vendors').select('name, supplier_number').eq('dealership_id', dealershipId)
+            : supabase.from('vendors').select('name, supplier_number')
         query.then(({ data }) => {
             const all = new Set(contextVendors)
             if (data) data.forEach((r) => r.name && all.add(r.name))
             setDbSuppliers([...all].filter(Boolean).sort())
+            setDbSupplierNumbers((data ?? []).map((r) => r.supplier_number).filter(Boolean))
             setLoadingSuppliers(false)
         })
+        if (dealershipId) {
+            supabase.from('dealerships').select('name').eq('id', dealershipId).single()
+                .then(({ data }) => { if (data?.name) setDbDealershipName(data.name) })
+        }
     }, [contextVendors])
 
     // Common fields
@@ -147,8 +161,8 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
             type === 'motorcycles' ? motorcycles.map((m) => m.id) :
             type === 'spareParts'  ? spareParts.map((s) => s.id)  :
                                      accessories.map((a) => a.id)
-        return generateNextId(type, existingIds, dealershipId)
-    }, [type, motorcycles, spareParts, accessories])
+        return generateNextId(type, existingIds, dealershipId, dbDealershipName)
+    }, [type, motorcycles, spareParts, accessories, dbDealershipName])
 
     // ── Duplicate detection state ────────────────────────────────────────────────
     // When the user tries to save, if an item with the same name or article number
@@ -169,7 +183,7 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
         type === 'accessories' ? 'Accessory'  : ''
 
     // Next supplier number for the inline add-supplier modal
-    const nextSupplierNumber = supNum(dbSuppliers.length + 1)
+    const nextSupplierNumber = supNum(dbSupplierNumbers, getDealershipId(), dbDealershipName)
 
     // Supplier combobox helpers
     const filteredSuppliers = useMemo(() =>

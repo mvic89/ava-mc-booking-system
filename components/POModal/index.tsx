@@ -636,7 +636,7 @@ export function POModal({
                         }`}>
                             {emailStatus === 'sent'
                                 ? `✓ Email sent to ${vendorEmail} — status updated to Sent`
-                                : '✗ Failed to send — check RESEND_API_KEY + RESEND_FROM_EMAIL in .env.local'}
+                                : '✗ Failed to send — check GMAIL_SENDER_USER + GMAIL_SENDER_APP_PASSWORD in .env.local'}
                         </div>
                     )}
 

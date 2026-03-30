@@ -26,8 +26,9 @@ export function SupplierDetailModal({
     onShowPOs: () => void
     onClose:   () => void
 }) {
-    const [editMode, setEditMode] = useState(false)
-    const [form, setForm]         = useState<SupplierFormData>(() => supplierToFormData(supplier))
+    const [editMode,   setEditMode]   = useState(false)
+    const [form,       setForm]       = useState<SupplierFormData>(() => supplierToFormData(supplier))
+    const [categories, setCategories] = useState<string[]>(supplier.categories ?? [])
 
     function setField(key: keyof SupplierFormData, value: string) {
         setForm((prev) => ({ ...prev, [key]: value }))
@@ -46,7 +47,9 @@ export function SupplierDetailModal({
             bankAccount:           or(form.bankAccount),
             bankIBAN:              or(form.bankIBAN),
             bankSwift:             or(form.bankSwift),
+            website:               form.website.trim() || undefined,
             freeShippingThreshold: form.freeShippingThreshold ? Number(form.freeShippingThreshold) : undefined,
+            categories,
             hasDetails:            true,
         })
         setEditMode(false)
@@ -102,7 +105,10 @@ export function SupplierDetailModal({
                 {/* Body */}
                 <div className="flex-1 overflow-y-auto px-7 py-5">
                     {editMode ? (
-                        <SupplierFormBody form={form} setField={setField} />
+                        <SupplierFormBody
+                            form={form} setField={setField}
+                            categories={categories} setCategories={setCategories}
+                        />
                     ) : (
                         <div className="grid grid-cols-2 gap-x-8 gap-y-5">
                             <SectionHeading>Contact Details</SectionHeading>
@@ -112,7 +118,8 @@ export function SupplierDetailModal({
                             <InfoField label="Contact Person" value={supplier.contactPerson} span />
 
                             <SectionHeading>Business Details</SectionHeading>
-                            <InfoField label="Organisation Number" value={supplier.orgNumber} span />
+                            <InfoField label="Organisation Number" value={supplier.orgNumber} />
+                            <InfoField label="Website"             value={supplier.website} />
 
                             <SectionHeading>Bank Details</SectionHeading>
                             <InfoField label="Bank Name"      value={supplier.bankName}    span />

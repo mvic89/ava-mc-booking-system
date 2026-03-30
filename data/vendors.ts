@@ -275,5 +275,29 @@ export const vendorDetails: Record<string, VendorDetail> = {
         orgNumber : 'SE556630593301',
         email : 'svpriyaa2808@gmail.com',
         freeShippingThreshold : 200,
-    }
+    },
+
+    // ── Real suppliers from AVA MC delivery notes ─────────────────────────────
+
+    'Vartex AB': {
+        address:              'Batterivägen 14, 432 32 Varberg, Sweden',
+        phone:                '+46 340-549690',
+        orgNumber:            'SE559291969901',
+        email:                'Respons@vartex.se',
+        freeShippingThreshold: 3000,
+    },
+    'Duell AB': {
+        address:              'Bredkransvägen 10, 573 92 Tranås, Sweden',
+        phone:                '+358 (0)20 118 000',
+        orgNumber:            'SE556XXXX-XXXX',
+        email:                'info@duell.eu',
+        freeShippingThreshold: 2000,
+    },
+    'Shoei Distribution GmbH': {
+        address:              'Elisabeth-Selbert-Straße 13, 40764 Langenfeld, Germany',
+        phone:                '+49 (0)2173 39 975-0',
+        orgNumber:            'HRB 41489 Düsseldorf',
+        email:                'info@shoei-europe.com',
+        freeShippingThreshold: 5000,
+    },
 }
