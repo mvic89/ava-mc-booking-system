@@ -9,7 +9,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRoaringClient } from '@/lib/roaring/client';
 
+const MOCK_COMPANY = {
+  companyName: 'BikeMeNow Demo AB',
+  visitingAddress: {
+    street: 'Storgatan 1',
+    postalCode: '11122',
+    town: 'Stockholm',
+  },
+  phoneNumber: '0812345678',
+  website: 'https://bikemenow.se',
+};
+
 export async function GET(request: NextRequest) {
+  // In mock mode, return fake company data so the UX can be tested without Roaring company access
+  if (process.env.ROARING_MOCK_MODE === 'true') {
+    return NextResponse.json({ success: true, data: MOCK_COMPANY });
+  }
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const orgNumber = searchParams.get('orgNumber');
@@ -50,6 +66,8 @@ export async function GET(request: NextRequest) {
     // Fetch company data
     const result = await roaringClient.getCompanyByOrgNumber(orgNumber, country);
 
+    console.log('[roaring/company] orgNumber:', orgNumber, '| success:', result.success, '| error:', result.error, '| data keys:', result.data ? Object.keys(result.data) : null);
+
     if (!result.success) {
       return NextResponse.json(result, { status: 400 });
     }
@@ -72,6 +90,10 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (process.env.ROARING_MOCK_MODE === 'true') {
+    return NextResponse.json({ success: true, data: MOCK_COMPANY });
+  }
+
   try {
     const body = await request.json();
     const { orgNumber, country = 'SE' } = body;

@@ -81,7 +81,7 @@ export default function SignupPage() {
 
   const [business, setBusiness] = useState({
     dealershipName: '', orgNumber: '', streetAddress: '',
-    postalCode: '', city: '', phone: '', website: '',
+    postalCode: '', city: '', phone: '', website: '', logoDataUrl: '',
   });
 
   // ── Postal code → city auto-lookup ──────────────────────────────────────────
@@ -116,6 +116,41 @@ export default function SignupPage() {
     return () => clearTimeout(timer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [business.postalCode]);
+  // ── Org number → company auto-fill ──────────────────────────────────────────
+  const [orgLookup, setOrgLookup] = useState<'idle' | 'loading' | 'found' | 'notfound'>('idle');
+
+  async function lookupOrgNumber(orgNumber: string) {
+    setOrgLookup('loading');
+    try {
+      const res = await fetch(`/api/roaring/company?orgNumber=${encodeURIComponent(orgNumber)}`);
+      const json = await res.json();
+      if (!json.success || !json.data) { setOrgLookup('notfound'); return; }
+      const d = json.data;
+      const name    = d.companyName || d.name || '';
+      const addr    = d.visitingAddress || d.postalAddress || d.address || {};
+      const street  = addr.street || addr.co || addr.careOf || '';
+      const rawZip  = (addr.postalCode || addr.postalNumber || '').replace(/\D/g, '').slice(0, 5);
+      const zip     = rawZip.length >= 5 ? `${rawZip.slice(0, 3)} ${rawZip.slice(3)}` : rawZip;
+      const city    = addr.town || addr.city || addr.postTown || '';
+      const phone   = d.phoneNumber || d.phone || d.telephone || '';
+      const website = d.website || d.url || d.homepage || '';
+      if (!name && !street && !zip && !city) { setOrgLookup('notfound'); return; }
+      setBusiness(prev => ({
+        ...prev,
+        ...(!prev.dealershipName  && name    ? { dealershipName: name }  : {}),
+        ...(!prev.streetAddress   && street  ? { streetAddress: street } : {}),
+        ...(!prev.postalCode      && zip     ? { postalCode: zip }       : {}),
+        ...(!prev.city            && city    ? { city }                  : {}),
+        ...(!prev.phone           && phone   ? { phone }                 : {}),
+        ...(!prev.website         && website ? { website }               : {}),
+      }));
+      if (city) setPostalLookup('found');
+      setOrgLookup('found');
+    } catch {
+      setOrgLookup('notfound');
+    }
+  }
+
   const [admin, setAdmin] = useState({
     fullName: '', email: '', mobile: '',
     password: '', confirmPassword: '', agreeToTerms: false,
@@ -355,8 +390,56 @@ export default function SignupPage() {
               <p className="text-slate-500 text-sm mb-7">We'll use this to set up your account</p>
 
               <div className="space-y-4">
+                {/* ── Logo upload ─────────────────────────────────────────────── */}
+                <div className="flex items-center gap-4">
+                  <div className="relative shrink-0">
+                    <div className="w-16 h-16 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center overflow-hidden cursor-pointer hover:border-[#FF6B2C] hover:bg-orange-50 transition-colors"
+                      onClick={() => document.getElementById('logo-upload')?.click()}>
+                      {business.logoDataUrl ? (
+                        <img src={business.logoDataUrl} alt="logo" className="w-full h-full object-contain p-1" />
+                      ) : (
+                        <svg className="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
+                        </svg>
+                      )}
+                    </div>
+                    {business.logoDataUrl && (
+                      <button type="button" onClick={() => setBusiness({ ...business, logoDataUrl: '' })}
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-slate-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-500 transition-colors">
+                        ×
+                      </button>
+                    )}
+                    <input id="logo-upload" type="file" accept="image/*" className="hidden"
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = ev => setBusiness({ ...business, logoDataUrl: ev.target?.result as string });
+                        reader.readAsDataURL(file);
+                        e.target.value = '';
+                      }} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-slate-700">Dealership Logo <span className="text-slate-400 font-normal">(optional)</span></p>
+                    <p className="text-xs text-slate-400 mt-0.5">Shown on your dashboard. PNG, JPG or SVG.</p>
+                    {!business.logoDataUrl && (
+                      <button type="button" onClick={() => document.getElementById('logo-upload')?.click()}
+                        className="text-xs text-[#FF6B2C] font-medium mt-1 hover:underline">
+                        Upload logo →
+                      </button>
+                    )}
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Dealership Name *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5 flex items-center gap-1.5">
+                    Dealership Name *
+                    {orgLookup === 'found' && business.dealershipName && (
+                      <span className="text-[10px] font-normal text-green-600 bg-green-50 border border-green-200 rounded px-1.5 py-0.5">
+                        Auto-filled
+                      </span>
+                    )}
+                  </label>
                   <input
                     type="text"
                     value={business.dealershipName}
@@ -367,22 +450,45 @@ export default function SignupPage() {
                   {errors.dealershipName && <p className="text-xs text-red-500 mt-1">{errors.dealershipName}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Organization Number *</label>
-                  <input
-                    type="text"
-                    value={business.orgNumber}
-                    onChange={e => {
-                      // Auto-format as XXXXXX-XXXX (strip non-digits, insert dash after 6)
-                      const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
-                      const formatted = digits.length > 6 ? `${digits.slice(0, 6)}-${digits.slice(6)}` : digits;
-                      setBusiness({ ...business, orgNumber: formatted });
-                      setErrors(p => ({ ...p, orgNumber: '' }));
-                    }}
-                    placeholder="556123-4567"
-                    maxLength={11}
-                    className={fc('orgNumber')}
-                  />
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5 flex items-center gap-1.5">
+                    Organization Number *
+                    {orgLookup === 'found' && (
+                      <span className="text-[10px] font-normal text-green-600 bg-green-50 border border-green-200 rounded px-1.5 py-0.5">
+                        Auto-filled
+                      </span>
+                    )}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={business.orgNumber}
+                      onChange={e => {
+                        // Auto-format as XXXXXX-XXXX (strip non-digits, insert dash after 6)
+                        const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                        const formatted = digits.length > 6 ? `${digits.slice(0, 6)}-${digits.slice(6)}` : digits;
+                        setBusiness({ ...business, orgNumber: formatted });
+                        setErrors(p => ({ ...p, orgNumber: '' }));
+                        // Reset lookup state when user edits
+                        if (digits.length < 10 && orgLookup !== 'idle') setOrgLookup('idle');
+                        // Trigger lookup immediately when all 10 digits are entered
+                        if (digits.length === 10) {
+                          lookupOrgNumber(`${digits.slice(0, 6)}-${digits.slice(6)}`);
+                        }
+                      }}
+                      placeholder="556123-4567"
+                      maxLength={11}
+                      className={fc('orgNumber')}
+                    />
+                    {orgLookup === 'loading' && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <div className="w-4 h-4 border-2 border-[#FF6B2C] border-t-transparent rounded-full animate-spin" />
+                      </div>
+                    )}
+                  </div>
                   {errors.orgNumber && <p className="text-xs text-red-500 mt-1">{errors.orgNumber}</p>}
+                  {orgLookup === 'notfound' && (
+                    <p className="text-xs text-amber-600 mt-1">Company not found — please fill in the details manually.</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Street Address *</label>
@@ -559,7 +665,7 @@ export default function SignupPage() {
                   <input
                     type="email"
                     value={admin.email}
-                    onChange={e => { setAdmin({ ...admin, email: e.target.value }); setErrors(p => ({ ...p, email: '' })); }}
+                    onChange={e => { setAdmin({ ...admin, email: e.target.value.toLowerCase() }); setErrors(p => ({ ...p, email: '' })); }}
                     placeholder="you@dealership.com"
                     className={fc('email')}
                   />
@@ -818,16 +924,17 @@ export default function SignupPage() {
                     const { error: dealerErr } = await supabase
                       .from('dealerships')
                       .insert({
-                        id:          dealershipId,
-                        name:        business.dealershipName,
-                        org_nr:      business.orgNumber || null,
-                        address:     business.streetAddress || null,
-                        postal_code: business.postalCode || null,
-                        city:        business.city || null,
-                        phone:       business.phone || null,
-                        email:       admin.email,
-                        website:     business.website || null,
-                        plan:        selectedPlan,
+                        id:            dealershipId,
+                        name:          business.dealershipName,
+                        org_nr:        business.orgNumber     || null,
+                        address:       business.streetAddress || null,
+                        postal_code:   business.postalCode    || null,
+                        city:          business.city          || null,
+                        phone:         business.phone         || null,
+                        email:         admin.email,
+                        website:       business.website       || null,
+                        plan:          selectedPlan,
+                        logo_data_url: business.logoDataUrl   || null,
                       });
                     if (dealerErr) {
                       console.error('[signup] dealerships insert:', dealerErr.message);
@@ -835,10 +942,24 @@ export default function SignupPage() {
                       return;
                     }
 
-                    if (emailDomain) {
-                      await supabase
-                        .from('dealership_settings')
-                        .upsert({ dealership_id: dealershipId, email_domain: emailDomain }, { onConflict: 'dealership_id' });
+                    // Mirror data into dealership_settings (required for customers/leads FK references)
+                    const { error: dsErr } = await supabase
+                      .from('dealership_settings')
+                      .upsert({
+                        dealership_id:  dealershipId,
+                        email_domain:   emailDomain,
+                        name:           business.dealershipName,
+                        org_nr:         business.orgNumber     || null,
+                        street:         business.streetAddress || null,
+                        postal_code:    business.postalCode    || null,
+                        city:           business.city          || null,
+                        phone:          business.phone         || null,
+                        email:          admin.email,
+                        website:        business.website       || null,
+                        logo_data_url:  business.logoDataUrl   || null,
+                      }, { onConflict: 'dealership_id' });
+                    if (dsErr) {
+                      console.warn('[signup] dealership_settings upsert:', dsErr.message);
                     }
 
                     const resolvedName = adminVerified?.user.name ?? admin.fullName;
@@ -853,6 +974,8 @@ export default function SignupPage() {
                         status:          'active',
                         bankid_verified: !!adminVerified,
                         personal_number: adminVerified?.user.personalNumber ?? '',
+                        date_of_birth:   adminVerified?.user.dateOfBirth    ?? '',
+                        roaring_data:    adminVerified?.roaring              ?? null,
                       });
                     if (staffErr) {
                       console.warn('[signup] staff_users insert:', staffErr.message);
@@ -868,6 +991,8 @@ export default function SignupPage() {
                       name:           resolvedName,
                       givenName:      adminVerified?.user.givenName ?? admin.fullName.split(' ')[0],
                       personalNumber: adminVerified?.user.personalNumber ?? '',
+                      dateOfBirth:    adminVerified?.user.dateOfBirth ?? '',
+                      roaring:        adminVerified?.roaring ?? null,
                       email:          admin.email,
                       dealershipName: business.dealershipName,
                       dealershipId,
@@ -882,15 +1007,16 @@ export default function SignupPage() {
                     };
                     localStorage.setItem('user', JSON.stringify(profile));
                     localStorage.setItem('dealership_profile', JSON.stringify({
-                      name:        business.dealershipName,
-                      orgNr:       business.orgNumber,
-                      city:        business.city,
-                      postalCode:  business.postalCode,
-                      address:     business.streetAddress,
-                      phone:       business.phone,
-                      website:     business.website,
-                      email:       admin.email,
+                      name:         business.dealershipName,
+                      orgNr:        business.orgNumber,
+                      city:         business.city,
+                      postalCode:   business.postalCode,
+                      address:      business.streetAddress,
+                      phone:        business.phone,
+                      website:      business.website,
+                      email:        admin.email,
                       emailDomain,
+                      logoDataUrl:  business.logoDataUrl || '',
                     }));
                     const accounts = JSON.parse(localStorage.getItem('accounts') || '{}');
                     accounts[admin.email] = profile;

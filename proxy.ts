@@ -32,6 +32,7 @@ const PUBLIC_PREFIXES = [
   '/api/auth/send-otp',      // signup email verification (no session yet)
   '/api/auth/verify-otp',    // signup OTP check (no session yet)
   '/api/postal-lookup',      // postal code lookup during signup step 1
+  '/api/roaring/company',   // org number auto-fill during signup step 2
 ];
 
 const COOKIE_NAME = 'ava_session';

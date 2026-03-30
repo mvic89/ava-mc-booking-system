@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
 
     const { data: row, error } = await (sb as any)
       .from('staff_users')
-      .select('id, role, dealership_id, name, email, password_hash, bankid_verified, status')
+      .select('id, role, dealership_id, name, email, password_hash, bankid_verified, status, roaring_data, date_of_birth')
       .eq('email', normalised)
       .maybeSingle() as {
         data: {
@@ -38,6 +38,8 @@ export async function POST(req: NextRequest) {
           password_hash: string | null;
           bankid_verified: boolean;
           status: string;
+          roaring_data: object | null;
+          date_of_birth: string | null;
         } | null;
         error: unknown;
       };
@@ -69,6 +71,8 @@ export async function POST(req: NextRequest) {
       dealershipId: row.dealership_id ?? '',
       name:         row.name,
       email:        row.email,
+      roaringData:  row.roaring_data  ?? null,
+      dateOfBirth:  row.date_of_birth ?? '',
     });
   } catch (err) {
     console.error('[auth/login]', err);
