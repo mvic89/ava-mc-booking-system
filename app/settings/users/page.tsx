@@ -49,7 +49,6 @@ const ROLES: Record<Role, { label: string; color: string; permissions: string[] 
 const STORAGE_KEY = 'staff_users';
 
 // ─── Supabase staff loader ────────────────────────────────────────────────────
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function fetchRemoteUsers(dealershipId: string): Promise<StaffUser[]> {
   const { data } = await getSupabaseBrowser()

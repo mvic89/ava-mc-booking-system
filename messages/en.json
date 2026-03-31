@@ -22,6 +22,7 @@
     "dashboard": "Dashboard",
     "inventory": "Inventory",
     "purchaseOrders": "Purchase Orders",
+    "goodsReceipts": "Goods Receipts",
     "suppliers": "Suppliers",
     "purchaseinvoices": "Purchase Invoices",
     "salesPipeline": "Sales Pipeline",

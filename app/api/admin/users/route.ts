@@ -89,8 +89,8 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// ── DELETE /api/admin/users?id=xxx ───────────────────────────────────────────
-export async function DELETE(req: NextRequest) {
+// ── PATCH /api/admin/users?id=xxx  →  reactivate ─────────────────────────────
+export async function PATCH(req: NextRequest) {
   const session = getSession(req);
   if (!session || session.role !== 'platform_admin') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -99,7 +99,31 @@ export async function DELETE(req: NextRequest) {
   const id = req.nextUrl.searchParams.get('id');
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
 
-  // Prevent deleting yourself
+  const sb = getSupabaseAdmin();
+  const { error } = await (sb as any)
+    .from('staff_users')
+    .update({ status: 'active' })
+    .eq('id', id)
+    .eq('role', 'platform_admin');
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ ok: true });
+}
+
+// ── DELETE /api/admin/users?id=xxx[&permanent=true] ───────────────────────────
+// Without permanent=true → deactivate (set status=inactive)
+// With    permanent=true → hard-delete the row from the database
+export async function DELETE(req: NextRequest) {
+  const session = getSession(req);
+  if (!session || session.role !== 'platform_admin') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  const id        = req.nextUrl.searchParams.get('id');
+  const permanent = req.nextUrl.searchParams.get('permanent') === 'true';
+  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
+
+  // Prevent acting on yourself
   if (session.email) {
     const sb = getSupabaseAdmin();
     const { data: self } = await (sb as any)
@@ -108,17 +132,30 @@ export async function DELETE(req: NextRequest) {
       .eq('email', session.email)
       .maybeSingle();
     if (self?.id === id) {
-      return NextResponse.json({ error: 'You cannot deactivate your own account' }, { status: 400 });
+      return NextResponse.json(
+        { error: `You cannot ${permanent ? 'delete' : 'deactivate'} your own account` },
+        { status: 400 },
+      );
     }
   }
 
   const sb = getSupabaseAdmin();
-  const { error } = await (sb as any)
-    .from('staff_users')
-    .update({ status: 'inactive' })
-    .eq('id', id)
-    .eq('role', 'platform_admin');
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (permanent) {
+    const { error } = await (sb as any)
+      .from('staff_users')
+      .delete()
+      .eq('id', id)
+      .eq('role', 'platform_admin');
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  } else {
+    const { error } = await (sb as any)
+      .from('staff_users')
+      .update({ status: 'inactive' })
+      .eq('id', id)
+      .eq('role', 'platform_admin');
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
   return NextResponse.json({ ok: true });
 }
