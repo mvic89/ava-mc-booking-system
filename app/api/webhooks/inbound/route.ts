@@ -73,8 +73,8 @@ async function notifyDealer(opts: {
                 </div>
                 <div style="background:#fff;padding:24px 28px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;">
                     <p style="color:#374151;">Delivery note received from <strong>${opts.vendorName}</strong>${poId ? ` for PO <strong>${poId}</strong>` : ''}.</p>
-                    <p style="color:#6b7280;font-size:13px;">Stock has been updated automatically. The original delivery note PDF is attached.</p>
-                    <p style="color:#6b7280;font-size:12px;margin-top:24px;">Log in to BikeMeNow to review goods receipts.</p>
+                    <p style="color:#6b7280;font-size:13px;">This delivery is pending your approval — stock will not update until you approve it. The original PDF is attached.</p>
+                    <p style="color:#6b7280;font-size:12px;margin-top:24px;">Log in to BikeMeNow → Goods Receipts to review and approve.</p>
                 </div>
             </div>`,
         attachments: opts.pdfBase64 ? [{

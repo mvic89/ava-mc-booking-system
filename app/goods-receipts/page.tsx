@@ -313,7 +313,6 @@ function GoodsReceiptsContent() {
 
     // ── Stats ────────────────────────────────────────────────────────────────
     const totalUnits    = receipts.reduce((s, r) => s + (r.items?.reduce((a, i) => a + i.received_qty, 0) ?? 0), 0)
-    const autoCount     = receipts.filter(r => r.source === 'email_automation').length
     const pendingCount  = receipts.filter(r => r.status === 'pending_approval').length
 
     // ── Manual create ────────────────────────────────────────────────────────
@@ -465,20 +464,6 @@ function GoodsReceiptsContent() {
                         ))}
                     </div>
 
-                    {/* Zapier setup banner */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-xl px-5 py-4 mb-6 flex items-start gap-3">
-                        <span className="text-2xl shrink-0 mt-0.5">⚡</span>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-blue-800">Automate with Zapier</p>
-                            <p className="text-xs text-blue-600 mt-0.5">
-                                Connect your email → Zapier → <span className="font-mono bg-blue-100 px-1 rounded">POST /api/goods-receipt</span> to auto-capture deliveries.
-                                Add header <span className="font-mono bg-blue-100 px-1 rounded">x-webhook-secret</span> and body fields{' '}
-                                <span className="font-mono bg-blue-100 px-1 rounded">dealership_id</span> + <span className="font-mono bg-blue-100 px-1 rounded">pdf_base64</span>.
-                                Stock updates automatically.
-                            </p>
-                        </div>
-                    </div>
-
                     {/* Table */}
                     <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm flex-1">
                         {loading ? (
@@ -494,7 +479,7 @@ function GoodsReceiptsContent() {
                                     </p>
                                     <p className="text-gray-400 text-sm mt-1">
                                         {receipts.length === 0
-                                            ? 'Create a manual entry or set up Zapier email automation'
+                                            ? 'Create a manual entry or wait for an incoming delivery email'
                                             : 'Try a different search term'}
                                     </p>
                                 </div>
