@@ -171,7 +171,7 @@ export default function NewLeadPage() {
         email:        formData.email,
         phone:        formData.phone,
         personnummer: bankIDData?.user.personalNumber?.replace(/-/g, '') || null,
-        source:       returningCustomerId ? 'Returning' : (bankIDData ? 'BankID' : 'Walk-in'),
+        source:       bankIDData ? 'BankID' : 'Walk-in',
         notes:        formData.notes || undefined,
         address:      streetPart    || null,
         city:         cityPart      || null,
