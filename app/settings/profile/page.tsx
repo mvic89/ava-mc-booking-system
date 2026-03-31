@@ -191,7 +191,6 @@ async function fetchProfileFromSupabase(dealershipId: string): Promise<Partial<D
     .maybeSingle();
   if (!dl?.name) return null;
   return {
-<<<<<<< HEAD
     name:              data.name              ?? '',
     orgNr:             data.org_nr            ?? '',
     vatNr:             data.vat_nr            ?? '',
@@ -210,17 +209,6 @@ async function fetchProfileFromSupabase(dealershipId: string): Promise<Partial<D
     invoiceEmail:      data.invoice_email         ?? '',
     logoDataUrl:       data.logo_data_url         ?? '',
     coverImageDataUrl: data.cover_image_data_url  ?? '',
-=======
-    name:        dl.name          ?? '',
-    orgNr:       dl.org_nr        ?? '',
-    street:      dl.address       ?? '',
-    postalCode:  dl.postal_code   ?? '',
-    city:        dl.city          ?? '',
-    phone:       dl.phone         ?? '',
-    email:       dl.email         ?? '',
-    website:     dl.website       ?? '',
-    logoDataUrl: dl.logo_data_url ?? '',
->>>>>>> feature/newqoute
   };
 }
 
