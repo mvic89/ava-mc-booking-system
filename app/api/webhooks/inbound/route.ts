@@ -194,7 +194,8 @@ export async function POST(req: NextRequest) {
             body: JSON.stringify({
                 dealership_id: resolvedDealershipId,
                 pdf_base64:    pdfAttachment?.Content ?? undefined,
-                pdf_text:      pdfAttachment ? undefined : TextBody,
+                // Always pass TextBody — used as fallback when PDF is image-based (scanned)
+                pdf_text:      TextBody || undefined,
                 vendor:        vendor?.name ?? senderDomain,
                 po_id,
                 received_by:   'postmark_inbound',
@@ -204,8 +205,29 @@ export async function POST(req: NextRequest) {
         const result = await grRes.json()
 
         // ── Push in-app notification to bell ──────────────────────────────────
-        const receiptId = (result.receipt_id as string) ?? ''
-        const poRef     = (result.po_id     as string) ?? ''
+        const receiptId      = (result.receipt_id            as string) ?? ''
+        const poRef          = (result.po_id                 as string) ?? ''
+        const poMatchStatus  = (result.po_match_status       as string) ?? 'none'
+        const poRefFromNote  = (result.po_reference_from_note as string) ?? ''
+        const vendorLabel    = vendor?.name ?? senderDomain
+
+        let notifTitle:   string
+        let notifMessage: string
+
+        if (poMatchStatus === 'matched_closed') {
+            // PO ref found but already fully received — dealer needs to re-link
+            notifTitle   = `⚠️ Delivery received — PO already closed`
+            notifMessage = `${receiptId} · ${vendorLabel} · ${poRefFromNote} is already fully received. Goods arrived — tap to review and link to an open PO.`
+        } else if (poMatchStatus === 'unmatched') {
+            // PO ref was in the note but not found in system
+            notifTitle   = `📦 Delivery received — PO not found`
+            notifMessage = `${receiptId} · ${vendorLabel} · PO reference "${poRefFromNote}" was not found in the system. Review and link manually.`
+        } else {
+            // matched_open, fallback, or none
+            notifTitle   = `📦 Delivery received — ${vendorLabel}`
+            notifMessage = `${receiptId} · ${poRef ? `PO: ${poRef} · ` : ''}Pending your approval — review in Goods Receipts.`
+        }
+
         fetch(`${baseUrl}/api/notifications/add`, {
             method:  'POST',
             headers: {
@@ -215,8 +237,8 @@ export async function POST(req: NextRequest) {
             body: JSON.stringify({
                 dealership_id: resolvedDealershipId,
                 type:    'system',
-                title:   `📦 Delivery received — ${vendor?.name ?? senderDomain}`,
-                message: `${receiptId} · ${poRef ? `PO: ${poRef} · ` : ''}Pending your approval — review in Goods Receipts.`,
+                title:   notifTitle,
+                message: notifMessage,
                 href:    `/goods-receipts?receipt=${receiptId}`,
             }),
         }).catch((e) => console.warn('[inbound] in-app notify failed:', e))

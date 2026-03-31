@@ -72,18 +72,29 @@ function parseDeliveryNoteText(text: string): ParsedDeliveryNote {
     }
 
     // ── Delivery note number ──────────────────────────────────────────────────
+    // Supports English and Swedish field labels.
+    // Uses word boundary (\b) before the capture group to avoid partial matches
+    // inside Swedish compound words (e.g. "Leveransnummer" contains "dn" which
+    // the old pattern matched mid-word, capturing "ummer" as the value).
     let delivery_note_number: string | null = null
-    const dnMatch = text.match(/(?:delivery\s*note|packing\s*slip|despatch\s*note|dn\s*(?:no|#|number)?)[:\s#]*([A-Z0-9\-\/]+)/i)
+    const dnMatch = text.match(
+        /(?:delivery\s*note(?:\s*(?:no|#|number))?|packing\s*slip|despatch\s*note|följesedelnummer|leveransnummer|paketsedelnummer|sändningsnummer|fraktsedelnummer|dn\b)[:\s#]*\b([A-Z0-9][A-Z0-9\-\/]*)/i
+    )
     if (dnMatch) delivery_note_number = dnMatch[1].trim()
 
     // ── PO reference ──────────────────────────────────────────────────────────
+    // Supports English and Swedish field labels.
+    // Anchored so "ordernummer" is matched as a whole word, not as a suffix.
     let po_reference: string | null = null
-    const poMatch = text.match(/(?:purchase\s*order|po\s*(?:no|#|number)?|your\s*order)[:\s#]*([A-Z0-9\-\/]+)/i)
+    const poMatch = text.match(
+        /(?:purchase\s*order(?:\s*(?:no|#|number))?|your\s*order|kundordernummer|inköpsordernummer|beställningsnummer|köpordernummer|ordernummer|order\s*no|po\b)[:\s#]*\b([A-Z0-9][A-Z0-9\-\/]*)/i
+    )
     if (poMatch) po_reference = poMatch[1].trim()
 
     // ── Date ─────────────────────────────────────────────────────────────────
+    // Swedish: "Leveransdatum", "Orderdatum", "Datum"
     let received_date: string | null = null
-    const dateMatch = text.match(/(?:date|delivery\s*date|despatch\s*date|ship\s*date)[:\s]*(\d{1,4}[\-\/\.]\d{1,2}[\-\/\.]\d{2,4})/i)
+    const dateMatch = text.match(/(?:delivery\s*date|despatch\s*date|ship\s*date|leveransdatum|avsändningsdatum|datum|date)[:\s]*(\d{1,4}[\-\/\.]\d{1,2}[\-\/\.]\d{2,4})/i)
     if (dateMatch) received_date = normaliseDate(dateMatch[1])
 
     // ── Line items ────────────────────────────────────────────────────────────
@@ -269,32 +280,55 @@ export async function POST(req: NextRequest) {
 
     const receiptId = generateReceiptId(tag, count ?? 0)
 
-    // ── Match PO: try parsed reference, then most recent Sent PO from same vendor ─
-    const poReference  = po_id ?? parsed.po_reference ?? null
-    let matchedPoId: string | null = null
+    // ── Match PO ──────────────────────────────────────────────────────────────
+    // Outcomes:
+    //   'matched_open'   — PO found and still open (Sent / Partial / Approved)
+    //   'matched_closed' — PO found but already fully received or cancelled
+    //   'fallback'       — no PO ref in note; linked to most-recent open PO by vendor
+    //   'unmatched'      — PO ref present but not found in system
+    //   'none'           — no PO ref and no vendor fallback matched
+    const OPEN_STATUSES = ['Sent', 'Partial', 'Approved', 'Draft']
+    const poReference = po_id ?? parsed.po_reference ?? null
+    let matchedPoId:     string | null = null
+    let matchedPoStatus: string | null = null
+    let poMatchStatus: 'matched_open' | 'matched_closed' | 'fallback' | 'unmatched' | 'none' = 'none'
 
     if (poReference) {
         const { data: exactPO } = await db
             .from('purchase_orders')
-            .select('id')
+            .select('id, status')
             .eq('dealership_id', dealership_id)
             .ilike('id', `%${poReference}%`)
             .maybeSingle()
-        matchedPoId = exactPO?.id ?? null
+
+        if (exactPO) {
+            matchedPoId     = exactPO.id
+            matchedPoStatus = exactPO.status
+            poMatchStatus   = OPEN_STATUSES.includes(exactPO.status)
+                ? 'matched_open'
+                : 'matched_closed'
+        } else {
+            poMatchStatus = 'unmatched'
+        }
     }
 
-    if (!matchedPoId && (vendorHint ?? parsed.vendor)) {
+    // Fallback: link to most recent open PO from the same vendor (only when no ref was given)
+    if (!matchedPoId && !poReference && (vendorHint ?? parsed.vendor)) {
         const vendorName = vendorHint ?? parsed.vendor ?? ''
         const { data: recentPO } = await db
             .from('purchase_orders')
-            .select('id')
+            .select('id, status')
             .eq('dealership_id', dealership_id)
-            .eq('status', 'Sent')
+            .in('status', OPEN_STATUSES)
             .ilike('vendor', `%${vendorName}%`)
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle()
-        matchedPoId = recentPO?.id ?? null
+        if (recentPO) {
+            matchedPoId     = recentPO.id
+            matchedPoStatus = recentPO.status
+            poMatchStatus   = 'fallback'
+        }
     }
 
     // ── Upload PDF to Supabase Storage ────────────────────────────────────────
@@ -357,7 +391,7 @@ export async function POST(req: NextRequest) {
         const inventoryId  = await matchInventoryItem(db, dealership_id, item)
         const backorderQty = Math.max(0, (item.ordered_qty ?? 0) - item.received_qty)
 
-        await db.from('goods_receipt_items').insert({
+        const { error: itemError } = await db.from('goods_receipt_items').insert({
             receipt_id:     receiptId,
             inventory_id:   inventoryId,
             article_number: item.article_number ?? null,
@@ -368,6 +402,10 @@ export async function POST(req: NextRequest) {
             unit_cost:      item.unit_cost ?? null,
             matched:        !!inventoryId,
         })
+        if (itemError) {
+            console.error('[goods-receipt] item insert failed:', itemError.message, '— item:', item.name)
+            continue
+        }
 
         results.push({
             name:          item.name,
@@ -380,15 +418,18 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({
-        ok:              true,
-        receipt_id:      receiptId,
-        status:          'pending_approval',
-        po_id:           matchedPoId,
+        ok:                    true,
+        receipt_id:            receiptId,
+        status:                'pending_approval',
+        po_id:                 matchedPoId,
+        po_match_status:       poMatchStatus,
+        po_reference_from_note: poReference,
+        po_status:             matchedPoStatus,
         vendor,
-        received_date:   receivedDate,
-        items_processed: results.length,
-        items_matched:   results.filter(r => r.matched).length,
-        items:           results,
-        raw_text_preview: rawText.slice(0, 500),
+        received_date:         receivedDate,
+        items_processed:       results.length,
+        items_matched:         results.filter(r => r.matched).length,
+        items:                 results,
+        raw_text_preview:      rawText.slice(0, 500),
     })
 }
