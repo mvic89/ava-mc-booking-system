@@ -200,6 +200,8 @@ export default function DashboardPage() {
   const [revenueData,      setRevenueData]      = useState(() => buildRevenueData([]));
   const [liveRecentLeads,  setLiveRecentLeads]  = useState<Lead[]>([]);
   const [liveFunnel,       setLiveFunnel]       = useState({ new: 0, contacted: 0, testride: 0, negotiating: 0, closed: 0 });
+  const [liveForecast,     setLiveForecast]     = useState(0);   // weighted pipeline value (kr)
+  const [liveOverdue,      setLiveOverdue]      = useState(0);   // leads past stage SLA
   const [liveTopBikes,     setLiveTopBikes]     = useState<{ name: string; sales: number; rev: string }[]>([]);
   const [trends,           setTrends]           = useState({
     leads:     [0, 0, 0, 0, 0, 0],
@@ -245,6 +247,23 @@ export default function DashboardPage() {
       if (l.stage in funnelCounts) funnelCounts[l.stage as keyof typeof funnelCounts]++;
     });
     setLiveFunnel(funnelCounts);
+
+    // Weighted forecast: probability-adjusted pipeline value for open deals
+    const stageWeight: Record<string, number> = {
+      new: 0.10, contacted: 0.25, testride: 0.40, negotiating: 0.70, pending_payment: 0.90,
+    };
+    const overdueDays: Record<string, number> = {
+      new: 2, contacted: 3, testride: 5, negotiating: 7, pending_payment: 14,
+    };
+    const forecast = leads
+      .filter(l => l.stage !== 'closed')
+      .reduce((sum, l) => sum + l.rawValue * (stageWeight[l.stage] ?? 0), 0);
+    const overdue = leads.filter(l =>
+      l.stage !== 'closed' &&
+      l.daysInStage >= (overdueDays[l.stage] ?? 999)
+    ).length;
+    setLiveForecast(Math.round(forecast / 1000));   // store as k-kr for count-up
+    setLiveOverdue(overdue);
 
     // ── Top bikes from paid invoices ─────────────────────
     const bikeMap = new Map<string, { sales: number; revenue: number }>();
@@ -362,6 +381,7 @@ export default function DashboardPage() {
   const vehicles  = useCountUp(liveVehicles,  1100, 200);
   const revenue   = useCountUp(liveRevenue,   1300, 300);
   const customers = useCountUp(liveCustomers, 1200, 400);
+  const forecast  = useCountUp(liveForecast,  1400, 500);
 
   if (!user) return (
     <div className="flex items-center justify-center min-h-screen bg-[#f5f7fa]">
@@ -575,6 +595,29 @@ export default function DashboardPage() {
                 <FunnelRow label={t('funnelStages.negotiating')} count={liveFunnel.negotiating} total={funnelTotal} color="#3b82f6" />
                 <FunnelRow label={t('funnelStages.closed')}      count={liveFunnel.closed}      total={funnelTotal} color="#10b981" />
               </div>
+
+              {/* Forecast + overdue summary */}
+              <div className="mt-4 pt-4 border-t border-slate-50 grid grid-cols-2 gap-3">
+                <div className="bg-blue-50 rounded-xl p-3">
+                  <p className="text-[10px] text-blue-500 font-bold uppercase tracking-wide mb-0.5">Vägd prognos</p>
+                  <p className="text-lg font-black text-blue-700 tabular-nums">{forecast.toLocaleString('sv-SE')}k kr</p>
+                  <p className="text-[10px] text-blue-400 mt-0.5">sannolikhetsviktat</p>
+                </div>
+                {liveOverdue > 0 ? (
+                  <div className="bg-red-50 rounded-xl p-3">
+                    <p className="text-[10px] text-red-500 font-bold uppercase tracking-wide mb-0.5">Försenade</p>
+                    <p className="text-lg font-black text-red-600 tabular-nums">{liveOverdue}</p>
+                    <p className="text-[10px] text-red-400 mt-0.5">affärer kräver åtgärd</p>
+                  </div>
+                ) : (
+                  <div className="bg-emerald-50 rounded-xl p-3">
+                    <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-wide mb-0.5">Uppföljning</p>
+                    <p className="text-lg font-black text-emerald-700">✓</p>
+                    <p className="text-[10px] text-emerald-500 mt-0.5">inga försenade affärer</p>
+                  </div>
+                )}
+              </div>
+
               {user?.role !== 'service' && (
                 <Link href="/sales/leads" className="mt-5 flex items-center gap-1 text-xs text-[#FF6B2C] font-semibold hover:underline">
                   {t('openPipeline')}

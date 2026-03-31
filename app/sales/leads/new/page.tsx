@@ -44,7 +44,7 @@ export default function NewLeadPage() {
   const [formData, setFormData] = useState({
     name: '', address: '', dateOfBirth: '', gender: '',
     email: '', phone: '', source: 'Walk-in',
-    notes: '', interest: '', estimatedValue: 0,
+    notes: '', interest: '', estimatedValue: 0, costPrice: 0,
   });
 
   // Pre-fill from customer profile "New quote" button
@@ -154,6 +154,7 @@ export default function NewLeadPage() {
         name:         formData.name,
         bike:         formData.interest || '—',
         value:        formData.estimatedValue || 0,
+        cost_price:   formData.costPrice      || 0,
         lead_status:  'warm',
         stage:        'new',
         email:        formData.email,
@@ -389,20 +390,47 @@ export default function NewLeadPage() {
                 </div>
               </div>
 
-              {/* Deal value */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">{t('newLead.fields.dealValue')}</label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    min="0"
-                    step="1000"
-                    value={formData.estimatedValue || ''}
-                    onChange={e => setFormData({ ...formData, estimatedValue: parseInt(e.target.value) || 0 })}
-                    className={`${inputCls(false, false)} pr-12`}
-                    placeholder={t('newLead.placeholders.dealValue')}
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 font-medium pointer-events-none">kr</span>
+              {/* Deal value + cost price side by side */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">{t('newLead.fields.dealValue')}</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      step="1000"
+                      value={formData.estimatedValue || ''}
+                      onChange={e => setFormData({ ...formData, estimatedValue: parseInt(e.target.value) || 0 })}
+                      className={`${inputCls(false, false)} pr-12`}
+                      placeholder={t('newLead.placeholders.dealValue')}
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 font-medium pointer-events-none">kr</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                    Inköpspris
+                    <span className="ml-1 text-[10px] font-normal text-slate-400">(valfri)</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      step="1000"
+                      value={formData.costPrice || ''}
+                      onChange={e => setFormData({ ...formData, costPrice: parseInt(e.target.value) || 0 })}
+                      className={`${inputCls(false, false)} pr-12`}
+                      placeholder="0"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 font-medium pointer-events-none">kr</span>
+                  </div>
+                  {formData.costPrice > 0 && formData.estimatedValue > 0 && (
+                    <p className={`text-[11px] mt-1 font-semibold ${
+                      formData.estimatedValue - formData.costPrice >= 0 ? 'text-emerald-600' : 'text-red-600'
+                    }`}>
+                      Marginal: {Math.round(((formData.estimatedValue - formData.costPrice) / formData.estimatedValue) * 100)}%
+                    </p>
+                  )}
                 </div>
               </div>
 

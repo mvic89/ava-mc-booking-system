@@ -34,7 +34,7 @@ export async function POST(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let query: any = sb()
       .from('leads')
-      .update({ stage })
+      .update({ stage, stage_changed_at: new Date().toISOString() })
       .eq('id', leadId)
       .eq('dealership_id', dealershipId);
 

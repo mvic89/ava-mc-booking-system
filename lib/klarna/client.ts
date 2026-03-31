@@ -65,6 +65,12 @@ export interface KlarnaSessionRequest {
   order_lines:         KlarnaOrderLine[];
   merchant_reference1?: string;  // your agreement number
   intent?:             'buy' | 'tokenize' | 'buy_and_tokenize';
+  merchant_urls?: {
+    confirmation?:  string;   // URL Klarna redirects to after order placed
+    notification?:  string;   // Webhook for PENDING fraud-review orders
+    push?:          string;   // Klarna pushes order id to this URL
+    authorization?: string;   // Called before authorization completes (optional)
+  };
 }
 
 export interface KlarnaPaymentMethodCategory {

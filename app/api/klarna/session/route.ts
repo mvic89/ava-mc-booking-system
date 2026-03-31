@@ -45,6 +45,8 @@ export async function POST(req: NextRequest) {
       },
     ];
 
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+
     const session = await createKlarnaSession({
       purchase_country:    'SE',
       purchase_currency:   'SEK',
@@ -53,6 +55,12 @@ export async function POST(req: NextRequest) {
       order_tax_amount:    taxMinor,
       order_lines:         orderLines,
       merchant_reference1: agreementNumber,
+      // Klarna calls notification when a PENDING fraud-review order is later approved/rejected.
+      // confirmation is where Klarna redirects after a redirect-based payment (rare in widget flow).
+      merchant_urls: {
+        confirmation: `${appUrl}/api/klarna/confirmation`,
+        notification: `${appUrl}/api/klarna/notification`,
+      },
     });
 
     console.log(`[Klarna] Session created — session_id: ${session.session_id}`);

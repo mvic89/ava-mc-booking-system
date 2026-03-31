@@ -198,10 +198,11 @@ export default function Sidebar() {
       labelKey: 'Admin',
       label: t('navigation.groups.admin'),
       items: [
-        { icon: '📈', label: t('navigation.analytics'), href: '/analytics', roles: ['admin'] },
-        { icon: '📄', label: t('navigation.documents'), href: '/documents', roles: ['admin'] },
-        { icon: '⚙',  label: t('navigation.settings'), href: '/settings',  roles: ['admin'] },
-        { icon: '📜', label: t('navigation.auditLog'),  href: '/audit-log', roles: ['admin'] },
+        { icon: '📈', label: t('navigation.analytics'),  href: '/analytics',  roles: ['admin'] },
+        { icon: '📒', label: t('navigation.accounting'), href: '/accounting', roles: ['admin'] },
+        { icon: '📄', label: t('navigation.documents'),  href: '/documents',  roles: ['admin'] },
+        { icon: '⚙',  label: t('navigation.settings'),  href: '/settings',   roles: ['admin'] },
+        { icon: '📜', label: t('navigation.auditLog'),   href: '/audit-log',  roles: ['admin'] },
       ],
     },
   ];
