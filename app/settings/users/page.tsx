@@ -9,7 +9,7 @@ import { storeInvite } from '@/lib/invites';
 import { useAutoRefresh } from '@/lib/realtime';
 import { getSupabaseBrowser } from '@/lib/supabase';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+//──Types ────────────────────────────────────────────────────────────────────
 
 type Role   = 'admin' | 'sales' | 'service';
 type Status = 'active' | 'inactive' | 'pending';
