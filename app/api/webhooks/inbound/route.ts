@@ -40,15 +40,18 @@ async function notifyDealer(opts: {
     const smtpPass = process.env.GMAIL_SENDER_APP_PASSWORD
     if (!smtpUser || !smtpPass) return
 
-    // Fetch dealer email from dealership_settings
+    // Use delivery_note_email if set, otherwise fall back to general contact email
     const { data: settings } = await opts.db
         .from('dealership_settings')
-        .select('email, name')
+        .select('email, delivery_note_email')
         .eq('dealership_id', opts.dealershipId)
         .maybeSingle()
 
-    const dealerEmail = settings?.email ?? process.env.DEALER_NOTIFICATION_EMAIL
-    if (!dealerEmail) return
+    const dealerEmail = settings?.delivery_note_email || settings?.email
+    if (!dealerEmail) {
+        console.warn(`[notifyDealer] No email in dealership_settings for ${opts.dealershipId} — set Delivery Note Email in Settings`)
+        return
+    }
 
     const receiptId = (opts.receiptResult.receipt_id as string) ?? 'GR-NEW'
     const poId      = (opts.receiptResult.po_id      as string) ?? ''
@@ -144,11 +147,18 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Route by To address ───────────────────────────────────────────────────
-    // Match: delivery+id@inbound.bikeme.now  OR  hash@inbound.postmarkapp.com
+    // delivery@inbound.bikeme.now  → goods receipt + stock update
+    // invoice@inbound.bikeme.now   → accounts payable queue
+    // hash@inbound.postmarkapp.com → fallback (treated as delivery)
+    const inboundDomain  = process.env.POSTMARK_INBOUND_DOMAIN ?? ''
     const inboundAddress = process.env.POSTMARK_INBOUND_ADDRESS ?? ''
+
     const isDeliveryInbox = toAddress.includes('delivery')
         || toAddress.includes('inbound.postmarkapp.com')
         || (inboundAddress && toAddress.includes(inboundAddress.split('@')[0]))
+
+    const isInvoiceInbox  = toAddress.includes('invoice')
+        && (inboundDomain ? toAddress.includes(inboundDomain) : true)
 
     if (isDeliveryInbox) {
         // Find PDF attachment
@@ -206,8 +216,8 @@ export async function POST(req: NextRequest) {
                 dealership_id: resolvedDealershipId,
                 type:    'system',
                 title:   `📦 Delivery received — ${vendor?.name ?? senderDomain}`,
-                message: `${receiptId} · ${poRef ? `PO: ${poRef} · ` : ''}Stock updated automatically.`,
-                href:    '/purchase',
+                message: `${receiptId} · ${poRef ? `PO: ${poRef} · ` : ''}Pending your approval — review in Goods Receipts.`,
+                href:    `/goods-receipts?receipt=${receiptId}`,
             }),
         }).catch((e) => console.warn('[inbound] in-app notify failed:', e))
 
@@ -226,7 +236,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: true, routed_to: 'goods-receipt', ...result })
     }
 
-    if (toAddress.includes('invoice')) {
+    if (isInvoiceInbox) {
         // Store raw invoice email for accounts payable processing
         await db.from('purchase_invoice_emails').insert({
             dealership_id: resolvedDealershipId,

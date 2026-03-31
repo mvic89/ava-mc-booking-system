@@ -40,7 +40,7 @@ function generateVartex() {
     y += 6
 
     doc.setFont('helvetica', 'bold').text('Er referens:', 14, y)
-    doc.setFont('helvetica', 'normal').text('79603', 55, y)
+    doc.setFont('helvetica', 'normal').text('PO-LAK-2026-002', 55, y)
     y += 8
 
     doc.setFont('helvetica', 'bold').text('Leveransadress:', 14, y); y += 5

@@ -269,14 +269,62 @@ export async function POST(req: NextRequest) {
 
     const receiptId = generateReceiptId(tag, count ?? 0)
 
-    // ── Insert header ─────────────────────────────────────────────────────────
+    // ── Match PO: try parsed reference, then most recent Sent PO from same vendor ─
+    const poReference  = po_id ?? parsed.po_reference ?? null
+    let matchedPoId: string | null = null
+
+    if (poReference) {
+        const { data: exactPO } = await db
+            .from('purchase_orders')
+            .select('id')
+            .eq('dealership_id', dealership_id)
+            .ilike('id', `%${poReference}%`)
+            .maybeSingle()
+        matchedPoId = exactPO?.id ?? null
+    }
+
+    if (!matchedPoId && (vendorHint ?? parsed.vendor)) {
+        const vendorName = vendorHint ?? parsed.vendor ?? ''
+        const { data: recentPO } = await db
+            .from('purchase_orders')
+            .select('id')
+            .eq('dealership_id', dealership_id)
+            .eq('status', 'Sent')
+            .ilike('vendor', `%${vendorName}%`)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+        matchedPoId = recentPO?.id ?? null
+    }
+
+    // ── Upload PDF to Supabase Storage ────────────────────────────────────────
+    let pdfStorageUrl: string | null = null
+    if (pdf_base64) {
+        try {
+            const pdfBuffer = Buffer.from(pdf_base64, 'base64')
+            const fileName  = `${dealership_id}/${receiptId}.pdf`
+            const { error: uploadError } = await db.storage
+                .from('delivery-notes')
+                .upload(fileName, pdfBuffer, { contentType: 'application/pdf', upsert: true })
+            if (!uploadError) {
+                const { data: urlData } = db.storage.from('delivery-notes').getPublicUrl(fileName)
+                pdfStorageUrl = urlData?.publicUrl ?? null
+            } else {
+                console.warn('[goods-receipt] PDF upload failed:', uploadError.message)
+            }
+        } catch (e) {
+            console.warn('[goods-receipt] PDF upload error:', e)
+        }
+    }
+
+    // ── Insert header (pending_approval — stock is NOT updated until admin approves) ──
     const receivedDate = parsed.received_date ?? new Date().toISOString().split('T')[0]
     const vendor       = vendorHint ?? parsed.vendor ?? 'Unknown Vendor'
 
     const { error: receiptError } = await db.from('goods_receipts').insert({
         id:                   receiptId,
         dealership_id,
-        po_id:                po_id ?? parsed.po_reference ?? null,
+        po_id:                matchedPoId ?? poReference,
         vendor,
         delivery_note_number: parsed.delivery_note_number ?? null,
         received_date:        receivedDate,
@@ -284,6 +332,8 @@ export async function POST(req: NextRequest) {
         notes:                parsed.notes ?? null,
         raw_text:             rawText,
         source:               'email_automation',
+        status:               'pending_approval',
+        pdf_url:              pdfStorageUrl,
     })
 
     if (receiptError) {
@@ -291,13 +341,21 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: receiptError.message }, { status: 500 })
     }
 
-    // ── Process line items ────────────────────────────────────────────────────
-    const results: { name: string; received_qty: number; inventory_id: string | null; matched: boolean }[] = []
+    // ── Process line items (save only — no stock update until approved) ───────
+    const results: {
+        name: string
+        received_qty: number
+        ordered_qty: number | null
+        backorder_qty: number
+        inventory_id: string | null
+        matched: boolean
+    }[] = []
 
     for (const item of parsed.items ?? []) {
         if (!item.name || item.received_qty <= 0) continue
 
-        const inventoryId = await matchInventoryItem(db, dealership_id, item)
+        const inventoryId  = await matchInventoryItem(db, dealership_id, item)
+        const backorderQty = Math.max(0, (item.ordered_qty ?? 0) - item.received_qty)
 
         await db.from('goods_receipt_items').insert({
             receipt_id:     receiptId,
@@ -306,42 +364,31 @@ export async function POST(req: NextRequest) {
             name:           item.name,
             ordered_qty:    item.ordered_qty ?? null,
             received_qty:   item.received_qty,
+            backorder_qty:  backorderQty,
             unit_cost:      item.unit_cost ?? null,
             matched:        !!inventoryId,
         })
 
-        if (inventoryId) {
-            const table = inventoryId.startsWith('MC-') ? 'motorcycles'
-                        : inventoryId.startsWith('SP-') ? 'spare_parts'
-                        : 'accessories'
-
-            const { data: current } = await db
-                .from(table)
-                .select('stock')
-                .eq('id', inventoryId)
-                .eq('dealership_id', dealership_id)
-                .single()
-
-            if (current) {
-                await db.from(table)
-                    .update({ stock: (current.stock ?? 0) + item.received_qty })
-                    .eq('id', inventoryId)
-                    .eq('dealership_id', dealership_id)
-            }
-        }
-
-        results.push({ name: item.name, received_qty: item.received_qty, inventory_id: inventoryId, matched: !!inventoryId })
+        results.push({
+            name:          item.name,
+            received_qty:  item.received_qty,
+            ordered_qty:   item.ordered_qty ?? null,
+            backorder_qty: backorderQty,
+            inventory_id:  inventoryId,
+            matched:       !!inventoryId,
+        })
     }
 
     return NextResponse.json({
         ok:              true,
         receipt_id:      receiptId,
+        status:          'pending_approval',
+        po_id:           matchedPoId,
         vendor,
         received_date:   receivedDate,
         items_processed: results.length,
         items_matched:   results.filter(r => r.matched).length,
         items:           results,
-        // Return raw text so you can inspect what was extracted
         raw_text_preview: rawText.slice(0, 500),
     })
 }
