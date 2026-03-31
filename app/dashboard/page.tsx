@@ -352,22 +352,63 @@ export default function DashboardPage() {
     });
   };
 
+  // ── Profile loader (stale-while-revalidate) ─────────────────────────────────
+  // Step 1: reads localStorage immediately → zero-latency first render.
+  // Step 2: fetches the full profile from Supabase in the background so the
+  //   cover image, city, county etc. are always current — even when the
+  //   Sidebar's narrower fallback had cached only partial data.
+  const loadProfile = async () => {
+    try {
+      const p = JSON.parse(localStorage.getItem('dealership_profile') || '{}');
+      if (p.name) setProfile(p);
+    } catch { /* ignore */ }
+
+    const dealershipId = getDealershipId();
+    if (!dealershipId) return;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sb = getSupabaseBrowser() as any;
+      const { data } = await sb
+        .from('dealership_settings')
+        .select('name,org_nr,city,county,logo_data_url,cover_image_data_url')
+        .eq('dealership_id', dealershipId)
+        .maybeSingle();
+      if (data?.name) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const existing: any = (() => { try { return JSON.parse(localStorage.getItem('dealership_profile') || '{}'); } catch { return {}; } })();
+        const fresh = {
+          ...existing,
+          name:              data.name,
+          orgNr:             data.org_nr              ?? '',
+          city:              data.city                ?? '',
+          county:            data.county              ?? '',
+          logoDataUrl:       data.logo_data_url        ?? '',
+          coverImageDataUrl: data.cover_image_data_url ?? '',
+        };
+        localStorage.setItem('dealership_profile', JSON.stringify(fresh));
+        // Notify Sidebar (logo/name) and any other same-tab listeners
+        window.dispatchEvent(new StorageEvent('storage', { key: 'dealership_profile' }));
+        setProfile(fresh);
+      }
+    } catch { /* non-fatal */ }
+  };
+
   useEffect(() => {
     const stored = localStorage.getItem('user');
     if (!stored) { router.replace('/auth/login'); return; }
     setUser(JSON.parse(stored));
 
-    const loadProfile = () => {
-      try {
-        const p = JSON.parse(localStorage.getItem('dealership_profile') || '{}');
-        setProfile(p.name ? p : null);
-      } catch { setProfile(null); }
-    };
     loadProfile();
     loadStats();
 
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'dealership_profile') loadProfile();
+      // Settings page already wrote the full profile to localStorage — just re-read it
+      if (e.key === 'dealership_profile') {
+        try {
+          const p = JSON.parse(localStorage.getItem('dealership_profile') || '{}');
+          if (p.name) setProfile(p);
+        } catch { /* ignore */ }
+      }
     };
     window.addEventListener('storage', handleStorage);
     return () => window.removeEventListener('storage', handleStorage);
@@ -376,6 +417,8 @@ export default function DashboardPage() {
 
   // Refresh stats when realtime events fire (same tab or other tabs)
   useAutoRefresh(loadStats);
+  // Re-sync full profile on data:refresh (cross-device saves via Supabase Realtime)
+  useAutoRefresh(loadProfile);
 
   const leads     = useCountUp(liveLeads,     1000, 100);
   const vehicles  = useCountUp(liveVehicles,  1100, 200);
@@ -502,7 +545,6 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-xs font-bold text-[#235971] uppercase tracking-wide">{tCommon('verifiedIdentity')}</p>
                   <p className="text-sm font-semibold text-slate-900">{user.name}</p>
-                  <p className="text-xs text-slate-400">{user.personalNumber?.replace(/(\d{8})(\d{4})/, '$1-$2')}</p>
                 </div>
               </div>
 
@@ -512,12 +554,6 @@ export default function DashboardPage() {
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-0.5">{tCommon('address')}</p>
                     <p className="text-slate-700 font-medium">{user.roaring.address.street || '—'}</p>
                     <p className="text-slate-500">{user.roaring.address.postalCode} {user.roaring.address.city}</p>
-                  </div>
-                )}
-                {user.dateOfBirth && (
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-0.5">{tCommon('dateOfBirth')}</p>
-                    <p className="text-slate-700 font-medium">{user.dateOfBirth}</p>
                   </div>
                 )}
                 {user.roaring.gender && (

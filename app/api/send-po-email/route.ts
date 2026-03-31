@@ -1,31 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Resend } from 'resend'
+import nodemailer from 'nodemailer'
 
 export async function POST(req: NextRequest) {
     const {
         toEmail, poId, vendorName, poDate, eta,
-        pdfBase64, fromName, replyTo, dealerPhone,
+        pdfBase64, fromName, replyTo, dealerPhone, dealershipId,
     } = await req.json()
 
     if (!toEmail || !poId || !pdfBase64) {
         return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    const resendKey  = process.env.RESEND_API_KEY
-    const resendFrom = process.env.RESEND_FROM_EMAIL
+    const gmailUser = process.env.GMAIL_SENDER_USER
+    const gmailPass = process.env.GMAIL_SENDER_APP_PASSWORD
 
-    if (!resendKey || !resendFrom) {
+    if (!gmailUser || !gmailPass) {
         return NextResponse.json(
-            { error: 'Email not configured. Add RESEND_API_KEY + RESEND_FROM_EMAIL to .env.local' },
+            { error: 'Email not configured. Add GMAIL_SENDER_USER + GMAIL_SENDER_APP_PASSWORD to .env.local' },
             { status: 500 },
         )
     }
 
-    // pdfBase64 comes in as a data URI: "data:application/pdf;base64,<base64data>"
-    const base64Data = pdfBase64.includes(',') ? pdfBase64.split(',')[1] : pdfBase64
-    const etaLine    = eta && eta !== '—' ? `Expected Delivery: ${eta}` : ''
-    const senderName = fromName || 'Procurement'
-    const replyToAddr = replyTo || resendFrom
+    const base64Data  = pdfBase64.includes(',') ? pdfBase64.split(',')[1] : pdfBase64
+    const etaLine     = eta && eta !== '—' ? `Expected Delivery: ${eta}` : ''
+    const senderName  = fromName || 'Procurement'
+
+    // dealerEmail  → BCC on PO so dealer gets a copy in their inbox
+    // replyToAddr  → Reply-To so supplier's reply (delivery note) goes to Postmark webhook
+    const dealerEmail    = replyTo || gmailUser
+    const inboundDomain  = process.env.POSTMARK_INBOUND_DOMAIN
+    const inboundAddress = process.env.POSTMARK_INBOUND_ADDRESS
+    const replyToAddr = inboundDomain && dealershipId
+        ? `delivery+${dealershipId}@${inboundDomain}`
+        : inboundAddress ?? dealerEmail
 
     const htmlBody = `
         <!DOCTYPE html>
@@ -48,8 +55,13 @@ export async function POST(req: NextRequest) {
                       dated <strong>${poDate}</strong>.
                       ${etaLine ? `<br/>Expected Delivery: <strong>${eta}</strong>.` : ''}
                     </p>
-                    <p style="margin:0 0 24px;color:#4b5563;font-size:14px;line-height:1.6;">
+                    <p style="margin:0 0 12px;color:#4b5563;font-size:14px;line-height:1.6;">
                       Kindly confirm receipt and advise on stock availability at your earliest convenience.
+                    </p>
+                    <p style="margin:0 0 24px;color:#4b5563;font-size:14px;line-height:1.6;">
+                      When dispatching, please send your delivery note PDF to:<br/>
+                      <strong style="color:#1e3a5f;">${gmailUser}</strong><br/>
+                      <span style="color:#6b7280;font-size:13px;">You can reply to this email or send a new email with the PO number <strong>${poId}</strong> in the subject line.</span>
                     </p>
                     <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
                     <p style="margin:0;color:#6b7280;font-size:13px;line-height:1.8;">
@@ -84,30 +96,44 @@ export async function POST(req: NextRequest) {
         '',
         `Please find attached Purchase Order ${poId} from ${senderName}.`,
         'Kindly confirm receipt and advise on stock availability at your earliest convenience.',
+        `When dispatching, please send your delivery note PDF to: ${gmailUser}`,
+        `You can reply to this email or send a new email with ${poId} in the subject line.`,
         '',
         senderName,
         'Procurement Department',
-        dealerPhone ? `Tel: ${dealerPhone}` : '',
-        replyToAddr ? `Email: ${replyToAddr}` : '',
+        dealerPhone    ? `Tel: ${dealerPhone}` : '',
+        replyToAddr    ? `Email: ${replyToAddr}` : '',
     ].filter(Boolean).join('\n')
 
-    const subject = `[Purchase Order] ${poId} from ${senderName}`
-
-    const resend = new Resend(resendKey)
-
-    const { error } = await resend.emails.send({
-        from:        `${senderName} Procurement <${resendFrom}>`,
-        to:          [toEmail],
-        replyTo:     replyToAddr,
-        subject,
-        text:        textBody,
-        html:        htmlBody,
-        attachments: [{ filename: `${poId}.pdf`, content: base64Data }],
+    const transporter = nodemailer.createTransport({
+        host:   'smtp.gmail.com',
+        port:   587,
+        secure: false,
+        auth: {
+            user: gmailUser,
+            pass: gmailPass,
+        },
     })
 
-    if (error) {
-        console.error('Resend error:', error)
-        return NextResponse.json({ error: error.message }, { status: 500 })
+    try {
+        await transporter.sendMail({
+            from:     `${senderName} Procurement <${gmailUser}>`,
+            to:       toEmail,
+            bcc:      dealerEmail,   // dealer gets silent copy of the PO
+            replyTo:  replyToAddr,   // supplier replies → Postmark → auto stock update
+            subject:  `[Purchase Order] ${poId} from ${senderName}`,
+            text:     textBody,
+            html:     htmlBody,
+            attachments: [{
+                filename:    `${poId}.pdf`,
+                content:     Buffer.from(base64Data, 'base64'),
+                contentType: 'application/pdf',
+            }],
+        })
+    } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown error'
+        console.error('Gmail SMTP error:', message)
+        return NextResponse.json({ error: message }, { status: 500 })
     }
 
     return NextResponse.json({ ok: true })

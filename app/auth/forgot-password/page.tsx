@@ -124,7 +124,7 @@ export default function ForgotPasswordPage() {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => { setEmail(e.target.value); setEmailErr(''); }}
+                onChange={(e) => { setEmail(e.target.value.toLowerCase()); setEmailErr(''); }}
                 onBlur={() => { if (email && !isValidEmail(email)) setEmailErr('Enter a valid email address (e.g. name@domain.com)'); }}
                 className={`w-full px-4 py-3 rounded-lg border outline-none focus:ring-1 transition-colors ${emailErr ? 'border-red-400 focus:border-red-400 focus:ring-red-400 bg-red-50' : 'border-slate-300 focus:border-blue-500 focus:ring-blue-500'}`}
                 placeholder={t('emailPlaceholder')}

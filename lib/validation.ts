@@ -31,3 +31,25 @@ export function phoneError(phone: string): string | null {
   if (!isValidPhone(phone)) return 'Enter a valid phone number (at least 7 digits)';
   return null;
 }
+
+/**
+ * Validates a Swedish organization number.
+ * Required format: XXXXXX-XXXX (6 digits, dash, 4 digits).
+ */
+export function isValidOrgNumber(orgNr: string): boolean {
+  return /^\d{6}-\d{4}$/.test(orgNr.trim());
+}
+
+/**
+ * Validates a website URL (must start with http:// or https://).
+ * Returns true for empty strings (field is optional).
+ */
+export function isValidWebsite(url: string): boolean {
+  if (!url.trim()) return true;
+  try {
+    const u = new URL(url.trim());
+    return u.protocol === 'http:' || u.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}

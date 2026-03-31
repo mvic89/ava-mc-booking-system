@@ -178,9 +178,10 @@ export default function Sidebar() {
       label: t('navigation.groups.core'),
       items: [
         { icon: '📊', label: t('navigation.dashboard'),      href: '/dashboard',  roles: ['admin', 'sales', 'service'] },
-        { icon: '🏍', label: t('navigation.inventory'),       href: '/inventory',  roles: ['admin', 'sales', 'service'] },
         { icon: '🏷️', label: t('navigation.offer'),          href: '/offer', roles: ['admin', 'sales', 'service'] },
+        { icon: '🏍', label: t('navigation.inventory'),       href: '/inventory',  roles: ['admin', 'sales', 'service'] },
         { icon: '📦', label: t('navigation.purchaseOrders'), href: '/purchase',   roles: ['admin', 'sales', 'service'] },
+          { icon: '🚚', label: t('navigation.goodsReceipts'), href: '/goods-receipts',  roles: ['admin', 'sales', 'service'] },
         { icon: '🏭', label: t('navigation.suppliers'),       href: '/suppliers',  roles: ['admin', 'sales', 'service'] },
         { icon: '📧', label: t('navigation.purchaseinvoices'),    href: '/purchaseinvoice', roles: ['admin', 'sales', 'service'] },
       ],
@@ -250,6 +251,9 @@ export default function Sidebar() {
   };
 
   useEffect(() => {
+    // Re-read localStorage on every route change so data is current immediately
+    // after login (the effect runs on the auth page when user=null, then again
+    // when pathname changes to /dashboard after prefetchDealerProfile completes).
     loadUser();
     loadLogo();
 
@@ -259,7 +263,70 @@ export default function Sidebar() {
     };
     window.addEventListener('storage', handleStorage);
     return () => window.removeEventListener('storage', handleStorage);
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  // ── Fallback: populate dealershipName whenever it is missing ────────────────
+  // Priority 1 — localStorage cache (written by prefetchDealerProfile on login,
+  //   covers the timing gap where loadUser() ran BEFORE prefetchDealerProfile
+  //   finished writing to localStorage).
+  // Priority 2 — live Supabase query (covers prefetchDealerProfile failure).
+  useEffect(() => {
+    const dealershipId = user?.dealershipId;
+    if (!dealershipId || user?.role === 'platform_admin') return;
+
+    // If the user state already carries a dealership name we're done
+    if (user?.dealershipName) return;
+
+    // Priority 1: check localStorage cache synchronously — avoids an async
+    // round-trip when prefetchDealerProfile already wrote the data
+    try {
+      const cached = JSON.parse(localStorage.getItem('dealership_profile') || '{}');
+      if (cached.name) {
+        setUser((u: any) => u ? { ...u, dealershipName: cached.name } : u);
+        setOrgNr(cached.orgNr || '');
+        setDealershipLogo(cached.logoDataUrl || null);
+        window.dispatchEvent(new StorageEvent('storage', { key: 'dealership_profile' }));
+        return;
+      }
+    } catch { /* ignore */ }
+
+    // Priority 2: fetch live from Supabase (prefetchDealerProfile must have failed)
+    const sb = getSupabaseBrowser() as any;
+    sb.from('dealership_settings')
+      .select('name,logo_data_url,cover_image_data_url,org_nr,city,county,email_domain')
+      .eq('dealership_id', dealershipId)
+      .maybeSingle()
+      .then(({ data: ds }: any) => {
+        if (ds?.name) {
+          setUser((u: any) => u ? { ...u, dealershipName: ds.name } : u);
+          setOrgNr(ds.org_nr || '');
+          setDealershipLogo(ds.logo_data_url || null);
+          const existing = JSON.parse(localStorage.getItem('dealership_profile') || '{}');
+          const merged = { ...existing, name: ds.name, orgNr: ds.org_nr || '', logoDataUrl: ds.logo_data_url || '', coverImageDataUrl: ds.cover_image_data_url || '', city: ds.city || '', county: ds.county || '' };
+          localStorage.setItem('dealership_profile', JSON.stringify(merged));
+          window.dispatchEvent(new StorageEvent('storage', { key: 'dealership_profile' }));
+          return;
+        }
+        // Fall back to dealerships table
+        sb.from('dealerships')
+          .select('*')
+          .eq('id', dealershipId)
+          .maybeSingle()
+          .then(({ data: dl }: any) => {
+            if (!dl?.name) return;
+            setUser((u: any) => u ? { ...u, dealershipName: dl.name } : u);
+            setDealershipLogo(dl.logo_data_url || null);
+            const existing = JSON.parse(localStorage.getItem('dealership_profile') || '{}');
+            const merged = { ...existing, name: dl.name, orgNr: dl.org_nr || '', logoDataUrl: dl.logo_data_url || '' };
+            localStorage.setItem('dealership_profile', JSON.stringify(merged));
+            window.dispatchEvent(new StorageEvent('storage', { key: 'dealership_profile' }));
+          })
+          .catch(() => {/* ignore */});
+      })
+      .catch(() => {/* ignore */});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.dealershipId, user?.dealershipName]);
 
   // Hide on auth and public pages
   const AUTH_PATHS = ['/auth', '/privacy', '/terms'];

@@ -22,6 +22,7 @@
     "dashboard": "Instrumentpanel",
     "inventory": "Lager",
     "purchaseOrders": "Inköpsorder",
+    "goodsReceipts": "Godsmottagning",
     "suppliers": "Leverantörer",
     "purchaseinvoices": "Inköpsfakturor",
     "salesPipeline": "Försäljningspipeline",

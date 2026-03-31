@@ -21,6 +21,7 @@ export interface SupplierRow {
     bankAccount?:            string
     bankIBAN?:               string
     bankSwift?:              string
+    website?:                string
     isManual?:               boolean
     freeShippingThreshold?:  number
 }
@@ -36,6 +37,7 @@ export interface SupplierFormData {
     bankAccount:           string
     bankIBAN:              string
     bankSwift:             string
+    website:               string
     freeShippingThreshold: string
 }
 
@@ -52,7 +54,7 @@ export function emptyFormData(): SupplierFormData {
         name: '', address: '', phone: '', email: '',
         orgNumber: '', contactPerson: '',
         bankName: '', bankAccount: '', bankIBAN: '', bankSwift: '',
-        freeShippingThreshold: '',
+        website: '', freeShippingThreshold: '',
     }
 }
 
@@ -69,6 +71,7 @@ export function supplierToFormData(s: SupplierRow): SupplierFormData {
         bankAccount:           d(s.bankAccount),
         bankIBAN:              d(s.bankIBAN),
         bankSwift:             d(s.bankSwift),
+        website:               d(s.website),
         freeShippingThreshold: s.freeShippingThreshold != null ? String(s.freeShippingThreshold) : '',
     }
 }
@@ -136,19 +139,64 @@ export function InfoField({ label, value, span = false }: { label: string; value
 
 // ─── Supplier form body (shared between create and edit modals) ───────────────
 
+const ALL_CATEGORIES = ['Motorcycles', 'Spare Parts', 'Accessories'] as const
+
 export function SupplierFormBody({
     form, setField, allRequired = false,
+    categories = [], setCategories,
 }: {
-    form:         SupplierFormData
-    setField:     (key: keyof SupplierFormData, value: string) => void
-    allRequired?: boolean
+    form:            SupplierFormData
+    setField:        (key: keyof SupplierFormData, value: string) => void
+    allRequired?:    boolean
+    categories?:     string[]
+    setCategories?:  (cats: string[]) => void
 }) {
     const r = allRequired
+
+    function toggleCategory(cat: string) {
+        if (!setCategories) return
+        setCategories(
+            categories.includes(cat)
+                ? categories.filter((c) => c !== cat)
+                : [...categories, cat]
+        )
+    }
+
     return (
         <div className="grid grid-cols-2 gap-x-5 gap-y-4">
             <SectionHeading>Basic Information</SectionHeading>
             <Field label="Supplier Name" value={form.name} onChange={(v) => setField('name', v)}
                 placeholder="e.g. Yamaha Motor Co., Ltd." required span />
+
+            {/* Category selector */}
+            <div className="col-span-2">
+                <label className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1.5 block">
+                    Categories{r && <span className="text-orange-500 ml-0.5">*</span>}
+                </label>
+                <div className="flex gap-2 flex-wrap">
+                    {ALL_CATEGORIES.map((cat) => {
+                        const active = categories.includes(cat)
+                        const style = CATEGORY_STYLE[cat] ?? 'bg-gray-100 text-gray-600'
+                        return (
+                            <button
+                                key={cat}
+                                type="button"
+                                onClick={() => toggleCategory(cat)}
+                                className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all
+                                    ${active
+                                        ? `${style} border-transparent ring-2 ring-offset-1 ring-orange-400`
+                                        : 'bg-gray-50 text-gray-400 border-gray-200 hover:border-gray-300'
+                                    }`}
+                            >
+                                {cat}
+                            </button>
+                        )
+                    })}
+                </div>
+                {r && categories.length === 0 && (
+                    <p className="text-[10px] text-orange-500 mt-1">Select at least one category</p>
+                )}
+            </div>
 
             <SectionHeading>Contact Details</SectionHeading>
             <TextAreaField label="Address" value={form.address} onChange={(v) => setField('address', v)}
@@ -162,7 +210,9 @@ export function SupplierFormBody({
 
             <SectionHeading>Business Details</SectionHeading>
             <Field label="Organisation Number" value={form.orgNumber} onChange={(v) => setField('orgNumber', v)}
-                placeholder="e.g. 556000-1234" span required={r} />
+                placeholder="e.g. 556000-1234" required={r} />
+            <Field label="Website" value={form.website} onChange={(v) => setField('website', v)}
+                placeholder="e.g. www.supplier.com" type="url" />
 
             <SectionHeading>Bank Details</SectionHeading>
             <Field label="Bank Name" value={form.bankName} onChange={(v) => setField('bankName', v)}
