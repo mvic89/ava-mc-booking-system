@@ -22,6 +22,7 @@
     "dashboard": "Dashboard",
     "inventory": "Inventory",
     "purchaseOrders": "Purchase Orders",
+    "goodsReceipts": "Goods Receipts",
     "suppliers": "Suppliers",
     "purchaseinvoices": "Purchase Invoices",
     "salesPipeline": "Sales Pipeline",
@@ -32,6 +33,7 @@
     "analytics": "Analytics",
     "settings": "Settings",
     "users": "Users",
+    "offer": "Offer",
     "auditLog": "Audit Log",
     "subscribedDealer": "Subscribed Dealer",
     "groups": {
@@ -291,7 +293,7 @@
       "lastActivity": "Last Activity",
       "tags": "Tags",
       "noResults": "No customers found",
-      "showing": "Showing 1–{count} of 342 customers"
+      "showing": "Showing {count} customers"
     },
     "sourceBadge": {
       "manual": "Manual"
@@ -589,6 +591,7 @@
       "contacted": "Contacted",
       "testRide": "Test Ride",
       "negotiating": "Negotiating",
+      "pendingPayment": "Pending Payment",
       "closed": "Closed"
     },
     "status": {
@@ -702,6 +705,7 @@
       "customer": "Customer:",
       "vehicle": "Vehicle:",
       "vin": "VIN:",
+      "registrationNumber": "Reg. plate:",
       "accessories": "Accessories:",
       "tradeIn": "Trade-In:",
       "totalPrice": "Total Price:",
@@ -718,6 +722,7 @@
       "personnummer": "Personnummer",
       "vehicleModel": "Year Make Model",
       "vin": "17-character VIN",
+      "registrationNumber": "e.g. ABC 123",
       "accessories": "e.g. Akrapovic + Tank Pad",
       "vehicleMakeModel": "Vehicle make/model"
     },

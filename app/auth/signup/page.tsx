@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import PhoneInput from '@/components/PhoneInput';
 import PasswordInput from '@/components/PasswordInput';
 import { supabase } from '@/lib/supabase';
+import { isValidEmail, isValidPhone } from '@/lib/validation';
 import BankIDModal from '@/components/bankIdModel';
 import type { BankIDResult } from '@/types';
 
@@ -150,8 +151,9 @@ export default function SignupPage() {
     // Name is auto-filled from BankID — only required when filling manually
     if (!adminVerified && !admin.fullName.trim()) e.fullName = 'Required';
     if (!admin.email.trim())        e.email    = 'Required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(admin.email)) e.email = 'Invalid email address';
+    else if (!isValidEmail(admin.email)) e.email = 'Enter a valid email address (e.g. name@domain.com)';
     if (!admin.mobile.trim())       e.mobile   = 'Required';
+    else if (!isValidPhone(admin.mobile)) e.mobile = 'Enter a valid phone number (at least 7 digits)';
     // Password fields are only needed when NOT using BankID
     if (!adminVerified) {
       if (!admin.password)            e.password = 'Required';

@@ -22,6 +22,7 @@
     "dashboard": "Dashboard",
     "inventory": "Beholdning",
     "purchaseOrders": "Indkøbsordrer",
+    "goodsReceipts": "Varemodtagelse",
     "suppliers": "Leverandører",
     "purchaseinvoices": "Købsfakturaer",
     "salesPipeline": "Salgspipeline",
@@ -32,6 +33,7 @@
     "analytics": "Analyse",
     "settings": "Indstillinger",
     "users": "Brugere",
+    "offer": "Tilbud",
     "auditLog": "Revisionslog",
     "subscribedDealer": "Abonneret forhandler",
     "groups": {
@@ -291,7 +293,7 @@
       "lastActivity": "Seneste aktivitet",
       "tags": "Tags",
       "noResults": "Ingen kunder fundet",
-      "showing": "Viser 1–{count} af 342 kunder"
+      "showing": "Viser {count} kunder"
     },
     "sourceBadge": {
       "manual": "Manuel"
@@ -589,6 +591,7 @@
       "contacted": "Kontaktet",
       "testRide": "Prøvekørsel",
       "negotiating": "Forhandling",
+      "pendingPayment": "Afventer betaling",
       "closed": "Afsluttet"
     },
     "status": {
@@ -702,6 +705,7 @@
       "customer": "Kunde:",
       "vehicle": "Køretøj:",
       "vin": "VIN:",
+      "registrationNumber": "Reg.nr.:",
       "accessories": "Tilbehør:",
       "tradeIn": "Byttekøretøj:",
       "totalPrice": "Totalpris:",
@@ -718,6 +722,7 @@
       "personnummer": "CPR-nummer",
       "vehicleModel": "År Mærke Model",
       "vin": "17-tegns VIN",
+      "registrationNumber": "f.eks. ABC 123",
       "accessories": "f.eks. Akrapovic + Tankpude",
       "vehicleMakeModel": "Køretøjsmærke/-model"
     },

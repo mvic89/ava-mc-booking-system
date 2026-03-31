@@ -22,6 +22,7 @@
     "dashboard": "لوحة القيادة",
     "inventory": "المخزون",
     "purchaseOrders": "أوامر الشراء",
+    "goodsReceipts": "استلام البضائع",
     "suppliers": "الموردون",
       "purchaseinvoices": "فواتير الشراء",
     "salesPipeline": "خط المبيعات",
@@ -32,6 +33,7 @@
     "analytics": "التحليلات",
     "settings": "الإعدادات",
     "users": "المستخدمون",
+    "offer": "عرض",
     "auditLog": "سجل المراجعة",
     "subscribedDealer": "وكيل مشترك",
     "groups": {
@@ -291,7 +293,7 @@
       "lastActivity": "آخر نشاط",
       "tags": "التصنيفات",
       "noResults": "لم يتم العثور على عملاء",
-      "showing": "عرض 1–{count} من 342 عميل"
+      "showing": "عرض {count} عملاء"
     },
     "sourceBadge": {
       "manual": "يدوي"
@@ -589,6 +591,7 @@
       "contacted": "تم التواصل",
       "testRide": "تجربة القيادة",
       "negotiating": "تفاوض",
+      "pendingPayment": "بانتظار الدفع",
       "closed": "مغلق"
     },
     "status": {
@@ -702,6 +705,7 @@
       "customer": "العميل:",
       "vehicle": "المركبة:",
       "vin": "رقم الهيكل:",
+      "registrationNumber": "رقم اللوحة:",
       "accessories": "الملحقات:",
       "tradeIn": "المقايضة:",
       "totalPrice": "السعر الإجمالي:",
@@ -718,6 +722,7 @@
       "personnummer": "الرقم الشخصي",
       "vehicleModel": "السنة الصنع الطراز",
       "vin": "رقم هيكل 17 حرفاً",
+      "registrationNumber": "مثال: ABC 123",
       "accessories": "مثال: Akrapovic + واقي الخزان",
       "vehicleMakeModel": "صنع/طراز المركبة"
     },

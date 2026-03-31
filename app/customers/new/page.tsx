@@ -9,6 +9,7 @@ import BankIDModal from '@/components/bankIdModel';
 import PhoneInput from '@/components/PhoneInput';
 import type { BankIDResult } from '@/types';
 import { createCustomer } from '@/lib/customers';
+import { isValidEmail, isValidPhone } from '@/lib/validation';
 
 const EXISTING_CUSTOMERS: Record<string, { id: number; name: string; lastSeen: string; vehicles: number; lifetimeValue: number; purchases: number }> = {
   '198506122384': { id: 1, name: 'Anna Svensson', lastSeen: '8 februari 2026', vehicles: 3, lifetimeValue: 445000, purchases: 5 },
@@ -35,6 +36,7 @@ export default function NewCustomerPage() {
   const [protectedPhone, setProtectedPhone] = useState('');
   const [protectedEmail, setProtectedEmail] = useState('');
   const [manual, setManual] = useState(EMPTY_MANUAL);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const user = localStorage.getItem('user');
@@ -60,6 +62,19 @@ export default function NewCustomerPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    const errs: Record<string, string> = {};
+    if (step === 'manual') {
+      if (manual.email && !isValidEmail(manual.email)) errs.email = 'Enter a valid email address (e.g. name@domain.com)';
+      if (manual.phone && !isValidPhone(manual.phone)) errs.phone = 'Enter a valid phone number (at least 7 digits)';
+    } else if (step === 'new') {
+      if (bankIDEmail && !isValidEmail(bankIDEmail)) errs.bankIDEmail = 'Enter a valid email address (e.g. name@domain.com)';
+      if (bankIDPhone && !isValidPhone(bankIDPhone)) errs.bankIDPhone = 'Enter a valid phone number (at least 7 digits)';
+    } else if (step === 'protected') {
+      if (protectedEmail && !isValidEmail(protectedEmail)) errs.protectedEmail = 'Enter a valid email address (e.g. name@domain.com)';
+      if (protectedPhone && !isValidPhone(protectedPhone)) errs.protectedPhone = 'Enter a valid phone number (at least 7 digits)';
+    }
+    if (Object.keys(errs).length) { setFieldErrors(errs); return; }
+    setFieldErrors({});
     try {
       if (step === 'manual') {
         await createCustomer({
@@ -68,16 +83,22 @@ export default function NewCustomerPage() {
           personnummer: manual.personnummer || '',
           email: manual.email,
           phone: manual.phone,
+          address: manual.address || '',
+          postalCode: manual.postalCode || '',
+          city: manual.city || '',
+          birthDate: manual.birthDate || '',
+          gender: manual.gender === 'Kvinna' ? 'Kvinna' : 'Man',
           source: 'Manual',
-          vehicles: 0,
-          lifetimeValue: 0,
-          lastActivity: new Date().toISOString(),
           tag: 'New',
           bankidVerified: false,
           protectedIdentity: false,
-          address: [manual.address, manual.postalCode, manual.city].filter(Boolean).join(', '),
-          gender: manual.gender === 'Kvinna' ? 'Kvinna' : 'Man',
-          birthDate: manual.birthDate || '',
+          lifetimeValue: 0,
+          lastActivity: new Date().toISOString(),
+          customerSince: '',
+          riskLevel: 'low',
+          citizenship: '',
+          deceased: false,
+          vehicles: 0,
           notes: manual.notes || undefined,
         });
       } else if (step === 'new' && bankIDResult) {
@@ -88,34 +109,47 @@ export default function NewCustomerPage() {
           personnummer: bankIDResult.user.personalNumber.replace(/-/g, ''),
           email: bankIDEmail,
           phone: bankIDPhone,
+          address: r?.address?.street || '',
+          postalCode: r?.address?.postalCode || '',
+          city: r?.address?.city || '',
+          birthDate: bankIDResult.user.dateOfBirth || '',
+          gender: r?.gender === 'F' ? 'Kvinna' : 'Man',
           source: 'BankID',
-          vehicles: 0,
-          lifetimeValue: 0,
-          lastActivity: new Date().toISOString(),
           tag: 'New',
           bankidVerified: true,
           protectedIdentity: false,
-          address: r?.address ? `${r.address.street}, ${r.address.postalCode} ${r.address.city}` : '',
-          gender: r?.gender === 'F' ? 'Kvinna' : 'Man',
-          birthDate: bankIDResult.user.dateOfBirth || '',
+          lifetimeValue: 0,
+          lastActivity: new Date().toISOString(),
+          customerSince: '',
+          riskLevel: 'low',
+          citizenship: '',
+          deceased: false,
+          vehicles: 0,
         });
       } else if (step === 'protected' && bankIDResult) {
+        const pnr = bankIDResult.user.personalNumber.replace(/-/g, '');
         await createCustomer({
           firstName: bankIDResult.user.givenName || '',
           lastName: bankIDResult.user.surname || '',
-          personnummer: bankIDResult.user.personalNumber.replace(/-/g, ''),
+          personnummer: pnr,
           email: protectedEmail,
           phone: protectedPhone,
+          address: '',
+          postalCode: '',
+          city: '',
+          birthDate: bankIDResult.user.dateOfBirth || '',
+          gender: 'Man',
           source: 'BankID',
-          vehicles: 0,
-          lifetimeValue: 0,
-          lastActivity: new Date().toISOString(),
           tag: 'New',
           bankidVerified: true,
           protectedIdentity: true,
-          address: '',
-          gender: 'Man',
-          birthDate: bankIDResult.user.dateOfBirth || '',
+          lifetimeValue: 0,
+          lastActivity: new Date().toISOString(),
+          customerSince: '',
+          riskLevel: 'low',
+          citizenship: '',
+          deceased: false,
+          vehicles: 0,
         });
       }
       toast.success(t('new.savedToast'), { description: t('new.savedToastDesc') });
@@ -382,19 +416,23 @@ export default function NewCustomerPage() {
                       <input
                         type="email"
                         value={manual.email}
-                        onChange={e => setManual(m => ({ ...m, email: e.target.value }))}
+                        onChange={e => { setManual(m => ({ ...m, email: e.target.value })); setFieldErrors(p => ({ ...p, email: '' })); }}
+                        onBlur={() => { if (manual.email && !isValidEmail(manual.email)) setFieldErrors(p => ({ ...p, email: 'Enter a valid email address (e.g. name@domain.com)' })); }}
                         placeholder="kund@example.se"
-                        className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C] outline-none"
+                        className={`w-full px-3 py-2.5 rounded-xl border text-sm outline-none focus:ring-1 ${fieldErrors.email ? 'border-red-400 bg-red-50 focus:border-red-400 focus:ring-red-400' : 'border-slate-200 focus:border-[#FF6B2C] focus:ring-[#FF6B2C]'}`}
                         required
                       />
+                      {fieldErrors.email && <p className="mt-1 text-xs text-red-500">{fieldErrors.email}</p>}
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-slate-600 mb-1.5">{t('profile.fields.phone')} *</label>
                       <PhoneInput
                         value={manual.phone}
-                        onChange={v => setManual(m => ({ ...m, phone: v }))}
+                        onChange={v => { setManual(m => ({ ...m, phone: v })); setFieldErrors(p => ({ ...p, phone: '' })); }}
+                        error={!!fieldErrors.phone}
                         required
                       />
+                      {fieldErrors.phone && <p className="mt-1 text-xs text-red-500">{fieldErrors.phone}</p>}
                     </div>
                   </div>
                 </div>
@@ -553,17 +591,25 @@ export default function NewCustomerPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-semibold text-slate-600 mb-1">{t('profile.fields.email')} *</label>
-                        <input type="email" value={bankIDEmail} onChange={e => setBankIDEmail(e.target.value)} placeholder="kund@example.se" className="w-full px-3 py-2 rounded-lg border-2 border-dashed border-orange-300 bg-white text-sm focus:border-[#FF6B2C] outline-none" required />
+                        <input type="email" value={bankIDEmail}
+                          onChange={e => { setBankIDEmail(e.target.value); setFieldErrors(p => ({ ...p, bankIDEmail: '' })); }}
+                          onBlur={() => { if (bankIDEmail && !isValidEmail(bankIDEmail)) setFieldErrors(p => ({ ...p, bankIDEmail: 'Enter a valid email address' })); }}
+                          placeholder="kund@example.se"
+                          className={`w-full px-3 py-2 rounded-lg border-2 bg-white text-sm outline-none ${fieldErrors.bankIDEmail ? 'border-red-400' : 'border-dashed border-orange-300 focus:border-[#FF6B2C]'}`}
+                          required />
+                        {fieldErrors.bankIDEmail && <p className="mt-1 text-xs text-red-500">{fieldErrors.bankIDEmail}</p>}
                       </div>
                       <div>
                         <label className="block text-xs font-semibold text-slate-600 mb-1">{t('profile.fields.phone')} *</label>
                         <PhoneInput
                           value={bankIDPhone}
-                          onChange={v => setBankIDPhone(v)}
+                          onChange={v => { setBankIDPhone(v); setFieldErrors(p => ({ ...p, bankIDPhone: '' })); }}
+                          error={!!fieldErrors.bankIDPhone}
                           className="rounded-lg border-2 border-dashed border-orange-300 focus-within:border-[#FF6B2C] transition-all"
                           inputClassName="py-2 bg-white"
                           required
                         />
+                        {fieldErrors.bankIDPhone && <p className="mt-1 text-xs text-red-500">{fieldErrors.bankIDPhone}</p>}
                       </div>
                     </div>
                   </div>
@@ -703,17 +749,25 @@ export default function NewCustomerPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-semibold text-slate-600 mb-1">{t('profile.fields.email')}</label>
-                        <input type="email" value={protectedEmail} onChange={e => setProtectedEmail(e.target.value)} placeholder="e-post@example.se" className="w-full px-3 py-2 rounded-lg border-2 border-dashed border-orange-300 bg-white text-sm focus:border-[#FF6B2C] outline-none" required />
+                        <input type="email" value={protectedEmail}
+                          onChange={e => { setProtectedEmail(e.target.value); setFieldErrors(p => ({ ...p, protectedEmail: '' })); }}
+                          onBlur={() => { if (protectedEmail && !isValidEmail(protectedEmail)) setFieldErrors(p => ({ ...p, protectedEmail: 'Enter a valid email address' })); }}
+                          placeholder="e-post@example.se"
+                          className={`w-full px-3 py-2 rounded-lg border-2 bg-white text-sm outline-none ${fieldErrors.protectedEmail ? 'border-red-400' : 'border-dashed border-orange-300 focus:border-[#FF6B2C]'}`}
+                          required />
+                        {fieldErrors.protectedEmail && <p className="mt-1 text-xs text-red-500">{fieldErrors.protectedEmail}</p>}
                       </div>
                       <div>
                         <label className="block text-xs font-semibold text-slate-600 mb-1">{t('profile.fields.phone')}</label>
                         <PhoneInput
                           value={protectedPhone}
-                          onChange={v => setProtectedPhone(v)}
+                          onChange={v => { setProtectedPhone(v); setFieldErrors(p => ({ ...p, protectedPhone: '' })); }}
+                          error={!!fieldErrors.protectedPhone}
                           className="rounded-lg border-2 border-dashed border-orange-300 focus-within:border-[#FF6B2C] transition-all"
                           inputClassName="py-2 bg-white"
                           required
                         />
+                        {fieldErrors.protectedPhone && <p className="mt-1 text-xs text-red-500">{fieldErrors.protectedPhone}</p>}
                       </div>
                     </div>
                   </div>

@@ -30,6 +30,9 @@ const PUBLIC_PREFIXES = [
   '/api/cron/',         // Vercel cron jobs — protected by CRON_SECRET header
   '/api/goods-receipt',       // Called internally by webhooks — protected by x-webhook-secret
   '/api/notifications/add',   // Called internally by webhooks — protected by x-webhook-secret
+  '/api/auth/forgot-password',
+  '/api/auth/reset-password',
+  '/api/auth/login',
 ];
 
 const COOKIE_NAME = 'ava_session';
@@ -37,11 +40,13 @@ const COOKIE_NAME = 'ava_session';
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Always allow public paths and static assets
+  // Always allow public paths and static assets (images, fonts, etc. in /public)
+  const isStaticAsset = /\.(?:png|jpe?g|gif|svg|webp|ico|woff2?|ttf|otf|mp4|pdf)$/i.test(pathname);
   const isPublic =
     PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix)) ||
     pathname === '/' ||
-    pathname === '/favicon.ico';
+    pathname === '/favicon.ico' ||
+    isStaticAsset;
 
   if (isPublic) return NextResponse.next();
 
@@ -59,7 +64,8 @@ export function proxy(request: NextRequest) {
     const payload = JSON.parse(
       Buffer.from(session.value, 'base64url').toString('utf-8'),
     );
-    if (!payload?.dealershipId || payload.exp < Date.now()) {
+    const isPlatformAdmin = payload?.role === 'platform_admin';
+    if ((!isPlatformAdmin && !payload?.dealershipId) || payload.exp < Date.now()) {
       const response = NextResponse.redirect(new URL('/auth/login', request.url));
       response.cookies.delete(COOKIE_NAME);
       return response;

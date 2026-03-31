@@ -72,6 +72,7 @@ export interface MappedRow {
   phone:         string;
   personnummer:  string;
   address:       string;
+  postalCode:    string;
   city:          string;
   birthDate:     string;
   gender:        string;
@@ -224,7 +225,7 @@ export function applyMapping(
     .map((row, ri) => {
       const r: MappedRow = {
         firstName: '', lastName: '', fullName: '', email: '', phone: '',
-        personnummer: '', address: '', city: '', birthDate: '', gender: '',
+        personnummer: '', address: '', postalCode: '', city: '', birthDate: '', gender: '',
         source: '', tag: '', lifetimeValue: '', lastActivity: '',
         _extras: {}, _raw: {}, _hasData: false, _rowNum: ri + 2,
       };
@@ -331,13 +332,19 @@ export function rowToCustomer(row: MappedRow): Omit<Customer, 'id'> {
     personnummer:      row.personnummer  || '',
     email:             row.email         || '',
     phone:             row.phone         || '',
-    address:           [row.address, row.city].filter(Boolean).join(', '),
+    address:           row.address       || '',
+    postalCode:        row.postalCode    || '',
+    city:              row.city          || '',
     birthDate:         row.birthDate     || '',
     gender:            row.gender ? normaliseGender(row.gender) : 'Man',
     source:            row.source ? normaliseSource(row.source) : 'Manual',
     tag:               resolvedTag,
     lifetimeValue:     row.lifetimeValue ? normaliseLifetimeValue(row.lifetimeValue) : 0,
     lastActivity:      lastActivityISO,
+    customerSince:     '',
+    riskLevel:         'low',
+    citizenship:       '',
+    deceased:          false,
     vehicles:          0,
     bankidVerified:    normaliseSource(row.source || '') === 'BankID',
     protectedIdentity: false,

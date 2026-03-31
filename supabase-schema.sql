@@ -216,7 +216,7 @@ CREATE TABLE IF NOT EXISTS leads (
   bike            TEXT          NOT NULL DEFAULT '',
   value           NUMERIC(12,2) DEFAULT 0,
   stage           TEXT          NOT NULL DEFAULT 'new'
-                                CHECK (stage IN ('new','contacted','testride','negotiating','closed','lost')),
+                                CHECK (stage IN ('new','contacted','testride','negotiating','pending_payment','closed','lost')),
   lead_status     TEXT          NOT NULL DEFAULT 'warm'
                                 CHECK (lead_status IN ('hot','warm','cold')),
   source          TEXT          DEFAULT 'BankID'

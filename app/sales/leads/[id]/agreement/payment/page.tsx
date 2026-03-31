@@ -12,7 +12,6 @@ import { emit } from '@/lib/realtime';
 import { getDealerInfo } from '@/lib/dealer';
 import { getSupabaseBrowser } from '@/lib/supabase';
 import { getDealershipId } from '@/lib/tenant';
-import { toast } from 'sonner';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -145,42 +144,49 @@ export default function AgreementPaymentPage() {
   // Cleanup on unmount
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
 
-  // ── Shared helper: call the server-side route to persist customer + invoice ───
-  async function recordPayment(status: 'pending' | 'paid') {
+  // ── Server-side invoice helper (uses service-role to bypass RLS) ─────────────
+  // Customer resolution (find-or-create) is now handled entirely inside the route
+  // so the browser anon key is never used for writes — works on Vercel with RLS.
+  async function postInvoice(opts: {
+    paymentMethod: string;
+    status:        'pending' | 'paid';
+    paidDate?:     string;
+  }) {
     const dealershipId = getDealershipId();
-    if (!dealershipId) {
-      toast.error('Sessionen har gått ut — logga in igen');
-      return;
-    }
-    const res = await fetch('/api/payment/record', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        leadId:        id,
-        dealershipId,
-        status,
-        paymentMethod: selected?.name ?? '—',
-        vehicle:       deal.vehicle,
-        customerName:  deal.customer,
-        agreementRef:  deal.agreementId,
-        totalAmount:   deal.amountSek,
-      }),
-    });
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      console.error('[payment/record] API error:', body);
-      toast.error('Kunde inte spara betalning', { description: body.error ?? res.statusText });
-    } else {
-      emit({ type: 'data:refresh' });
+    if (!dealershipId) return;
+    try {
+      const res = await fetch('/api/invoice/create', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dealershipId,
+          leadId:        id,
+          customerName:  deal.customer,
+          vehicle:       deal.vehicle,
+          agreementRef:  deal.agreementId,
+          totalAmount:   deal.amountSek,
+          paymentMethod: opts.paymentMethod,
+          status:        opts.status,
+          paidDate:      opts.paidDate,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        console.error('[payment] postInvoice server error:', res.status, body);
+      }
+    } catch (err) {
+      console.error('[payment] postInvoice network error:', err);
     }
   }
 
-  // Fire notification + persist paid invoice once when payment succeeds
+  // Fire notification + create invoice once when payment succeeds
   useEffect(() => {
     if (flowStep !== 'success') return;
     const paymentMethod = selected?.name ?? '—';
 
-    recordPayment('paid');
+    // Customer resolution + lead closure now handled server-side in /api/invoice/create
+    postInvoice({ paymentMethod, status: 'paid', paidDate: new Date().toISOString() })
+      .then(() => emit({ type: 'data:refresh' }));
 
     emit({ type: 'payment:received', payload: { leadId: id, amount: deal.amountSek, method: paymentMethod } });
     notify('paymentReceived', {
@@ -192,12 +198,28 @@ export default function AgreementPaymentPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flowStep]);
 
-  // Create pending invoice + ensure customer exists as soon as payment is initiated
+  // Create pending invoice as soon as payment is initiated (customer resolved server-side)
   useEffect(() => {
     if (flowStep !== 'waiting') return;
-    recordPayment('pending');
+    const method = selected?.name ?? '—';
+
+    postInvoice({ paymentMethod: method, status: 'pending' })
+      .then(() => emit({ type: 'data:refresh' }));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flowStep]);
+
+  // Bank transfer: flowStep never reaches 'waiting', so create a pending invoice
+  // as soon as the user selects bank transfer (and the deal amount is loaded).
+  // The API deduplicates by lead_id + status so this is safe to call multiple times.
+  useEffect(() => {
+    if (selected?.category !== 'bank_transfer') return;
+    if (!deal.amountSek) return; // deal not yet loaded
+    const method = selected.name;
+
+    postInvoice({ paymentMethod: method, status: 'pending' })
+      .then(() => emit({ type: 'data:refresh' }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected?.id, deal.amountSek]);
 
   // Auth + load providers + load live deal data from Supabase
   useEffect(() => {
@@ -250,6 +272,18 @@ export default function AgreementPaymentPage() {
           storedAgreementId,
           storedVin,
         ));
+
+        // Advance lead to pending_payment as soon as the payment page is opened.
+        // Uses the service-role API route so RLS never blocks the update.
+        fetch(`/api/leads/${id}/stage`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            dealershipId,
+            stage:      'pending_payment',
+            fromStages: ['new', 'contacted', 'testride', 'negotiating'],
+          }),
+        }).catch(() => { /* non-critical — pipeline will still show correct state */ });
       }).catch(() => { /* keep DEAL_DEFAULTS */ });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -270,9 +304,20 @@ export default function AgreementPaymentPage() {
   };
 
   // Final: save to sessionStorage and navigate to complete
-  const handleConfirm = () => {
+  // Also ensures customer + paid invoice are created for ALL payment methods,
+  // including manual "Markera som betald" flows that never set flowStep='success'.
+  // The route deduplicates, so this is safe for polling-based flows too.
+  const handleConfirm = async () => {
     if (!selected) return;
     setConfirming(true);
+
+    const paymentMethod = selected.name;
+    const paidDate = new Date().toISOString();
+
+    // Customer resolution + lead closure handled server-side in /api/invoice/create
+    await postInvoice({ paymentMethod, status: 'paid', paidDate });
+    emit({ type: 'data:refresh' });
+
     sessionStorage.setItem('selectedPaymentMethod',
       JSON.stringify({ id: selected.id, name: selected.name, icon: selected.icon, category: selected.category }));
     setTimeout(() => router.push(`/sales/leads/${id}/agreement/complete`), 700);

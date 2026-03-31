@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import PasswordInput from '@/components/PasswordInput';
 import { useRouter } from 'next/navigation';
@@ -11,14 +10,14 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { toast } from 'sonner';
 import { getSupabaseBrowser } from '@/lib/supabase';
 import { emit } from '@/lib/realtime';
-import { verifyPassword } from '@/lib/password';
+import { isValidEmail } from '@/lib/validation';
 import type { BankIDResult } from '@/types';
 
-type UserRole = 'admin' | 'sales' | 'service';
+type UserRole = 'admin' | 'sales' | 'service' | 'platform_admin';
 
 interface StaffRow {
   role:            UserRole;
-  dealership_id:   string;
+  dealership_id:   string | null;
   name:            string;
   email:           string;
   password_hash:   string | null;
@@ -91,6 +90,15 @@ export default function LoginPage() {
     if (user) router.replace('/dashboard');
   }, [router]);
 
+  // ── Google login ──────────────────────────────────────────────────────────
+  const handleGoogleLogin = async () => {
+    const supabase = getSupabaseBrowser();
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options:  { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+  };
+
   // ── BankID login ──────────────────────────────────────────────────────────
   const handleBankIDComplete = async (result: BankIDResult) => {
     setShowBankID(false);
@@ -118,8 +126,11 @@ export default function LoginPage() {
       }
 
       const role: UserRole         = staffRow?.role         ?? 'admin';
-      const dealershipId: string   = staffRow?.dealership_id ?? anyAccount.dealershipId ?? '';
-      const dealershipName: string = anyAccount.dealershipName ?? '';
+      // Platform admin has no dealership — never fall through to a dealer's ID
+      const dealershipId: string   = role === 'platform_admin'
+        ? ''
+        : (staffRow?.dealership_id ?? anyAccount.dealershipId ?? '');
+      const dealershipName: string = role === 'platform_admin' ? 'BikeMeNow Platform' : (anyAccount.dealershipName ?? '');
       const email: string          = staffRow?.email         ?? anyAccount.email ?? '';
       const name: string           = result.user.givenName   ?? staffRow?.name ?? '';
 
@@ -146,6 +157,12 @@ export default function LoginPage() {
           .eq('personal_number', result.user.personalNumber);
       }
 
+      // Platform admin goes to the admin dashboard; regular staff go to their dealer dashboard
+      if (role === 'platform_admin') {
+        router.replace('/admin');
+        return;
+      }
+
       // Pre-load dealer profile so Sidebar shows name/logo immediately
       await prefetchDealerProfile(dealershipId);
 
@@ -162,89 +179,68 @@ export default function LoginPage() {
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
+    if (!isValidEmail(formData.email)) {
+      setLoginError('Enter a valid email address (e.g. name@domain.com)');
+      return;
+    }
     setLoading(true);
-
     try {
-      const supabase = getSupabaseBrowser();
+      // Password verification runs server-side (pbkdf2Sync is Node-only, not available in browser)
+      const res  = await fetch('/api/auth/login', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ email: formData.email, password: formData.password }),
+      });
+      const body = await res.json() as { role?: UserRole; dealershipId?: string; name?: string; email?: string; error?: string };
 
-      // Fetch staff record including password_hash and bankid_verified
-      const { data: staffRow, error } = await (supabase as any)
-        .from('staff_users')
-        .select('role, dealership_id, name, email, password_hash, bankid_verified')
-        .eq('email', formData.email.toLowerCase().trim())
-        .maybeSingle() as { data: StaffRow | null; error: any };
-
-      if (error) throw error;
-
-      // Fallback to localStorage accounts for bootstrap (before any staff_users exist in DB)
-      const accounts      = JSON.parse(localStorage.getItem('accounts') || '{}');
-      const registered    = accounts[formData.email];
-      const anyAccount    = (Object.values(accounts)[0] as any) ?? {};
-      const hasNoAccounts = Object.keys(accounts).length === 0;
-
-      // ── Case 1: Not in system at all ─────────────────────────────────────
-      if (!staffRow && !registered && !hasNoAccounts) {
-        const msg = 'This email is not registered in the system. Please contact your administrator.';
-        setLoginError(msg);
-        toast.error('Account not found', { description: msg });
-        return;
-      }
-      if (!staffRow && hasNoAccounts) {
-        const msg = 'No accounts found. Please sign up or contact your administrator.';
-        setLoginError(msg);
-        toast.error('Account not found', { description: msg });
-        return;
-      }
-
-      // ── Case 2: Supabase user with a password hash — verify it ───────────
-      if (staffRow?.password_hash) {
-        if (!verifyPassword(formData.password, staffRow.password_hash)) {
+      if (!res.ok) {
+        if (body.error === 'wrong_password') {
           setLoginError('Incorrect password. Please try again or use "Forgot password?".');
           return;
         }
-      }
-
-      // ── Case 3: BankID-registered user with no password set ──────────────
-      if (staffRow && !staffRow.password_hash && staffRow.bankid_verified) {
-        const msg = 'You registered via BankID. Sign in with BankID above, or click "Forgot password?" to set an email password.';
-        setLoginError(msg);
+        if (body.error === 'bankid_only') {
+          setLoginError('You registered via BankID. Sign in with BankID above, or click "Forgot password?" to set an email password.');
+          return;
+        }
+        if (body.error === 'not_found') {
+          // Fall back to legacy localStorage accounts (bootstrap before staff_users existed)
+          const accounts      = JSON.parse(localStorage.getItem('accounts') || '{}');
+          const registered    = accounts[formData.email];
+          const anyAccount    = (Object.values(accounts)[0] as any) ?? {};
+          const hasNoAccounts = Object.keys(accounts).length === 0;
+          if (!registered) {
+            const msg = hasNoAccounts
+              ? 'No accounts found. Please sign up or contact your administrator.'
+              : 'This email is not registered in the system. Please contact your administrator.';
+            setLoginError(msg);
+            toast.error('Account not found', { description: msg });
+            return;
+          }
+          const role:           UserRole = registered.role ?? 'admin';
+          const dealershipId:   string   = registered.dealershipId ?? anyAccount.dealershipId ?? '';
+          const dealershipName: string   = registered.dealershipName ?? anyAccount.dealershipName ?? '';
+          const name:           string   = registered.name ?? formData.email.split('@')[0];
+          localStorage.setItem('user', JSON.stringify({ ...registered, role, dealershipId, dealershipName }));
+          emit({ type: 'data:refresh' });
+          await createSession({ dealershipId, dealershipName, name, email: formData.email, role });
+          await prefetchDealerProfile(dealershipId);
+          router.replace('/dashboard');
+          return;
+        }
+        setLoginError('Login failed. Please try again.');
         return;
       }
 
-      // ── Proceed with login ────────────────────────────────────────────────
-      const role: UserRole         = staffRow?.role          ?? registered?.role ?? 'admin';
-      const dealershipId: string   = staffRow?.dealership_id ?? registered?.dealershipId ?? anyAccount.dealershipId ?? '';
-      const dealershipName: string = registered?.dealershipName ?? anyAccount.dealershipName ?? '';
-      const name: string           = staffRow?.name          ?? registered?.name ?? formData.email.split('@')[0];
-
-      // Persist to localStorage
-      const userObj = registered
-        ? { ...registered, role, dealershipId }
-        : { name, email: formData.email, role, dealershipId, dealershipName };
-      localStorage.setItem('user', JSON.stringify(userObj));
-      // Signal all contexts to reload with the new dealer's data
+      // Staff_users login succeeded — server returned role/dealershipId/name/email
+      const role:           UserRole = body.role!;
+      const dealershipId:   string   = body.dealershipId ?? '';
+      const dealershipName: string   = role === 'platform_admin' ? 'BikeMeNow Platform' : '';
+      const name:           string   = body.name ?? formData.email.split('@')[0];
+      localStorage.setItem('user', JSON.stringify({ name, email: formData.email, role, dealershipId, dealershipName }));
       emit({ type: 'data:refresh' });
-
-      // Create server-side httpOnly session cookie
-      await createSession({
-        dealershipId,
-        dealershipName,
-        name,
-        email: formData.email,
-        role,
-      });
-
-      // Update last_login in Supabase if the staff record exists
-      if (staffRow) {
-        await (supabase as any)
-          .from('staff_users')
-          .update({ last_login: new Date().toISOString() })
-          .eq('email', formData.email.toLowerCase().trim());
-      }
-
-      // Pre-load dealer profile so Sidebar shows name/logo immediately
+      await createSession({ dealershipId, dealershipName, name, email: formData.email, role });
+      if (role === 'platform_admin') { router.replace('/admin'); return; }
       await prefetchDealerProfile(dealershipId);
-
       router.replace('/dashboard');
     } catch (err: any) {
       setLoginError('Login failed. Please try again.');
@@ -254,125 +250,163 @@ export default function LoginPage() {
     }
   };
 
+  const features = [
+    { icon: '⚡', label: t('login.branding.zeroInput'),  desc: t('login.branding.zeroInputDesc') },
+    { icon: '🔒', label: t('login.branding.secured'),    desc: t('login.branding.securedDesc')   },
+    { icon: '📊', label: t('login.branding.analytics'),  desc: t('login.branding.analyticsDesc') },
+    { icon: '🏍',  label: t('login.branding.dealers'),   desc: t('login.branding.dealersDesc')   },
+  ];
+
+  const stats = [
+    { value: '47+',   label: 'Dealers'  },
+    { value: '4.9★',  label: 'Rating'   },
+    { value: '99.9%', label: 'Uptime'   },
+  ];
+
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
-      {/* Left Side - Branding */}
-      <div className="hidden md:flex md:w-[45%] bg-[#0f1f2e] text-white p-8 lg:p-16 flex-col justify-between">
-        <div>
-          <div className="bg-white rounded-2xl px-4 py-2 inline-block mb-4">
-            <Image src="/BikeMeNow_logo_test.png" alt="BikeMeNow" width={200} height={64} className="h-16 w-auto object-contain" unoptimized />
+
+      {/* ── Left panel — dark hero ─────────────────────────────────────────── */}
+      <div className="hidden md:flex md:w-[48%] bg-[#0a1628] text-white flex-col justify-between p-10 lg:p-14 relative overflow-hidden">
+        {/* Ambient glow */}
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#FF6B2C] opacity-[0.08] rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-blue-600 opacity-[0.06] rounded-full blur-3xl pointer-events-none" />
+
+        {/* Logo mark */}
+        <div className="flex items-center gap-3 relative z-10">
+          <div className="w-9 h-9 rounded-xl bg-[#FF6B2C] flex items-center justify-center shrink-0">
+            <span className="text-white font-black text-lg leading-none">B</span>
           </div>
-          <p className="text-slate-300 text-lg mb-12">{t('login.branding.tagline')}</p>
+          <span className="text-white font-bold text-xl tracking-tight">BikeMeNow</span>
+        </div>
 
-          <div className="space-y-8">
-            <div className="flex items-start gap-4">
-              <div className="text-3xl">🚀</div>
-              <div>
-                <h3 className="text-xl font-bold mb-2">{t('login.branding.zeroInput')}</h3>
-                <p className="text-slate-400">{t('login.branding.zeroInputDesc')}</p>
-              </div>
-            </div>
+        {/* Hero copy */}
+        <div className="relative z-10 my-auto">
+          <h1 className="text-4xl lg:text-5xl font-black leading-[1.1] mb-4">
+            Run your dealership.<br />
+            <span className="text-[#FF6B2C]">Smarter, faster.</span>
+          </h1>
+          <p className="text-slate-400 text-lg mb-12 max-w-sm leading-relaxed">
+            {t('login.branding.tagline')}
+          </p>
 
-            <div className="flex items-start gap-4">
-              <div className="text-3xl">🔒</div>
-              <div>
-                <h3 className="text-xl font-bold mb-2">{t('login.branding.secured')}</h3>
-                <p className="text-slate-400">{t('login.branding.securedDesc')}</p>
+          <div className="space-y-5">
+            {features.map(f => (
+              <div key={f.label} className="flex items-start gap-4">
+                <div className="w-9 h-9 rounded-lg bg-white/[0.06] border border-white/10 flex items-center justify-center text-lg shrink-0">
+                  {f.icon}
+                </div>
+                <div>
+                  <p className="font-semibold text-sm text-white">{f.label}</p>
+                  <p className="text-slate-400 text-xs leading-relaxed">{f.desc}</p>
+                </div>
               </div>
-            </div>
+            ))}
+          </div>
 
-            <div className="flex items-start gap-4">
-              <div className="text-3xl">📊</div>
-              <div>
-                <h3 className="text-xl font-bold mb-2">{t('login.branding.analytics')}</h3>
-                <p className="text-slate-400">{t('login.branding.analyticsDesc')}</p>
+          {/* Social proof */}
+          <div className="flex gap-8 mt-12">
+            {stats.map(s => (
+              <div key={s.label}>
+                <p className="text-2xl font-black text-white">{s.value}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{s.label}</p>
               </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="text-3xl">🏍</div>
-              <div>
-                <h3 className="text-xl font-bold mb-2">{t('login.branding.dealers')}</h3>
-                <p className="text-slate-400">{t('login.branding.dealersDesc')}</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
-        <div className="text-sm text-slate-500">
-          <p>{t('login.branding.copyright')}</p>
-          <p>{t('login.branding.security')}</p>
-        </div>
+        {/* Footer */}
+        <p className="text-xs text-slate-600 relative z-10">{t('login.branding.copyright')}</p>
       </div>
 
-      {/* Right Side - Login Form */}
-      <div className="flex-1 bg-[#f5f7fa] flex items-center justify-center p-6 md:p-12 relative">
-        {/* Language Switcher */}
+      {/* ── Right panel — login form ───────────────────────────────────────── */}
+      <div className="flex-1 bg-[#f8fafc] flex items-center justify-center p-6 md:p-12 relative">
+
+        {/* Language switcher */}
         <div className="absolute top-4 right-4 md:top-6 md:right-6">
           <LanguageSwitcher variant="compact" />
         </div>
 
-        {/* Mobile Logo */}
-        <div className="md:hidden absolute top-4 left-4">
-          <div className="bg-white rounded-lg p-0.5">
-            <Image src="/BikeMeNow_logo_test.png" alt="BikeMeNow" width={100} height={24} className="h-6 w-auto object-contain" unoptimized />
+        {/* Mobile wordmark */}
+        <div className="md:hidden absolute top-4 left-4 flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-[#FF6B2C] flex items-center justify-center">
+            <span className="text-white font-black text-sm leading-none">B</span>
           </div>
+          <span className="font-bold text-slate-900 text-sm">BikeMeNow</span>
         </div>
 
         <div className="w-full max-w-md mt-12 md:mt-0">
-          <div className="text-center mb-6 md:mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">{t('login.title')}</h2>
-            <p className="text-sm md:text-base text-slate-600">{t('login.subtitle')}</p>
+          {/* Heading */}
+          <div className="mb-8">
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-1">{t('login.title')}</h2>
+            <p className="text-slate-500 text-sm">{t('login.subtitle')}</p>
           </div>
 
-          {/* BankID Sign In */}
+          {/* BankID */}
           <button
             onClick={() => setShowBankID(true)}
             disabled={loading}
-            className="w-full bg-[#235971] text-white py-3.5 rounded-lg font-semibold mb-2 hover:bg-[#1a4557] transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+            className="w-full bg-[#1a3a4a] hover:bg-[#142e3a] active:scale-[0.99] text-white py-3.5 rounded-xl font-semibold mb-1.5 transition-all flex items-center justify-center gap-2.5 disabled:opacity-60 shadow-sm"
           >
-            <span className="text-xl">🆔</span>
+            <span className="text-lg">🆔</span>
             {t('login.signInWithBankID')}
           </button>
-          <p className="text-center text-xs text-slate-500 mb-6">
+          <p className="text-center text-[11px] text-slate-400 mb-3 font-medium tracking-wide uppercase">
             {t('login.recommended')}
           </p>
+
+          {/* Google */}
+          <button
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="w-full bg-white hover:bg-slate-50 active:scale-[0.99] text-slate-700 py-3.5 rounded-xl font-semibold mb-6 transition-all flex items-center justify-center gap-2.5 disabled:opacity-60 shadow-sm border border-slate-200"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            Sign in with Google
+          </button>
 
           {/* Divider */}
           <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-300"></div>
+              <div className="w-full border-t border-slate-200" />
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-[#f5f7fa] text-slate-500">{t('login.or')}</span>
+            <div className="relative flex justify-center">
+              <span className="px-3 bg-[#f8fafc] text-[11px] text-slate-400 font-semibold uppercase tracking-widest">
+                {t('login.or')}
+              </span>
             </div>
           </div>
 
-          {/* Error banner */}
+          {/* Error */}
           {loginError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            <div className="mb-5 p-3.5 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
               {loginError}
             </div>
           )}
 
-          {/* Email/Password Form */}
+          {/* Form */}
           <form onSubmit={handleEmailLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">
                 {t('login.emailAddress')}
               </label>
               <input
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-[#FF6B2C] focus:ring-2 focus:ring-[#FF6B2C]/20 outline-none text-slate-900 placeholder:text-slate-300 transition-all"
                 placeholder="namn@aterforsaljare.se"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">
                 {t('login.password')}
               </label>
               <PasswordInput
@@ -383,17 +417,17 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2">
+            <div className="flex items-center justify-between pt-0.5">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={formData.rememberDevice}
                   onChange={(e) => setFormData({ ...formData, rememberDevice: e.target.checked })}
-                  className="w-4 h-4 text-green-600 border-slate-300 rounded focus:ring-green-500"
+                  className="w-4 h-4 accent-[#FF6B2C] border-slate-300 rounded"
                 />
-                <span className="text-sm text-slate-700">{t('login.rememberDevice')}</span>
+                <span className="text-sm text-slate-600">{t('login.rememberDevice')}</span>
               </label>
-              <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:underline">
+              <Link href="/auth/forgot-password" className="text-sm text-[#FF6B2C] font-semibold hover:underline">
                 {t('login.forgotPassword')}
               </Link>
             </div>
@@ -401,19 +435,19 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#FF6B2C] text-white py-3 rounded-lg font-semibold hover:bg-[#e55a1f] transition-colors disabled:opacity-60"
+              className="w-full bg-[#FF6B2C] hover:bg-[#e55a1f] active:scale-[0.99] text-white py-3.5 rounded-xl font-bold transition-all disabled:opacity-60 shadow-sm mt-1"
             >
               {loading ? 'Signing in…' : t('login.signIn')}
             </button>
           </form>
 
-          <p className="text-center text-sm text-slate-600 mt-6">
+          <p className="text-center text-xs text-slate-400 mt-5">
             {t('login.security')}
           </p>
 
-          <p className="text-center text-sm text-slate-600 mt-8">
+          <p className="text-center text-sm text-slate-500 mt-8">
             {t('login.noAccount')}{' '}
-            <Link href="/auth/signup" className="text-[#FF6B2C] font-semibold hover:underline">
+            <Link href="/auth/signup" className="text-[#FF6B2C] font-bold hover:underline">
               Start free trial →
             </Link>
           </p>
