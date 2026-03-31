@@ -5,6 +5,7 @@
 
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { logAudit } from '@/lib/audit';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function sb() { return getSupabaseAdmin() as any; }
@@ -240,7 +241,21 @@ export async function POST(req: Request) {
         .single();
 
       if (!error) {
-        return NextResponse.json({ ok: true, invoiceId: (created as { id: string }).id, customerId });
+        const invoiceId = (created as { id: string }).id;
+        logAudit({
+          action:       status === 'paid' ? 'INVOICE_PAID' : 'INVOICE_CREATED',
+          entity:       'invoice',
+          entityId:     invoiceId,
+          details:      { customer_name: customerName, vehicle, total_amount: totalAmount, payment_method: paymentMethod, status },
+          dealershipId: dealershipId,
+        });
+        // Fire-and-forget Fortnox auto-sync for paid invoices — never blocks the response
+        if (status === 'paid') {
+          import('@/lib/fortnox/sync')
+            .then(({ syncInvoicesToFortnox }) => syncInvoicesToFortnox(dealershipId, [invoiceId]))
+            .catch(() => { /* non-fatal — dealer can retry from /accounting */ });
+        }
+        return NextResponse.json({ ok: true, invoiceId, customerId });
       }
 
       if (error.code === '23505') {

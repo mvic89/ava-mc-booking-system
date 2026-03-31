@@ -1,10 +1,16 @@
 {
   "ava-mc": {
     "dealerId": "ava-mc",
-    "dealerName": "AVA MC AB",
-    "enabledIntegrations": [],
+    "dealerName": "",
+    "enabledIntegrations": [
+      "fortnox",
+      "transportstyrelsen",
+      "blocket",
+      "lansforsakringar",
+      "trygg_hansa"
+    ],
     "credentials": {},
-    "updatedAt": "2026-03-05T20:58:49.727Z"
+    "updatedAt": "2026-03-24T11:07:37.513Z"
   },
   "": {
     "dealerId": "",

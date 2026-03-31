@@ -9,18 +9,23 @@ export type Status = 'hot' | 'warm' | 'cold';
 export type Stage  = 'new' | 'contacted' | 'testride' | 'negotiating' | 'pending_payment' | 'closed';
 
 export interface Lead {
-  id:       number;
-  name:     string;
-  bike:     string;
-  value:    string;   // display string e.g. "150k kr"
-  rawValue: number;   // numeric kr — use this for all calculations
-  time:     string;   // display string e.g. "2h ago"
-  status:   Status;
-  verified: boolean;
-  stage:    Stage;
-  initials: string;
-  email:    string;
-  phone:    string;
+  id:             number;
+  name:           string;
+  bike:           string;
+  value:          string;   // display string e.g. "150k kr"
+  rawValue:       number;   // numeric kr — use this for all calculations
+  costPrice:      number;   // dealer's purchase cost (kr)
+  grossProfit:    number;   // rawValue - costPrice
+  marginPct:      number;   // grossProfit / rawValue * 100 (0 if rawValue = 0)
+  time:           string;   // display string e.g. "2h ago"
+  status:         Status;
+  verified:       boolean;
+  stage:          Stage;
+  initials:       string;
+  email:          string;
+  phone:          string;
+  stageChangedAt: string | null;  // ISO timestamp — when lead last moved stages
+  daysInStage:    number;         // days since last stage change
 }
 
 // ── Column mapping ─────────────────────────────────────────────────────────────
@@ -45,21 +50,35 @@ function initials(name: string): string {
   return name.split(' ').slice(0, 2).map(p => p[0] ?? '').join('').toUpperCase();
 }
 
+function daysAgo(ts: string | null): number {
+  if (!ts) return 0;
+  return Math.floor((Date.now() - new Date(ts).getTime()) / 86_400_000);
+}
+
 function mapDbToLead(row: Record<string, unknown>): Lead {
-  const rawValue = parseFloat(String(row.value ?? '0')) || 0;
+  const rawValue   = parseFloat(String(row.value      ?? '0')) || 0;
+  const costPrice  = parseFloat(String(row.cost_price ?? '0')) || 0;
+  const grossProfit = rawValue - costPrice;
+  const marginPct   = rawValue > 0 ? Math.round((grossProfit / rawValue) * 100) : 0;
+  const stageChangedAt = (row.stage_changed_at as string | null) ?? null;
   return {
-    id:       row.id as number,
-    name:     (row.name        as string) ?? '',
-    bike:     (row.bike        as string) ?? '',
-    value:    formatValue(rawValue),
+    id:             row.id as number,
+    name:           (row.name        as string) ?? '',
+    bike:           (row.bike        as string) ?? '',
+    value:          formatValue(rawValue),
     rawValue,
-    time:     formatTime(row.created_at as string | null),
-    status:   (row.lead_status as Status) ?? 'warm',
-    verified: !!(row.personnummer),
-    stage:    (row.stage       as Stage)  ?? 'new',
-    initials: initials((row.name as string) ?? ''),
-    email:    (row.email       as string) ?? '',
-    phone:    (row.phone       as string) ?? '',
+    costPrice,
+    grossProfit,
+    marginPct,
+    time:           formatTime(row.created_at as string | null),
+    status:         (row.lead_status as Status) ?? 'warm',
+    verified:       !!(row.personnummer),
+    stage:          (row.stage       as Stage)  ?? 'new',
+    initials:       initials((row.name as string) ?? ''),
+    email:          (row.email       as string) ?? '',
+    phone:          (row.phone       as string) ?? '',
+    stageChangedAt,
+    daysInStage:    daysAgo(stageChangedAt),
   };
 }
 
@@ -96,6 +115,7 @@ export interface CreateLeadInput {
   name:        string;
   bike:        string;
   value:       number;
+  cost_price?: number;
   lead_status: Status;
   stage:       Stage;
   email:       string;
@@ -140,7 +160,7 @@ export async function updateLeadStage(id: number, stage: Stage): Promise<void> {
   if (!dealershipId) return;
   const { error } = await db()
     .from('leads')
-    .update({ stage })
+    .update({ stage, stage_changed_at: new Date().toISOString() })
     .eq('id', id)
     .eq('dealership_id', dealershipId);
   if (error) console.error('[leads] updateLeadStage:', error.message);

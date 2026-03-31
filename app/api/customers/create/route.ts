@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { logAudit } from '@/lib/audit';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Row = Record<string, any>;
@@ -181,6 +182,13 @@ async function handleCreate(lead: Row, dealershipId: string): Promise<NextRespon
       customerId = newCust.id;
       created = true;
       console.log('[customers/create] created new customer:', customerId);
+      logAudit({
+        action:       'CUSTOMER_CREATED',
+        entity:       'customer',
+        entityId:     newCust.id,
+        details:      { name: `${firstName} ${lastName}`.trim(), source: payload.source, lead_id: lead.id },
+        dealershipId: dealershipId,
+      });
     }
   } else {
     // Existing customer: update lifetime_value + last_activity + fill missing fields

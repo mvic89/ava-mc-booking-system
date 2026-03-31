@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { logAudit } from '@/lib/audit';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function sb() { return getSupabaseAdmin() as any; }
@@ -38,6 +39,15 @@ export async function POST(
       console.error('[api/leads/status]', error.message);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    logAudit({
+      action:       'LEAD_STATUS_CHANGED',
+      entity:       'lead',
+      entityId:     leadId,
+      details:      { lead_status: status },
+      dealershipId: dealershipId,
+      ipAddress:    req.headers.get('x-forwarded-for') ?? undefined,
+    });
 
     return NextResponse.json({ ok: true });
   } catch (err) {
