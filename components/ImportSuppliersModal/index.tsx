@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from 'react'
 import * as XLSX from 'xlsx'
 import { supabase } from '@/lib/supabase'
-import { getDealershipId, getDealershipTag } from '@/lib/tenant'
+import { getDealershipId, tagFromName, getDealershipTag } from '@/lib/tenant'
 import type { SupplierRow } from '@/components/SupplierFormShared'
 
 // ─── Column map (Excel header → SupplierRow field) ────────────────────────────
@@ -82,11 +82,13 @@ function parseRows(rows: Record<string, unknown>[]): { suppliers: ParsedSupplier
 export function ImportSuppliersModal({
     nextSupplierNumber,
     existingCount,
+    dealershipName,
     onImported,
     onClose,
 }: {
     nextSupplierNumber: string
     existingCount:      number
+    dealershipName?:    string | null
     onImported:         (newSuppliers: SupplierRow[]) => void
     onClose:            () => void
 }) {
@@ -166,13 +168,14 @@ export function ImportSuppliersModal({
         setImporting(true)
 
         const dealershipId = getDealershipId()
-        const tag = getDealershipTag()
+        const tag = dealershipName ? tagFromName(dealershipName) : getDealershipTag()
+        const fp  = (dealershipId ?? '').replace(/-/g, '').substring(0, 4).toUpperCase() || 'XXXX'
         const errors: string[] = [...parseErrors]
         const imported: SupplierRow[] = []
 
         for (let i = 0; i < preview.length; i++) {
             const s = preview[i]
-            const supplierNumber = `SUP-${tag}-${String(existingCount + i + 1).padStart(3, '0')}`
+            const supplierNumber = `SUP-${tag}-${fp}-${String(existingCount + i + 1).padStart(3, '0')}`
 
             const row = {
                 name:                    s.name!,

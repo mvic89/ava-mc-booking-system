@@ -25,10 +25,12 @@ interface DealershipProfile {
   email:             string;
   emailDomain:       string;   // e.g. "avamc.se" — shared by all staff at this dealership
   website:           string;
-  bankgiro:          string;
-  swish:             string;
-  logoDataUrl:       string;
-  coverImageDataUrl: string;
+  bankgiro:              string;
+  swish:                 string;
+  deliveryNoteEmail:     string;   // who receives delivery note notifications
+  invoiceEmail:          string;   // who receives purchase invoice notifications
+  logoDataUrl:           string;
+  coverImageDataUrl:     string;
 }
 
 const SWEDISH_COUNTIES = [
@@ -52,8 +54,10 @@ const DEFAULTS: DealershipProfile = {
   email:       '',
   emailDomain: '',
   website:     '',
-  bankgiro:    '',
-  swish:       '',
+  bankgiro:          '',
+  swish:             '',
+  deliveryNoteEmail: '',
+  invoiceEmail:      '',
   logoDataUrl:       '',
   coverImageDataUrl: '',
 };
@@ -187,15 +191,24 @@ async function fetchProfileFromSupabase(dealershipId: string): Promise<Partial<D
     .maybeSingle();
   if (!dl?.name) return null;
   return {
-    name:        dl.name          ?? '',
-    orgNr:       dl.org_nr        ?? '',
-    street:      dl.address       ?? '',
-    postalCode:  dl.postal_code   ?? '',
-    city:        dl.city          ?? '',
-    phone:       dl.phone         ?? '',
-    email:       dl.email         ?? '',
-    website:     dl.website       ?? '',
-    logoDataUrl: dl.logo_data_url ?? '',
+    name:              data.name              ?? '',
+    orgNr:             data.org_nr            ?? '',
+    vatNr:             data.vat_nr            ?? '',
+    fSkatt:            data.f_skatt           ?? true,
+    street:            data.street            ?? '',
+    postalCode:        data.postal_code       ?? '',
+    city:              data.city              ?? '',
+    county:            data.county            ?? 'Stockholm',
+    phone:             data.phone             ?? '',
+    email:             data.email             ?? '',
+    emailDomain:       data.email_domain      ?? '',
+    website:           data.website           ?? '',
+    bankgiro:          data.bankgiro              ?? '',
+    swish:             data.swish                 ?? '',
+    deliveryNoteEmail: data.delivery_note_email   ?? '',
+    invoiceEmail:      data.invoice_email         ?? '',
+    logoDataUrl:       data.logo_data_url         ?? '',
+    coverImageDataUrl: data.cover_image_data_url  ?? '',
   };
 }
 
@@ -219,6 +232,8 @@ async function saveProfileToSupabase(dealershipId: string, profile: DealershipPr
     website:              profile.website,
     bankgiro:             profile.bankgiro,
     swish:                profile.swish,
+    delivery_note_email:  profile.deliveryNoteEmail || null,
+    invoice_email:        profile.invoiceEmail      || null,
     logo_data_url:        profile.logoDataUrl,
     cover_image_data_url: profile.coverImageDataUrl,
     updated_at:           new Date().toISOString(),
@@ -680,6 +695,32 @@ export default function DealershipProfilePage() {
                   onChange={set('swish')}
                   placeholder="1231234567"
                   mono
+                />
+              </Field>
+            </SectionCard>
+
+            {/* ── Notification emails ── */}
+            <SectionCard title="Notification Emails" icon="📧">
+              <Field
+                label="Delivery Note Email"
+                hint="Who receives an email when a supplier delivery note arrives. Leave blank to use the general contact email."
+              >
+                <Input
+                  value={profile.deliveryNoteEmail}
+                  onChange={set('deliveryNoteEmail')}
+                  placeholder="warehouse@yourcompany.com"
+                  type="email"
+                />
+              </Field>
+              <Field
+                label="Invoice Email"
+                hint="Who receives purchase invoices from suppliers. Leave blank to use the general contact email."
+              >
+                <Input
+                  value={profile.invoiceEmail}
+                  onChange={set('invoiceEmail')}
+                  placeholder="accounts@yourcompany.com"
+                  type="email"
                 />
               </Field>
             </SectionCard>

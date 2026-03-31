@@ -12,7 +12,10 @@ import {
   markAllRead,
   markRead,
   clearAll,
+  addNotification,
 } from '@/lib/notifications';
+import { supabase } from '@/lib/supabase';
+import { getDealershipId } from '@/lib/tenant';
 
 const TYPE_ICONS: Record<AppNotification['type'], string> = {
   lead:      '💰',
@@ -41,6 +44,34 @@ export default function NotificationBell() {
   };
 
   const load = () => setNotifs(getNotifications());
+
+  // Fetch server-side notifications (delivery notes, etc.) from Supabase
+  // and merge into localStorage so the bell shows them
+  useEffect(() => {
+    const dealershipId = getDealershipId()
+    if (!dealershipId) return
+    supabase
+      .from('notifications')
+      .select('*')
+      .eq('dealership_id', dealershipId)
+      .eq('read', false)
+      .order('created_at', { ascending: false })
+      .limit(20)
+      .then(({ data }) => {
+        if (!data?.length) return
+        const existing = getNotifications()
+        const existingIds = new Set(existing.map(n => n.id))
+        data.forEach(row => {
+          if (existingIds.has(row.id)) return
+          addNotification({
+            type:    row.type as AppNotification['type'],
+            title:   row.title,
+            message: row.message,
+            href:    row.href ?? undefined,
+          })
+        })
+      })
+  }, [])
 
   useEffect(() => {
     load();

@@ -22,6 +22,7 @@
     "dashboard": "لوحة القيادة",
     "inventory": "المخزون",
     "purchaseOrders": "أوامر الشراء",
+    "goodsReceipts": "استلام البضائع",
     "suppliers": "الموردون",
       "purchaseinvoices": "فواتير الشراء",
     "salesPipeline": "خط المبيعات",
