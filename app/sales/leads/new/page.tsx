@@ -41,6 +41,10 @@ export default function NewLeadPage() {
   const [gdprConsent, setGdprConsent] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; phone?: string }>({});
 
+  // Returning customer — set when URL contains ?customerId=
+  const [returningCustomerId,   setReturningCustomerId]   = useState<string | null>(null);
+  const [returningCustomerName, setReturningCustomerName] = useState<string>('');
+
   const [formData, setFormData] = useState({
     name: '', address: '', dateOfBirth: '', gender: '',
     email: '', phone: '', source: 'Walk-in',
@@ -51,10 +55,17 @@ export default function NewLeadPage() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
-    const name   = params.get('name')  ?? '';
-    const email  = params.get('email') ?? '';
-    const phone  = params.get('phone') ?? '';
-    if (name || email || phone) {
+    const name   = params.get('name')       ?? '';
+    const email  = params.get('email')      ?? '';
+    const phone  = params.get('phone')      ?? '';
+    const cid    = params.get('customerId') ?? '';
+    if (cid) {
+      // Returning customer — skip all identity fields, link to existing record
+      setReturningCustomerId(cid);
+      setReturningCustomerName(name);
+      setFormData(prev => ({ ...prev, name, email, phone }));
+      setGdprConsent(true); // existing customer already consented
+    } else if (name || email || phone) {
       setActiveTab('manual');
       setFormData(prev => ({ ...prev, name, email, phone }));
       setGdprConsent(true); // existing customer already consented
@@ -160,10 +171,11 @@ export default function NewLeadPage() {
         email:        formData.email,
         phone:        formData.phone,
         personnummer: bankIDData?.user.personalNumber?.replace(/-/g, '') || null,
-        source:       bankIDData ? 'BankID' : 'Walk-in',
+        source:       returningCustomerId ? 'Returning' : (bankIDData ? 'BankID' : 'Walk-in'),
         notes:        formData.notes || undefined,
         address:      streetPart    || null,
         city:         cityPart      || null,
+        customer_id:  returningCustomerId ?? null,
       });
       notify('newLead', {
         type:    'lead',
@@ -217,29 +229,50 @@ export default function NewLeadPage() {
           {/* ── Left: form ─────────────────────────────────────────────── */}
           <div className="flex-1 px-6 md:px-10 py-8 min-w-0">
 
-            {/* Identification tabs */}
-            <div className="flex gap-2 p-1 bg-slate-100 rounded-xl mb-8">
-              {TABS.map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => {
-                    setActiveTab(tab.id);
-                    if (tab.id === 'bankid') setShowBankID(true);
-                  }}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold transition-all duration-150 ${
-                    activeTab === tab.id
-                      ? 'bg-white text-slate-900 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-700'
-                  }`}
+            {/* Returning customer banner */}
+            {returningCustomerId && (
+              <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-8">
+                <div className="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center shrink-0 text-white font-bold text-sm">
+                  {returningCustomerName[0]?.toUpperCase() ?? '?'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-blue-900">{returningCustomerName}</p>
+                  <p className="text-xs text-blue-600">Befintlig kund — identitet hämtad från kundregistret</p>
+                </div>
+                <Link
+                  href={`/customers/${returningCustomerId}`}
+                  className="text-xs text-blue-600 hover:text-blue-800 font-semibold shrink-0 underline"
                 >
-                  <span>{tab.icon}</span>
-                  <span>{t(`newLead.${tab.labelKey}`)}</span>
-                </button>
-              ))}
-            </div>
+                  Visa profil →
+                </Link>
+              </div>
+            )}
+
+            {/* Identification tabs — hidden for returning customers */}
+            {!returningCustomerId && (
+              <div className="flex gap-2 p-1 bg-slate-100 rounded-xl mb-8">
+                {TABS.map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      if (tab.id === 'bankid') setShowBankID(true);
+                    }}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold transition-all duration-150 ${
+                      activeTab === tab.id
+                        ? 'bg-white text-slate-900 shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    <span>{tab.icon}</span>
+                    <span>{t(`newLead.${tab.labelKey}`)}</span>
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* BankID verified banner */}
-            {bankIDData && (
+            {bankIDData && !returningCustomerId && (
               <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 mb-8">
                 <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
                   <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -257,6 +290,9 @@ export default function NewLeadPage() {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
+
+              {/* Identity fields — hidden when a returning customer is pre-selected */}
+              {!returningCustomerId && (<>
 
               {/* Name */}
               <div>
@@ -362,6 +398,8 @@ export default function NewLeadPage() {
 
               {/* Divider */}
               <div className="border-t border-slate-100 pt-1" />
+
+              </>)}
 
               {/* Source + Interest in a row */}
               <div className="grid grid-cols-2 gap-4">

@@ -125,6 +125,7 @@ export interface CreateLeadInput {
   notes?:      string;
   address?:    string | null;
   city?:       string | null;
+  customer_id?: string | number | null;
 }
 
 export async function createLead(data: CreateLeadInput): Promise<Lead> {
