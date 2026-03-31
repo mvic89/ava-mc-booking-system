@@ -105,6 +105,7 @@ export interface CreateLeadInput {
   notes?:      string;
   address?:    string | null;
   city?:       string | null;
+  customer_id?: string | number | null;
 }
 
 export async function createLead(data: CreateLeadInput): Promise<Lead> {
@@ -126,6 +127,7 @@ export async function createLead(data: CreateLeadInput): Promise<Lead> {
       address:       data.address      || null,
       city:          data.city         || null,
       dealership_id: dealershipId,
+      customer_id:   data.customer_id  ?? null,
     })
     .select()
     .single();
