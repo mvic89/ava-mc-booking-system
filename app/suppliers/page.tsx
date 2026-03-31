@@ -10,15 +10,22 @@ import { SupplierDetailModal }    from '@/components/SupplierDetailModal'
 import { ImportSuppliersModal }   from '@/components/ImportSuppliersModal'
 import { POLineItem, POStatus, PurchaseOrder } from '@/utils/types'
 import { supabase } from '@/lib/supabase'
-import { getDealershipId, getDealershipTag } from '@/lib/tenant'
+import { getDealershipId, getDealershipTag, tagFromName } from '@/lib/tenant'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const STATUS_ORDER = ['Draft', 'Reviewed', 'Sent', 'Received']
 
-function supNum(n: number) {
-    const tag = getDealershipTag()
-    return `SUP-${tag}-${String(n).padStart(3, '0')}`
+function supNum(existingNumbers: string[], dealershipId: string | null, dbName?: string | null): string {
+    const tag    = dbName ? tagFromName(dbName) : getDealershipTag()
+    const fp     = (dealershipId ?? '').replace(/-/g, '').substring(0, 4).toUpperCase() || 'XXXX'
+    const prefix = `SUP-${tag}-${fp}-`
+    const nums   = existingNumbers
+        .filter((id) => id.startsWith(prefix))
+        .map((id) => parseInt(id.replace(prefix, ''), 10))
+        .filter((n) => !isNaN(n))
+    const next = nums.length > 0 ? Math.max(...nums) + 1 : 1
+    return `${prefix}${String(next).padStart(3, '0')}`
 }
 
 
@@ -172,6 +179,7 @@ export default function SuppliersPage() {
     const [manualSuppliers,   setManualSuppliers]   = useState<SupplierRow[]>([])
     const [supplierEdits,     setSupplierEdits]     = useState<Record<string, Partial<SupplierRow>>>({})
     const [poStatusOverrides, setPoStatusOverrides] = useState<Record<string, POStatus>>({})
+    const [dbDealershipName,  setDbDealershipName]  = useState<string | null>(null)
 
     const allPOs = useMemo<PurchaseOrder[]>(
         () => [...autoPOs, ...historicalPOs].map((po) =>
@@ -183,21 +191,27 @@ export default function SuppliersPage() {
 
     // Suppliers only come from Supabase (imported or manually added — never auto-generated)
     const suppliers = useMemo<SupplierRow[]>(() => {
-        return manualSuppliers.map((s, i) => {
-            const items       = inventoryItems.filter((item) => item.vendor === s.name)
-            const itemCount   = items.length
+        const dealershipId  = getDealershipId()
+        const existingNums  = manualSuppliers.map((s) => s.supplierNumber).filter(Boolean) as string[]
+        return manualSuppliers.map((s) => {
+            const items         = inventoryItems.filter((item) => item.vendor === s.name)
+            const itemCount     = items.length
             const lowStockCount = items.filter((item) => item.stock <= item.reorderQty).length
             return {
                 ...s,
                 ...(supplierEdits[s.name] ?? {}),
                 itemCount,
                 lowStockCount,
-                supplierNumber: s.supplierNumber || supNum(i + 1),
+                supplierNumber: s.supplierNumber || supNum(existingNums, dealershipId, dbDealershipName),
             }
         })
     }, [manualSuppliers, supplierEdits, inventoryItems])
 
-    const nextSupplierNumber = supNum(manualSuppliers.length + 1)
+    const nextSupplierNumber = supNum(
+        manualSuppliers.map((s) => s.supplierNumber).filter(Boolean) as string[],
+        getDealershipId(),
+        dbDealershipName,
+    )
 
     const filtered = useMemo(() => {
         const q = search.toLowerCase()
@@ -226,6 +240,14 @@ export default function SuppliersPage() {
         async function load() {
             const dealershipId = getDealershipId()
             if (!dealershipId) return
+
+            // Fetch dealership name from DB (source of truth for ID tag generation)
+            const { data: dlr } = await supabase
+                .from('dealerships')
+                .select('name')
+                .eq('id', dealershipId)
+                .single()
+            if (dlr?.name) setDbDealershipName(dlr.name)
 
             // Load PO status overrides
             const { data: poData } = await supabase
@@ -364,11 +386,16 @@ export default function SuppliersPage() {
         await supabase.from('vendors').upsert({
             name,
             dealership_id:           getDealershipId(),
-            address:                 updates.address,
-            phone:                   updates.phone,
-            org_number:              updates.orgNumber,
-            free_shipping_threshold: updates.freeShippingThreshold,
-            is_manual:               false,
+            address:                 updates.address                 ?? null,
+            phone:                   updates.phone                   ?? null,
+            email:                   updates.email                   ?? null,
+            org_number:              updates.orgNumber                ?? null,
+            contact_person:          updates.contactPerson            ?? null,
+            bank_name:               updates.bankName                 ?? null,
+            bank_account:            updates.bankAccount              ?? null,
+            website:                 updates.website                  ?? null,
+            free_shipping_threshold: updates.freeShippingThreshold    ?? null,
+            categories:              updates.categories               ?? [],
         }, { onConflict: 'name,dealership_id' })
     }
 
@@ -536,6 +563,7 @@ export default function SuppliersPage() {
                 <ImportSuppliersModal
                     nextSupplierNumber={nextSupplierNumber}
                     existingCount={suppliers.length}
+                    dealershipName={dbDealershipName}
                     onImported={(newSuppliers) => {
                         // Apply details to inventory-derived suppliers immediately
                         setSupplierEdits((prev) => {
@@ -579,8 +607,13 @@ export default function SuppliersPage() {
                             dealership_id:           getDealershipId(),
                             address:                 s.address,
                             phone:                   s.phone,
+                            email:                   s.email                 ?? null,
                             org_number:              s.orgNumber,
-                            free_shipping_threshold: s.freeShippingThreshold,
+                            contact_person:          s.contactPerson         ?? null,
+                            bank_name:               s.bankName              ?? null,
+                            bank_account:            s.bankAccount           ?? null,
+                            website:                 s.website               ?? null,
+                            free_shipping_threshold: s.freeShippingThreshold ?? null,
                             supplier_number:         s.supplierNumber,
                             categories:              s.categories,
                             is_manual:               true,
