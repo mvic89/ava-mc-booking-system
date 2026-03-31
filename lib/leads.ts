@@ -134,21 +134,20 @@ export async function createLead(data: CreateLeadInput): Promise<Lead> {
   const { data: created, error } = await db()
     .from('leads')
     .insert({
-      name:             data.name,
-      bike:             data.bike,
-      value:            data.value,
-      cost_price:       data.cost_price ?? 0,
-      lead_status:      data.lead_status,
-      stage:            data.stage,
-      email:            data.email        || null,
-      phone:            data.phone        || null,
-      personnummer:     data.personnummer || null,
-      source:           data.source       ?? 'Manual',
-      notes:            data.notes        || null,
-      address:          data.address      || null,
-      city:             data.city         || null,
-      stage_changed_at: new Date().toISOString(),
-      dealership_id:    dealershipId,
+      name:          data.name,
+      bike:          data.bike,
+      value:         data.value,
+      lead_status:   data.lead_status,
+      stage:         data.stage,
+      email:         data.email        || null,
+      phone:         data.phone        || null,
+      personnummer:  data.personnummer || null,
+      source:        data.source       ?? 'Manual',
+      notes:         data.notes        || null,
+      address:       data.address      || null,
+      city:          data.city         || null,
+      dealership_id: dealershipId,
+      customer_id:   data.customer_id  ?? null,
     })
     .select()
     .single();

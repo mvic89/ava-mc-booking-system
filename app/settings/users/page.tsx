@@ -10,7 +10,7 @@ import { isValidEmail } from '@/lib/validation';
 import { useAutoRefresh } from '@/lib/realtime';
 import { getSupabaseBrowser } from '@/lib/supabase';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+//──Types ────────────────────────────────────────────────────────────────────
 
 type Role   = 'admin' | 'sales' | 'service';
 type Status = 'active' | 'inactive' | 'pending';
