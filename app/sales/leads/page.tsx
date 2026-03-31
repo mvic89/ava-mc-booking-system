@@ -18,6 +18,26 @@ const STATUS_STYLE: Record<Status, { dot: string; text: string; bg: string }> = 
   cold: { dot: 'bg-blue-400',   text: 'text-blue-700',   bg: 'bg-blue-50'   },
 };
 
+// Stage weights for weighted pipeline forecast
+const STAGE_WEIGHT: Record<Stage, number> = {
+  new:             0.10,
+  contacted:       0.25,
+  testride:        0.40,
+  negotiating:     0.70,
+  pending_payment: 0.90,
+  closed:          1.00,
+};
+
+// Days before a lead in a stage is considered overdue
+const OVERDUE_DAYS: Record<Stage, number> = {
+  new:             2,
+  contacted:       3,
+  testride:        5,
+  negotiating:     7,
+  pending_payment: 14,
+  closed:          999,
+};
+
 function leadHref(lead: Lead): string {
   if (lead.stage === 'closed')      return `/sales/leads/${lead.id}`;
   if (lead.stage === 'negotiating') return `/sales/leads/${lead.id}/agreement/payment`;
@@ -39,6 +59,33 @@ function StatusBadge({ lead, statusLabel, onStatusChange }: {
       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${s.dot} ${lead.status === 'hot' ? 'animate-pulse-dot' : ''}`} />
       {statusLabel}
     </button>
+  );
+}
+
+function OverdueBadge({ days, stage }: { days: number; stage: Stage }) {
+  const threshold = OVERDUE_DAYS[stage];
+  if (stage === 'closed' || days < threshold) return null;
+  const urgent = days >= threshold * 2;
+  return (
+    <span className={`inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 ${
+      urgent ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+    }`}>
+      ⏰ {days}d
+    </span>
+  );
+}
+
+function MarginBadge({ lead }: { lead: Lead }) {
+  if (!lead.costPrice || lead.costPrice === 0) return null;
+  const color = lead.marginPct >= 15
+    ? 'text-emerald-700 bg-emerald-50'
+    : lead.marginPct >= 5
+    ? 'text-amber-700 bg-amber-50'
+    : 'text-red-700 bg-red-50';
+  return (
+    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${color}`}>
+      {lead.marginPct}% marginal
+    </span>
   );
 }
 
@@ -68,6 +115,7 @@ function LeadCard({ lead, statusLabel, stageColor, onStatusChange }: {
                     BankID
                   </span>
                 )}
+                <OverdueBadge days={lead.daysInStage} stage={lead.stage} />
               </div>
               <p className="text-xs text-slate-400 truncate mt-0.5">{lead.bike}</p>
             </div>
@@ -77,7 +125,10 @@ function LeadCard({ lead, statusLabel, stageColor, onStatusChange }: {
 
         {/* Footer */}
         <div className="flex items-center justify-between pt-2.5 border-t border-slate-50">
-          <span className="text-sm font-bold text-[#0b1524]">{lead.value}</span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-sm font-bold text-[#0b1524]">{lead.value}</span>
+            <MarginBadge lead={lead} />
+          </div>
           <span className="text-[11px] text-slate-400">{lead.time}</span>
         </div>
       </div>
@@ -250,9 +301,15 @@ export default function PipelinePage() {
     l.bike.toLowerCase().includes(search.toLowerCase())
   );
 
-  const totalValue  = leads.reduce((sum, l) => sum + l.rawValue, 0);
-  const closedValue = leads.filter(l => l.stage === 'closed').reduce((sum, l) => sum + l.rawValue, 0);
-  const closedCount = leads.filter(l => l.stage === 'closed').length;
+  const totalValue    = leads.reduce((sum, l) => sum + l.rawValue, 0);
+  const closedValue   = leads.filter(l => l.stage === 'closed').reduce((sum, l) => sum + l.rawValue, 0);
+  const closedCount   = leads.filter(l => l.stage === 'closed').length;
+  const forecastValue = leads
+    .filter(l => l.stage !== 'closed')
+    .reduce((sum, l) => sum + l.rawValue * STAGE_WEIGHT[l.stage], 0);
+  const overdueCount  = leads.filter(l =>
+    l.stage !== 'closed' && l.daysInStage >= OVERDUE_DAYS[l.stage]
+  ).length;
 
   // Always show key stages; hide contacted/testride when empty; toggle 'closed'
   const ALWAYS_SHOW = new Set<Stage>(['new', 'negotiating', 'pending_payment']);
@@ -347,10 +404,22 @@ export default function PipelinePage() {
                 <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wide leading-none mb-0.5">{t('pipelineValue')}</p>
                 <p className="text-sm font-bold text-slate-900">{fmt(totalValue)} kr</p>
               </div>
+              {forecastValue > 0 && (
+                <div className="text-right border-l border-slate-100 pl-4">
+                  <p className="text-[10px] text-blue-500 font-semibold uppercase tracking-wide leading-none mb-0.5">Prognos</p>
+                  <p className="text-sm font-bold text-blue-700">{fmt(Math.round(forecastValue))} kr</p>
+                </div>
+              )}
               {closedValue > 0 && (
                 <div className="text-right border-l border-slate-100 pl-4">
                   <p className="text-[10px] text-emerald-600 font-semibold uppercase tracking-wide leading-none mb-0.5">Avslutat</p>
                   <p className="text-sm font-bold text-emerald-700">{fmt(closedValue)} kr</p>
+                </div>
+              )}
+              {overdueCount > 0 && (
+                <div className="text-right border-l border-slate-100 pl-4">
+                  <p className="text-[10px] text-red-500 font-semibold uppercase tracking-wide leading-none mb-0.5">Försenade</p>
+                  <p className="text-sm font-bold text-red-600">{overdueCount} affärer</p>
                 </div>
               )}
             </div>

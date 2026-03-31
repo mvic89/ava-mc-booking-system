@@ -893,6 +893,23 @@ ALTER PUBLICATION supabase_realtime ADD TABLE motorcycle_accessories;
 
 
 -- ============================================================
+-- FORTNOX INTEGRATION COLUMNS
+-- ============================================================
+-- Run these ALTER TABLE statements in Supabase SQL editor to add
+-- Fortnox sync tracking to invoices and customers.
+
+ALTER TABLE invoices
+  ADD COLUMN IF NOT EXISTS fortnox_invoice_number TEXT,
+  ADD COLUMN IF NOT EXISTS fortnox_synced_at       TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS fortnox_sync_error      TEXT;
+
+ALTER TABLE customers
+  ADD COLUMN IF NOT EXISTS fortnox_customer_number TEXT;
+
+CREATE INDEX IF NOT EXISTS idx_invoices_fortnox ON invoices(fortnox_invoice_number);
+
+
+-- ============================================================
 -- SUMMARY
 -- ============================================================
 DO $$
@@ -983,4 +1000,23 @@ DO $$ BEGIN
   RAISE NOTICE '  dealership_id added to: motorcycles, spare_parts, accessories';
   RAISE NOTICE '  purchase_orders already had dealership_id (section 9)';
   RAISE NOTICE '  po_line_items scoped via po_id FK — no column needed';
+END $$;
+
+-- ── 20. Profit Margin + Follow-up Reminders ──────────────────────────────────
+-- cost_price: dealer's purchase cost for the vehicle (kr) — gross profit = value - cost_price
+-- stage_changed_at: timestamp when the lead last moved stages — used for overdue detection
+
+ALTER TABLE leads
+  ADD COLUMN IF NOT EXISTS cost_price       NUMERIC(12,2) DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS stage_changed_at TIMESTAMPTZ   DEFAULT NOW();
+
+-- Back-fill stage_changed_at for existing rows that don't have it set yet
+UPDATE leads SET stage_changed_at = COALESCE(updated_at, created_at) WHERE stage_changed_at IS NULL;
+
+CREATE INDEX IF NOT EXISTS idx_leads_stage_changed ON leads(stage_changed_at);
+
+DO $$ BEGIN
+  RAISE NOTICE '── Section 20 applied ──────────────────────────────────────';
+  RAISE NOTICE '  cost_price added to leads (profit margin tracking)';
+  RAISE NOTICE '  stage_changed_at added to leads (follow-up reminders)';
 END $$;

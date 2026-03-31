@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { getInvoices, type Invoice } from '@/lib/invoices';
 import { getCustomers, type Customer } from '@/lib/customers';
+import { getLeads, type Lead } from '@/lib/leads';
 import { useAutoRefresh } from '@/lib/realtime';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -69,6 +70,7 @@ export default function AnalyticsPage() {
 
   const [invoices,  setInvoices]  = useState<Invoice[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [leads,     setLeads]     = useState<Lead[]>([]);
   const [ready,     setReady]     = useState(false);
 
   useEffect(() => {
@@ -80,9 +82,10 @@ export default function AnalyticsPage() {
       router.replace('/dashboard');
       return;
     }
-    Promise.all([getInvoices(), getCustomers()]).then(([invData, custData]) => {
+    Promise.all([getInvoices(), getCustomers(), getLeads()]).then(([invData, custData, leadsData]) => {
       setInvoices(invData);
       setCustomers(custData);
+      setLeads(leadsData);
       setReady(true);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -91,6 +94,7 @@ export default function AnalyticsPage() {
   useAutoRefresh(() => {
     getInvoices().then(setInvoices);
     getCustomers().then(setCustomers);
+    getLeads().then(setLeads);
   });
 
   // ── Revenue by month (last 12) ─────────────────────────────────────────────
@@ -162,6 +166,22 @@ export default function AnalyticsPage() {
   const pendingCount = invoices.filter(i => i.status === 'pending').length;
   const convRate     = invoices.length > 0 ? Math.round((paidCount / invoices.length) * 100) : 0;
 
+  // ── Gross profit KPIs from closed leads (where cost_price is set) ──────────
+  const closedLeadsWithCost = useMemo(
+    () => leads.filter(l => l.stage === 'closed' && l.costPrice > 0),
+    [leads],
+  );
+  const totalGrossProfit = useMemo(
+    () => closedLeadsWithCost.reduce((s, l) => s + l.grossProfit, 0),
+    [closedLeadsWithCost],
+  );
+  const avgMarginPct = useMemo(() => {
+    if (!closedLeadsWithCost.length) return 0;
+    return Math.round(
+      closedLeadsWithCost.reduce((s, l) => s + l.marginPct, 0) / closedLeadsWithCost.length,
+    );
+  }, [closedLeadsWithCost]);
+
   const PIE_COLORS = ['#FF6B2C', '#235971', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444'];
   const TAG_COLORS: Record<string, string> = {
     VIP: '#f59e0b', Active: '#10b981', New: '#3b82f6', Inactive: '#94a3b8',
@@ -192,19 +212,44 @@ export default function AnalyticsPage() {
         <div className="flex-1 px-5 md:px-8 py-6 space-y-6 animate-fade-up">
 
           {/* KPI cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {[
-              { label: 'Total intäkt',    value: `${totalRevenue.toLocaleString('sv-SE')} kr`, sub: `${paidCount} betalda fakturor`,       color: '#FF6B2C' },
-              { label: 'Snittordervärde', value: `${avgOrderValue.toLocaleString('sv-SE')} kr`, sub: 'per betald faktura',                 color: '#10b981' },
-              { label: 'Konverteringsgrad', value: `${convRate} %`,                             sub: `${paidCount} av ${invoices.length} fakturor`, color: '#8b5cf6' },
-              { label: 'Kunder totalt',   value: customers.length.toLocaleString('sv-SE'),     sub: `${customers.filter(c=>c.tag==='VIP').length} VIP · ${customers.filter(c=>c.tag==='Active').length} aktiva`, color: '#235971' },
+              { label: 'Total intäkt',      value: `${totalRevenue.toLocaleString('sv-SE')} kr`,  sub: `${paidCount} betalda fakturor`,       color: '#FF6B2C' },
+              { label: 'Snittordervärde',   value: `${avgOrderValue.toLocaleString('sv-SE')} kr`, sub: 'per betald faktura',                  color: '#10b981' },
+              { label: 'Konverteringsgrad', value: `${convRate} %`,                               sub: `${paidCount} av ${invoices.length} fakturor`, color: '#8b5cf6' },
             ].map((k, i) => (
               <div key={i} className="bg-white rounded-2xl border border-slate-100 p-5">
                 <p className="text-xs text-slate-400 font-semibold uppercase tracking-wide mb-1">{k.label}</p>
-                <p className="text-2xl font-black text-slate-900 tabular-nums" style={{ color: k.color }}>{k.value}</p>
+                <p className="text-2xl font-black tabular-nums" style={{ color: k.color }}>{k.value}</p>
                 <p className="text-xs text-slate-400 mt-1">{k.sub}</p>
               </div>
             ))}
+          </div>
+
+          {/* Profit margin KPI cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white rounded-2xl border border-slate-100 p-5">
+              <p className="text-xs text-slate-400 font-semibold uppercase tracking-wide mb-1">Bruttovinst</p>
+              <p className="text-2xl font-black text-emerald-600 tabular-nums">{totalGrossProfit.toLocaleString('sv-SE')} kr</p>
+              <p className="text-xs text-slate-400 mt-1">{closedLeadsWithCost.length} affärer med kostnad</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-slate-100 p-5">
+              <p className="text-xs text-slate-400 font-semibold uppercase tracking-wide mb-1">Snittmarginal</p>
+              <p className={`text-2xl font-black tabular-nums ${avgMarginPct >= 15 ? 'text-emerald-600' : avgMarginPct >= 5 ? 'text-amber-600' : 'text-red-600'}`}>
+                {avgMarginPct} %
+              </p>
+              <p className="text-xs text-slate-400 mt-1">per avslutad affär</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-slate-100 p-5">
+              <p className="text-xs text-slate-400 font-semibold uppercase tracking-wide mb-1">Kunder totalt</p>
+              <p className="text-2xl font-black text-[#235971] tabular-nums">{customers.length.toLocaleString('sv-SE')}</p>
+              <p className="text-xs text-slate-400 mt-1">{customers.filter(c=>c.tag==='VIP').length} VIP · {customers.filter(c=>c.tag==='Active').length} aktiva</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-slate-100 p-5">
+              <p className="text-xs text-slate-400 font-semibold uppercase tracking-wide mb-1">Väntande fakturor</p>
+              <p className="text-2xl font-black text-amber-600 tabular-nums">{pendingCount}</p>
+              <p className="text-xs text-slate-400 mt-1">ej betalda ännu</p>
+            </div>
           </div>
 
           {/* Revenue area chart — last 12 months */}

@@ -944,6 +944,18 @@ function ActionPanel({
   const [klarnaAuthorizing, setKlarnaAuthorizing] = useState(false);
   const [klarnaLocalError,  setKlarnaLocalError]  = useState<string | null>(null);
   const [klarnaCategory,    setKlarnaCategory]    = useState<string>('');
+  // Track whether Klarna.Payments.init() has been called for the current client_token.
+  // init() must only be called ONCE per session — calling it again breaks the widget.
+  const klarnaInitRef = useRef(false);
+
+  // If the user switches away from Klarna and comes back, the SDK script is already
+  // in the DOM (Next.js caches it) so the onLoad event never fires again.
+  // Detect this on every ActionPanel mount and set klarnaSDKReady immediately.
+  useEffect(() => {
+    const w = window as any;
+    if (w.Klarna?.Payments) setKlarnaSDKReady(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Init + load Klarna widget when session is active and SDK is ready
   useEffect(() => {
@@ -954,7 +966,13 @@ function ActionPanel({
     const category = klarnaCategory || klarnaSession.payment_method_categories[0]?.identifier || 'pay_later';
     if (!klarnaCategory) setKlarnaCategory(category);
 
-    w.Klarna.Payments.init({ client_token: klarnaSession.client_token });
+    // Call init() only once per client_token — re-calling breaks the widget
+    if (!klarnaInitRef.current) {
+      w.Klarna.Payments.init({ client_token: klarnaSession.client_token });
+      klarnaInitRef.current = true;
+    }
+
+    // load() can be called multiple times to switch between payment categories
     w.Klarna.Payments.load(
       { container: '#klarna-payments-container', payment_method_category: category },
       {},

@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { logAudit } from '@/lib/audit';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function sb() { return getSupabaseAdmin() as any; }
@@ -33,7 +34,7 @@ export async function POST(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let query: any = sb()
       .from('leads')
-      .update({ stage })
+      .update({ stage, stage_changed_at: new Date().toISOString() })
       .eq('id', leadId)
       .eq('dealership_id', dealershipId);
 
@@ -47,6 +48,15 @@ export async function POST(
       console.error('[api/leads/stage]', error.message);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    logAudit({
+      action:       'LEAD_STAGE_CHANGED',
+      entity:       'lead',
+      entityId:     leadId,
+      details:      { stage },
+      dealershipId: dealershipId,
+      ipAddress:    req.headers.get('x-forwarded-for') ?? undefined,
+    });
 
     return NextResponse.json({ ok: true });
   } catch (err) {
