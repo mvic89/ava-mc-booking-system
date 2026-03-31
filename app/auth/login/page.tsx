@@ -27,33 +27,86 @@ interface StaffRow {
 /**
  * Fetch the dealer's profile from Supabase and cache it in localStorage so the
  * Sidebar (name, logo) and other components can render immediately after login.
+ * Reads dealership_settings first; falls back to dealerships table.
  */
 async function prefetchDealerProfile(dealershipId: string): Promise<void> {
+  if (!dealershipId) return;
   try {
-    const { data } = await (getSupabaseBrowser() as any)
+    const sb = getSupabaseBrowser() as any;
+    let profile: Record<string, unknown> | null = null;
+
+    // Primary source: dealership_settings — only use if name is actually populated
+    const { data: ds } = await sb
       .from('dealership_settings')
       .select('name,org_nr,vat_nr,f_skatt,street,postal_code,city,county,phone,email,email_domain,website,bankgiro,swish,logo_data_url,cover_image_data_url')
       .eq('dealership_id', dealershipId)
       .maybeSingle();
-    if (!data) return;
-    localStorage.setItem('dealership_profile', JSON.stringify({
-      name:              data.name                  ?? '',
-      orgNr:             data.org_nr                ?? '',
-      vatNr:             data.vat_nr                ?? '',
-      fSkatt:            data.f_skatt               ?? true,
-      street:            data.street                ?? '',
-      postalCode:        data.postal_code           ?? '',
-      city:              data.city                  ?? '',
-      county:            data.county                ?? 'Stockholm',
-      phone:             data.phone                 ?? '',
-      email:             data.email                 ?? '',
-      emailDomain:       data.email_domain          ?? '',
-      website:           data.website               ?? '',
-      bankgiro:          data.bankgiro              ?? '',
-      swish:             data.swish                 ?? '',
-      logoDataUrl:       data.logo_data_url         ?? '',
-      coverImageDataUrl: data.cover_image_data_url  ?? '',
-    }));
+
+    if (ds?.name) {
+      profile = {
+        name:              ds.name                  ?? '',
+        orgNr:             ds.org_nr                ?? '',
+        vatNr:             ds.vat_nr                ?? '',
+        fSkatt:            ds.f_skatt               ?? true,
+        street:            ds.street                ?? '',
+        postalCode:        ds.postal_code           ?? '',
+        city:              ds.city                  ?? '',
+        county:            ds.county                ?? 'Stockholm',
+        phone:             ds.phone                 ?? '',
+        email:             ds.email                 ?? '',
+        emailDomain:       ds.email_domain          ?? '',
+        website:           ds.website               ?? '',
+        bankgiro:          ds.bankgiro              ?? '',
+        swish:             ds.swish                 ?? '',
+        logoDataUrl:       ds.logo_data_url         ?? '',
+        coverImageDataUrl: ds.cover_image_data_url  ?? '',
+      };
+    }
+
+    // Fallback: dealerships table — use select('*') so missing columns don't cause errors
+    if (!profile) {
+      const { data: dl } = await sb
+        .from('dealerships')
+        .select('*')
+        .eq('id', dealershipId)
+        .maybeSingle();
+
+      if (dl?.name) {
+        profile = {
+          name:        dl.name          ?? '',
+          orgNr:       dl.org_nr        ?? '',
+          street:      dl.address       ?? '',   // dealerships uses 'address'
+          postalCode:  dl.postal_code   ?? '',
+          city:        dl.city          ?? '',
+          phone:       dl.phone         ?? '',
+          email:       dl.email         ?? '',
+          website:     dl.website       ?? '',
+          logoDataUrl: dl.logo_data_url ?? '',
+        };
+      }
+    }
+
+    if (!profile) return;
+
+    // Write profile to localStorage
+    const profileJson = JSON.stringify(profile);
+    localStorage.setItem('dealership_profile', profileJson);
+
+    // Sync dealershipName into the user object
+    const rawUser = localStorage.getItem('user');
+    if (rawUser && profile.name) {
+      try {
+        const u = JSON.parse(rawUser);
+        u.dealershipName = profile.name;
+        localStorage.setItem('user', JSON.stringify(u));
+      } catch { /* ignore */ }
+    }
+
+    // Dispatch synthetic storage events so the Sidebar listener fires on THIS tab
+    // (the native StorageEvent only fires cross-tab, so we dispatch manually)
+    window.dispatchEvent(new StorageEvent('storage', { key: 'dealership_profile', newValue: profileJson }));
+    window.dispatchEvent(new StorageEvent('storage', { key: 'user' }));
+
   } catch { /* non-fatal — profile page will load it on first visit */ }
 }
 
@@ -153,7 +206,12 @@ export default function LoginPage() {
       if (staffRow) {
         await (supabase as any)
           .from('staff_users')
-          .update({ last_login: new Date().toISOString(), bankid_verified: true })
+          .update({
+            last_login:      new Date().toISOString(),
+            bankid_verified: true,
+            roaring_data:    result.roaring          ?? null,
+            date_of_birth:   result.user.dateOfBirth ?? '',
+          })
           .eq('personal_number', result.user.personalNumber);
       }
 
@@ -165,6 +223,8 @@ export default function LoginPage() {
 
       // Pre-load dealer profile so Sidebar shows name/logo immediately
       await prefetchDealerProfile(dealershipId);
+      // Second emit so components re-read the now-populated localStorage
+      emit({ type: 'data:refresh' });
 
       router.replace('/dashboard');
     } catch (err: any) {
@@ -236,11 +296,21 @@ export default function LoginPage() {
       const dealershipId:   string   = body.dealershipId ?? '';
       const dealershipName: string   = role === 'platform_admin' ? 'BikeMeNow Platform' : '';
       const name:           string   = body.name ?? formData.email.split('@')[0];
-      localStorage.setItem('user', JSON.stringify({ name, email: formData.email, role, dealershipId, dealershipName }));
+      localStorage.setItem('user', JSON.stringify({
+        name,
+        email:       formData.email,
+        role,
+        dealershipId,
+        dealershipName,
+        roaring:     (body as any).roaringData  ?? null,
+        dateOfBirth: (body as any).dateOfBirth  ?? '',
+      }));
       emit({ type: 'data:refresh' });
       await createSession({ dealershipId, dealershipName, name, email: formData.email, role });
       if (role === 'platform_admin') { router.replace('/admin'); return; }
       await prefetchDealerProfile(dealershipId);
+      // Second emit so components re-read the now-populated localStorage
+      emit({ type: 'data:refresh' });
       router.replace('/dashboard');
     } catch (err: any) {
       setLoginError('Login failed. Please try again.');
@@ -398,7 +468,7 @@ export default function LoginPage() {
               <input
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value.toLowerCase() })}
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:border-[#FF6B2C] focus:ring-2 focus:ring-[#FF6B2C]/20 outline-none text-slate-900 placeholder:text-slate-300 transition-all"
                 placeholder="namn@aterforsaljare.se"
                 required

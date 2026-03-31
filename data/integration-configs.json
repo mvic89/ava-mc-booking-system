@@ -57,5 +57,12 @@
     ],
     "credentials": {},
     "updatedAt": "2026-03-17T22:24:04.365Z"
+  },
+  "jnkping-bikers-demo-ab": {
+    "dealerId": "jnkping-bikers-demo-ab",
+    "dealerName": "Jönköping Bikers Demo AB",
+    "enabledIntegrations": [],
+    "credentials": {},
+    "updatedAt": "2026-03-30T16:11:25.371Z"
   }
 }

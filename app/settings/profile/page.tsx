@@ -154,14 +154,44 @@ function formatBankgiro(raw: string): string {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function fetchProfileFromSupabase(dealershipId: string): Promise<Partial<DealershipProfile> | null> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data } = await (getSupabaseBrowser() as any)
+  const sb = getSupabaseBrowser() as any;
+
+  // Primary: dealership_settings — only trust if name is populated
+  const { data } = await sb
     .from('dealership_settings')
     .select('*')
     .eq('dealership_id', dealershipId)
     .maybeSingle();
-  if (!data) return null;
+  if (data?.name) {
+    return {
+      name:              data.name                  ?? '',
+      orgNr:             data.org_nr                ?? '',
+      vatNr:             data.vat_nr                ?? '',
+      fSkatt:            data.f_skatt               ?? true,
+      street:            data.street                ?? '',
+      postalCode:        data.postal_code           ?? '',
+      city:              data.city                  ?? '',
+      county:            data.county                ?? 'Stockholm',
+      phone:             data.phone                 ?? '',
+      email:             data.email                 ?? '',
+      emailDomain:       data.email_domain          ?? '',
+      website:           data.website               ?? '',
+      bankgiro:          data.bankgiro              ?? '',
+      swish:             data.swish                 ?? '',
+      logoDataUrl:       data.logo_data_url         ?? '',
+      coverImageDataUrl: data.cover_image_data_url  ?? '',
+    };
+  }
+
+  // Fallback: dealerships table — use select('*') so missing columns don't error
+  const { data: dl } = await sb
+    .from('dealerships')
+    .select('*')
+    .eq('id', dealershipId)
+    .maybeSingle();
+  if (!dl?.name) return null;
   return {
+<<<<<<< HEAD
     name:              data.name              ?? '',
     orgNr:             data.org_nr            ?? '',
     vatNr:             data.vat_nr            ?? '',
@@ -180,12 +210,24 @@ async function fetchProfileFromSupabase(dealershipId: string): Promise<Partial<D
     invoiceEmail:      data.invoice_email         ?? '',
     logoDataUrl:       data.logo_data_url         ?? '',
     coverImageDataUrl: data.cover_image_data_url  ?? '',
+=======
+    name:        dl.name          ?? '',
+    orgNr:       dl.org_nr        ?? '',
+    street:      dl.address       ?? '',
+    postalCode:  dl.postal_code   ?? '',
+    city:        dl.city          ?? '',
+    phone:       dl.phone         ?? '',
+    email:       dl.email         ?? '',
+    website:     dl.website       ?? '',
+    logoDataUrl: dl.logo_data_url ?? '',
+>>>>>>> feature/newqoute
   };
 }
 
 async function saveProfileToSupabase(dealershipId: string, profile: DealershipProfile): Promise<void> {
   const sb = getSupabaseBrowser() as any;
 
+  // Write full profile to dealership_settings
   const payload: Record<string, unknown> = {
     dealership_id:        dealershipId,
     name:                 profile.name,
@@ -220,6 +262,26 @@ async function saveProfileToSupabase(dealershipId: string, profile: DealershipPr
     } else {
       throw new Error(error.message);
     }
+  }
+
+  // Also keep dealerships table in sync so prefetchDealerProfile fallback works
+  const { error: dlErr } = await sb
+    .from('dealerships')
+    .update({
+      name:          profile.name,
+      org_nr:        profile.orgNr         || null,
+      address:       profile.street        || null,
+      postal_code:   profile.postalCode    || null,
+      city:          profile.city          || null,
+      phone:         profile.phone         || null,
+      email:         profile.email         || null,
+      website:       profile.website       || null,
+      logo_data_url: profile.logoDataUrl   || null,
+    })
+    .eq('id', dealershipId);
+
+  if (dlErr) {
+    console.warn('[profile] dealerships update:', dlErr.message);
   }
 }
 
@@ -315,6 +377,8 @@ export default function DealershipProfilePage() {
         const merged = { ...DEFAULTS, ...remote };
         setProfile(merged);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+        // Notify same-tab listeners (e.g. Sidebar) that profile is ready
+        window.dispatchEvent(new StorageEvent('storage', { key: 'dealership_profile' }));
         return;
       }
     }
@@ -441,6 +505,10 @@ export default function DealershipProfilePage() {
         user.dealershipName = profile.name;
         localStorage.setItem('user', JSON.stringify(user));
       }
+
+      // Notify same-tab listeners immediately (Sidebar, etc.)
+      window.dispatchEvent(new StorageEvent('storage', { key: 'dealership_profile' }));
+      window.dispatchEvent(new StorageEvent('storage', { key: 'user' }));
 
       // Write to Supabase so other devices receive the update via Realtime
       const dealershipId = getDealershipId();
