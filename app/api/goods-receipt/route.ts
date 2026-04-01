@@ -166,6 +166,25 @@ function parseDeliveryNoteText(text: string): ParsedDeliveryNote {
         }
     }
 
+    // Pattern C: no-space format from jsPDF (pdf-parse v1 output)
+    // e.g. "501190Z005-A5SKYDDSTRÖJA KNOX URBANE PRO MK3 HEMSVART11"
+    // Article number: starts with digits, has uppercase letters + dash groups
+    if (items.length === 0) {
+        const patternC = /^(\d+[A-Z]+\d+(?:-[A-Z][0-9]+)+)(.+?)(\d+)(\d+)\s*$/gm
+        let matchC: RegExpExecArray | null
+        while ((matchC = patternC.exec(text)) !== null) {
+            const received = parseInt(matchC[4])
+            if (isNaN(received) || received <= 0) continue
+            items.push({
+                article_number: matchC[1],
+                name:           matchC[2].trim(),
+                ordered_qty:    parseInt(matchC[3]) || null,
+                received_qty:   received,
+                unit_cost:      null,
+            })
+        }
+    }
+
     // ── Notes: look for a "remarks" / "notes" section ────────────────────────
     let notes: string | null = null
     const notesMatch = text.match(/(?:notes?|remarks?|comments?)[:\s]+([^\n]{10,})/i)
