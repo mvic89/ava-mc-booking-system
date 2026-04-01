@@ -167,12 +167,17 @@ function DetailModal({ receipt, onClose, onStatusChange, onPoRelinked }: {
                             Goods Receipt · <span className="font-mono">{receipt.id}</span>
                         </p>
                         <h2 className="text-lg font-bold text-gray-900">{receipt.vendor}</h2>
-                        <div className="flex items-center gap-2 mt-1">
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
                             <SourceBadge source={receipt.source} />
                             <StatusBadge status={receipt.status} />
                             {receipt.po_id && (
                                 <span className="text-[10px] font-mono text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
                                     {receipt.po_id}
+                                </span>
+                            )}
+                            {hasBackorder && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 border border-orange-200">
+                                    📋 PO Incomplete — awaiting backorder
                                 </span>
                             )}
                         </div>
@@ -327,9 +332,11 @@ function DetailModal({ receipt, onClose, onStatusChange, onPoRelinked }: {
                                         }
                                     </td>
                                     <td className="px-3 py-2.5 text-center">
-                                        {item.matched
-                                            ? <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">✓ Matched</span>
-                                            : <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">? Unmatched</span>
+                                        {item.received_qty === 0
+                                            ? <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">⏳ Backordered</span>
+                                            : item.matched
+                                                ? <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">✓ Matched</span>
+                                                : <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">? Unmatched</span>
                                         }
                                     </td>
                                 </tr>
