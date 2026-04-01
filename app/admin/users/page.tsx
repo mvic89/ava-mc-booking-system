@@ -68,6 +68,24 @@ export default function SystemAdminsPage() {
     load();
   };
 
+  const handleReactivate = async (admin: AdminUser) => {
+    if (!confirm(`Reactivate ${admin.name}? They will regain platform access.`)) return;
+    const res  = await fetch(`/api/admin/users?id=${admin.id}`, { method: 'PATCH' });
+    const body = await res.json();
+    if (!res.ok) { toast.error(body.error ?? 'Failed to reactivate'); return; }
+    toast.success(`${admin.name} reactivated`);
+    load();
+  };
+
+  const handleDelete = async (admin: AdminUser) => {
+    if (!confirm(`Permanently delete ${admin.name}? This cannot be undone.`)) return;
+    const res  = await fetch(`/api/admin/users?id=${admin.id}&permanent=true`, { method: 'DELETE' });
+    const body = await res.json();
+    if (!res.ok) { toast.error(body.error ?? 'Failed to delete'); return; }
+    toast.success(`${admin.name} deleted`);
+    load();
+  };
+
   return (
     <div className="flex h-screen bg-[#f5f7fa] overflow-hidden">
       <Sidebar />
@@ -217,14 +235,29 @@ export default function SystemAdminsPage() {
                       <td className="px-5 py-4 text-slate-500 text-xs">{fmtDate(a.last_login)}</td>
                       <td className="px-5 py-4 text-slate-500 text-xs">{fmtDate(a.created_at)}</td>
                       <td className="px-5 py-4">
-                        {a.status === 'active' && (
+                        <div className="flex items-center gap-3">
+                          {a.status === 'active' ? (
+                            <button
+                              onClick={() => handleDeactivate(a)}
+                              className="text-xs text-amber-600 hover:text-amber-800 font-medium transition-colors"
+                            >
+                              Deactivate
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleReactivate(a)}
+                              className="text-xs text-green-600 hover:text-green-800 font-medium transition-colors"
+                            >
+                              Reactivate
+                            </button>
+                          )}
                           <button
-                            onClick={() => handleDeactivate(a)}
+                            onClick={() => handleDelete(a)}
                             className="text-xs text-red-500 hover:text-red-700 font-medium transition-colors"
                           >
-                            Deactivate
+                            Delete
                           </button>
-                        )}
+                        </div>
                       </td>
                     </tr>
                   ))}
