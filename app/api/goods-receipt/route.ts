@@ -171,7 +171,7 @@ function parseDeliveryNoteText(text: string): ParsedDeliveryNote {
     // e.g. "501190Z005-A5SKYDDSTRÖJA KNOX URBANE PRO MK3 HEMSVART11"
     // Article number: starts with digits, has uppercase letters + dash groups
     if (items.length === 0) {
-        const patternC = /^(\d+[A-Z]+\d+(?:-[A-Z0-9]+)+)(.+?)(\d+)(\d+)\s*$/gm
+        const patternC = /^(\d+[A-Z]+\d+(?:-[A-Z][0-9]+)+)(.+?)(\d+)(\d+)\s*$/gm
         let matchC: RegExpExecArray | null
         while ((matchC = patternC.exec(text)) !== null) {
             const received = parseInt(matchC[4])
