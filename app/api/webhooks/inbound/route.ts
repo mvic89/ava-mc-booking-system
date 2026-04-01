@@ -123,10 +123,10 @@ export async function POST(req: NextRequest) {
         )
         if (pdfAtt?.Content) {
             try {
-                const { PDFParse } = require('pdf-parse')
+                const pdfParse = require('pdf-parse')
                 const pdfBuf  = Buffer.from(pdfAtt.Content, 'base64')
-                const parser  = new PDFParse({ data: pdfBuf })
-                const pdfText: string = (await parser.getText()) ?? ''
+                const parsed  = await pdfParse(pdfBuf)
+                const pdfText: string = parsed.text ?? ''
                 const pdfPoMatch = pdfText.match(PO_BODY_RE)
                     ?? pdfText.match(/\bPO[-\s][\w\-]+/i)
                 if (pdfPoMatch) {
