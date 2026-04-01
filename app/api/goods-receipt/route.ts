@@ -41,15 +41,12 @@ function normaliseDate(raw: string): string | null {
 }
 
 // ── PDF text extractor (server-side, no external API) ─────────────────────────
-// pdf-parse v2 uses class-based API: new PDFParse({ data: buffer }).getText()
 
 async function extractTextFromPDF(pdfBase64: string): Promise<string> {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { PDFParse } = require('pdf-parse')
+    const pdfParse = require('pdf-parse')
     const buffer = Buffer.from(pdfBase64, 'base64')
-    const parser = new PDFParse({ data: buffer })
-    const result = await parser.getText() as { text: string }
-    await parser.destroy()
+    const result = await pdfParse(buffer)
     return result.text
 }
 
