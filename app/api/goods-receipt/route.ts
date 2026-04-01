@@ -47,6 +47,7 @@ async function extractTextFromPDF(pdfBase64: string): Promise<string> {
     const pdfParse = require('pdf-parse')
     const buffer = Buffer.from(pdfBase64, 'base64')
     const result = await pdfParse(buffer)
+    console.log('[goods-receipt] extracted PDF text:', result.text)
     return result.text
 }
 
