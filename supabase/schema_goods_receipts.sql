@@ -12,7 +12,9 @@ CREATE TABLE IF NOT EXISTS goods_receipts (
     received_by     TEXT,                             -- staff name / email
     notes           TEXT,
     raw_text        TEXT,                             -- full text extracted from PDF (for audit)
-    source          TEXT        NOT NULL DEFAULT 'manual',  -- 'manual' | 'email_automation'
+    source          TEXT        NOT NULL DEFAULT 'manual',  -- 'manual' | 'email_automation' | 'imap_inbound'
+    status          TEXT        NOT NULL DEFAULT 'pending_approval', -- 'pending_approval' | 'approved' | 'rejected'
+    pdf_url         TEXT,                                -- Supabase Storage URL for the delivery note PDF
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -24,6 +26,7 @@ CREATE TABLE IF NOT EXISTS goods_receipt_items (
     name            TEXT        NOT NULL,
     ordered_qty     INTEGER,                          -- from PO (if linked)
     received_qty    INTEGER     NOT NULL,
+    backorder_qty   INTEGER     NOT NULL DEFAULT 0,   -- ordered_qty - received_qty (0 when fully delivered)
     unit_cost       NUMERIC(12,2),
     matched         BOOLEAN     NOT NULL DEFAULT FALSE  -- true when inventory_id resolved
 );
@@ -65,10 +68,11 @@ CREATE POLICY "Dealership can delete own receipts"
 CREATE POLICY "Dealership can read own receipt items"
     ON goods_receipt_items FOR SELECT
     USING (
+        -- Rely on goods_receipts RLS for tenant isolation; this just confirms
+        -- the parent exists (PostgreSQL evaluates the subquery under the same RLS).
         EXISTS (
             SELECT 1 FROM goods_receipts gr
             WHERE gr.id = goods_receipt_items.receipt_id
-            AND gr.dealership_id::text = current_setting('app.dealership_id', true)
         )
     );
 
@@ -78,7 +82,6 @@ CREATE POLICY "Dealership can insert own receipt items"
         EXISTS (
             SELECT 1 FROM goods_receipts gr
             WHERE gr.id = goods_receipt_items.receipt_id
-            AND gr.dealership_id::text = current_setting('app.dealership_id', true)
         )
     );
 
@@ -88,7 +91,6 @@ CREATE POLICY "Dealership can delete own receipt items"
         EXISTS (
             SELECT 1 FROM goods_receipts gr
             WHERE gr.id = goods_receipt_items.receipt_id
-            AND gr.dealership_id::text = current_setting('app.dealership_id', true)
         )
     );
 

@@ -72,18 +72,29 @@ function parseDeliveryNoteText(text: string): ParsedDeliveryNote {
     }
 
     // ── Delivery note number ──────────────────────────────────────────────────
+    // Supports English and Swedish field labels.
+    // Uses word boundary (\b) before the capture group to avoid partial matches
+    // inside Swedish compound words (e.g. "Leveransnummer" contains "dn" which
+    // the old pattern matched mid-word, capturing "ummer" as the value).
     let delivery_note_number: string | null = null
-    const dnMatch = text.match(/(?:delivery\s*note|packing\s*slip|despatch\s*note|dn\s*(?:no|#|number)?)[:\s#]*([A-Z0-9\-\/]+)/i)
+    const dnMatch = text.match(
+        /(?:delivery\s*note(?:\s*(?:no|#|number))?|packing\s*slip|despatch\s*note|följesedelnummer|leveransnummer|paketsedelnummer|sändningsnummer|fraktsedelnummer|dn\b)[:\s#]*\b([A-Z0-9][A-Z0-9\-\/]*)/i
+    )
     if (dnMatch) delivery_note_number = dnMatch[1].trim()
 
     // ── PO reference ──────────────────────────────────────────────────────────
+    // Supports English and Swedish field labels.
+    // Anchored so "ordernummer" is matched as a whole word, not as a suffix.
     let po_reference: string | null = null
-    const poMatch = text.match(/(?:purchase\s*order|po\s*(?:no|#|number)?|your\s*order)[:\s#]*([A-Z0-9\-\/]+)/i)
+    const poMatch = text.match(
+        /(?:purchase\s*order(?:\s*(?:no|#|number))?|your\s*order|kundordernummer|inköpsordernummer|beställningsnummer|köpordernummer|ordernummer|order\s*no|po\b)[:\s#]*\b([A-Z0-9][A-Z0-9\-\/]*)/i
+    )
     if (poMatch) po_reference = poMatch[1].trim()
 
     // ── Date ─────────────────────────────────────────────────────────────────
+    // Swedish: "Leveransdatum", "Orderdatum", "Datum"
     let received_date: string | null = null
-    const dateMatch = text.match(/(?:date|delivery\s*date|despatch\s*date|ship\s*date)[:\s]*(\d{1,4}[\-\/\.]\d{1,2}[\-\/\.]\d{2,4})/i)
+    const dateMatch = text.match(/(?:delivery\s*date|despatch\s*date|ship\s*date|leveransdatum|avsändningsdatum|datum|date)[:\s]*(\d{1,4}[\-\/\.]\d{1,2}[\-\/\.]\d{2,4})/i)
     if (dateMatch) received_date = normaliseDate(dateMatch[1])
 
     // ── Line items ────────────────────────────────────────────────────────────
@@ -269,32 +280,55 @@ export async function POST(req: NextRequest) {
 
     const receiptId = generateReceiptId(tag, count ?? 0)
 
-    // ── Match PO: try parsed reference, then most recent Sent PO from same vendor ─
-    const poReference  = po_id ?? parsed.po_reference ?? null
-    let matchedPoId: string | null = null
+    // ── Match PO ──────────────────────────────────────────────────────────────
+    // Outcomes:
+    //   'matched_open'   — PO found and still open (Sent / Partial / Approved)
+    //   'matched_closed' — PO found but already fully received or cancelled
+    //   'fallback'       — no PO ref in note; linked to most-recent open PO by vendor
+    //   'unmatched'      — PO ref present but not found in system
+    //   'none'           — no PO ref and no vendor fallback matched
+    const OPEN_STATUSES = ['Sent', 'Partial', 'Approved', 'Draft']
+    const poReference = po_id ?? parsed.po_reference ?? null
+    let matchedPoId:     string | null = null
+    let matchedPoStatus: string | null = null
+    let poMatchStatus: 'matched_open' | 'matched_closed' | 'fallback' | 'unmatched' | 'none' = 'none'
 
     if (poReference) {
         const { data: exactPO } = await db
             .from('purchase_orders')
-            .select('id')
+            .select('id, status')
             .eq('dealership_id', dealership_id)
             .ilike('id', `%${poReference}%`)
             .maybeSingle()
-        matchedPoId = exactPO?.id ?? null
+
+        if (exactPO) {
+            matchedPoId     = exactPO.id
+            matchedPoStatus = exactPO.status
+            poMatchStatus   = OPEN_STATUSES.includes(exactPO.status)
+                ? 'matched_open'
+                : 'matched_closed'
+        } else {
+            poMatchStatus = 'unmatched'
+        }
     }
 
-    if (!matchedPoId && (vendorHint ?? parsed.vendor)) {
+    // Fallback: link to most recent open PO from the same vendor (only when no ref was given)
+    if (!matchedPoId && !poReference && (vendorHint ?? parsed.vendor)) {
         const vendorName = vendorHint ?? parsed.vendor ?? ''
         const { data: recentPO } = await db
             .from('purchase_orders')
-            .select('id')
+            .select('id, status')
             .eq('dealership_id', dealership_id)
-            .eq('status', 'Sent')
+            .in('status', OPEN_STATUSES)
             .ilike('vendor', `%${vendorName}%`)
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle()
-        matchedPoId = recentPO?.id ?? null
+        if (recentPO) {
+            matchedPoId     = recentPO.id
+            matchedPoStatus = recentPO.status
+            poMatchStatus   = 'fallback'
+        }
     }
 
     // ── Upload PDF to Supabase Storage ────────────────────────────────────────
@@ -341,6 +375,59 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: receiptError.message }, { status: 500 })
     }
 
+    // ── Fetch PO line items (used as authoritative ordered_qty + backorder source) ─
+    // The delivery note PDF rarely has a reliable "ordered qty" column (Swedish
+    // PDFs use "Beställt" which our parser doesn't extract). The PO is the true
+    // source of what was ordered. We also use it to detect items ordered but not
+    // yet delivered (pure backorders — not present in the delivery note at all).
+    type PoLine = {
+        article_number: string
+        name:           string
+        order_qty:      number
+        inventory_id:   string
+        unit_cost:      number
+    }
+    let poLines: PoLine[] = []
+    if (matchedPoId) {
+        const { data: poLineData } = await db
+            .from('po_line_items')
+            .select('article_number, name, order_qty, inventory_id, unit_cost')
+            .eq('po_id', matchedPoId)
+        poLines = (poLineData ?? []) as PoLine[]
+    }
+
+    // Build lookup: article_number → PO line
+    const poLineByArticle = new Map<string, PoLine>()
+    for (const pl of poLines) {
+        if (pl.article_number) poLineByArticle.set(pl.article_number.trim().toUpperCase(), pl)
+    }
+
+    // ── For partially-received POs: find what has already been delivered ───────
+    // This prevents creating duplicate backorder rows for items already received
+    // in a previous receipt against the same PO.
+    const alreadyReceivedByArticle = new Map<string, number>()
+    if (matchedPoId && matchedPoStatus === 'Partial') {
+        const { data: prevReceipts } = await db
+            .from('goods_receipts')
+            .select('id')
+            .eq('dealership_id', dealership_id)
+            .eq('po_id', matchedPoId)
+            .eq('status', 'approved')
+
+        if (prevReceipts && prevReceipts.length > 0) {
+            const prevIds = prevReceipts.map((r: { id: string }) => r.id)
+            const { data: prevItems } = await db
+                .from('goods_receipt_items')
+                .select('article_number, received_qty')
+                .in('receipt_id', prevIds)
+
+            for (const pi of prevItems ?? []) {
+                const key = (pi.article_number ?? '').trim().toUpperCase()
+                alreadyReceivedByArticle.set(key, (alreadyReceivedByArticle.get(key) ?? 0) + pi.received_qty)
+            }
+        }
+    }
+
     // ── Process line items (save only — no stock update until approved) ───────
     const results: {
         name: string
@@ -351,44 +438,120 @@ export async function POST(req: NextRequest) {
         matched: boolean
     }[] = []
 
+    // Track which PO lines have been covered by the delivery note
+    const coveredPoArticles = new Set<string>()
+
     for (const item of parsed.items ?? []) {
         if (!item.name || item.received_qty <= 0) continue
 
-        const inventoryId  = await matchInventoryItem(db, dealership_id, item)
-        const backorderQty = Math.max(0, (item.ordered_qty ?? 0) - item.received_qty)
+        const artKey      = item.article_number?.trim().toUpperCase() ?? ''
+        const poLine      = artKey ? poLineByArticle.get(artKey) : undefined
+        const inventoryId = poLine?.inventory_id
+            ?? await matchInventoryItem(db, dealership_id, item)
 
-        await db.from('goods_receipt_items').insert({
+        // Use PO ordered qty when available — more reliable than PDF parsing
+        const orderedQty   = poLine?.order_qty ?? item.ordered_qty ?? null
+        const backorderQty = orderedQty !== null
+            ? Math.max(0, orderedQty - item.received_qty)
+            : 0
+
+        if (artKey) coveredPoArticles.add(artKey)
+
+        const { error: itemError } = await db.from('goods_receipt_items').insert({
             receipt_id:     receiptId,
-            inventory_id:   inventoryId,
+            inventory_id:   inventoryId ?? null,
             article_number: item.article_number ?? null,
             name:           item.name,
-            ordered_qty:    item.ordered_qty ?? null,
+            ordered_qty:    orderedQty,
             received_qty:   item.received_qty,
             backorder_qty:  backorderQty,
-            unit_cost:      item.unit_cost ?? null,
+            unit_cost:      item.unit_cost ?? poLine?.unit_cost ?? null,
             matched:        !!inventoryId,
         })
+        if (itemError) {
+            console.error('[goods-receipt] item insert failed:', itemError.message, '— item:', item.name)
+            continue
+        }
 
         results.push({
             name:          item.name,
             received_qty:  item.received_qty,
-            ordered_qty:   item.ordered_qty ?? null,
+            ordered_qty:   orderedQty,
             backorder_qty: backorderQty,
-            inventory_id:  inventoryId,
+            inventory_id:  inventoryId ?? null,
             matched:       !!inventoryId,
         })
     }
 
+    // ── Add backorder rows for PO lines NOT present in this delivery ──────────
+    // For open POs   → full order_qty is the backorder
+    // For partial POs → only the remaining quantity (order_qty − already received)
+    // Skip lines already fully fulfilled by previous receipts
+    for (const pl of poLines) {
+        const artKey = pl.article_number?.trim().toUpperCase() ?? ''
+        if (coveredPoArticles.has(artKey)) continue
+
+        const prevReceived = alreadyReceivedByArticle.get(artKey) ?? 0
+        const stillNeeded  = pl.order_qty - prevReceived
+        if (stillNeeded <= 0) continue   // fully received in a previous receipt — skip
+
+        const { error: boError } = await db.from('goods_receipt_items').insert({
+            receipt_id:     receiptId,
+            inventory_id:   pl.inventory_id ?? null,
+            article_number: pl.article_number,
+            name:           pl.name,
+            ordered_qty:    pl.order_qty,
+            received_qty:   0,
+            backorder_qty:  stillNeeded,
+            unit_cost:      pl.unit_cost ?? null,
+            matched:        !!pl.inventory_id,
+        })
+        if (boError) {
+            console.error('[goods-receipt] backorder row insert failed:', boError.message, '— item:', pl.name)
+            continue
+        }
+
+        results.push({
+            name:          pl.name,
+            received_qty:  0,
+            ordered_qty:   pl.order_qty,
+            backorder_qty: stillNeeded,
+            inventory_id:  pl.inventory_id ?? null,
+            matched:       !!pl.inventory_id,
+        })
+    }
+
+    // ── Update PO status immediately so the dealer sees it in the PO list ─────
+    // Open PO + backorders present → Partial (supplier hasn't shipped everything)
+    // Open PO + no backorders       → leave as-is (approve route will set Received)
+    // Partial PO + backorders       → stays Partial
+    // Partial PO + no backorders    → leave as-is (approve route will set Received)
+    const hasAnyBackorder = results.some(r => r.backorder_qty > 0)
+    const willCompletePo  = matchedPoId !== null && !hasAnyBackorder && results.length > 0
+
+    if (matchedPoId && hasAnyBackorder && poMatchStatus === 'matched_open') {
+        await db.from('purchase_orders')
+            .update({ status: 'Partial' })
+            .eq('id', matchedPoId)
+            .eq('dealership_id', dealership_id)
+            .in('status', ['Sent', 'Approved'])   // only advance forward, never downgrade
+    }
+
     return NextResponse.json({
-        ok:              true,
-        receipt_id:      receiptId,
-        status:          'pending_approval',
-        po_id:           matchedPoId,
+        ok:                     true,
+        receipt_id:             receiptId,
+        status:                 'pending_approval',
+        po_id:                  matchedPoId,
+        po_match_status:        poMatchStatus,
+        po_reference_from_note: poReference,
+        po_status:              matchedPoStatus,
+        po_was_partial:         matchedPoStatus === 'Partial',
+        will_complete_po:       willCompletePo,
         vendor,
-        received_date:   receivedDate,
-        items_processed: results.length,
-        items_matched:   results.filter(r => r.matched).length,
-        items:           results,
-        raw_text_preview: rawText.slice(0, 500),
+        received_date:         receivedDate,
+        items_processed:       results.length,
+        items_matched:         results.filter(r => r.matched).length,
+        items:                 results,
+        raw_text_preview:      rawText.slice(0, 500),
     })
 }
