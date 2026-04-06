@@ -70,15 +70,64 @@ function StatusBadge({ status }: { status: GoodsReceipt['status'] }) {
     return <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">⏳ Pending Approval</span>
 }
 
-function DetailModal({ receipt, onClose, onStatusChange }: {
+function DetailModal({ receipt, onClose, onStatusChange, onPoRelinked }: {
     receipt: GoodsReceipt
     onClose: () => void
     onStatusChange: (id: string, status: GoodsReceipt['status']) => void
+    onPoRelinked:   (id: string, newPoId: string) => void
 }) {
-    const [acting, setActing] = useState<'approve' | 'reject' | null>(null)
+    const [acting,       setActing]       = useState<'approve' | 'reject' | null>(null)
+    const [poStatus,     setPoStatus]     = useState<string | null>(null)
+    const [openPos,      setOpenPos]      = useState<{ id: string; vendor: string; status: string }[]>([])
+    const [showRelink,   setShowRelink]   = useState(false)
+    const [relinking,    setRelinking]    = useState(false)
+    const [selectedNewPo, setSelectedNewPo] = useState('')
+
     const totalReceived = receipt.items?.reduce((s, i) => s + i.received_qty, 0) ?? 0
     const matched       = receipt.items?.filter(i => i.matched).length ?? 0
     const hasBackorder  = receipt.items?.some(i => (i.backorder_qty ?? 0) > 0) ?? false
+
+    // Check if the linked PO is still open
+    useEffect(() => {
+        if (!receipt.po_id) return
+        supabase
+            .from('purchase_orders')
+            .select('status')
+            .eq('id', receipt.po_id)
+            .maybeSingle()
+            .then(({ data }) => setPoStatus(data?.status ?? null))
+    }, [receipt.po_id])
+
+    const poIsClosed = !!receipt.po_id && poStatus !== null && !['Sent', 'Partial', 'Approved', 'Draft'].includes(poStatus)
+
+    async function loadOpenPos() {
+        const dealershipId = getDealershipId()
+        const { data } = await supabase
+            .from('purchase_orders')
+            .select('id, vendor, status')
+            .eq('dealership_id', dealershipId)
+            .in('status', ['Sent', 'Partial', 'Approved'])
+            .ilike('vendor', `%${receipt.vendor}%`)
+            .order('date', { ascending: false })
+            .limit(20)
+        setOpenPos(data ?? [])
+        setShowRelink(true)
+    }
+
+    async function handleRelink() {
+        if (!selectedNewPo) return
+        setRelinking(true)
+        const { error } = await supabase
+            .from('goods_receipts')
+            .update({ po_id: selectedNewPo })
+            .eq('id', receipt.id)
+        if (!error) {
+            onPoRelinked(receipt.id, selectedNewPo)
+            setShowRelink(false)
+            setPoStatus(null) // re-check on next render
+        }
+        setRelinking(false)
+    }
 
     async function handleAction(action: 'approve' | 'reject') {
         setActing(action)
@@ -118,12 +167,17 @@ function DetailModal({ receipt, onClose, onStatusChange }: {
                             Goods Receipt · <span className="font-mono">{receipt.id}</span>
                         </p>
                         <h2 className="text-lg font-bold text-gray-900">{receipt.vendor}</h2>
-                        <div className="flex items-center gap-2 mt-1">
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
                             <SourceBadge source={receipt.source} />
                             <StatusBadge status={receipt.status} />
                             {receipt.po_id && (
                                 <span className="text-[10px] font-mono text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
                                     {receipt.po_id}
+                                </span>
+                            )}
+                            {hasBackorder && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 border border-orange-200">
+                                    📋 PO Incomplete — awaiting backorder
                                 </span>
                             )}
                         </div>
@@ -156,6 +210,68 @@ function DetailModal({ receipt, onClose, onStatusChange }: {
                                 className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded-lg transition-colors disabled:opacity-50"
                             >
                                 {acting === 'approve' ? '…' : 'Approve & Update Stock'}
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Closed PO warning */}
+                {poIsClosed && !showRelink && (
+                    <div className="mx-6 mt-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3 shrink-0">
+                        <span className="text-xl">⚠️</span>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-red-800">PO already fully received</p>
+                            <p className="text-xs text-red-600 mt-0.5">
+                                <span className="font-mono">{receipt.po_id}</span> is closed. Would you like to link this delivery to a different open PO?
+                            </p>
+                        </div>
+                        <button
+                            onClick={loadOpenPos}
+                            className="shrink-0 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors"
+                        >
+                            Re-link to PO
+                        </button>
+                    </div>
+                )}
+
+                {/* Re-link PO picker */}
+                {showRelink && (
+                    <div className="mx-6 mt-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 shrink-0">
+                        <p className="text-xs font-bold text-blue-800 mb-2">Select an open PO to link this delivery to:</p>
+                        {openPos.length === 0 ? (
+                            <p className="text-xs text-blue-600">No open POs found for {receipt.vendor}.</p>
+                        ) : (
+                            <div className="space-y-1 max-h-36 overflow-y-auto mb-3">
+                                {openPos.map(po => (
+                                    <label key={po.id} className="flex items-center gap-2 cursor-pointer hover:bg-blue-100 rounded-lg px-2 py-1.5">
+                                        <input
+                                            type="radio"
+                                            name="relink-po"
+                                            value={po.id}
+                                            checked={selectedNewPo === po.id}
+                                            onChange={e => setSelectedNewPo(e.target.value)}
+                                            className="accent-blue-600"
+                                        />
+                                        <span className="font-mono text-xs text-blue-900 font-semibold">{po.id}</span>
+                                        <span className="text-xs text-blue-600 truncate">{po.vendor}</span>
+                                        <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-blue-200 text-blue-800">{po.status}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        )}
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => { setShowRelink(false); setSelectedNewPo('') }}
+                                className="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleRelink}
+                                disabled={!selectedNewPo || relinking}
+                                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-colors disabled:opacity-50"
+                            >
+                                {relinking ? 'Linking…' : 'Confirm Link'}
                             </button>
                         </div>
                     </div>
@@ -216,9 +332,11 @@ function DetailModal({ receipt, onClose, onStatusChange }: {
                                         }
                                     </td>
                                     <td className="px-3 py-2.5 text-center">
-                                        {item.matched
-                                            ? <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">✓ Matched</span>
-                                            : <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">? Unmatched</span>
+                                        {item.received_qty === 0
+                                            ? <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">⏳ Backordered</span>
+                                            : item.matched
+                                                ? <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">✓ Matched</span>
+                                                : <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">? Unmatched</span>
                                         }
                                     </td>
                                 </tr>
@@ -281,13 +399,26 @@ function GoodsReceiptsContent() {
         const dealershipId = getDealershipId()
         if (!dealershipId) { setLoading(false); return }
 
-        const { data } = await supabase
+        const { data: receiptsData } = await supabase
             .from('goods_receipts')
-            .select('*, items:goods_receipt_items(*)')
+            .select('*')
             .eq('dealership_id', dealershipId)
             .order('received_date', { ascending: false })
 
-        if (data) setReceipts(data as GoodsReceipt[])
+        if (!receiptsData) { setLoading(false); return }
+
+        // Fetch items in a separate query to avoid RLS issues with nested selects
+        const receiptIds = receiptsData.map(r => r.id)
+        const { data: itemsData } = receiptIds.length > 0
+            ? await supabase.from('goods_receipt_items').select('*').in('receipt_id', receiptIds)
+            : { data: [] }
+
+        const receiptsWithItems = receiptsData.map(r => ({
+            ...r,
+            items: (itemsData ?? []).filter((i: ReceiptItem & { receipt_id: string }) => i.receipt_id === r.id),
+        }))
+
+        setReceipts(receiptsWithItems as GoodsReceipt[])
         setLoading(false)
     }, [])
 
@@ -545,6 +676,10 @@ function GoodsReceiptsContent() {
                     onStatusChange={(id, status) => {
                         setReceipts(rs => rs.map(r => r.id === id ? { ...r, status } : r))
                         setSelected(null)
+                    }}
+                    onPoRelinked={(id, newPoId) => {
+                        setReceipts(rs => rs.map(r => r.id === id ? { ...r, po_id: newPoId } : r))
+                        setSelected(s => s ? { ...s, po_id: newPoId } : s)
                     }}
                 />
             )}

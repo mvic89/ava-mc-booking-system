@@ -54,7 +54,8 @@ export async function POST(req: NextRequest) {
     let stockUpdated = 0
 
     for (const item of items) {
-        if (!item.inventory_id || !item.matched) continue
+        // Skip backorder-only rows (nothing was physically received yet)
+        if (!item.inventory_id || !item.matched || item.received_qty === 0) continue
 
         const table = item.inventory_id.startsWith('MC-') ? 'motorcycles'
                     : item.inventory_id.startsWith('SP-') ? 'spare_parts'
@@ -76,44 +77,55 @@ export async function POST(req: NextRequest) {
         }
     }
 
-    // ── Update PO line items with received + backorder qty ────────────────────
+    // ── Check if PO is now fully received ─────────────────────────────────────
+    // We compute fulfilment dynamically from goods_receipt_items so we don't
+    // need extra columns on po_line_items (received_qty / backorder_qty).
     if (receipt.po_id) {
-        const { data: poItems } = await db
+        // What was ordered on this PO (per article number)
+        const { data: poLineItems } = await db
             .from('po_line_items')
-            .select('*')
+            .select('article_number, order_qty')
             .eq('po_id', receipt.po_id)
 
-        for (const item of items) {
-            if (!item.inventory_id) continue
-            const poItem = poItems?.find(
-                (p: { inventory_id: string }) => p.inventory_id === item.inventory_id
-            )
-            if (!poItem) continue
+        // All approved receipts linked to this PO (including the one we just approved)
+        const { data: approvedReceipts } = await db
+            .from('goods_receipts')
+            .select('id')
+            .eq('dealership_id', dealership_id)
+            .eq('po_id', receipt.po_id)
+            .eq('status', 'approved')     // note: this receipt is still pending at this point…
 
-            const newReceived  = (poItem.received_qty  ?? 0) + item.received_qty
-            const newBackorder = Math.max(0, (poItem.order_qty ?? poItem.orderQty ?? 0) - newReceived)
+        // …so also include the current receipt_id we are about to approve
+        const approvedIds = [
+            ...(approvedReceipts?.map((r: { id: string }) => r.id) ?? []),
+            receipt_id,
+        ]
 
-            await db.from('po_line_items')
-                .update({ received_qty: newReceived, backorder_qty: newBackorder })
-                .eq('id', poItem.id)
+        const { data: receivedItems } = await db
+            .from('goods_receipt_items')
+            .select('article_number, received_qty')
+            .in('receipt_id', approvedIds)
+
+        // Sum received_qty per article number
+        const receivedByArticle = new Map<string, number>()
+        for (const ri of receivedItems ?? []) {
+            const key = (ri.article_number ?? '').trim().toUpperCase()
+            receivedByArticle.set(key, (receivedByArticle.get(key) ?? 0) + ri.received_qty)
         }
 
-        // Mark PO as Received if all items have no backorder
-        const { data: updatedPoItems } = await db
-            .from('po_line_items')
-            .select('backorder_qty')
-            .eq('po_id', receipt.po_id)
-
-        const fullyReceived = updatedPoItems?.every(
-            (p: { backorder_qty: number }) => (p.backorder_qty ?? 0) === 0
+        // PO is fully received when every ordered line has been fully delivered
+        const allFulfilled = (poLineItems ?? []).length > 0 && (poLineItems ?? []).every(
+            (pl: { article_number: string; order_qty: number }) => {
+                const key = (pl.article_number ?? '').trim().toUpperCase()
+                return (receivedByArticle.get(key) ?? 0) >= pl.order_qty
+            }
         )
 
-        if (fullyReceived) {
-            await db.from('purchase_orders')
-                .update({ status: 'Received' })
-                .eq('id', receipt.po_id)
-                .eq('dealership_id', dealership_id)
-        }
+        await db.from('purchase_orders')
+            .update({ status: allFulfilled ? 'Received' : 'Partial' })
+            .eq('id', receipt.po_id)
+            .eq('dealership_id', dealership_id)
+            .in('status', ['Sent', 'Partial'])   // never downgrade an already-Received PO
     }
 
     // ── Mark receipt as approved ───────────────────────────────────────────────

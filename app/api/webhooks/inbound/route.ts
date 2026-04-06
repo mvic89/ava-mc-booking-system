@@ -104,52 +104,96 @@ export async function POST(req: NextRequest) {
     const toAddress = To?.toLowerCase() ?? ''
     const db = getSupabaseAdmin()
 
-    // ── Extract dealershipId from To address ──────────────────────────────────
-    // PO emails set Reply-To: delivery+{dealershipId}@inbound.bikeme.now
-    const plusMatch = toAddress.match(/\+([a-f0-9\-]{36})@/)
-    const dealership_id = plusMatch?.[1] ?? null
+    // ── Extract PO reference early — needed for dealership resolution ─────────
+    // Priority: Subject → TextBody → PDF attachment (fresh emails with no text body)
+    const PO_BODY_RE = /(?:er\s*referens|ordernummer|po\s*(?:no|#|number)?|purchase\s*order)[:\s#]*([A-Z0-9][A-Z0-9\-\/]*)/i
 
-    // ── Look up supplier by sender email (exact match first, then domain) ─────
+    const subjectPoMatch = (Subject ?? '').match(/\bPO[-\s][\w\-]+/i)
+    const bodyPoMatch    = (TextBody  ?? '').match(PO_BODY_RE)
+
+    let poRefEarly: string | null =
+        subjectPoMatch ? subjectPoMatch[0].replace(/\s/g, '-').toUpperCase()
+        : bodyPoMatch  ? bodyPoMatch[1].toUpperCase()
+        : null
+
+    // If still not found, try parsing the PDF attachment for a PO reference
+    if (!poRefEarly && Attachments.length > 0) {
+        const pdfAtt = Attachments.find(a =>
+            a.ContentType === 'application/pdf' || a.Name.toLowerCase().endsWith('.pdf')
+        )
+        if (pdfAtt?.Content) {
+            try {
+                const pdfParse = require('pdf-parse')
+                const pdfBuf  = Buffer.from(pdfAtt.Content, 'base64')
+                const parsed  = await pdfParse(pdfBuf)
+                const pdfText: string = parsed.text ?? ''
+                const pdfPoMatch = pdfText.match(PO_BODY_RE)
+                    ?? pdfText.match(/\bPO[-\s][\w\-]+/i)
+                if (pdfPoMatch) {
+                    poRefEarly = (pdfPoMatch[1] ?? pdfPoMatch[0]).replace(/\s/g, '-').toUpperCase()
+                    console.log(`[inbound] PO ref extracted from PDF: ${poRefEarly}`)
+                }
+            } catch (e) {
+                console.warn('[inbound] Early PDF parse failed (non-fatal):', e)
+            }
+        }
+    }
+
+    // ── Dealership resolution (most → least reliable) ────────────────────────
+    //
+    // 1. Plus-address in To: delivery+{uuid}@inbound.bikeme.now  (most reliable)
+    // 2. PO number lookup   — unambiguous when delivery note has a known PO ref
+    // 3. Vendor email match — scoped to resolved dealership if already known
+    // 4. Single-dealership  — last resort, only safe when there is exactly 1 tenant
+
+    const plusMatch = toAddress.match(/\+([a-f0-9\-]{36})@/)
+    let resolvedDealershipId: string | null = plusMatch?.[1] ?? null
+
+    // 2. PO reference → purchase_orders.dealership_id
+    if (!resolvedDealershipId && poRefEarly) {
+        const { data: poRow } = await db
+            .from('purchase_orders')
+            .select('dealership_id')
+            .ilike('id', `%${poRefEarly}%`)
+            .maybeSingle()
+        if (poRow?.dealership_id) {
+            resolvedDealershipId = poRow.dealership_id
+            console.log(`[inbound] Dealership resolved from PO ${poRefEarly} → ${resolvedDealershipId}`)
+        }
+    }
+
+    // 3. Vendor email lookup — scoped to resolved dealership when known
     const senderEmail  = From.match(/<(.+?)>/)?.[1] ?? From.trim()
     const senderDomain = senderEmail.split('@')[1]?.toLowerCase()
 
-    // Try exact email match first
-    const { data: vendorExact } = await db
-        .from('vendors')
-        .select('dealership_id, name')
-        .ilike('email', senderEmail)
-        .limit(1)
-        .maybeSingle()
+    async function lookupVendor(emailFilter: string) {
+        const q = db.from('vendors').select('dealership_id, name').ilike('email', emailFilter)
+        return resolvedDealershipId
+            ? q.eq('dealership_id', resolvedDealershipId).maybeSingle()
+            : q.limit(1).maybeSingle()
+    }
 
-    // Fall back to domain match — use limit(1) to avoid maybeSingle() failing on multiple rows
-    const { data: vendorDomain } = !vendorExact ? await db
-        .from('vendors')
-        .select('dealership_id, name')
-        .ilike('email', `%@${senderDomain}`)
-        .limit(1)
-        .maybeSingle() : { data: null }
+    const { data: vendorExact }  = await lookupVendor(senderEmail)
+    const { data: vendorDomain } = !vendorExact
+        ? await lookupVendor(`%@${senderDomain}`)
+        : { data: null }
 
     const vendor = vendorExact ?? vendorDomain
+    if (!resolvedDealershipId && vendor?.dealership_id) {
+        resolvedDealershipId = vendor.dealership_id
+    }
 
-    // Use dealershipId from address (most reliable), fallback to vendor lookup,
-    // then fallback to single-dealership setup (only works if there is exactly 1 dealership)
-    let resolvedDealershipId = dealership_id ?? vendor?.dealership_id ?? null
+    // 4. Last resort — only safe for single-tenant setups
     if (!resolvedDealershipId) {
         const { data: singleDealer } = await db
-            .from('dealerships')
-            .select('id')
-            .limit(1)
-            .maybeSingle()
+            .from('dealerships').select('id').limit(1).maybeSingle()
         if (singleDealer) {
             resolvedDealershipId = singleDealer.id
-            console.log(`[inbound] Sender ${senderEmail} not matched to vendor — falling back to dealership ${resolvedDealershipId}`)
+            console.warn(`[inbound] No dealership matched for From:${From} PO:${poRefEarly ?? 'none'} — falling back to first dealership. Check vendor email or plus-addressing.`)
         }
     }
 
     // ── Route by To address ───────────────────────────────────────────────────
-    // delivery@inbound.bikeme.now  → goods receipt + stock update
-    // invoice@inbound.bikeme.now   → accounts payable queue
-    // hash@inbound.postmarkapp.com → fallback (treated as delivery)
     const inboundDomain  = process.env.POSTMARK_INBOUND_DOMAIN ?? ''
     const inboundAddress = process.env.POSTMARK_INBOUND_ADDRESS ?? ''
 
@@ -157,11 +201,10 @@ export async function POST(req: NextRequest) {
         || toAddress.includes('inbound.postmarkapp.com')
         || (inboundAddress && toAddress.includes(inboundAddress.split('@')[0]))
 
-    const isInvoiceInbox  = toAddress.includes('invoice')
+    const isInvoiceInbox = toAddress.includes('invoice')
         && (inboundDomain ? toAddress.includes(inboundDomain) : true)
 
     if (isDeliveryInbox) {
-        // Find PDF attachment
         const pdfAttachment = Attachments.find(a =>
             a.ContentType === 'application/pdf' ||
             a.Name.toLowerCase().endsWith('.pdf')
@@ -172,13 +215,12 @@ export async function POST(req: NextRequest) {
         }
 
         if (!resolvedDealershipId) {
-            console.warn(`[inbound] Cannot resolve dealership — To: ${To}, From: ${From}`)
+            console.warn(`[inbound] Cannot resolve dealership — To: ${To}, From: ${From}, PO: ${poRefEarly ?? 'none'}`)
             return NextResponse.json({ error: 'Dealer not identified' }, { status: 422 })
         }
 
-        // Extract PO reference from subject line e.g. "Delivery Note - PO-2026-001"
-        const poMatch = Subject?.match(/PO[-\s][\w\-]+/i)
-        const po_id   = poMatch ? poMatch[0].replace(/\s/g, '-').toUpperCase() : undefined
+        // Use the PO ref extracted earlier (already normalised)
+        const po_id = poRefEarly ?? undefined
 
         // Forward to goods-receipt handler
         // Use localhost for internal calls in dev to avoid SSL tunnel issues
@@ -194,7 +236,8 @@ export async function POST(req: NextRequest) {
             body: JSON.stringify({
                 dealership_id: resolvedDealershipId,
                 pdf_base64:    pdfAttachment?.Content ?? undefined,
-                pdf_text:      pdfAttachment ? undefined : TextBody,
+                // Always pass TextBody — used as fallback when PDF is image-based (scanned)
+                pdf_text:      TextBody || undefined,
                 vendor:        vendor?.name ?? senderDomain,
                 po_id,
                 received_by:   'postmark_inbound',
@@ -204,8 +247,48 @@ export async function POST(req: NextRequest) {
         const result = await grRes.json()
 
         // ── Push in-app notification to bell ──────────────────────────────────
-        const receiptId = (result.receipt_id as string) ?? ''
-        const poRef     = (result.po_id     as string) ?? ''
+        const receiptId      = (result.receipt_id             as string)  ?? ''
+        const poRef          = (result.po_id                  as string)  ?? ''
+        const poMatchStatus  = (result.po_match_status        as string)  ?? 'none'
+        const poRefFromNote  = (result.po_reference_from_note as string)  ?? ''
+        const poWasPartial   = (result.po_was_partial         as boolean) ?? false
+        const willCompletePo = (result.will_complete_po       as boolean) ?? false
+        const vendorLabel    = vendor?.name ?? senderDomain
+
+        let notifTitle:   string
+        let notifMessage: string
+
+        if (poMatchStatus === 'matched_closed') {
+            // PO already fully received — dealer needs to re-link
+            notifTitle   = `⚠️ Delivery received — PO already closed`
+            notifMessage = `${receiptId} · ${vendorLabel} · ${poRefFromNote} is already fully received. Tap to review and link to an open PO.`
+
+        } else if (poMatchStatus === 'unmatched') {
+            // PO ref in delivery note but not found in system
+            notifTitle   = `📦 Delivery received — PO not found`
+            notifMessage = `${receiptId} · ${vendorLabel} · PO reference "${poRefFromNote}" was not found in the system. Review and link manually.`
+
+        } else if (poWasPartial && willCompletePo) {
+            // PO was Partial and this delivery fulfils all remaining backorders
+            notifTitle   = `✅ Backorder fulfilled — ${vendorLabel}`
+            notifMessage = `${receiptId} · All remaining items for ${poRef} have arrived. Approve to mark PO as fully received.`
+
+        } else if (poWasPartial) {
+            // PO was Partial but still has outstanding backorders after this delivery
+            notifTitle   = `📦 Partial delivery — ${vendorLabel}`
+            notifMessage = `${receiptId} · ${poRef} · Some backorders still outstanding after this delivery. Review in Goods Receipts.`
+
+        } else if (poMatchStatus === 'matched_open' && !willCompletePo) {
+            // First delivery for this PO but not everything shipped — PO now Partial
+            notifTitle   = `📦 Partial shipment received — ${vendorLabel}`
+            notifMessage = `${receiptId} · ${poRef} · Not all ordered items were shipped. PO marked as Partial — backorder pending.`
+
+        } else {
+            // Full delivery, fallback match, or no PO
+            notifTitle   = `📦 Delivery received — ${vendorLabel}`
+            notifMessage = `${receiptId} · ${poRef ? `PO: ${poRef} · ` : ''}Pending your approval — review in Goods Receipts.`
+        }
+
         fetch(`${baseUrl}/api/notifications/add`, {
             method:  'POST',
             headers: {
@@ -215,8 +298,8 @@ export async function POST(req: NextRequest) {
             body: JSON.stringify({
                 dealership_id: resolvedDealershipId,
                 type:    'system',
-                title:   `📦 Delivery received — ${vendor?.name ?? senderDomain}`,
-                message: `${receiptId} · ${poRef ? `PO: ${poRef} · ` : ''}Pending your approval — review in Goods Receipts.`,
+                title:   notifTitle,
+                message: notifMessage,
                 href:    `/goods-receipts?receipt=${receiptId}`,
             }),
         }).catch((e) => console.warn('[inbound] in-app notify failed:', e))
