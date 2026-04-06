@@ -1,0 +1,1077 @@
+{
+  "common": {
+    "appName": "BikeMeNow",
+    "version": "v3.0",
+    "signOut": "Afmelden",
+    "admin": "Beheerder",
+    "sales": "Verkoop",
+    "service": "Service",
+    "user": "Gebruiker",
+    "comingSoon": "Binnenkort beschikbaar",
+    "verifiedIdentity": "Geverifieerde identiteit",
+    "populationVerified": "Bevolkingsregister geverifieerd",
+    "address": "Adres",
+    "dateOfBirth": "Geboortedatum",
+    "gender": "Geslacht",
+    "protectedIdentity": "Beschermde identiteit",
+    "protectedIdentityYes": "Ja — behandel met zorg",
+    "privacyPolicy": "Privacybeleid",
+    "terms": "Voorwaarden"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "inventory": "Voorraad",
+    "purchaseOrders": "Inkooporders",
+    "goodsReceipts": "Goederenontvangsten",
+    "suppliers": "Leveranciers",
+    "purchaseinvoices": "Inkoopfacturen",
+    "salesPipeline": "Verkooppijplijn",
+    "pipeline": "Pijplijn",
+    "customers": "Klanten",
+    "invoices": "Verkoopfacturen",
+    "documents": "Documenten",
+    "analytics": "Analyses",
+    "settings": "Instellingen",
+    "users": "Gebruikers",
+    "offer": "Offerte",
+    "accounting": "Boekhouding",
+    "auditLog": "Auditlogboek",
+    "service": "Service",
+    "subscribedDealer": "Geabonneerde dealer",
+    "groups": {
+      "core": "KERN",
+      "sales": "VERKOOP",
+      "admin": "BEHEER"
+    }
+  },
+  "login": {
+    "title": "Welkom terug",
+    "subtitle": "Meld u aan bij uw BikeMeNow-werkruimte",
+    "signInWithBankID": "Aanmelden met BankID",
+    "recommended": "Aanbevolen — Geen wachtwoord nodig",
+    "or": "of",
+    "emailAddress": "E-mailadres",
+    "password": "Wachtwoord",
+    "rememberDevice": "Dit apparaat onthouden",
+    "forgotPassword": "Wachtwoord vergeten?",
+    "signIn": "Aanmelden",
+    "noAccount": "Nog geen account?",
+    "signUp": "Registreren",
+    "security": "256-bit SSL versleuteld • GDPR-conform",
+    "branding": {
+      "tagline": "Dealership Intelligence Platform",
+      "zeroInput": "Geen handmatige invoer",
+      "zeroInputDesc": "AI verzorgt de gegevensinvoer zodat u kunt verkopen",
+      "secured": "BankID beveiligd",
+      "securedDesc": "Zweedse standaard digitale identiteit",
+      "analytics": "Realtime analyses",
+      "analyticsDesc": "Live dashboards en AI-inzichten",
+      "dealers": "Gebouwd voor MC-dealers",
+      "dealersDesc": "Gericht op Zweedse motorfietsdealers",
+      "copyright": "© 2026 BikeMeNow.com. Alle rechten voorbehouden.",
+      "security": "256-bit versleuteld • GDPR-conform • Zweeds hosting"
+    }
+  },
+  "redirecting": "Doorsturen naar aanmelden...",
+  "newLead": {
+    "breadcrumb": {
+      "sales": "Verkoop",
+      "newLead": "Nieuwe lead"
+    },
+    "title": "Nieuwe lead aanmaken",
+    "identifyCustomer": "Klant identificeren",
+    "identifyCustomerDesc": "Kies hoe u de klant wilt identificeren",
+    "tabs": {
+      "bankid": "BankID (aanbevolen)",
+      "manual": "Handmatig",
+      "phone": "Telefoon opzoeken"
+    },
+    "successBanner": "Geïdentificeerd via BankID — {name} ({personalNumber})",
+    "genderOptions": {
+      "male": "Man",
+      "female": "Vrouw"
+    },
+    "fields": {
+      "name": "Naam",
+      "address": "Adres",
+      "dateOfBirth": "Geboortedatum",
+      "gender": "Geslacht",
+      "email": "E-mail",
+      "phone": "Telefoon",
+      "source": "Bron",
+      "notes": "Notities",
+      "interest": "Interesse",
+      "dealValue": "Dealwaarde (kr)"
+    },
+    "badges": {
+      "bankid": "BankID",
+      "registration": "Registratie",
+      "manual": "Handmatig"
+    },
+    "sourceOptions": {
+      "walkin": "Inloper",
+      "phone": "Telefoon",
+      "website": "Website",
+      "referral": "Aanbeveling"
+    },
+    "placeholders": {
+      "email": "lars@example.se",
+      "phone": "076-123 4567",
+      "notes": "Geïnteresseerd in sportmotoren, budget ~90-150k",
+      "interest": "Kawasaki Ninja ZX-6R",
+      "dealValue": "bijv. 150000"
+    },
+    "autoFilled": "80% automatisch ingevuld",
+    "gdprConsent": "De klant stemt in met de verwerking van persoonsgegevens conform ons",
+    "privacyPolicyLink": "privacybeleid",
+    "submitButton": "Lead aanmaken",
+    "sidebar": {
+      "title": "BankID + Roaring.io verrijking",
+      "bankidInfo": "BankID → Naam + burgerservicenummer (geverifieerd)",
+      "roaringInfo": "Roaring.io → Adres, postcode, stad, geslacht (SPAR)",
+      "manualInfo": "Handmatig → E-mail, telefoon (aan klant vragen)",
+      "existingCustomer": "Bestaande klant: Nee (nieuw in systeem)",
+      "protectedIdentity": "Beschermde identiteit: Nee",
+      "highIntent": "Inloper + BankID = 92% hoge intentie",
+      "matchingVehicles": "Overeenkomende voertuigen",
+      "basedOn": "Gebaseerd op budget 90-150k en sportinteresse",
+      "testEnv": "BankID testomgeving"
+    }
+  },
+  "dashboard": {
+    "loading": "Laden...",
+    "welcome": "Welkom terug, {name}!",
+    "subtitle": "Dit is wat er vandaag bij uw dealership gebeurt.",
+    "happeningToday": "Dit is wat er vandaag bij uw dealership gebeurt.",
+    "greeting": {
+      "morning": "Goedemorgen",
+      "afternoon": "Goedemiddag",
+      "evening": "Goedenavond"
+    },
+    "newLead": "＋ Nieuwe lead",
+    "vsLastMonth": "vs vorige maand",
+    "revenueTrend": "Omzettrend",
+    "revenueTrendSub": "Laatste 6 maanden · kr (duizenden)",
+    "vsLastYear": "↑ 22% vs vorig jaar",
+    "salesFunnel": "Verkooptrechter",
+    "salesFunnelSub": "Actieve leads per fase",
+    "openPipeline": "Open pijplijn →",
+    "funnelStages": {
+      "new": "Nieuw",
+      "contacted": "Gecontacteerd",
+      "testRide": "Proefrit",
+      "negotiating": "Onderhandelen",
+      "closed": "Afgesloten"
+    },
+    "stats": {
+      "activeLeads": "Actieve leads",
+      "inStock": "Op voorraad",
+      "inventory": "Voorraad",
+      "revenueKr": "Omzet (kr)",
+      "revenue": "Omzet",
+      "customers": "Klanten",
+      "new": "nieuw",
+      "today": "vandaag",
+      "thisMonth": "Deze maand",
+      "percentIncrease": "+{percent}%"
+    },
+    "quickActions": {
+      "title": "Snelle acties",
+      "newLead": "Nieuwe lead",
+      "newLeadDesc": "Inloper of telefoontje toevoegen",
+      "addInventory": "Voorraad toevoegen",
+      "addInventoryDesc": "Nieuw voertuig registreren",
+      "addVehicle": "Voertuig toevoegen",
+      "addVehicleDesc": "Uw voorraad bijwerken",
+      "purchaseOrder": "Inkooporder",
+      "purchaseOrderDesc": "Bestellen bij leverancier"
+    },
+    "recentLeads": {
+      "title": "Recente leads",
+      "viewAll": "Alle bekijken →",
+      "hot": "Heet",
+      "warm": "Warm",
+      "cold": "Koud",
+      "hoursAgo": "{hours} uur geleden",
+      "daysAgo": "{days} dag geleden"
+    },
+    "topSelling": {
+      "title": "Best verkopend",
+      "sold": "verkocht",
+      "thisMonth": "Deze maand",
+      "sales": "{count} verkopen"
+    }
+  },
+  "signup": {
+    "title": "Account aanmaken",
+    "subtitle": "Sluit u aan bij BikeMeNow en stroomlijn uw dealership",
+    "signUpWithBankID": "Registreren met BankID",
+    "recommended": "Aanbevolen — Directe verificatie",
+    "or": "of",
+    "fullName": "Volledige naam",
+    "emailAddress": "E-mailadres",
+    "dealershipName": "Naam dealership",
+    "password": "Wachtwoord",
+    "confirmPassword": "Wachtwoord bevestigen",
+    "passwordMinLength": "Minimaal 8 tekens",
+    "passwordsMatch": "✅ Wachtwoorden komen overeen!",
+    "passwordsDoNotMatch": "❌ Wachtwoorden komen niet overeen",
+    "agreeToTerms": "Ik ga akkoord met de",
+    "termsOfService": "Servicevoorwaarden",
+    "and": "en",
+    "privacyPolicy": "Privacybeleid",
+    "createAccount": "Account aanmaken",
+    "security": "🔒 256-bit SSL versleuteld • GDPR-conform",
+    "alreadyHaveAccount": "Al een account?",
+    "signIn": "Aanmelden",
+    "branding": {
+      "tagline": "Dealership Intelligence Platform",
+      "getStartedFree": "Gratis beginnen",
+      "getStartedFreeDesc": "Geen creditcard vereist",
+      "setupQuick": "Instellen in 2 minuten",
+      "setupQuickDesc": "Snelle registratie met BankID",
+      "dealers": "Gebouwd voor MC-dealers",
+      "dealersDesc": "Gericht op Zweedse motorfietsdealers",
+      "secureCompliant": "Veilig & conform",
+      "secureCompliantDesc": "GDPR-conform met Zweeds hosting",
+      "copyright": "© 2026 BikeMeNow.com. Alle rechten voorbehouden.",
+      "security": "256-bit versleuteld • GDPR-conform • Zweeds hosting"
+    },
+    "alerts": {
+      "passwordsDontMatch": "Wachtwoorden komen niet overeen!",
+      "passwordTooShort": "Het wachtwoord moet minimaal 8 tekens lang zijn!",
+      "mustAgreeToTerms": "U moet akkoord gaan met de Servicevoorwaarden en het Privacybeleid!"
+    }
+  },
+  "resetPassword": {
+    "title": "Nieuw wachtwoord instellen",
+    "subtitle": "Voer hieronder uw nieuwe wachtwoord in. Maak het sterk en gedenkwaardig!",
+    "newPassword": "Nieuw wachtwoord",
+    "confirmNewPassword": "Nieuw wachtwoord bevestigen",
+    "minLength": "Minimaal 8 tekens",
+    "passwordsMatch": "✅ Wachtwoorden komen overeen!",
+    "passwordsDoNotMatch": "❌ Wachtwoorden komen niet overeen",
+    "resetButton": "Wachtwoord opnieuw instellen",
+    "backToSignIn": "Terug naar aanmelden",
+    "security": "🔒 256-bit SSL versleuteld • GDPR-conform",
+    "branding": {
+      "tagline": "Dealership Intelligence Platform",
+      "strongPassword": "Sterk wachtwoord",
+      "strongPasswordDesc": "Minimaal 8 tekens vereist",
+      "confirmationMatch": "Bevestiging overeenkomst",
+      "confirmationMatchDesc": "Beide wachtwoorden moeten overeenkomen",
+      "secureHash": "Veilige hash",
+      "secureHashDesc": "Wachtwoorden worden versleuteld en nooit als platte tekst opgeslagen",
+      "immediateEffect": "Onmiddellijk effect",
+      "immediateEffectDesc": "Nieuw wachtwoord werkt direct",
+      "copyright": "© 2026 BikeMeNow.com. Alle rechten voorbehouden.",
+      "security": "256-bit versleuteld • GDPR-conform • Zweeds hosting"
+    },
+    "alerts": {
+      "passwordsDontMatch": "Wachtwoorden komen niet overeen",
+      "passwordTooShort": "Het wachtwoord moet minimaal 8 tekens lang zijn"
+    }
+  },
+  "customers": {
+    "title": "Klanten",
+    "searchPlaceholder": "Klanten zoeken…",
+    "addWithBankID": "🔒 Identificeren met BankID",
+    "addManuallyTitle": "Klant handmatig toevoegen",
+    "export": "Exporteren",
+    "tabs": {
+      "all": "Alle",
+      "active": "Actief",
+      "vip": "VIP",
+      "bankid": "BankID ✓",
+      "inactive": "Inactief"
+    },
+    "table": {
+      "name": "Naam",
+      "email": "E-mail",
+      "phone": "Telefoon",
+      "source": "Bron",
+      "vehicles": "Voertuigen",
+      "lifetimeValue": "Levenslange waarde",
+      "lastActivity": "Laatste activiteit",
+      "tags": "Labels",
+      "noResults": "Geen klanten gevonden",
+      "showing": "{count} klanten weergegeven"
+    },
+    "sourceBadge": {
+      "manual": "Handmatig"
+    },
+    "stats": {
+      "totalCustomers": "Totaal klanten",
+      "bankidVerified": "BankID geverifieerd",
+      "bankidShare": "BankID aandeel",
+      "protected": "Beschermd",
+      "unverified": "Niet geverifieerd"
+    },
+    "new": {
+      "breadcrumb": "Nieuwe klant",
+      "title": "Nieuwe klant toevoegen",
+      "subtitle": "Kies hoe u de klant wilt identificeren",
+      "cancel": "Annuleren",
+      "bankIDOption": {
+        "title": "Identificeren met BankID",
+        "desc": "Automatisch invullen van naam en adres uit het bevolkingsregister. Aanbevolen.",
+        "verifiedTag": "Geverifieerde identiteit",
+        "autoFillTag": "Automatisch ingevuld adres"
+      },
+      "manualOption": {
+        "title": "Handmatig invullen",
+        "desc": "Voer de gegevens van de klant handmatig in. Geen BankID vereist.",
+        "unverifiedTag": "Niet geverifieerd",
+        "allManualTag": "Alle velden handmatig"
+      },
+      "scanning": {
+        "title": "Klant identificeren",
+        "subtitle": "Vraag de klant de QR-code te scannen met de BankID-app",
+        "clickStart": "Klik op \"BankID starten\"\nom QR-code te tonen",
+        "qrAutoUpdate": "De QR-code wordt automatisch bijgewerkt",
+        "startBankID": "⏳ Start de BankID-app en scan de QR-code...",
+        "openOnDevice": "📱 Open BankID op dit apparaat",
+        "back": "← Terug",
+        "useManual": "In plaats daarvan handmatig invullen",
+        "howItWorks": "Hoe het werkt",
+        "dataSources": "Gegevensbronnen",
+        "step1Title": "BankID scant",
+        "step1Desc": "Verifieert burgerservicenummer + naam",
+        "step2Title": "Roaring.io haalt op",
+        "step2Desc": "Adres, postcode, stad uit het bevolkingsregister",
+        "step3Title": "U vult in",
+        "step3Desc": "E-mail + telefoon (nooit in register)",
+        "step4Title": "Bestaande klant?",
+        "step4Desc": "Laadt automatisch het volledige profiel",
+        "source1": "BankID — Naam, burgerservicenummer (geverifieerd)",
+        "source2": "Roaring.io — Adres, postcode, stad, geslacht, geboortedatum",
+        "source3": "Handmatig — E-mail, telefoon (altijd aan klant vragen)"
+      },
+      "manual": {
+        "title": "Nieuwe klant — Handmatige registratie",
+        "subtitle": "Vul de gegevens van de klant in. Niet geverifieerd via BankID.",
+        "useBankIDInstead": "🔒 Gebruik in plaats daarvan BankID",
+        "personalInfo": "Persoonlijke informatie",
+        "contact": "Contactgegevens",
+        "addressSection": "Adres",
+        "streetAddress": "Straatnaam en huisnummer",
+        "postalCode": "Postcode",
+        "city": "Stad",
+        "notesSection": "Overig",
+        "notesLabel": "Notities",
+        "notesPlaceholder": "Eventuele notities over de klant...",
+        "genderMale": "Man",
+        "genderFemale": "Vrouw",
+        "genderOther": "Anders",
+        "warningNotVerified": "Handmatig geregistreerde klanten zijn niet geverifieerd via BankID. De identiteit is niet bevestigd. Overweeg de klant bij het volgende bezoek te verifiëren via BankID.",
+        "saveCustomer": "Klant opslaan"
+      },
+      "bankIDFlow": {
+        "identifiedBannerSub": "Burgerservicenummer geverifieerd • Adres opgehaald uit bevolkingsregister",
+        "autoFilledTitle": "Nieuwe klant — Automatisch ingevuld",
+        "autoFilledSubtitle": "Basisgegevens automatisch opgehaald. Vul e-mail en telefoon in.",
+        "verifiedSection": "🔒 GEVERIFIEERD VIA BANKID",
+        "roaringSection": "📋 BEVOLKINGSREGISTER (ROARING.IO / SPAR)",
+        "manualSection": "✏️ HANDMATIG INVULLEN (niet beschikbaar in register)",
+        "unavailable": "Niet beschikbaar",
+        "male": "Man",
+        "female": "Vrouw",
+        "saveCustomer": "Klant opslaan"
+      },
+      "returning": {
+        "identified": "Geïdentificeerd via BankID — Profiel automatisch geladen. Laatste bezoek: {date}.",
+        "quickActions": "Snelle acties",
+        "newQuote": "Nieuwe offerte",
+        "createLead": "Lead aanmaken",
+        "bookTestRide": "Proefrit boeken",
+        "viewProfile": "Profiel bekijken",
+        "vehicles": "Voertuigen",
+        "lifetimeValue": "Levenslange waarde",
+        "purchases": "Aankopen",
+        "outstanding": "Openstaand"
+      },
+      "protected": {
+        "bannerTitle": "Beschermde identiteit (Geheimhoudingsmarkering)",
+        "bannerDesc": "Adres KAN NIET automatisch worden opgehaald. Vraag de klant hun gegevens zelf in te vullen.",
+        "title": "Nieuwe klant — Beschermde identiteit",
+        "addressBlocked": "🛡 ADRES GEBLOKKEERD — BESCHERMDE IDENTITEIT",
+        "addressBlockedDesc": "Roaring.io heeft protectedRegistration: true geretourneerd. Adres niet beschikbaar.",
+        "confirmCheckbox": "Ik bevestig dat de klant deze gegevens zelf heeft verstrekt"
+      },
+      "summary": {
+        "title": "Samenvatting automatisch invullen",
+        "bankidVerified": "BankID (geverifieerd)",
+        "bankidSub": "Voornaam, achternaam, burgerservicenummer",
+        "roaringData": "Roaring.io / SPAR",
+        "roaringSub": "Adres, postcode, stad, geboortedatum, geslacht",
+        "manualInput": "Handmatige invoer",
+        "manualSub": "E-mail, telefoon (nooit in register)",
+        "fields": "{count} velden",
+        "autoFilled": "80% automatisch ingevuld (8 van 10 velden)",
+        "bankidVerification": "🔒 BankID verificatie",
+        "signatureLabel": "Handtekening:",
+        "signatureStored": "opgeslagen (base64 XML)",
+        "ocspLabel": "OCSP:",
+        "ocspStored": "opgeslagen (geldig)",
+        "riskLabel": "Risico:",
+        "riskLow": "Laag",
+        "ipLabel": "IP:",
+        "signatureNote": "Handtekening + OCSP opgeslagen voor elke verificatie (juridisch bewijs)"
+      },
+      "savedToast": "Klant opgeslagen!",
+      "savedToastDesc": "De klant is toegevoegd aan het systeem."
+    },
+    "profile": {
+      "tabs": {
+        "overview": "Overzicht",
+        "vehicles": "Voertuigen",
+        "invoices": "Facturen",
+        "documents": "Documenten",
+        "timeline": "Tijdlijn",
+        "gdpr": "GDPR"
+      },
+      "contactInfo": "👤 Contactgegevens",
+      "bankidHistory": "🔒 BankID verificatiegeschiedenis",
+      "stats": "📊 Overzicht",
+      "recentActivity": "📋 Recente activiteit",
+      "noBankIDHistory": "Geen BankID geschiedenis",
+      "noActivity": "Nog geen activiteit",
+      "noVehicles": "Geen geregistreerde voertuigen",
+      "noInvoices": "Geen facturen",
+      "underDevelopment": "Deze sectie is in ontwikkeling.",
+      "gdprTab": {
+        "title": "GDPR — Beheer van persoonsgegevens",
+        "dataTitle": "Geregistreerde gegevens",
+        "name": "Naam & burgerservicenummer",
+        "address": "Adres, geslacht, geboortedatum",
+        "contact": "E-mail & telefoon",
+        "purchases": "Aankoopgeschiedenis ({n} facturen)",
+        "bankidLogs": "BankID verificaties ({n})",
+        "sourceBankID": "BankID",
+        "sourceSPAR": "Bevolkingsregister",
+        "sourceManual": "Handmatig",
+        "legalBasisTitle": "Juridische grondslag",
+        "legalBasis1": "Contract (koopovereenkomst) — GDPR Art. 6.1b",
+        "legalBasis2": "Boekhoudwet (7 jaar) — GDPR Art. 6.1c",
+        "legalBasis3": "Gerechtvaardigde belangen (klantrelatie) — GDPR Art. 6.1f",
+        "accessTitle": "Toegang & portabiliteit",
+        "accessDesc": "U heeft het recht om al uw gegevens in een machineleesbaar formaat te ontvangen.",
+        "exportBtn": "Exporteren als JSON",
+        "rectifyTitle": "Rectificatie",
+        "rectifyDesc": "Neem contact met ons op om onjuiste gegevens te corrigeren.",
+        "rectifyBtn": "Contact opnemen",
+        "deleteTitle": "Verwijdering",
+        "deleteDesc": "Gegevens gerelateerd aan koopovereenkomsten worden 7 jaar bewaard op grond van de boekhoudwet en kunnen voor die periode niet worden verwijderd.",
+        "deleteBtn": "Verzoek indienen",
+        "deleteSuccess": "Verzoek ontvangen. Wij reageren binnen 30 dagen.",
+        "imy": "Klachten kunnen worden gericht aan de Zweedse autoriteit voor gegevensbescherming (IMY) — imy.se",
+        "privacyLink": "Volledig privacybeleid"
+      },
+      "fields": {
+        "firstName": "Voornaam",
+        "lastName": "Achternaam",
+        "personalNumber": "Burgerservicenummer",
+        "address": "Adres",
+        "birthDate": "Geboortedatum",
+        "email": "E-mail",
+        "phone": "Telefoon",
+        "gender": "Geslacht",
+        "citizenship": "Nationaliteit",
+        "protectedIdentity": "Beschermde identiteit",
+        "yes": "Ja",
+        "no": "Nee",
+        "protectedAddressNote": "🛡️ Beschermd — niet beschikbaar"
+      },
+      "vehicleTable": {
+        "vehicle": "Voertuig",
+        "year": "Jaar",
+        "plate": "Kenteken",
+        "status": "Status"
+      },
+      "invoiceTable": {
+        "invoiceNo": "Factuurnr.",
+        "description": "Omschrijving",
+        "date": "Datum",
+        "amount": "Bedrag",
+        "status": "Status"
+      },
+      "dataSources": "Gegevensbronnen:",
+      "dataSourceLabels": {
+        "bankid": "BankID (geverifieerd)",
+        "roaring": "Roaring.io / SPAR (bevolkingsregister)",
+        "manual": "Handmatige invoer"
+      },
+      "actions": {
+        "newQuote": "Nieuwe offerte",
+        "gdprExport": "GDPR Export"
+      },
+      "notFound": "Klant niet gevonden",
+      "backToCustomers": "← Terug naar klanten"
+    }
+  },
+  "forgotPassword": {
+    "title": "Wachtwoord vergeten?",
+    "subtitle": "Geen zorgen! Voer uw e-mailadres in en we sturen u een resetlink.",
+    "emailAddress": "E-mailadres",
+    "emailPlaceholder": "naam@dealer.nl",
+    "sendButton": "Resetlink versturen",
+    "backToSignIn": "← Terug naar aanmelden",
+    "security": "🔒 256-bit SSL versleuteld • GDPR-conform",
+    "branding": {
+      "tagline": "Dealership Intelligence Platform",
+      "secureReset": "Veilig opnieuw instellen",
+      "secureResetDesc": "Wachtwoordherstel conform industriestandaard",
+      "emailVerification": "E-mailverificatie",
+      "emailVerificationDesc": "Resetlink verstuurd naar uw geregistreerde e-mail",
+      "expiry": "Verloopt na 15 minuten",
+      "expiryDesc": "Link verloopt voor de beveiliging",
+      "protectedAccess": "Beveiligde toegang",
+      "protectedAccessDesc": "Geen onbevoegde wachtwoordwijzigingen",
+      "copyright": "© 2026 BikeMeNow.com. Alle rechten voorbehouden.",
+      "security": "256-bit versleuteld • GDPR-conform • Zweeds hosting"
+    }
+  },
+  "emailSent": {
+    "title": "Controleer uw e-mail",
+    "subtitle": "We hebben een wachtwoord-resetlink gestuurd naar uw e-mailadres. Klik op de link in de e-mail om een nieuw wachtwoord aan te maken.",
+    "linkExpires": "⏱️ Link verloopt na 15 minuten",
+    "linkExpiresDesc": "Om veiligheidsredenen verloopt de resetlink na 15 minuten",
+    "didntReceive": "Geen e-mail ontvangen?",
+    "resendEmail": "E-mail opnieuw verzenden",
+    "backToSignIn": "← Terug naar aanmelden",
+    "security": "🔒 256-bit SSL versleuteld • GDPR-conform",
+    "branding": {
+      "tagline": "Dealership Intelligence Platform",
+      "checkInbox": "Controleer uw postvak",
+      "checkInboxDesc": "Resetlink verstuurd naar uw e-mail",
+      "validFor": "Geldig voor 15 minuten",
+      "validForDesc": "Klik op de link binnen 15 minuten",
+      "checkSpam": "Controleer de spammap",
+      "checkSpamDesc": "E-mail kan in de spam/ongewenste e-mail staan",
+      "didntReceiveIt": "Niet ontvangen?",
+      "didntReceiveItDesc": "Vraag na een paar minuten een nieuwe link aan",
+      "copyright": "© 2026 BikeMeNow.com. Alle rechten voorbehouden.",
+      "security": "256-bit versleuteld • GDPR-conform • Zweeds hosting"
+    }
+  },
+  "resetComplete": {
+    "title": "Wachtwoord opnieuw ingesteld!",
+    "subtitle": "Uw wachtwoord is succesvol opnieuw ingesteld. U kunt nu aanmelden met uw nieuwe wachtwoord.",
+    "successTitle": "Wachtwoord succesvol bijgewerkt",
+    "itemNewActive": "Nieuw wachtwoord is nu actief",
+    "itemOldInvalidated": "Oud wachtwoord is ongeldig gemaakt",
+    "itemCanSignIn": "U kunt direct aanmelden",
+    "goToSignIn": "Naar aanmelden",
+    "security": "🔒 256-bit SSL versleuteld • GDPR-conform",
+    "tip": "💡 Tip: Houd uw wachtwoord veilig en deel het niet met anderen. Overweeg voor extra beveiliging BankID te gebruiken voor toekomstige aanmeldingen.",
+    "branding": {
+      "tagline": "Dealership Intelligence Platform",
+      "passwordUpdated": "Wachtwoord bijgewerkt",
+      "passwordUpdatedDesc": "Uw nieuwe wachtwoord is nu actief",
+      "securelyEncrypted": "Veilig versleuteld",
+      "securelyEncryptedDesc": "256-bit versleuteling beschermt uw wachtwoord",
+      "readyToGo": "Klaar om te beginnen",
+      "readyToGoDesc": "Meld u aan met uw nieuwe wachtwoord",
+      "accountSecure": "Account beveiligd",
+      "accountSecureDesc": "Oud wachtwoord is niet langer geldig",
+      "copyright": "© 2026 BikeMeNow.com. Alle rechten voorbehouden.",
+      "security": "256-bit versleuteld • GDPR-conform • Zweeds hosting"
+    }
+  },
+  "leads": {
+    "breadcrumb": {
+      "sales": "Verkoop",
+      "pipeline": "Pijplijn"
+    },
+    "searchPlaceholder": "Leads zoeken…",
+    "newLead": "＋ Nieuwe lead",
+    "pipelineValue": "Pijplijnwaarde",
+    "noLeads": "Geen leads",
+    "addLead": "＋ Lead toevoegen",
+    "columns": {
+      "new": "Nieuw",
+      "contacted": "Gecontacteerd",
+      "testRide": "Proefrit",
+      "negotiating": "Onderhandelen",
+      "pendingPayment": "Betaling in behandeling",
+      "closed": "Afgesloten"
+    },
+    "status": {
+      "hot": "Heet",
+      "warm": "Warm",
+      "cold": "Koud"
+    }
+  },
+  "settings": {
+    "breadcrumb": "Beheer / Instellingen",
+    "title": "Instellingen",
+    "subtitle": "Configureer uw dealershipprofiel, integraties en systeemvoorkeuren.",
+    "comingSoon": "Binnenkort beschikbaar",
+    "sections": {
+      "payments": {
+        "title": "Betalingsproviders",
+        "desc": "Configureer Svea, Klarna, Swish, Nets en alle andere betaalmethoden voor uw dealership.",
+        "badge": "20 providers"
+      },
+      "profile": {
+        "title": "Dealershipprofiel",
+        "desc": "Bewerk uw bedrijfsnaam, adres, KvK-nummer, logo en contactgegevens.",
+        "badge": "Live"
+      },
+      "users": {
+        "title": "Gebruikers & rechten",
+        "desc": "Beheer personeelsaccounts, rollen (beheerder, verkoop, service) en toegangsniveaus.",
+        "badge": "Live"
+      },
+      "notifications": {
+        "title": "Meldingen",
+        "desc": "Stel e-mail- en sms-meldingen in voor nieuwe leads, ondertekende overeenkomsten en betalingen.",
+        "badge": "Live"
+      },
+      "integrations": {
+        "title": "Integraties",
+        "desc": "Verbind Fortnox, Blocket, Transportstyrelsen en verzekeringsaanbieders.",
+        "badge": "5 integraties"
+      },
+      "billing": {
+        "title": "Abonnement & facturering",
+        "desc": "Beheer uw abonnementsplan, facturen en betaalmethode.",
+        "badge": "Live"
+      }
+    },
+    "verify": {
+      "title": "Uw identiteit verifiëren",
+      "subtitle": "Bevestig uw identiteit voordat u toegang krijgt tot instellingen",
+      "recommended": "Aanbevolen",
+      "tabs": {
+        "bankid": "BankID",
+        "personnummer": "Burgerservicenummer",
+        "email": "E-mail"
+      },
+      "bankidDesc": "De veiligste en snelste methode. Scan met uw BankID-app.",
+      "bankidBtn": "BankID openen",
+      "pnrLabel": "Burgerservicenummer",
+      "pnrPlaceholder": "JJJJMMDD-XXXX",
+      "emailLabel": "E-mailadres",
+      "emailPlaceholder": "uw@email.com",
+      "verifyBtn": "Verifiëren",
+      "errorMismatch": "Onjuist — probeer opnieuw",
+      "errorNoData": "Niet gevonden — gebruik in plaats daarvan BankID"
+    }
+  },
+  "pages": {
+    "analytics": {
+      "title": "Analyses",
+      "desc": "Diepgaande rapporten over verkoopprestaties, voorraadrotatie en leadconversie."
+    },
+    "auditLog": {
+      "title": "Auditlogboek",
+      "desc": "Volledige activiteitsgeschiedenis — elke aanmelding, bewerking en transactie bij uw dealership."
+    },
+    "documents": {
+      "title": "Documenten",
+      "desc": "Sla contracten, servicerecords en nalevingsdocumenten op en beheer ze."
+    },
+    "inventory": {
+      "title": "Voorraad",
+      "desc": "Blader door uw motorfietsvoorraad, voeg nieuwe voertuigen toe en volg de beschikbaarheid."
+    },
+    "invoices": {
+      "title": "Facturen",
+      "desc": "Maak facturen aan, verstuur ze en volg ze op voor verkoop en servicewerk."
+    },
+    "purchaseOrders": {
+      "title": "Inkooporders",
+      "desc": "Beheer leveranciersorders, volg leveringen en verzorg de inkoop voor uw dealership."
+    },
+    "users": {
+      "title": "Gebruikers",
+      "desc": "Beheer personeelsaccounts, rollen en rechten voor uw dealership."
+    }
+  },
+  "agreement": {
+    "breadcrumb": {
+      "sales": "Verkoop",
+      "agreement": "Overeenkomst"
+    },
+    "title": "Koopovereenkomst aanmaken",
+    "editingBadge": "Bewerken",
+    "autopopulated": "Alle velden automatisch ingevuld vanuit geaccepteerde offerte {offerNumber} — geen handmatige invoer vereist",
+    "sections": {
+      "details": "Overeenkomstdetails",
+      "legal": "Juridische naleving",
+      "security": "Documentbeveiliging"
+    },
+    "fields": {
+      "agreementNumber": "Overeenkomstnr.:",
+      "customer": "Klant:",
+      "vehicle": "Voertuig:",
+      "vin": "VIN:",
+      "registrationNumber": "Kenteken:",
+      "accessories": "Accessoires:",
+      "tradeIn": "Inruil:",
+      "totalPrice": "Totaalprijs:",
+      "financing": "Financiering:",
+      "totalCreditCost": "Totale kredietkosten"
+    },
+    "badges": {
+      "auto": "Automatisch",
+      "fromOffer": "Van offerte",
+      "calculated": "Berekend"
+    },
+    "placeholders": {
+      "fullName": "Volledige naam",
+      "personnummer": "Burgerservicenummer",
+      "vehicleModel": "Jaar Merk Model",
+      "vin": "17-teken VIN",
+      "registrationNumber": "bijv. ABC 123",
+      "accessories": "bijv. Akrapovic + Tankpad",
+      "vehicleMakeModel": "Voertuigmerk/-model"
+    },
+    "legal": {
+      "consumerAct": "Zweedse consumentenaankoopwet",
+      "returnPolicy": "14 dagen retourbeleid inbegrepen",
+      "gdpr": "GDPR-gegevensverwerkingsclausule",
+      "vat": "BTW correct toegepast (25%)",
+      "fskattebevis": "F-skattebevis referentie",
+      "warranty": "Garantievoorwaarden inbegrepen"
+    },
+    "docSecurity": {
+      "beforeSigning": "Vóór ondertekening:",
+      "afterBankID": "Na BankID:",
+      "auditTrail": "Auditspoor:",
+      "retention": "Bewaring:",
+      "editable": "Bewerkbaar",
+      "locked": "Vergrendeld & onveranderlijk",
+      "everyChange": "Elke wijziging gelogd",
+      "encrypted": "7 jaar versleuteld"
+    },
+    "unsavedChanges": "Wijzigingen nog niet opgeslagen",
+    "vatNote": "incl. 25% BTW",
+    "actions": {
+      "saveChanges": "Wijzigingen opslaan",
+      "cancel": "Annuleren",
+      "editAgreement": "Overeenkomst bewerken",
+      "proceedToSigning": "Doorgaan naar ondertekening"
+    },
+    "progress": {
+      "step0": "Overeenkomst",
+      "step1": "Voorbeeld",
+      "step2": "Ondertekening",
+      "step3": "Betaling",
+      "step4": "Voltooid"
+    },
+    "sign": {
+      "breadcrumbSigning": "BankID ondertekening",
+      "signingStatus": "Ondertekeningsstatus",
+      "bothMustSign": "Beide partijen moeten ondertekenen met BankID",
+      "customerSigDone": "Klanthandtekening — Klaar",
+      "customerSig": "Klanthandtekening",
+      "waiting": "Wachten",
+      "identityVerified": "Identiteit geverifieerd",
+      "legallyBinding": "Juridisch bindend",
+      "customerSignsFirst": "De klant ondertekent de overeenkomst eerst",
+      "signAsCustomer": "Ondertekenen als klant",
+      "dealerSigDone": "Dealerhandtekening — Klaar",
+      "dealerSigPending": "Dealerhandtekening — In behandeling",
+      "dealerSig": "Dealerhandtekening",
+      "waitingForCustomer": "Wachten op klant",
+      "dealerOpenBankID": "Dealer ondertekent — open de BankID-app",
+      "signAsDealer": "Ondertekenen als dealer",
+      "waitingForCustomerSig": "Wachten op klanthandtekening…",
+      "bothSignedProcessing": "Beide partijen ondertekend — automatisering verwerken…",
+      "automationNote": "⚡ Na beide handtekeningen: 10 automatische acties worden onmiddellijk uitgevoerd (factuur, betalingsplan, levering…)",
+      "signedAt": "Ondertekend:"
+    },
+    "signed": {
+      "breadcrumbSigning": "Ondertekening",
+      "breadcrumbTitle": "Ondertekende overeenkomst",
+      "title": "Ondertekende overeenkomst:",
+      "subtitle": "Beide partijen hebben ondertekend — de overeenkomst is juridisch bindend",
+      "docTitle": "Koopovereenkomst",
+      "fullySigned": "Volledig ondertekend",
+      "buyerSig": "Handtekening koper (BankID)",
+      "sellerSig": "Handtekening verkoper (BankID)",
+      "signedAt": "✓ Ondertekend:",
+      "footer": "Deze overeenkomst valt onder het Zweedse recht. Elektronisch ondertekend via BankID.",
+      "back": "← Terug",
+      "downloadPDF": "⬇ PDF downloaden",
+      "sendToCustomer": "📤 Versturen naar klant",
+      "goToPayment": "Naar betaling →",
+      "sendPanelTitle": "Ondertekende overeenkomst versturen naar klant",
+      "noContact": "Geen contactgegevens gevonden. Contactgegevens worden opgeslagen wanneer een lead wordt aangemaakt via Nieuwe lead."
+    },
+    "complete": {
+      "successTitle": "Overeenkomst ondertekend door beide partijen! 🎉",
+      "cascadeHeader": "⚡ AUTOMATISERINGSCASCADE — 10 ACTIES IN 2 SECONDEN ⚡",
+      "allDone": "Alle 10 acties voltooid in totaal 1,8 seconden",
+      "back": "← Terug naar pijplijn",
+      "download": "⬇ Ondertekende overeenkomst downloaden",
+      "viewDelivery": "Levering bekijken →",
+      "viewInvoice": "Factuur bekijken →"
+    },
+    "preview": {
+      "breadcrumbPreview": "Voorbeeld",
+      "title": "Voorbeeld:",
+      "contractTitle": "Koopovereenkomst — Motorfiets",
+      "termsTitle": "Algemene voorwaarden",
+      "buyerSig": "Handtekening koper:",
+      "sellerSig": "Handtekening verkoper:",
+      "footer": "Deze overeenkomst valt onder het Zweedse recht. Consumentenkredietwet 2010:1846 · Consumentenaankoopwet 2022:260 · Wet op afstandscontracten 2005:59",
+      "back": "← Bewerken",
+      "downloadDisabled": "🔒 PDF downloaden",
+      "downloadTooltip": "Beschikbaar nadat beide partijen hebben ondertekend met BankID",
+      "sendForSigning": "Versturen voor BankID-ondertekening →"
+    }
+  },
+  "privacy": {
+    "title": "Privacybeleid",
+    "subtitle": "Hoe {dealerName} uw persoonsgegevens verwerkt",
+    "lastUpdated": "Laatst bijgewerkt: 6 maart 2026",
+    "s1title": "Verwerkingsverantwoordelijke",
+    "s1body": "{dealerName}, org.nr {orgNr}, {city}. Contact voor vragen over gegevensbescherming: {email}",
+    "s2title": "Welke gegevens verzamelen wij?",
+    "s2body": "BankID: naam, burgerservicenummer, tijdstempel handtekening, OCSP-verificatie. Roaring.io / SPAR (Zweeds bevolkingsregister): geregistreerd adres, geslacht, geboortedatum, markering beschermde identiteit. Handmatig: e-mailadres, telefoonnummer. Aankoopgeschiedenis: contracten, facturen, voertuigen (merk, model, VIN, kenteken).",
+    "s3title": "Juridische grondslag (GDPR Art. 6)",
+    "s3body": "Uitvoering van overeenkomst (6.1b): verwerking noodzakelijk voor de uitvoering van een koopovereenkomst. Wettelijke verplichting (6.1c): boekhouding (Bokföringslagen 7 jaar), anti-witwascontroles. Gerechtvaardigde belangen (6.1f): klantrelatiebeheer, kredietbeoordeling. Toestemming (6.1a): marketingcommunicatie — altijd intrekbaar.",
+    "s4title": "Hoe lang bewaren wij uw gegevens?",
+    "s4body": "Transactiegegevens (contracten, facturen): 7 jaar (Bokföringslagen). Klantprofiel: voor de duur van de klantrelatie + 3 jaar. BankID-logboeken: 5 jaar. Leads zonder aankoop: 1 jaar.",
+    "s5title": "Met wie delen wij gegevens?",
+    "s5body": "BankID AB (Bankgirot) — identiteitsverificatie. Roaring Technologies AB — SPAR bevolkingsregisterzoekopdrachten. Betalingsdienstaanbieders: Svea, Klarna, Swish, Nets en anderen afhankelijk van de gekozen betaalmethode. Fortnox AB — boekhoudintegratie. Transportstyrelsen (Zweeds transportagentschap) — registratie voertuigeigendom.",
+    "s6title": "Uw rechten",
+    "s6body": "U heeft het recht op: toegang tot uw gegevens, rectificatie van onjuiste gegevens, verwijdering (onder voorbehoud van de 7-jaar bewaarplicht van Bokföringslagen), beperking van de verwerking, gegevensoverdraagbaarheid (export in machineleesbaar formaat), bezwaar tegen verwerking op basis van gerechtvaardigde belangen. Verzoeken indienen via: {email}",
+    "s7title": "Geautomatiseerde beslissingen",
+    "s7body": "BankID-risicoclassificatie (Laag/Gemiddeld/Hoog) wordt alleen gebruikt als adviesindicator. Het is niet juridisch bindend en kan worden betwist door contact met ons op te nemen.",
+    "s8title": "Cookies",
+    "s8body": "Wij gebruiken alleen strikt noodzakelijke cookies: een sessiecookie voor authenticatie en een taalcookie voor taalvoorkeur. Er worden geen tracking- of marketingcookies gebruikt.",
+    "s9title": "Klachten",
+    "s9body": "Als u bezwaren heeft over de manier waarop wij uw gegevens verwerken, heeft u het recht een klacht in te dienen bij de Zweedse autoriteit voor gegevensbescherming (Integritetsskyddsmyndigheten, IMY), Box 8114, 104 20 Stockholm, www.imy.se.",
+    "s10title": "Contact",
+    "s10body": "{email} · {dealerName} · Org.nr {orgNr} · {city}"
+  },
+  "terms": {
+    "title": "Servicevoorwaarden",
+    "subtitle": "BikeMeNow — Dealershippaltform door {dealerName}",
+    "lastUpdated": "Laatst bijgewerkt: 6 maart 2026",
+    "s1title": "De service",
+    "s1body": "BikeMeNow is een SaaS-platform voor motorfietsdealers geregistreerd in Zweden met een geldig F-belastingcertificaat (F-skattebevis). De service omvat CRM, leadbeheer, koopovereenkomsten en betalingsintegraties.",
+    "s2title": "Geschiktheid",
+    "s2body": "Gebruik vereist een geregistreerd organisatienummer, een geldig F-belastingcertificaat en minimaal één beheerder geïdentificeerd via BankID. Door u te abonneren bevestigt u naleving van deze vereisten.",
+    "s3title": "Accounts en beveiliging",
+    "s3body": "De abonnee is verantwoordelijk voor alle activiteiten onder hun accountreferenties. BankID-authenticatie is vereist voor beheerdersacties. Informeer ons onmiddellijk bij onbevoegde toegang.",
+    "s4title": "Abonnement en betaling",
+    "s4body": "Alle prijzen zijn inclusief 25% BTW. Er is een gratis proefperiode van 14 dagen beschikbaar zonder betalingsverplichting. Facturering geschiedt maandelijks of jaarlijks. Opzegging moet minimaal 30 dagen voor de volgende factureringsperiode worden ingediend. Geen terugbetaling voor een reeds begonnen periode.",
+    "s5title": "Intellectueel eigendom",
+    "s5body": "De software en het ontwerp zijn eigendom van {dealerName}. Klantgegevens zijn eigendom van de abonnee en kunnen bij beëindiging worden geëxporteerd.",
+    "s6title": "Beperking van aansprakelijkheid",
+    "s6body": "{dealerName} is niet aansprakelijk voor indirecte schade, winstderving of systeemstoringen. De maximale aansprakelijkheid is beperkt tot 3 maanden abonnementskosten.",
+    "s7title": "Toepasselijk recht en geschillen",
+    "s7body": "Deze overeenkomst valt onder het Zweedse recht. Geschillen worden in eerste instantie verwezen naar het Zweedse nationaal bureau voor consumentengeschillen (ARN, www.arn.se). Bij gebrek aan oplossing worden geschillen beslecht door de rechtbank van Stockholm.",
+    "s8title": "Contact",
+    "s8body": "{email} · {dealerName} · Org.nr {orgNr} · {city}"
+  },
+  "notifications": {
+    "title": "Meldingen",
+    "breadcrumb": "Meldingen",
+    "subtitle": "Kies welke gebeurtenissen meldingen triggeren en via welke kanalen.",
+    "testButton": "Testmelding verzenden",
+    "save": "Opslaan",
+    "saving": "Opslaan…",
+    "saveAll": "Instellingen opslaan",
+    "back": "← Terug naar instellingen",
+    "columnEvent": "Gebeurtenis",
+    "infoTitle": "Realtime meldingen binnen het systeem",
+    "infoBody": "In-app meldingen verschijnen direct in het belpictogram in de zijbalk — geen paginaverversing nodig. E-mail en sms worden bezorgd via uw geconfigureerde afzenderadres en gateway wanneer de gebeurtenis plaatsvindt.",
+    "infoEmail": "E-mail wordt verzonden naar",
+    "smsNote": "Configureer sms-gateway onder Integraties",
+    "inAppNote": "✓ Altijd beschikbaar",
+    "testNotifTitle": "Testmelding",
+    "testNotifMessage": "Dit is een testmelding — het systeem werkt correct.",
+    "testToast": "Testmelding verzonden — open de bel in de zijbalk",
+    "saveToast": "Meldingsinstellingen opgeslagen",
+    "events": {
+      "newLead": {
+        "title": "Nieuwe lead",
+        "desc": "Wanneer een nieuwe lead wordt toegevoegd aan de pijplijn"
+      },
+      "agreementSigned": {
+        "title": "Overeenkomst ondertekend",
+        "desc": "Wanneer een koopovereenkomst door beide partijen is ondertekend via BankID"
+      },
+      "paymentReceived": {
+        "title": "Betaling ontvangen",
+        "desc": "Wanneer een betaling is bevestigd (Klarna, Swish, Svea, kaart, enz.)"
+      },
+      "newCustomer": {
+        "title": "Nieuwe klant",
+        "desc": "Wanneer een nieuwe klant wordt geregistreerd in het klantenregister"
+      }
+    },
+    "channels": {
+      "inApp": {
+        "label": "In-app",
+        "note": "Weergegeven in het meldingsbelpictogram direct in de navigatie"
+      },
+      "email": {
+        "label": "E-mail",
+        "note": "Verzonden naar uw geregistreerde e-mailadres"
+      },
+      "sms": {
+        "label": "SMS",
+        "note": "Verzonden naar uw geregistreerde mobiele nummer"
+      }
+    },
+    "bell": {
+      "title": "Meldingen",
+      "new": "nieuw",
+      "clearAll": "Alles wissen",
+      "settings": "Instellingen",
+      "empty": "Nog geen meldingen",
+      "emptyHint": "Gebeurtenissen verschijnen hier in realtime",
+      "total": "{count, plural, one {# melding totaal} other {# meldingen totaal}}",
+      "justNow": "Zojuist",
+      "minAgo": "{n} min geleden",
+      "hourAgo": "{n} uur geleden",
+      "dayAgo": "{n} dagen geleden"
+    },
+    "actions": {
+      "newLead": {
+        "title": "Nieuwe lead aangemaakt",
+        "interestedIn": "is geïnteresseerd in"
+      },
+      "agreementSigned": {
+        "title": "Overeenkomst ondertekend door beide partijen",
+        "signedBy": "Koopovereenkomst ondertekend door",
+        "and": "en",
+        "viaBankID": "via BankID"
+      },
+      "paymentConfirmed": {
+        "title": "Betaling bevestigd",
+        "via": "via"
+      }
+    }
+  },
+  "billing": {
+    "title": "Abonnement & facturering",
+    "breadcrumb": "Abonnement & facturering",
+    "subtitle": "Beheer uw plan, betaalmethode en bekijk facturen.",
+    "currentPlan": "Huidig plan",
+    "active": "Actief",
+    "planBasic": "Basis",
+    "planStandard": "Standaard",
+    "planPro": "Professioneel",
+    "month": "maand",
+    "year": "jaar",
+    "vatNote": "Alle prijzen zijn inclusief 25% BTW",
+    "nextBilling": "Volgende facturering",
+    "billingCycle": "Factureringscyclus",
+    "monthly": "Maandelijks",
+    "annual": "Jaarlijks",
+    "save20": "Bespaar 20%",
+    "planUpdatedToast": "Plan bijgewerkt naar",
+    "switchedToAnnual": "Overgeschakeld naar jaarlijkse facturering",
+    "switchedToMonthly": "Overgeschakeld naar maandelijkse facturering",
+    "choosePlan": "Plan wijzigen",
+    "popular": "Populair",
+    "currentBadge": "Huidig",
+    "selectPlan": "Plan selecteren",
+    "paymentMethod": "Betaalmethode",
+    "expires": "Verloopt",
+    "updateCard": "Kaartgegevens bijwerken",
+    "cardUpdateToast": "Kaartbijwerkformulier is beschikbaar in productie.",
+    "billingContact": "Factureringscontact",
+    "orgNumber": "Organisatienummer",
+    "vatNumber": "BTW-nummer",
+    "updateContact": "Factureringscontact bijwerken",
+    "contactUpdateToast": "Contactupdate beschikbaar in productie.",
+    "invoices": "Factuurgeschiedenis",
+    "invoiceCount": "facturen",
+    "invoiceNumber": "Factuur",
+    "invoiceDate": "Datum",
+    "invoiceAmount": "Bedrag",
+    "invoiceStatus": "Status",
+    "invoicePaid": "Betaald",
+    "downloadToast": "Downloaden",
+    "cancelZone": "Abonnement opzeggen",
+    "cancelDesc": "Opzegging wordt van kracht aan het einde van de huidige factureringsperiode. Uw gegevens worden 30 dagen na opzegging bewaard.",
+    "cancelButton": "Abonnement opzeggen",
+    "cancelToast": "Opzeggingsverzoek ingediend. Wij nemen binnen 24 uur contact met u op.",
+    "cancelConfirmTitle": "Abonnement opzeggen?",
+    "cancelConfirmDesc": "Uw toegang loopt door tot het einde van de factureringsperiode. Dit kan niet ongedaan worden gemaakt.",
+    "cancelBack": "Abonnement behouden",
+    "cancelConfirmButton": "Ja, opzeggen",
+    "f": {
+      "users3": "Tot 3 gebruikers",
+      "usersUnlimited": "Onbeperkt gebruikers",
+      "leads50": "50 leads / maand",
+      "leadsUnlimited": "Onbeperkt leads",
+      "bankid": "BankID digitaal ondertekenen",
+      "basicPayments": "Basisbetaalproviders",
+      "allPayments": "Alle betaalproviders",
+      "notifications": "Realtime meldingen",
+      "emailSupport": "E-mailondersteuning",
+      "api": "API-toegang",
+      "multiUser": "Rollen voor meerdere gebruikers",
+      "prioritySupport": "Prioriteitsondersteuning"
+    }
+  },
+  "invoices": {
+    "breadcrumb": "Facturen",
+    "title": "Factuurbeheer",
+    "subtitle": "Automatisch gegenereerde facturen van voltooide overeenkomsten en betalingen",
+    "searchPlaceholder": "Zoeken op klant, voertuig of factuurnummer…",
+    "filterAll": "Alle",
+    "filterPaid": "Betaald",
+    "filterPending": "In behandeling",
+    "statTotal": "Totale omzet",
+    "statCount": "Totaal facturen",
+    "statPaid": "Betaald",
+    "statPending": "In behandeling",
+    "colInvoice": "Factuur",
+    "colDate": "Datum",
+    "colCustomer": "Klant",
+    "colVehicle": "Voertuig",
+    "colAgreement": "Overeenkomst",
+    "colMethod": "Betaling",
+    "colAmount": "Bedrag",
+    "colStatus": "Status",
+    "colActions": "Acties",
+    "badgePaid": "Betaald",
+    "badgePending": "In behandeling",
+    "printBtn": "Afdrukken",
+    "empty": "Geen facturen gevonden",
+    "emptyHint": "Facturen worden automatisch aangemaakt wanneer een betaling is voltooid.",
+    "printTitle": "Factuur",
+    "printClose": "Sluiten",
+    "printPrint": "Afdrukken",
+    "printIssued": "Factuurdatum",
+    "printPaid": "Betaaldatum",
+    "printMethod": "Betaalmethode",
+    "printCustomer": "Klant",
+    "printVehicle": "Voertuig",
+    "printAgreement": "Overeenkomstreferentie",
+    "printDesc": "Verkoop van voertuig per koopovereenkomst",
+    "printNet": "Nettobedrag (excl. BTW)",
+    "printVat": "BTW 25%",
+    "printTotal": "Totaal incl. BTW",
+    "printStatus": "Status",
+    "printFooter": "{dealerName} • Org.nr {orgNr} • {city} • {email}"
+  },
+  "invite": {
+    "title": "U bent uitgenodigd",
+    "by": "Uitgenodigd door {dealershipName}",
+    "expired": "Ongeldige of verlopen uitnodiging",
+    "expiredDesc": "Deze link is niet meer geldig. Neem contact op met uw beheerder voor een nieuwe uitnodiging.",
+    "verify": "Verifiëren met BankID",
+    "verifyDesc": "Bevestig uw identiteit om uw account te activeren.",
+    "success": "Account geactiveerd!",
+    "successDesc": "Doorsturen naar uw dashboard...",
+    "labelName": "Naam",
+    "labelEmail": "E-mail",
+    "labelRole": "Rol",
+    "labelCompany": "Bedrijf",
+    "goToLogin": "Naar aanmelden",
+    "alreadyHaveAccount": "Al een account?",
+    "loginLink": "Aanmelden"
+  }
+}

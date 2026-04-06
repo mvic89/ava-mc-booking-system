@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getSupabaseAdmin } from '@/lib/supabase';
 import { PAYMENT_REGISTRY } from '@/lib/payments/registry';
 import {
   getStoredConfig,
@@ -8,21 +9,96 @@ import {
 } from '@/lib/payments/config-store';
 import { writeEnvLocal } from '@/lib/env/writer';
 
-/**
- * GET /api/settings/payments?dealerId={id}
- *
- * Returns the dealer's current payment configuration:
- *   - Which providers are enabled
- *   - For each provider: the status of each required credential field
- *     ('configured' | 'env' | 'empty') — NEVER the actual values
- */
+// ─── Supabase helpers ─────────────────────────────────────────────────────────
+
+interface SupabasePaymentConfig {
+  provider_id:  string;
+  active:       boolean;
+  config:       Record<string, unknown>;
+}
+
+async function readFromSupabase(dealershipId: string): Promise<SupabasePaymentConfig[] | null> {
+  try {
+    const sb = getSupabaseAdmin();
+    const { data, error } = await sb
+      .from('payment_configs')
+      .select('provider_id, active, config')
+      .eq('dealership_id', dealershipId);
+    if (error || !data) return null;
+    return data as SupabasePaymentConfig[];
+  } catch {
+    return null;
+  }
+}
+
+async function saveToSupabase(
+  dealershipId:    string,
+  enabledProviders: string[],
+  primaryFinancing: string,
+  credentials:     Record<string, Record<string, string>>,
+): Promise<void> {
+  const sb = getSupabaseAdmin();
+
+  // Upsert all providers currently in the registry
+  const upserts = PAYMENT_REGISTRY.map(p => ({
+    dealership_id: dealershipId,
+    provider_id:   p.id,
+    active:        enabledProviders.includes(p.id),
+    config:        {
+      credentials:      credentials[p.id] ?? {},
+      primaryFinancing: p.category === 'financing' ? primaryFinancing : undefined,
+    },
+  }));
+
+  await sb.from('payment_configs').upsert(upserts, { onConflict: 'dealership_id,provider_id' });
+
+  // Store primaryFinancing + meta in a special _settings row
+  await sb.from('payment_configs').upsert([{
+    dealership_id: dealershipId,
+    provider_id:   '_settings',
+    active:        false,
+    config:        { primaryFinancing },
+  }], { onConflict: 'dealership_id,provider_id' });
+}
+
+// ─── GET ──────────────────────────────────────────────────────────────────────
+
 export async function GET(req: NextRequest) {
   try {
-    const dealerId   = req.nextUrl.searchParams.get('dealerId') ?? 'ava-mc';
-    const dealerName = req.nextUrl.searchParams.get('dealerName') ?? 'AVA MC AB';
+    const dealershipId = req.nextUrl.searchParams.get('dealershipId');
+    const dealerId     = req.nextUrl.searchParams.get('dealerId') ?? 'ava-mc';
+    const dealerName   = req.nextUrl.searchParams.get('dealerName') ?? 'AVA MC AB';
 
+    // Try Supabase first (when UUID available)
+    if (dealershipId) {
+      const rows = await readFromSupabase(dealershipId);
+      if (rows && rows.length > 0) {
+        const settingsRow  = rows.find(r => r.provider_id === '_settings');
+        const primaryFin   = (settingsRow?.config?.primaryFinancing as string) ?? '';
+        const enabledIds   = rows.filter(r => r.active && r.provider_id !== '_settings').map(r => r.provider_id);
+
+        const providerStatuses = PAYMENT_REGISTRY.map(p => {
+          const row         = rows.find(r => r.provider_id === p.id);
+          const stored      = (row?.config?.credentials ?? {}) as Record<string, string>;
+          const fieldStatus: Record<string, string> = {};
+          for (const v of p.requiredEnvVars) {
+            fieldStatus[v] = stored[v]?.trim() ? 'configured' : process.env[v]?.trim() ? 'env' : 'empty';
+          }
+          return { id: p.id, fieldStatus, envVarDefaults: p.envVarDefaults ?? {} };
+        });
+
+        return NextResponse.json({
+          dealerId,
+          dealerName,
+          enabledProviders: enabledIds,
+          primaryFinancing: primaryFin,
+          providers:        providerStatuses,
+        });
+      }
+    }
+
+    // Fall back to file store
     const config = getStoredConfig(dealerId) ?? initDealerConfig(dealerId, dealerName);
-
     const providerStatuses = PAYMENT_REGISTRY.map(p => ({
       id:             p.id,
       fieldStatus:    getProviderFieldStatuses(dealerId, p.requiredEnvVars, p.id),
@@ -43,29 +119,12 @@ export async function GET(req: NextRequest) {
   }
 }
 
-/**
- * POST /api/settings/payments
- *
- * Save the dealer's payment configuration.
- *
- * Body: {
- *   dealerId:         string
- *   dealerName:       string
- *   enabledProviders: string[]
- *   primaryFinancing: string
- *   credentials: {
- *     [providerId]: { [ENV_VAR_NAME]: value }
- *   }
- * }
- *
- * Rules:
- * - Empty string values are ignored (keep existing stored value)
- * - Credentials are merged (not replaced) per provider
- * - Actual values are NEVER returned in the response
- */
+// ─── POST ─────────────────────────────────────────────────────────────────────
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json() as {
+      dealershipId?:     string;
       dealerId:          string;
       dealerName?:       string;
       enabledProviders:  string[];
@@ -85,6 +144,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // 1. Save to file store (keeps getCredential() working for payment processing routes)
     saveStoredConfig({
       dealerId:         body.dealerId,
       dealerName:       body.dealerName ?? existing.dealerName,
@@ -94,14 +154,23 @@ export async function POST(req: NextRequest) {
       updatedAt:        new Date().toISOString(),
     });
 
-    // Write credentials + URL defaults to .env.local so the file stays in sync
+    // 2. Save to Supabase payment_configs (makes it realtime + DB-backed)
+    if (body.dealershipId) {
+      await saveToSupabase(
+        body.dealershipId,
+        body.enabledProviders,
+        body.primaryFinancing,
+        mergedCredentials,
+      );
+    }
+
+    // 3. Write credentials + URL defaults to .env.local
     const envUpdates: Record<string, string> = {};
     for (const fields of Object.values(mergedCredentials)) {
       for (const [k, v] of Object.entries(fields)) {
         if (v?.trim()) envUpdates[k] = v.trim();
       }
     }
-    // Always ensure URL defaults are present even if admin never touched them
     for (const p of PAYMENT_REGISTRY) {
       for (const [k, v] of Object.entries(p.envVarDefaults ?? {})) {
         if (!envUpdates[k]) envUpdates[k] = v;
@@ -109,7 +178,6 @@ export async function POST(req: NextRequest) {
     }
     writeEnvLocal(envUpdates);
 
-    console.log(`[settings/payments] Saved config for dealer ${body.dealerId} — ${body.enabledProviders.length} provider(s) enabled`);
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error('[settings/payments POST]', error.message);

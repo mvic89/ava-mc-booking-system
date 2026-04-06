@@ -36,6 +36,7 @@
     "offer": "Offer",
     "accounting": "Accounting",
     "auditLog": "Audit Log",
+    "service": "Service",
     "subscribedDealer": "Subscribed Dealer",
     "groups": {
       "core": "CORE",

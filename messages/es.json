@@ -1,0 +1,1077 @@
+{
+  "common": {
+    "appName": "BikeMeNow",
+    "version": "v3.0",
+    "signOut": "Cerrar sesión",
+    "admin": "Admin",
+    "sales": "Ventas",
+    "service": "Servicio",
+    "user": "Usuario",
+    "comingSoon": "Próximamente",
+    "verifiedIdentity": "Identidad verificada",
+    "populationVerified": "Verificado por el registro de población",
+    "address": "Dirección",
+    "dateOfBirth": "Fecha de nacimiento",
+    "gender": "Género",
+    "protectedIdentity": "Identidad protegida",
+    "protectedIdentityYes": "Sí — tratar con cuidado",
+    "privacyPolicy": "Política de privacidad",
+    "terms": "Condiciones"
+  },
+  "navigation": {
+    "dashboard": "Panel de control",
+    "inventory": "Inventario",
+    "purchaseOrders": "Órdenes de compra",
+    "goodsReceipts": "Recepciones de mercancías",
+    "suppliers": "Proveedores",
+    "purchaseinvoices": "Facturas de compra",
+    "salesPipeline": "Pipeline de ventas",
+    "pipeline": "Pipeline",
+    "customers": "Clientes",
+    "invoices": "Facturas de venta",
+    "documents": "Documentos",
+    "analytics": "Analítica",
+    "settings": "Configuración",
+    "users": "Usuarios",
+    "offer": "Oferta",
+    "accounting": "Contabilidad",
+    "auditLog": "Registro de auditoría",
+    "service": "Servicio",
+    "subscribedDealer": "Concesionario suscrito",
+    "groups": {
+      "core": "PRINCIPAL",
+      "sales": "VENTAS",
+      "admin": "ADMIN"
+    }
+  },
+  "login": {
+    "title": "Bienvenido",
+    "subtitle": "Inicie sesión en su espacio de trabajo de BikeMeNow",
+    "signInWithBankID": "Iniciar sesión con BankID",
+    "recommended": "Recomendado — Sin contraseña necesaria",
+    "or": "o",
+    "emailAddress": "Correo electrónico",
+    "password": "Contraseña",
+    "rememberDevice": "Recordar este dispositivo",
+    "forgotPassword": "¿Olvidó su contraseña?",
+    "signIn": "Iniciar sesión",
+    "noAccount": "¿No tiene una cuenta?",
+    "signUp": "Registrarse",
+    "security": "Cifrado SSL de 256 bits • Cumple con el RGPD",
+    "branding": {
+      "tagline": "Plataforma de inteligencia para concesionarios",
+      "zeroInput": "Cero entrada manual",
+      "zeroInputDesc": "La IA gestiona la entrada de datos para que usted pueda vender",
+      "secured": "Protegido por BankID",
+      "securedDesc": "Identidad digital de estándar sueco",
+      "analytics": "Analítica en tiempo real",
+      "analyticsDesc": "Paneles en vivo e información de IA",
+      "dealers": "Creado para concesionarios de motos",
+      "dealersDesc": "Enfocado en concesionarios de motos suecos",
+      "copyright": "© 2026 BikeMeNow.com. Todos los derechos reservados.",
+      "security": "Cifrado de 256 bits • Cumple con el RGPD • Alojamiento sueco"
+    }
+  },
+  "redirecting": "Redirigiendo al inicio de sesión...",
+  "newLead": {
+    "breadcrumb": {
+      "sales": "Ventas",
+      "newLead": "Nuevo lead"
+    },
+    "title": "Crear nuevo lead",
+    "identifyCustomer": "Identificar cliente",
+    "identifyCustomerDesc": "Elija cómo desea identificar al cliente",
+    "tabs": {
+      "bankid": "BankID (recomendado)",
+      "manual": "Manual",
+      "phone": "Búsqueda por teléfono"
+    },
+    "successBanner": "Identificado via BankID — {name} ({personalNumber})",
+    "genderOptions": {
+      "male": "Masculino",
+      "female": "Femenino"
+    },
+    "fields": {
+      "name": "Nombre",
+      "address": "Dirección",
+      "dateOfBirth": "Fecha de nacimiento",
+      "gender": "Género",
+      "email": "Correo electrónico",
+      "phone": "Teléfono",
+      "source": "Origen",
+      "notes": "Notas",
+      "interest": "Interés",
+      "dealValue": "Valor del trato (kr)"
+    },
+    "badges": {
+      "bankid": "BankID",
+      "registration": "Matrícula",
+      "manual": "Manual"
+    },
+    "sourceOptions": {
+      "walkin": "Visita en tienda",
+      "phone": "Teléfono",
+      "website": "Sitio web",
+      "referral": "Recomendación"
+    },
+    "placeholders": {
+      "email": "lars@ejemplo.se",
+      "phone": "076-123 4567",
+      "notes": "Interesado en motos deportivas, presupuesto ~90-150k",
+      "interest": "Kawasaki Ninja ZX-6R",
+      "dealValue": "ej. 150000"
+    },
+    "autoFilled": "80% completado automáticamente",
+    "gdprConsent": "El cliente consiente el tratamiento de sus datos personales según nuestra",
+    "privacyPolicyLink": "política de privacidad",
+    "submitButton": "Crear lead",
+    "sidebar": {
+      "title": "Enriquecimiento BankID + Roaring.io",
+      "bankidInfo": "BankID → Nombre + número personal (verificado)",
+      "roaringInfo": "Roaring.io → Dirección, código postal, ciudad, género (SPAR)",
+      "manualInfo": "Manual → Correo electrónico, teléfono (preguntar al cliente)",
+      "existingCustomer": "Cliente existente: No (nuevo en el sistema)",
+      "protectedIdentity": "Identidad protegida: No",
+      "highIntent": "Visita en tienda + BankID = 92% alta intención",
+      "matchingVehicles": "Vehículos coincidentes",
+      "basedOn": "Basado en presupuesto 90-150k e interés deportivo",
+      "testEnv": "Entorno de prueba BankID"
+    }
+  },
+  "dashboard": {
+    "loading": "Cargando...",
+    "welcome": "¡Bienvenido, {name}!",
+    "subtitle": "Esto es lo que está pasando en su concesionario hoy.",
+    "happeningToday": "Esto es lo que está pasando en su concesionario hoy.",
+    "greeting": {
+      "morning": "Buenos días",
+      "afternoon": "Buenas tardes",
+      "evening": "Buenas noches"
+    },
+    "newLead": "＋ Nuevo lead",
+    "vsLastMonth": "vs el mes pasado",
+    "revenueTrend": "Tendencia de ingresos",
+    "revenueTrendSub": "Últimos 6 meses · kr (miles)",
+    "vsLastYear": "↑ 22% vs el año pasado",
+    "salesFunnel": "Embudo de ventas",
+    "salesFunnelSub": "Leads activos por etapa",
+    "openPipeline": "Pipeline abierto →",
+    "funnelStages": {
+      "new": "Nuevo",
+      "contacted": "Contactado",
+      "testRide": "Prueba de conducción",
+      "negotiating": "Negociando",
+      "closed": "Cerrado"
+    },
+    "stats": {
+      "activeLeads": "Leads activos",
+      "inStock": "En stock",
+      "inventory": "Inventario",
+      "revenueKr": "Ingresos (kr)",
+      "revenue": "Ingresos",
+      "customers": "Clientes",
+      "new": "nuevo",
+      "today": "hoy",
+      "thisMonth": "Este mes",
+      "percentIncrease": "+{percent}%"
+    },
+    "quickActions": {
+      "title": "Acciones rápidas",
+      "newLead": "Nuevo lead",
+      "newLeadDesc": "Añadir visita o llamada",
+      "addInventory": "Añadir inventario",
+      "addInventoryDesc": "Registrar nuevo vehículo",
+      "addVehicle": "Añadir vehículo",
+      "addVehicleDesc": "Actualizar su stock",
+      "purchaseOrder": "Orden de compra",
+      "purchaseOrderDesc": "Pedir a un proveedor"
+    },
+    "recentLeads": {
+      "title": "Leads recientes",
+      "viewAll": "Ver todos →",
+      "hot": "Caliente",
+      "warm": "Tibio",
+      "cold": "Frío",
+      "hoursAgo": "Hace {hours} horas",
+      "daysAgo": "Hace {days} día"
+    },
+    "topSelling": {
+      "title": "Más vendidos",
+      "sold": "vendido",
+      "thisMonth": "Este mes",
+      "sales": "{count} ventas"
+    }
+  },
+  "signup": {
+    "title": "Crear su cuenta",
+    "subtitle": "Únase a BikeMeNow y optimice su concesionario",
+    "signUpWithBankID": "Registrarse con BankID",
+    "recommended": "Recomendado — Verificación instantánea",
+    "or": "o",
+    "fullName": "Nombre completo",
+    "emailAddress": "Correo electrónico",
+    "dealershipName": "Nombre del concesionario",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "passwordMinLength": "Mínimo 8 caracteres",
+    "passwordsMatch": "✅ ¡Las contraseñas coinciden!",
+    "passwordsDoNotMatch": "❌ Las contraseñas no coinciden",
+    "agreeToTerms": "Acepto los",
+    "termsOfService": "Términos de servicio",
+    "and": "y la",
+    "privacyPolicy": "Política de privacidad",
+    "createAccount": "Crear cuenta",
+    "security": "🔒 Cifrado SSL de 256 bits • Cumple con el RGPD",
+    "alreadyHaveAccount": "¿Ya tiene una cuenta?",
+    "signIn": "Iniciar sesión",
+    "branding": {
+      "tagline": "Plataforma de inteligencia para concesionarios",
+      "getStartedFree": "Comenzar gratis",
+      "getStartedFreeDesc": "Sin tarjeta de crédito requerida",
+      "setupQuick": "Configuración en 2 minutos",
+      "setupQuickDesc": "Registro rápido con BankID",
+      "dealers": "Creado para concesionarios de motos",
+      "dealersDesc": "Enfocado en concesionarios de motos suecos",
+      "secureCompliant": "Seguro y conforme",
+      "secureCompliantDesc": "Cumple con el RGPD con alojamiento sueco",
+      "copyright": "© 2026 BikeMeNow.com. Todos los derechos reservados.",
+      "security": "Cifrado de 256 bits • Cumple con el RGPD • Alojamiento sueco"
+    },
+    "alerts": {
+      "passwordsDontMatch": "¡Las contraseñas no coinciden!",
+      "passwordTooShort": "¡La contraseña debe tener al menos 8 caracteres!",
+      "mustAgreeToTerms": "¡Debe aceptar los Términos de servicio y la Política de privacidad!"
+    }
+  },
+  "resetPassword": {
+    "title": "Establecer nueva contraseña",
+    "subtitle": "Ingrese su nueva contraseña a continuación. ¡Elija una fuerte y memorable!",
+    "newPassword": "Nueva contraseña",
+    "confirmNewPassword": "Confirmar nueva contraseña",
+    "minLength": "Mínimo 8 caracteres",
+    "passwordsMatch": "✅ ¡Las contraseñas coinciden!",
+    "passwordsDoNotMatch": "❌ Las contraseñas no coinciden",
+    "resetButton": "Restablecer contraseña",
+    "backToSignIn": "Volver al inicio de sesión",
+    "security": "🔒 Cifrado SSL de 256 bits • Cumple con el RGPD",
+    "branding": {
+      "tagline": "Plataforma de inteligencia para concesionarios",
+      "strongPassword": "Contraseña segura",
+      "strongPasswordDesc": "Se requieren mínimo 8 caracteres",
+      "confirmationMatch": "Confirmación coincidente",
+      "confirmationMatchDesc": "Ambas contraseñas deben coincidir",
+      "secureHash": "Hash seguro",
+      "secureHashDesc": "Las contraseñas están cifradas y nunca se almacenan en texto plano",
+      "immediateEffect": "Efecto inmediato",
+      "immediateEffectDesc": "La nueva contraseña funciona de inmediato",
+      "copyright": "© 2026 BikeMeNow.com. Todos los derechos reservados.",
+      "security": "Cifrado de 256 bits • Cumple con el RGPD • Alojamiento sueco"
+    },
+    "alerts": {
+      "passwordsDontMatch": "Las contraseñas no coinciden",
+      "passwordTooShort": "La contraseña debe tener al menos 8 caracteres"
+    }
+  },
+  "customers": {
+    "title": "Clientes",
+    "searchPlaceholder": "Buscar clientes…",
+    "addWithBankID": "🔒 Identificar con BankID",
+    "addManuallyTitle": "Añadir cliente manualmente",
+    "export": "Exportar",
+    "tabs": {
+      "all": "Todos",
+      "active": "Activos",
+      "vip": "VIP",
+      "bankid": "BankID ✓",
+      "inactive": "Inactivos"
+    },
+    "table": {
+      "name": "Nombre",
+      "email": "Correo electrónico",
+      "phone": "Teléfono",
+      "source": "Origen",
+      "vehicles": "Vehículos",
+      "lifetimeValue": "Valor total",
+      "lastActivity": "Última actividad",
+      "tags": "Etiquetas",
+      "noResults": "No se encontraron clientes",
+      "showing": "Mostrando {count} clientes"
+    },
+    "sourceBadge": {
+      "manual": "Manual"
+    },
+    "stats": {
+      "totalCustomers": "Total clientes",
+      "bankidVerified": "Verificados BankID",
+      "bankidShare": "Cuota BankID",
+      "protected": "Protegidos",
+      "unverified": "No verificados"
+    },
+    "new": {
+      "breadcrumb": "Nuevo cliente",
+      "title": "Añadir nuevo cliente",
+      "subtitle": "Elija cómo desea identificar al cliente",
+      "cancel": "Cancelar",
+      "bankIDOption": {
+        "title": "Identificar con BankID",
+        "desc": "Relleno automático de nombre y dirección desde el registro de población. Recomendado.",
+        "verifiedTag": "Identidad verificada",
+        "autoFillTag": "Dirección automática"
+      },
+      "manualOption": {
+        "title": "Rellenar manualmente",
+        "desc": "Introduzca los datos del cliente manualmente. No se requiere BankID.",
+        "unverifiedTag": "No verificado",
+        "allManualTag": "Todos los campos manuales"
+      },
+      "scanning": {
+        "title": "Identificar cliente",
+        "subtitle": "Pida al cliente que escanee el código QR con la aplicación BankID",
+        "clickStart": "Haga clic en «Iniciar BankID»\npara mostrar el código QR",
+        "qrAutoUpdate": "El código QR se actualiza automáticamente",
+        "startBankID": "⏳ Inicie la aplicación BankID y escanee el código QR...",
+        "openOnDevice": "📱 Abrir BankID en este dispositivo",
+        "back": "← Atrás",
+        "useManual": "Rellenar manualmente en su lugar",
+        "howItWorks": "Cómo funciona",
+        "dataSources": "Fuentes de datos",
+        "step1Title": "BankID escanea",
+        "step1Desc": "Verifica número personal + nombre",
+        "step2Title": "Roaring.io obtiene",
+        "step2Desc": "Dirección, código postal, ciudad del registro de población",
+        "step3Title": "Usted completa",
+        "step3Desc": "Correo electrónico + teléfono (nunca en el registro)",
+        "step4Title": "¿Cliente existente?",
+        "step4Desc": "Carga el perfil completo automáticamente",
+        "source1": "BankID — Nombre, número personal (verificado)",
+        "source2": "Roaring.io — Dirección, código postal, ciudad, género, fecha de nacimiento",
+        "source3": "Manual — Correo electrónico, teléfono (siempre preguntar al cliente)"
+      },
+      "manual": {
+        "title": "Nuevo cliente — Registro manual",
+        "subtitle": "Complete los datos del cliente. No verificado por BankID.",
+        "useBankIDInstead": "🔒 Usar BankID en su lugar",
+        "personalInfo": "Información personal",
+        "contact": "Datos de contacto",
+        "addressSection": "Dirección",
+        "streetAddress": "Dirección postal",
+        "postalCode": "Código postal",
+        "city": "Ciudad",
+        "notesSection": "Otros",
+        "notesLabel": "Notas",
+        "notesPlaceholder": "Notas sobre el cliente...",
+        "genderMale": "Masculino",
+        "genderFemale": "Femenino",
+        "genderOther": "Otro",
+        "warningNotVerified": "Los clientes registrados manualmente no están verificados por BankID. La identidad no está confirmada. Considere verificar al cliente con BankID en la próxima visita.",
+        "saveCustomer": "Guardar cliente"
+      },
+      "bankIDFlow": {
+        "identifiedBannerSub": "Número personal verificado • Dirección obtenida del registro de población",
+        "autoFilledTitle": "Nuevo cliente — Completado automáticamente",
+        "autoFilledSubtitle": "Datos básicos obtenidos automáticamente. Complete correo electrónico y teléfono.",
+        "verifiedSection": "🔒 VERIFICADO VIA BANKID",
+        "roaringSection": "📋 REGISTRO DE POBLACIÓN (ROARING.IO / SPAR)",
+        "manualSection": "✏️ COMPLETAR MANUALMENTE (no disponible en el registro)",
+        "unavailable": "No disponible",
+        "male": "Masculino",
+        "female": "Femenino",
+        "saveCustomer": "Guardar cliente"
+      },
+      "returning": {
+        "identified": "Identificado via BankID — Perfil cargado automáticamente. Última visita: {date}.",
+        "quickActions": "Acciones rápidas",
+        "newQuote": "Nueva cotización",
+        "createLead": "Crear lead",
+        "bookTestRide": "Reservar prueba de conducción",
+        "viewProfile": "Ver perfil",
+        "vehicles": "Vehículos",
+        "lifetimeValue": "Valor total",
+        "purchases": "Compras",
+        "outstanding": "Saldo pendiente"
+      },
+      "protected": {
+        "bannerTitle": "Identidad protegida (marca de confidencialidad)",
+        "bannerDesc": "La dirección NO PUEDE obtenerse automáticamente. Pida al cliente que complete sus datos.",
+        "title": "Nuevo cliente — Identidad protegida",
+        "addressBlocked": "🛡 DIRECCIÓN BLOQUEADA — IDENTIDAD PROTEGIDA",
+        "addressBlockedDesc": "Roaring.io devolvió protectedRegistration: true. Dirección no disponible.",
+        "confirmCheckbox": "Confirmo que el cliente ha proporcionado estos datos por sí mismo"
+      },
+      "summary": {
+        "title": "Resumen de autocompletado",
+        "bankidVerified": "BankID (verificado)",
+        "bankidSub": "Nombre, apellido, número personal",
+        "roaringData": "Roaring.io / SPAR",
+        "roaringSub": "Dirección, código postal, ciudad, fecha de nacimiento, género",
+        "manualInput": "Entrada manual",
+        "manualSub": "Correo electrónico, teléfono (nunca en el registro)",
+        "fields": "{count} campos",
+        "autoFilled": "80% completado automáticamente (8 de 10 campos)",
+        "bankidVerification": "🔒 Verificación BankID",
+        "signatureLabel": "Firma:",
+        "signatureStored": "almacenada (base64 XML)",
+        "ocspLabel": "OCSP:",
+        "ocspStored": "almacenado (válido)",
+        "riskLabel": "Riesgo:",
+        "riskLow": "Bajo",
+        "ipLabel": "IP:",
+        "signatureNote": "Firma + OCSP almacenados para cada verificación (prueba legal)"
+      },
+      "savedToast": "¡Cliente guardado!",
+      "savedToastDesc": "El cliente ha sido añadido al sistema."
+    },
+    "profile": {
+      "tabs": {
+        "overview": "Resumen",
+        "vehicles": "Vehículos",
+        "invoices": "Facturas",
+        "documents": "Documentos",
+        "timeline": "Cronología",
+        "gdpr": "RGPD"
+      },
+      "contactInfo": "👤 Datos de contacto",
+      "bankidHistory": "🔒 Historial de verificación BankID",
+      "stats": "📊 Resumen",
+      "recentActivity": "📋 Actividad reciente",
+      "noBankIDHistory": "Sin historial de BankID",
+      "noActivity": "Sin actividad todavía",
+      "noVehicles": "Sin vehículos registrados",
+      "noInvoices": "Sin facturas",
+      "underDevelopment": "Esta sección está en desarrollo.",
+      "gdprTab": {
+        "title": "RGPD — Gestión de datos personales",
+        "dataTitle": "Datos registrados",
+        "name": "Nombre y número de identidad personal",
+        "address": "Dirección, género, fecha de nacimiento",
+        "contact": "Correo electrónico y teléfono",
+        "purchases": "Historial de compras ({n} facturas)",
+        "bankidLogs": "Verificaciones BankID ({n})",
+        "sourceBankID": "BankID",
+        "sourceSPAR": "Registro de población",
+        "sourceManual": "Manual",
+        "legalBasisTitle": "Base legal",
+        "legalBasis1": "Contrato (contrato de compra) — RGPD Art. 6.1b",
+        "legalBasis2": "Ley de contabilidad (7 años) — RGPD Art. 6.1c",
+        "legalBasis3": "Intereses legítimos (relación con el cliente) — RGPD Art. 6.1f",
+        "accessTitle": "Acceso y portabilidad",
+        "accessDesc": "Tiene derecho a recibir todos sus datos en un formato legible por máquina.",
+        "exportBtn": "Exportar como JSON",
+        "rectifyTitle": "Rectificación",
+        "rectifyDesc": "Contáctenos para corregir datos inexactos.",
+        "rectifyBtn": "Contáctenos",
+        "deleteTitle": "Supresión",
+        "deleteDesc": "Los datos relacionados con contratos de compra se conservan durante 7 años según la Ley de contabilidad y no pueden eliminarse antes de ese período.",
+        "deleteBtn": "Enviar solicitud",
+        "deleteSuccess": "Solicitud recibida. Responderemos en 30 días.",
+        "imy": "Las reclamaciones pueden dirigirse a la Autoridad Sueca de Protección de Datos (IMY) — imy.se",
+        "privacyLink": "Política de privacidad completa"
+      },
+      "fields": {
+        "firstName": "Nombre",
+        "lastName": "Apellido",
+        "personalNumber": "Número personal",
+        "address": "Dirección",
+        "birthDate": "Fecha de nacimiento",
+        "email": "Correo electrónico",
+        "phone": "Teléfono",
+        "gender": "Género",
+        "citizenship": "Ciudadanía",
+        "protectedIdentity": "Identidad protegida",
+        "yes": "Sí",
+        "no": "No",
+        "protectedAddressNote": "🛡️ Protegido — no disponible"
+      },
+      "vehicleTable": {
+        "vehicle": "Vehículo",
+        "year": "Año",
+        "plate": "Matrícula",
+        "status": "Estado"
+      },
+      "invoiceTable": {
+        "invoiceNo": "N.º de factura",
+        "description": "Descripción",
+        "date": "Fecha",
+        "amount": "Importe",
+        "status": "Estado"
+      },
+      "dataSources": "Fuentes de datos:",
+      "dataSourceLabels": {
+        "bankid": "BankID (verificado)",
+        "roaring": "Roaring.io / SPAR (registro de población)",
+        "manual": "Entrada manual"
+      },
+      "actions": {
+        "newQuote": "Nueva cotización",
+        "gdprExport": "Exportar RGPD"
+      },
+      "notFound": "Cliente no encontrado",
+      "backToCustomers": "← Volver a clientes"
+    }
+  },
+  "forgotPassword": {
+    "title": "¿Olvidó su contraseña?",
+    "subtitle": "¡No se preocupe! Ingrese su correo electrónico y le enviaremos un enlace de restablecimiento.",
+    "emailAddress": "Correo electrónico",
+    "emailPlaceholder": "nombre@concesionario.es",
+    "sendButton": "Enviar enlace",
+    "backToSignIn": "← Volver al inicio de sesión",
+    "security": "🔒 Cifrado SSL de 256 bits • Cumple con el RGPD",
+    "branding": {
+      "tagline": "Plataforma de inteligencia para concesionarios",
+      "secureReset": "Restablecimiento seguro",
+      "secureResetDesc": "Recuperación de contraseña estándar del sector",
+      "emailVerification": "Verificación por correo electrónico",
+      "emailVerificationDesc": "Enlace de restablecimiento enviado a su correo registrado",
+      "expiry": "Expira en 15 minutos",
+      "expiryDesc": "El enlace expira por razones de seguridad",
+      "protectedAccess": "Acceso protegido",
+      "protectedAccessDesc": "Sin cambios de contraseña no autorizados",
+      "copyright": "© 2026 BikeMeNow.com. Todos los derechos reservados.",
+      "security": "Cifrado de 256 bits • Cumple con el RGPD • Alojamiento sueco"
+    }
+  },
+  "emailSent": {
+    "title": "Revise su correo electrónico",
+    "subtitle": "Le hemos enviado un enlace de restablecimiento. Haga clic en el enlace del correo para crear una nueva contraseña.",
+    "linkExpires": "⏱️ El enlace expira en 15 minutos",
+    "linkExpiresDesc": "Por razones de seguridad, el enlace expirará después de 15 minutos",
+    "didntReceive": "¿No recibió el correo?",
+    "resendEmail": "Reenviar correo",
+    "backToSignIn": "← Volver al inicio de sesión",
+    "security": "🔒 Cifrado SSL de 256 bits • Cumple con el RGPD",
+    "branding": {
+      "tagline": "Plataforma de inteligencia para concesionarios",
+      "checkInbox": "Revise su bandeja de entrada",
+      "checkInboxDesc": "Enlace de restablecimiento enviado a su correo",
+      "validFor": "Válido por 15 minutos",
+      "validForDesc": "Haga clic en el enlace en 15 minutos",
+      "checkSpam": "Revise la carpeta de spam",
+      "checkSpamDesc": "El correo puede estar en spam",
+      "didntReceiveIt": "¿No lo recibió?",
+      "didntReceiveItDesc": "Solicite un nuevo enlace después de unos minutos",
+      "copyright": "© 2026 BikeMeNow.com. Todos los derechos reservados.",
+      "security": "Cifrado de 256 bits • Cumple con el RGPD • Alojamiento sueco"
+    }
+  },
+  "resetComplete": {
+    "title": "¡Restablecimiento de contraseña completado!",
+    "subtitle": "Su contraseña ha sido restablecida con éxito. Ahora puede iniciar sesión con su nueva contraseña.",
+    "successTitle": "Contraseña actualizada correctamente",
+    "itemNewActive": "La nueva contraseña ya está activa",
+    "itemOldInvalidated": "La contraseña anterior ha sido invalidada",
+    "itemCanSignIn": "Puede iniciar sesión inmediatamente",
+    "goToSignIn": "Ir al inicio de sesión",
+    "security": "🔒 Cifrado SSL de 256 bits • Cumple con el RGPD",
+    "tip": "💡 Consejo: Mantenga su contraseña segura y no la comparta con nadie. Para mayor seguridad, considere usar BankID para futuros inicios de sesión.",
+    "branding": {
+      "tagline": "Plataforma de inteligencia para concesionarios",
+      "passwordUpdated": "Contraseña actualizada",
+      "passwordUpdatedDesc": "Su nueva contraseña ya está activa",
+      "securelyEncrypted": "Cifrado seguro",
+      "securelyEncryptedDesc": "El cifrado de 256 bits protege su contraseña",
+      "readyToGo": "Listo para comenzar",
+      "readyToGoDesc": "Inicie sesión con su nueva contraseña",
+      "accountSecure": "Cuenta segura",
+      "accountSecureDesc": "La contraseña anterior ya no es válida",
+      "copyright": "© 2026 BikeMeNow.com. Todos los derechos reservados.",
+      "security": "Cifrado de 256 bits • Cumple con el RGPD • Alojamiento sueco"
+    }
+  },
+  "leads": {
+    "breadcrumb": {
+      "sales": "Ventas",
+      "pipeline": "Pipeline"
+    },
+    "searchPlaceholder": "Buscar leads…",
+    "newLead": "＋ Nuevo lead",
+    "pipelineValue": "Valor del pipeline",
+    "noLeads": "Sin leads",
+    "addLead": "＋ Añadir lead",
+    "columns": {
+      "new": "Nuevo",
+      "contacted": "Contactado",
+      "testRide": "Prueba de conducción",
+      "negotiating": "Negociando",
+      "pendingPayment": "Pago pendiente",
+      "closed": "Cerrado"
+    },
+    "status": {
+      "hot": "Caliente",
+      "warm": "Tibio",
+      "cold": "Frío"
+    }
+  },
+  "settings": {
+    "breadcrumb": "Admin / Configuración",
+    "title": "Configuración",
+    "subtitle": "Configure su perfil de concesionario, integraciones y preferencias del sistema.",
+    "comingSoon": "Próximamente",
+    "sections": {
+      "payments": {
+        "title": "Proveedores de pago",
+        "desc": "Configure Svea, Klarna, Swish, Nets y todos los demás métodos de pago para su concesionario.",
+        "badge": "20 proveedores"
+      },
+      "profile": {
+        "title": "Perfil del concesionario",
+        "desc": "Edite el nombre de su empresa, dirección, número de organización, logotipo y datos de contacto.",
+        "badge": "En vivo"
+      },
+      "users": {
+        "title": "Usuarios y permisos",
+        "desc": "Gestione cuentas del personal, roles (admin, ventas, servicio) y niveles de acceso.",
+        "badge": "En vivo"
+      },
+      "notifications": {
+        "title": "Notificaciones",
+        "desc": "Configure notificaciones por correo y SMS para nuevos leads, contratos firmados y pagos.",
+        "badge": "En vivo"
+      },
+      "integrations": {
+        "title": "Integraciones",
+        "desc": "Conecte Fortnox, Blocket, Transportstyrelsen y proveedores de seguros.",
+        "badge": "5 integraciones"
+      },
+      "billing": {
+        "title": "Suscripción y facturación",
+        "desc": "Gestione su plan de suscripción, facturas y método de pago.",
+        "badge": "En vivo"
+      }
+    },
+    "verify": {
+      "title": "Verifique su identidad",
+      "subtitle": "Confirme quién es antes de acceder a la configuración",
+      "recommended": "Recomendado",
+      "tabs": {
+        "bankid": "BankID",
+        "personnummer": "Número personal",
+        "email": "Correo electrónico"
+      },
+      "bankidDesc": "El método más seguro y rápido. Escanee con su aplicación BankID.",
+      "bankidBtn": "Abrir BankID",
+      "pnrLabel": "Número de identidad personal",
+      "pnrPlaceholder": "AAAAMMDD-XXXX",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "su@correo.com",
+      "verifyBtn": "Verificar",
+      "errorMismatch": "Incorrecto — por favor inténtelo de nuevo",
+      "errorNoData": "No registrado — use BankID en su lugar"
+    }
+  },
+  "pages": {
+    "analytics": {
+      "title": "Analítica",
+      "desc": "Informes detallados sobre rendimiento de ventas, rotación de inventario y conversión de leads."
+    },
+    "auditLog": {
+      "title": "Registro de auditoría",
+      "desc": "Historial completo de actividades — cada inicio de sesión, edición y transacción en su concesionario."
+    },
+    "documents": {
+      "title": "Documentos",
+      "desc": "Almacene y gestione contratos, registros de servicio y documentos de cumplimiento."
+    },
+    "inventory": {
+      "title": "Inventario",
+      "desc": "Explore y gestione su stock de motos, añada nuevos vehículos y realice un seguimiento de la disponibilidad."
+    },
+    "invoices": {
+      "title": "Facturas",
+      "desc": "Cree, envíe y realice un seguimiento de las facturas para ventas y trabajos de servicio."
+    },
+    "purchaseOrders": {
+      "title": "Órdenes de compra",
+      "desc": "Gestione pedidos a proveedores, realice un seguimiento de entregas y gestione las compras para su concesionario."
+    },
+    "users": {
+      "title": "Usuarios",
+      "desc": "Gestione cuentas del personal, roles y permisos para su concesionario."
+    }
+  },
+  "agreement": {
+    "breadcrumb": {
+      "sales": "Ventas",
+      "agreement": "Contrato"
+    },
+    "title": "Crear contrato de compra",
+    "editingBadge": "Editando",
+    "autopopulated": "Todos los campos completados automáticamente desde la oferta aceptada {offerNumber} — sin entrada manual requerida",
+    "sections": {
+      "details": "Detalles del contrato",
+      "legal": "Cumplimiento legal",
+      "security": "Seguridad del documento"
+    },
+    "fields": {
+      "agreementNumber": "N.º de contrato:",
+      "customer": "Cliente:",
+      "vehicle": "Vehículo:",
+      "vin": "VIN:",
+      "registrationNumber": "Matrícula:",
+      "accessories": "Accesorios:",
+      "tradeIn": "Vehículo de intercambio:",
+      "totalPrice": "Precio total:",
+      "financing": "Financiación:",
+      "totalCreditCost": "Coste total del crédito"
+    },
+    "badges": {
+      "auto": "Auto",
+      "fromOffer": "De la oferta",
+      "calculated": "Calculado"
+    },
+    "placeholders": {
+      "fullName": "Nombre completo",
+      "personnummer": "Número personal",
+      "vehicleModel": "Año Marca Modelo",
+      "vin": "VIN de 17 caracteres",
+      "registrationNumber": "ej. ABC 123",
+      "accessories": "ej. Akrapovic + Protector de depósito",
+      "vehicleMakeModel": "Marca/modelo del vehículo"
+    },
+    "legal": {
+      "consumerAct": "Ley sueca de venta al consumidor",
+      "returnPolicy": "Política de devolución de 14 días incluida",
+      "gdpr": "Cláusula de tratamiento de datos RGPD",
+      "vat": "IVA aplicado correctamente (25%)",
+      "fskattebevis": "Referencia F-skattebevis",
+      "warranty": "Condiciones de garantía incluidas"
+    },
+    "docSecurity": {
+      "beforeSigning": "Antes de firmar:",
+      "afterBankID": "Después de BankID:",
+      "auditTrail": "Pista de auditoría:",
+      "retention": "Retención:",
+      "editable": "Editable",
+      "locked": "Bloqueado e inmutable",
+      "everyChange": "Cada cambio registrado",
+      "encrypted": "7 años cifrado"
+    },
+    "unsavedChanges": "Cambios no guardados",
+    "vatNote": "IVA del 25% incluido",
+    "actions": {
+      "saveChanges": "Guardar cambios",
+      "cancel": "Cancelar",
+      "editAgreement": "Editar contrato",
+      "proceedToSigning": "Proceder a la firma"
+    },
+    "progress": {
+      "step0": "Contrato",
+      "step1": "Vista previa",
+      "step2": "Firma",
+      "step3": "Pago",
+      "step4": "Completado"
+    },
+    "sign": {
+      "breadcrumbSigning": "Firma BankID",
+      "signingStatus": "Estado de la firma",
+      "bothMustSign": "Ambas partes deben firmar con BankID",
+      "customerSigDone": "Firma del cliente — Completada",
+      "customerSig": "Firma del cliente",
+      "waiting": "Esperando",
+      "identityVerified": "Identidad verificada",
+      "legallyBinding": "Legalmente vinculante",
+      "customerSignsFirst": "El cliente firma el contrato primero",
+      "signAsCustomer": "Firmar como cliente",
+      "dealerSigDone": "Firma del concesionario — Completada",
+      "dealerSigPending": "Firma del concesionario — Pendiente",
+      "dealerSig": "Firma del concesionario",
+      "waitingForCustomer": "Esperando al cliente",
+      "dealerOpenBankID": "Firma concesionario — abra la aplicación BankID",
+      "signAsDealer": "Firmar como concesionario",
+      "waitingForCustomerSig": "Esperando la firma del cliente…",
+      "bothSignedProcessing": "Ambas partes firmaron — procesando automatización…",
+      "automationNote": "⚡ Después de ambas firmas: 10 acciones automáticas se ejecutan inmediatamente (factura, plan de pago, entrega…)",
+      "signedAt": "Firmado:"
+    },
+    "signed": {
+      "breadcrumbSigning": "Firma",
+      "breadcrumbTitle": "Contrato firmado",
+      "title": "Contrato firmado:",
+      "subtitle": "Ambas partes han firmado — el contrato es legalmente vinculante",
+      "docTitle": "Contrato de compra",
+      "fullySigned": "Completamente firmado",
+      "buyerSig": "Firma del comprador (BankID)",
+      "sellerSig": "Firma del vendedor (BankID)",
+      "signedAt": "✓ Firmado:",
+      "footer": "Este contrato se rige por la ley sueca. Firmado electrónicamente via BankID.",
+      "back": "← Atrás",
+      "downloadPDF": "⬇ Descargar PDF",
+      "sendToCustomer": "📤 Enviar al cliente",
+      "goToPayment": "Ir al pago →",
+      "sendPanelTitle": "Enviar contrato firmado al cliente",
+      "noContact": "No se encontraron datos de contacto. Los datos de contacto se guardan al crear un lead a través de Nuevo lead."
+    },
+    "complete": {
+      "successTitle": "¡Contrato firmado por ambas partes! 🎉",
+      "cascadeHeader": "⚡ CASCADA DE AUTOMATIZACIÓN — 10 ACCIONES EN 2 SEGUNDOS ⚡",
+      "allDone": "Las 10 acciones completadas en 1,8 segundos en total",
+      "back": "← Volver al Pipeline",
+      "download": "⬇ Descargar contrato firmado",
+      "viewDelivery": "Ver entrega →",
+      "viewInvoice": "Ver factura →"
+    },
+    "preview": {
+      "breadcrumbPreview": "Vista previa",
+      "title": "Vista previa:",
+      "contractTitle": "Contrato de compra — Moto",
+      "termsTitle": "Términos y condiciones",
+      "buyerSig": "Firma del comprador:",
+      "sellerSig": "Firma del vendedor:",
+      "footer": "Este contrato se rige por la ley sueca. Ley de crédito al consumo 2010:1846 · Ley de venta al consumidor 2022:260 · Ley de contratos a distancia 2005:59",
+      "back": "← Editar",
+      "downloadDisabled": "🔒 Descargar PDF",
+      "downloadTooltip": "Disponible después de que ambas partes hayan firmado con BankID",
+      "sendForSigning": "Enviar para firma BankID →"
+    }
+  },
+  "privacy": {
+    "title": "Política de privacidad",
+    "subtitle": "Cómo {dealerName} gestiona sus datos personales",
+    "lastUpdated": "Última actualización: 6 de marzo de 2026",
+    "s1title": "Responsable del tratamiento",
+    "s1body": "{dealerName}, org.nr {orgNr}, {city}. Contacto para consultas de protección de datos: {email}",
+    "s2title": "¿Qué datos recopilamos?",
+    "s2body": "BankID: nombre, número de identidad personal, marca de tiempo de firma, verificación OCSP. Roaring.io / SPAR (Registro de Población Sueco): dirección registrada, género, fecha de nacimiento, indicador de identidad protegida. Manual: dirección de correo electrónico, número de teléfono. Historial de compras: contratos, facturas, vehículos (marca, modelo, VIN, matrícula).",
+    "s3title": "Base legal (RGPD Art. 6)",
+    "s3body": "Ejecución del contrato (6.1b): tratamiento necesario para cumplir un contrato de compra. Obligación legal (6.1c): contabilidad (Bokföringslagen 7 años), controles antilavado de dinero. Intereses legítimos (6.1f): gestión de la relación con el cliente, evaluación del crédito. Consentimiento (6.1a): comunicaciones de marketing — revocable en cualquier momento.",
+    "s4title": "¿Cuánto tiempo conservamos sus datos?",
+    "s4body": "Datos de transacciones (contratos, facturas): 7 años (Bokföringslagen). Perfil del cliente: durante la relación con el cliente + 3 años. Registros BankID: 5 años. Leads sin compra: 1 año.",
+    "s5title": "¿Con quién compartimos los datos?",
+    "s5body": "BankID AB (Bankgirot) — verificación de identidad. Roaring Technologies AB — consultas del registro de población SPAR. Proveedores de pago: Svea, Klarna, Swish, Nets y otros según el método de pago elegido. Fortnox AB — integración contable. Transportstyrelsen (Agencia de Transporte Sueca) — registro de propiedad del vehículo.",
+    "s6title": "Sus derechos",
+    "s6body": "Tiene derecho a: acceder a sus datos, rectificar datos inexactos, supresión (sujeto a la retención de 7 años de Bokföringslagen), limitar el tratamiento, portabilidad de datos (exportación en formato legible por máquina), oponerse al tratamiento basado en interés legítimo. Envíe solicitudes a: {email}",
+    "s7title": "Decisiones automatizadas",
+    "s7body": "La clasificación de riesgos BankID (Bajo/Medio/Alto) se usa solo como indicador consultivo. No es legalmente vinculante y puede impugnarse contactándonos.",
+    "s8title": "Cookies",
+    "s8body": "Solo usamos cookies estrictamente necesarias: una cookie de sesión para autenticación y una cookie de configuración regional para la preferencia de idioma. No se usan cookies de seguimiento ni marketing.",
+    "s9title": "Reclamaciones",
+    "s9body": "Si tiene preocupaciones sobre cómo manejamos sus datos, tiene derecho a presentar una queja ante la Autoridad Sueca de Protección de Datos (Integritetsskyddsmyndigheten, IMY), Box 8114, 104 20 Stockholm, www.imy.se.",
+    "s10title": "Contacto",
+    "s10body": "{email} · {dealerName} · Org.nr {orgNr} · {city}"
+  },
+  "terms": {
+    "title": "Términos de servicio",
+    "subtitle": "BikeMeNow — Plataforma para concesionarios por {dealerName}",
+    "lastUpdated": "Última actualización: 6 de marzo de 2026",
+    "s1title": "El servicio",
+    "s1body": "BikeMeNow es una plataforma SaaS para concesionarios de motos registrados en Suecia con un certificado fiscal F válido (F-skattebevis). El servicio incluye CRM, gestión de leads, contratos de compra e integraciones de pago.",
+    "s2title": "Elegibilidad",
+    "s2body": "El uso requiere un número de organización registrado, un certificado fiscal F válido y al menos un administrador identificado via BankID. Al suscribirse, confirma el cumplimiento de estos requisitos.",
+    "s3title": "Cuentas y seguridad",
+    "s3body": "El suscriptor es responsable de toda la actividad bajo sus credenciales de cuenta. La autenticación BankID es requerida para acciones administrativas. Notifíquenos inmediatamente sobre cualquier acceso no autorizado.",
+    "s4title": "Suscripción y pago",
+    "s4body": "Todos los precios incluyen el 25% de IVA. Hay disponible un período de prueba gratuito de 14 días sin pago requerido. La facturación es mensual o anual. La cancelación debe presentarse al menos 30 días antes del próximo período de facturación. Sin reembolsos por un período ya iniciado.",
+    "s5title": "Propiedad intelectual",
+    "s5body": "El software y el diseño pertenecen a {dealerName}. Los datos del cliente son propiedad del suscriptor y pueden exportarse al terminar.",
+    "s6title": "Limitación de responsabilidad",
+    "s6body": "{dealerName} no es responsable de daños indirectos, pérdida de beneficios o fallos del sistema. La responsabilidad máxima está limitada a 3 meses de cuota de suscripción.",
+    "s7title": "Ley aplicable y disputas",
+    "s7body": "Este contrato se rige por la ley sueca. Las disputas se remiten en primera instancia al Consejo Nacional Sueco para Disputas de Consumo (ARN, www.arn.se). Sin resolución, las disputas se resuelven en el Tribunal de Distrito de Estocolmo.",
+    "s8title": "Contacto",
+    "s8body": "{email} · {dealerName} · Org.nr {orgNr} · {city}"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "breadcrumb": "Notificaciones",
+    "subtitle": "Elija qué eventos desencadenan notificaciones y por qué canales.",
+    "testButton": "Enviar notificación de prueba",
+    "save": "Guardar",
+    "saving": "Guardando…",
+    "saveAll": "Guardar configuración",
+    "back": "← Volver a la configuración",
+    "columnEvent": "Evento",
+    "infoTitle": "Notificaciones en tiempo real dentro del sistema",
+    "infoBody": "Las notificaciones in-app aparecen directamente en el icono de campana en la barra lateral — sin recarga de página. Los correos electrónicos y SMS se envían a través de su dirección de remitente y pasarela configuradas cuando ocurre el evento.",
+    "infoEmail": "El correo se envía a",
+    "smsNote": "Configure la pasarela SMS en Integraciones",
+    "inAppNote": "✓ Siempre disponible",
+    "testNotifTitle": "Notificación de prueba",
+    "testNotifMessage": "Esta es una notificación de prueba — el sistema funciona correctamente.",
+    "testToast": "Notificación de prueba enviada — abra la campana en la barra lateral",
+    "saveToast": "Configuración de notificaciones guardada",
+    "events": {
+      "newLead": {
+        "title": "Nuevo lead",
+        "desc": "Cuando se añade un nuevo lead al pipeline"
+      },
+      "agreementSigned": {
+        "title": "Contrato firmado",
+        "desc": "Cuando un contrato de compra es firmado por ambas partes via BankID"
+      },
+      "paymentReceived": {
+        "title": "Pago recibido",
+        "desc": "Cuando se confirma un pago (Klarna, Swish, Svea, tarjeta, etc.)"
+      },
+      "newCustomer": {
+        "title": "Nuevo cliente",
+        "desc": "Cuando se registra un nuevo cliente en el registro de clientes"
+      }
+    },
+    "channels": {
+      "inApp": {
+        "label": "In-app",
+        "note": "Se muestra en el icono de campana de notificación directamente en la navegación"
+      },
+      "email": {
+        "label": "Correo electrónico",
+        "note": "Enviado a su dirección de correo registrada"
+      },
+      "sms": {
+        "label": "SMS",
+        "note": "Enviado a su número de móvil registrado"
+      }
+    },
+    "bell": {
+      "title": "Notificaciones",
+      "new": "nuevo",
+      "clearAll": "Borrar todo",
+      "settings": "Configuración",
+      "empty": "Aún no hay notificaciones",
+      "emptyHint": "Los eventos aparecerán aquí en tiempo real",
+      "total": "{count, plural, one {# notificación en total} other {# notificaciones en total}}",
+      "justNow": "Ahora mismo",
+      "minAgo": "Hace {n} min",
+      "hourAgo": "Hace {n} h",
+      "dayAgo": "Hace {n} día(s)"
+    },
+    "actions": {
+      "newLead": {
+        "title": "Nuevo lead creado",
+        "interestedIn": "está interesado en"
+      },
+      "agreementSigned": {
+        "title": "Contrato firmado por ambas partes",
+        "signedBy": "Contrato de compra firmado por",
+        "and": "y",
+        "viaBankID": "via BankID"
+      },
+      "paymentConfirmed": {
+        "title": "Pago confirmado",
+        "via": "via"
+      }
+    }
+  },
+  "billing": {
+    "title": "Suscripción y facturación",
+    "breadcrumb": "Suscripción y facturación",
+    "subtitle": "Gestione su plan, método de pago y vea sus facturas.",
+    "currentPlan": "Plan actual",
+    "active": "Activo",
+    "planBasic": "Básico",
+    "planStandard": "Estándar",
+    "planPro": "Profesional",
+    "month": "mes",
+    "year": "año",
+    "vatNote": "Todos los precios incluyen el 25% de IVA",
+    "nextBilling": "Próxima facturación",
+    "billingCycle": "Ciclo de facturación",
+    "monthly": "Mensual",
+    "annual": "Anual",
+    "save20": "Ahorre el 20%",
+    "planUpdatedToast": "Plan actualizado a",
+    "switchedToAnnual": "Cambiado a facturación anual",
+    "switchedToMonthly": "Cambiado a facturación mensual",
+    "choosePlan": "Cambiar plan",
+    "popular": "Popular",
+    "currentBadge": "Actual",
+    "selectPlan": "Seleccionar plan",
+    "paymentMethod": "Método de pago",
+    "expires": "Expira",
+    "updateCard": "Actualizar datos de tarjeta",
+    "cardUpdateToast": "El formulario de actualización de tarjeta estará disponible en producción.",
+    "billingContact": "Contacto de facturación",
+    "orgNumber": "Número de organización",
+    "vatNumber": "Número de IVA",
+    "updateContact": "Actualizar contacto de facturación",
+    "contactUpdateToast": "Actualización de contacto disponible en producción.",
+    "invoices": "Historial de facturas",
+    "invoiceCount": "facturas",
+    "invoiceNumber": "Factura",
+    "invoiceDate": "Fecha",
+    "invoiceAmount": "Importe",
+    "invoiceStatus": "Estado",
+    "invoicePaid": "Pagada",
+    "downloadToast": "Descargando",
+    "cancelZone": "Cancelar suscripción",
+    "cancelDesc": "La cancelación surte efecto al final del período de facturación actual. Sus datos se conservan durante 30 días después de la cancelación.",
+    "cancelButton": "Cancelar suscripción",
+    "cancelToast": "Solicitud de cancelación enviada. Nos pondremos en contacto en 24 horas.",
+    "cancelConfirmTitle": "¿Cancelar suscripción?",
+    "cancelConfirmDesc": "Su acceso continúa hasta el final del período de facturación. Esto no se puede deshacer.",
+    "cancelBack": "Mantener suscripción",
+    "cancelConfirmButton": "Sí, cancelar",
+    "f": {
+      "users3": "Hasta 3 usuarios",
+      "usersUnlimited": "Usuarios ilimitados",
+      "leads50": "50 leads / mes",
+      "leadsUnlimited": "Leads ilimitados",
+      "bankid": "Firma digital BankID",
+      "basicPayments": "Proveedores de pago básicos",
+      "allPayments": "Todos los proveedores de pago",
+      "notifications": "Notificaciones en tiempo real",
+      "emailSupport": "Soporte por correo electrónico",
+      "api": "Acceso a la API",
+      "multiUser": "Roles multiusuario",
+      "prioritySupport": "Soporte prioritario"
+    }
+  },
+  "invoices": {
+    "breadcrumb": "Facturas",
+    "title": "Gestión de facturas",
+    "subtitle": "Facturas generadas automáticamente a partir de contratos y pagos completados",
+    "searchPlaceholder": "Buscar por cliente, vehículo o número de factura…",
+    "filterAll": "Todas",
+    "filterPaid": "Pagadas",
+    "filterPending": "Pendientes",
+    "statTotal": "Ingresos totales",
+    "statCount": "Total de facturas",
+    "statPaid": "Pagadas",
+    "statPending": "Pendientes",
+    "colInvoice": "Factura",
+    "colDate": "Fecha",
+    "colCustomer": "Cliente",
+    "colVehicle": "Vehículo",
+    "colAgreement": "Contrato",
+    "colMethod": "Pago",
+    "colAmount": "Importe",
+    "colStatus": "Estado",
+    "colActions": "Acciones",
+    "badgePaid": "Pagada",
+    "badgePending": "Pendiente",
+    "printBtn": "Imprimir",
+    "empty": "No se encontraron facturas",
+    "emptyHint": "Las facturas se crean automáticamente cuando se completa un pago.",
+    "printTitle": "Factura",
+    "printClose": "Cerrar",
+    "printPrint": "Imprimir",
+    "printIssued": "Fecha de emisión",
+    "printPaid": "Fecha de pago",
+    "printMethod": "Método de pago",
+    "printCustomer": "Cliente",
+    "printVehicle": "Vehículo",
+    "printAgreement": "Referencia de contrato",
+    "printDesc": "Venta de vehículo según contrato de compra",
+    "printNet": "Importe neto (sin IVA)",
+    "printVat": "IVA 25%",
+    "printTotal": "Total con IVA",
+    "printStatus": "Estado",
+    "printFooter": "{dealerName} • Org.nr {orgNr} • {city} • {email}"
+  },
+  "invite": {
+    "title": "Ha sido invitado",
+    "by": "Invitado por {dealershipName}",
+    "expired": "Invitación inválida o caducada",
+    "expiredDesc": "Este enlace ya no es válido. Contacte a su administrador para una nueva invitación.",
+    "verify": "Verificar con BankID",
+    "verifyDesc": "Confirme su identidad para activar su cuenta.",
+    "success": "¡Cuenta activada!",
+    "successDesc": "Redirigiendo a su panel de control...",
+    "labelName": "Nombre",
+    "labelEmail": "Correo electrónico",
+    "labelRole": "Rol",
+    "labelCompany": "Empresa",
+    "goToLogin": "Ir al inicio de sesión",
+    "alreadyHaveAccount": "¿Ya tiene una cuenta?",
+    "loginLink": "Iniciar sesión"
+  }
+}

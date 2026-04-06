@@ -9,7 +9,7 @@ export interface PendingInvite {
   token:          string;
   email:          string;
   name:           string;
-  role:           'admin' | 'sales' | 'service';
+  role:           'admin' | 'sales' | 'service' | 'sales_manager' | 'accountant' | 'technician';
   dealershipName: string;
   dealershipId:   string;
   createdAt:      number;

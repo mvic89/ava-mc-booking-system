@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
 import { PAYMENT_REGISTRY } from '@/lib/payments/registry';
 import type { PaymentProviderDef } from '@/lib/payments/types';
+import { useAutoRefresh } from '@/lib/realtime';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -87,6 +88,7 @@ export default function PaymentSettingsPage() {
   const [saveResult,       setSaveResult]       = useState<'idle' | 'ok' | 'error'>('idle');
   const [primaryFinancing, setPrimaryFinancing] = useState('');
   const [dealerId,         setDealerId]         = useState('ava-mc');
+  const [dealershipId,     setDealershipId]     = useState('');
   const [dealerName,       setDealerName]       = useState('');
   const [providerStates,   setProviderStates]   = useState<Record<string, ProviderState>>({});
   const [showPasswords,    setShowPasswords]    = useState<Record<string, boolean>>({});
@@ -102,17 +104,21 @@ export default function PaymentSettingsPage() {
       router.replace('/settings');
       return;
     }
+    const uuid = user.dealershipId ?? '';
     const id   = (user.dealershipName || user.dealership || 'ava-mc')
       .toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     const name = user.dealershipName || user.dealership || '';
+    setDealershipId(uuid);
     setDealerId(id);
     setDealerName(name);
-    loadConfig(id, name);
+    loadConfig(uuid, id, name);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const loadConfig = useCallback(async (id: string, name: string) => {
+  const loadConfig = useCallback(async (uuid: string, id: string, name: string) => {
     try {
-      const res  = await fetch(`/api/settings/payments?dealerId=${encodeURIComponent(id)}&dealerName=${encodeURIComponent(name)}`);
+      const params = new URLSearchParams({ dealerId: id, dealerName: name });
+      if (uuid) params.set('dealershipId', uuid);
+      const res  = await fetch(`/api/settings/payments?${params}`);
       const data = await res.json();
 
       const states: Record<string, ProviderState> = {};
@@ -145,6 +151,10 @@ export default function PaymentSettingsPage() {
       setLoading(false);
     }
   }, []);
+
+  useAutoRefresh(useCallback(() => {
+    if (dealerId) loadConfig(dealershipId, dealerId, dealerName);
+  }, [dealershipId, dealerId, dealerName, loadConfig]));
 
   function toggleProvider(id: string) {
     const current = providerStates[id];
@@ -219,14 +229,14 @@ export default function PaymentSettingsPage() {
       const res = await fetch('/api/settings/payments', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ dealerId, dealerName, enabledProviders, primaryFinancing, credentials }),
+        body:    JSON.stringify({ dealershipId, dealerId, dealerName, enabledProviders, primaryFinancing, credentials }),
       });
 
       if (!res.ok) throw new Error('Save failed');
       setSaveResult('ok');
       setRestartBanner(true);
       setTimeout(() => setSaveResult('idle'), 4000);
-      await loadConfig(dealerId, dealerName);
+      await loadConfig(dealershipId, dealerId, dealerName);
     } catch {
       setSaveResult('error');
       setTimeout(() => setSaveResult('idle'), 4000);

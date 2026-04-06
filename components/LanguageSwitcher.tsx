@@ -4,11 +4,13 @@ import { useState } from 'react';
 import { useLocale } from 'next-intl';
 
 const languageOptions = [
-  { code: 'en', label: 'English', flag: '🇬🇧' },
-  { code: 'sv', label: 'Svenska', flag: '🇸🇪' },
-  { code: 'no', label: 'Norsk', flag: '🇳🇴' },
-  { code: 'da', label: 'Dansk', flag: '🇩🇰' },
+  { code: 'en', label: 'English',  flag: '🇬🇧' },
+  { code: 'sv', label: 'Svenska',  flag: '🇸🇪' },
+  { code: 'no', label: 'Norsk',    flag: '🇳🇴' },
+  { code: 'da', label: 'Dansk',    flag: '🇩🇰' },
   { code: 'ar', label: 'العربية', flag: '🇸🇦' },
+  { code: 'fr', label: 'Français', flag: '🇫🇷' },
+  { code: 'es', label: 'Español',  flag: '🇪🇸' },
 ];
 
 interface LanguageSwitcherProps {

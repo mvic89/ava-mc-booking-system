@@ -124,7 +124,8 @@ export function savePreferences(prefs: NotificationPreferences): void {
 
 // ── Main notify() helper ──────────────────────────────────────────────────────
 // Call this at every action point. Respects the user's per-channel toggles.
-// Email/SMS are simulated (logged to console — replace with real API calls).
+// Email and SMS are dispatched via POST /api/notifications/send using the
+// dealership's configured SMTP and Twilio credentials.
 
 export function notify(
   event: keyof NotificationPreferences,
@@ -137,12 +138,33 @@ export function notify(
   if (ch.inApp) {
     addNotification(n);
   }
-  if (ch.email) {
-    // In production: POST /api/notifications/email
-    console.info('[Email notification]', n.title, '—', n.message);
-  }
-  if (ch.sms) {
-    // In production: POST /api/notifications/sms
-    console.info('[SMS notification]', n.title, '—', n.message);
+
+  // Collect channels that need server-side dispatch
+  const remoteChannels: ('email' | 'sms')[] = [];
+  if (ch.email) remoteChannels.push('email');
+  if (ch.sms)   remoteChannels.push('sms');
+
+  if (remoteChannels.length > 0) {
+    try {
+      const u = JSON.parse(localStorage.getItem('user') ?? '{}');
+      const dealershipId = (u.dealershipId as string) || '';
+      if (dealershipId) {
+        // Fire-and-forget — don't block the UI
+        fetch('/api/notifications/send', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            dealershipId,
+            channels:   remoteChannels,
+            title:      n.title,
+            message:    n.message,
+            href:       n.href,
+            eventType:  event,
+          }),
+        }).catch(err => console.error('[notify] send error:', err));
+      }
+    } catch (err) {
+      console.error('[notify] could not dispatch remote notification:', err);
+    }
   }
 }

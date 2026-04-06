@@ -200,6 +200,22 @@ export function startSupabaseSync(dealershipId: string): () => void {
     .on('postgres_changes',
       { event: '*', schema: 'public', table: 'dealership_settings', filter: `dealership_id=eq.${dealershipId}` },
       () => emit({ type: 'data:refresh' }))
+    // ── dealerships row (stripe_* billing columns updated) ───────────────
+    .on('postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'dealerships', filter: `id=eq.${dealershipId}` },
+      () => emit({ type: 'data:refresh' }))
+    // ── payments (transaction records) ───────────────────────────────────
+    .on('postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'payments', filter: `dealership_id=eq.${dealershipId}` },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (p: any) => emit({ type: 'payment:received', payload: { leadId: String(p.new.lead_id ?? ''), amount: Number(p.new.amount), method: p.new.method ?? '' } }))
+    .on('postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'payments', filter: `dealership_id=eq.${dealershipId}` },
+      () => emit({ type: 'data:refresh' }))
+    // ── payment configs (enabled providers) ──────────────────────────────
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'payment_configs', filter: `dealership_id=eq.${dealershipId}` },
+      () => emit({ type: 'data:refresh' }))
     // ── webhook events (payment provider callbacks, no dealership filter) ─
     .on('postgres_changes',
       { event: 'INSERT', schema: 'public', table: 'webhook_events' },

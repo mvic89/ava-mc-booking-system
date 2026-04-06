@@ -249,6 +249,18 @@ export async function POST(req: Request) {
           details:      { customer_name: customerName, vehicle, total_amount: totalAmount, payment_method: paymentMethod, status },
           dealershipId: dealershipId,
         });
+        // Write a payments row for every transaction (pending or paid)
+        sb().from('payments').insert({
+          invoice_id:   invoiceId,
+          lead_id:      leadId     ? Number(leadId) : null,
+          customer_id:  customerId ?? null,
+          amount:       totalAmount,
+          currency:     'SEK',
+          method:       paymentMethod || 'unknown',
+          status:       status === 'paid' ? 'confirmed' : 'pending',
+          provider:     paymentMethod || null,
+          confirmed_at: status === 'paid' ? (paidDate ?? new Date().toISOString()) : null,
+        }).then(() => {});
         // Fire-and-forget Fortnox auto-sync for paid invoices — never blocks the response
         if (status === 'paid') {
           import('@/lib/fortnox/sync')
