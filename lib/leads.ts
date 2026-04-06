@@ -24,8 +24,14 @@ export interface Lead {
   initials:       string;
   email:          string;
   phone:          string;
-  stageChangedAt: string | null;  // ISO timestamp — when lead last moved stages
-  daysInStage:    number;         // days since last stage change
+  stageChangedAt:  string | null;  // ISO timestamp — when lead last moved stages
+  daysInStage:     number;         // days since last stage change
+  salesPersonName: string;         // who owns this lead (from staff user name)
+  closedAt:        string | null;  // ISO timestamp — when lead reached 'closed'
+  leadScore:       number;         // 0–100 computed from signals
+  lostReason:      string | null;  // why deal was lost (if closed as lost)
+  source:          string;         // lead origin: BankID, Walk-in, Website, etc.
+  createdAt:       string;         // ISO — when lead was created
 }
 
 // ── Column mapping ─────────────────────────────────────────────────────────────
@@ -78,7 +84,13 @@ function mapDbToLead(row: Record<string, unknown>): Lead {
     email:          (row.email       as string) ?? '',
     phone:          (row.phone       as string) ?? '',
     stageChangedAt,
-    daysInStage:    daysAgo(stageChangedAt),
+    daysInStage:     daysAgo(stageChangedAt),
+    salesPersonName: (row.salesperson_name as string) ?? '',
+    closedAt:        (row.closed_at   as string | null) ?? null,
+    leadScore:       (row.lead_score  as number)        ?? 0,
+    lostReason:      (row.lost_reason as string | null) ?? null,
+    source:          (row.source      as string)        ?? 'Walk-in',
+    createdAt:       (row.created_at  as string)        ?? '',
   };
 }
 
@@ -121,11 +133,12 @@ export interface CreateLeadInput {
   email:       string;
   phone:       string;
   personnummer?: string | null;
-  source?:     string;
-  notes?:      string;
-  address?:    string | null;
-  city?:       string | null;
-  customer_id?: string | number | null;
+  source?:           string;
+  notes?:            string;
+  address?:          string | null;
+  city?:             string | null;
+  customer_id?:      string | number | null;
+  salesperson_name?: string | null;
 }
 
 export async function createLead(data: CreateLeadInput): Promise<Lead> {
@@ -144,10 +157,11 @@ export async function createLead(data: CreateLeadInput): Promise<Lead> {
       personnummer:  data.personnummer || null,
       source:        data.source       ?? 'Manual',
       notes:         data.notes        || null,
-      address:       data.address      || null,
-      city:          data.city         || null,
-      dealership_id: dealershipId,
-      customer_id:   data.customer_id  ?? null,
+      address:          data.address           || null,
+      city:             data.city              || null,
+      dealership_id:    dealershipId,
+      customer_id:      data.customer_id       ?? null,
+      salesperson_name: data.salesperson_name  || null,
     })
     .select()
     .single();
@@ -194,7 +208,7 @@ export async function convertLeadToCustomer(
   const dealershipId = getDealershipId();
   if (!dealershipId) return { customerId: null, created: false };
 
-  // 1. Fetch full lead row (includes personnummer, email, phone, address, etc.)
+  // 1. Fetch full lead row (includes personnummer, want eveemail, phone, address, etc.)
   const { data: lead } = await db()
     .from('leads')
     .select('*')
@@ -364,4 +378,48 @@ export async function upsertCustomerFromLead(
   }
   if (insertErr) console.error('[leads] upsertCustomerFromLead:', insertErr.message);
   return { customerId: null, created: false };
+}
+
+// ── Lead scoring ───────────────────────────────────────────────────────────────
+// Score 0–100 based on verifiable signals on the lead row.
+// Called client-side for instant display; also persisted to DB by the API route.
+
+export function computeLeadScore(lead: {
+  verified?:    boolean;
+  notes?:       string;
+  stage?:       string;
+  costPrice?:   number;
+  rawValue?:    number;
+  source?:      string;
+  email?:       string;
+  phone?:       string;
+}): number {
+  let score = 0;
+  const notes = (lead.notes ?? '').toLowerCase();
+
+  // Identity confidence
+  if (lead.verified || lead.source === 'BankID') score += 30;
+  else if (lead.email && lead.phone)             score += 10;
+  else if (lead.email || lead.phone)             score += 5;
+
+  // Stage progression
+  const stageBonus: Record<string, number> = {
+    new: 0, contacted: 5, testride: 10, negotiating: 15, pending_payment: 20, closed: 25,
+  };
+  score += stageBonus[lead.stage ?? 'new'] ?? 0;
+
+  // Trade-in mentioned (+20)
+  if (/inbyte|trade.?in|byta in|byte/i.test(notes)) score += 20;
+
+  // Financing interest (+15)
+  if (/financ|finans|kredit|avbetalning|leasing|månadsbetalning/i.test(notes)) score += 15;
+
+  // Agreement opened / signed (+25)
+  if (lead.stage === 'negotiating' || lead.stage === 'pending_payment') score += 25;
+  else if (lead.stage === 'closed') score += 25;
+
+  // Has cost price set (dealer took it seriously) (+5)
+  if ((lead.costPrice ?? 0) > 0) score += 5;
+
+  return Math.min(100, score);
 }

@@ -148,6 +148,57 @@ export const INTEGRATION_REGISTRY: IntegrationDef[] = [
       { method: 'POST', path: '/api/insurance/quote', description: 'Get insurance quote' },
     ],
   },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COMMUNICATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  {
+    id:          'smtp',
+    name:        'E-post (SMTP / Gmail)',
+    description: 'Skicka e-postnotiser via Gmail eller valfri SMTP-server när leads, betalningar och avtal skapas.',
+    icon:        '📧',
+    category:    'communication',
+    status:      'live',
+    countries:   ['SE', 'NO', 'DK', 'AR'],
+    requiredEnvVars: [
+      'SMTP_USER',
+      'SMTP_PASS',
+      'SMTP_HOST',
+      'SMTP_PORT',
+      'ADMIN_EMAIL',
+    ],
+    envVarDefaults: {
+      SMTP_HOST: 'smtp.gmail.com',
+      SMTP_PORT: '587',
+    },
+    docsUrl: 'https://support.google.com/mail/answer/185833',
+    apiRoutes: [
+      { method: 'POST', path: '/api/notifications/send',   description: 'Send email notification' },
+      { method: 'GET',  path: '/api/notifications/config', description: 'Get email configuration status' },
+    ],
+  },
+
+  {
+    id:          'twilio',
+    name:        'SMS (Twilio)',
+    description: 'Skicka SMS-notiser till handläggare när viktiga händelser inträffar. Kräver ett Twilio-konto.',
+    icon:        '📱',
+    category:    'communication',
+    status:      'live',
+    countries:   ['SE', 'NO', 'DK', 'AR'],
+    requiredEnvVars: [
+      'TWILIO_ACCOUNT_SID',
+      'TWILIO_AUTH_TOKEN',
+      'TWILIO_FROM_NUMBER',
+      'ADMIN_PHONE',
+    ],
+    docsUrl: 'https://console.twilio.com/',
+    apiRoutes: [
+      { method: 'POST', path: '/api/notifications/send',   description: 'Send SMS notification' },
+      { method: 'GET',  path: '/api/notifications/config', description: 'Get SMS configuration status' },
+    ],
+  },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

@@ -171,11 +171,12 @@ export default function NewLeadPage() {
         email:        formData.email,
         phone:        formData.phone,
         personnummer: bankIDData?.user.personalNumber?.replace(/-/g, '') || null,
-        source:       bankIDData ? 'BankID' : 'Walk-in',
-        notes:        formData.notes || undefined,
-        address:      streetPart    || null,
-        city:         cityPart      || null,
-        customer_id:  returningCustomerId ?? null,
+        source:           bankIDData ? 'BankID' : 'Walk-in',
+        notes:            formData.notes || undefined,
+        address:          streetPart    || null,
+        city:             cityPart      || null,
+        customer_id:      returningCustomerId ?? null,
+        salesperson_name: (user?.name as string) || null,
       });
       notify('newLead', {
         type:    'lead',

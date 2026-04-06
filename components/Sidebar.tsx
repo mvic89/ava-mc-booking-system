@@ -193,6 +193,7 @@ export default function Sidebar() {
         { icon: '💰', label: t('navigation.pipeline'),  href: '/sales/leads', roles: ['admin', 'sales'] },
         { icon: '👥', label: t('navigation.customers'), href: '/customers',   roles: ['admin', 'sales', 'service'] },
         { icon: '📧', label: t('navigation.invoices'),  href: '/invoices',    roles: ['admin', 'sales', 'service'] },
+        { icon: '🔧', label: t('navigation.service'),   href: '/service',     roles: ['admin', 'sales', 'service'] },
       ],
     },
     {

@@ -12,27 +12,27 @@ import { isValidEmail, isValidPhone, isValidOrgNumber, isValidWebsite } from '@/
 import BankIDModal from '@/components/bankIdModel';
 import type { BankIDResult } from '@/types';
 
-type Plan = 'starter' | 'professional' | 'enterprise';
+type Plan = 'basic' | 'standard' | 'pro';
 type Step = 0 | 1 | 2 | 3 | 4;
 
 const PLANS = {
-  starter: {
-    name: 'Starter',
-    price: '2,995 kr',
+  basic: {
+    name: 'Basic',
+    price: '2 000 kr',
     description: 'Perfect for small dealerships',
-    features: ['Up to 50 vehicles', '2 team members', 'Basic reporting', 'Email support', 'Mobile app access', 'Blocket integration'],
+    features: ['Up to 3 users', 'Up to 50 leads/month', 'BankID verification', 'Basic payment methods', 'Email support'],
   },
-  professional: {
-    name: 'Professional',
-    price: '5,995 kr',
+  standard: {
+    name: 'Standard',
+    price: '5 000 kr',
     description: 'For growing dealerships',
-    features: ['Up to 200 vehicles', 'Unlimited team members', 'Advanced analytics', 'Priority support', 'API access', 'All integrations', 'Custom workflows'],
+    features: ['Unlimited users', 'Unlimited leads', 'BankID verification', 'All payment methods', 'SMS & email notifications', 'Email support'],
   },
-  enterprise: {
-    name: 'Enterprise',
-    price: 'Custom',
+  pro: {
+    name: 'Professional',
+    price: '8 000 kr',
     description: 'For large dealerships',
-    features: ['Unlimited vehicles', 'Unlimited users', 'Dedicated account manager', '24/7 phone support', 'Custom integrations', 'SLA guarantee'],
+    features: ['Unlimited users', 'Unlimited leads', 'BankID verification', 'All payment methods', 'SMS & email notifications', 'API access', 'Multi-location', 'Priority support'],
   },
 };
 
@@ -48,7 +48,7 @@ export default function SignupPage() {
   const router = useRouter();
   const t = useTranslations('signup');
   const [step, setStep] = useState<Step>(0);
-  const [selectedPlan, setSelectedPlan] = useState<Plan>('professional');
+  const [selectedPlan, setSelectedPlan] = useState<Plan>('standard');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [skipped, setSkipped] = useState<Set<string>>(new Set());
   const [adminVerified, setAdminVerified] = useState<BankIDResult | null>(null);
@@ -253,22 +253,22 @@ export default function SignupPage() {
 
         {/* Plan cards */}
         <div className="flex flex-col md:flex-row gap-6 max-w-5xl mx-auto px-6 pb-12 items-stretch justify-center">
-          {/* Starter */}
+          {/* Basic */}
           <div className="flex-1 bg-white rounded-2xl border border-slate-200 p-8 flex flex-col">
-            <h3 className="text-xl font-bold text-slate-900 mb-1">Starter</h3>
+            <h3 className="text-xl font-bold text-slate-900 mb-1">Basic</h3>
             <p className="text-slate-500 text-sm mb-6">Perfect for small dealerships</p>
             <div className="mb-5">
-              <span className="text-4xl font-bold text-slate-900">2,995 kr</span>
+              <span className="text-4xl font-bold text-slate-900">2 000 kr</span>
               <span className="text-slate-400 text-sm ml-1">/ month</span>
             </div>
             <button
-              onClick={() => { setSelectedPlan('starter'); setStep(1); }}
+              onClick={() => { setSelectedPlan('basic'); setStep(1); }}
               className="w-full border-2 border-[#FF6B2C] text-[#FF6B2C] py-3 rounded-xl font-semibold hover:bg-orange-50 transition-colors mb-7"
             >
               Start Free Trial
             </button>
             <ul className="space-y-3 flex-1">
-              {PLANS.starter.features.map(f => (
+              {PLANS.basic.features.map((f: string) => (
                 <li key={f} className="flex items-center gap-2.5 text-sm text-slate-700">
                   <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
@@ -279,27 +279,27 @@ export default function SignupPage() {
             </ul>
           </div>
 
-          {/* Professional — Popular */}
+          {/* Standard — Popular */}
           <div className="flex-1 bg-[#0b1524] rounded-2xl p-8 flex flex-col relative shadow-2xl md:scale-105 md:-my-2">
             <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
               <span className="bg-amber-400 text-amber-900 text-xs font-bold px-3.5 py-1.5 rounded-full uppercase tracking-wider">
                 Popular
               </span>
             </div>
-            <h3 className="text-xl font-bold text-white mb-1">Professional</h3>
+            <h3 className="text-xl font-bold text-white mb-1">Standard</h3>
             <p className="text-slate-400 text-sm mb-6">For growing dealerships</p>
             <div className="mb-5">
-              <span className="text-4xl font-bold text-white">5,995 kr</span>
+              <span className="text-4xl font-bold text-white">5 000 kr</span>
               <span className="text-slate-400 text-sm ml-1">/ month</span>
             </div>
             <button
-              onClick={() => { setSelectedPlan('professional'); setStep(1); }}
+              onClick={() => { setSelectedPlan('standard'); setStep(1); }}
               className="w-full bg-[#FF6B2C] text-white py-3 rounded-xl font-semibold hover:bg-[#e55a1f] transition-colors mb-7"
             >
               Start Free Trial
             </button>
             <ul className="space-y-3 flex-1">
-              {PLANS.professional.features.map(f => (
+              {PLANS.standard.features.map((f: string) => (
                 <li key={f} className="flex items-center gap-2.5 text-sm text-white">
                   <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
@@ -310,22 +310,22 @@ export default function SignupPage() {
             </ul>
           </div>
 
-          {/* Enterprise */}
+          {/* Pro */}
           <div className="flex-1 bg-white rounded-2xl border border-slate-200 p-8 flex flex-col">
-            <h3 className="text-xl font-bold text-slate-900 mb-1">Enterprise</h3>
+            <h3 className="text-xl font-bold text-slate-900 mb-1">Professional</h3>
             <p className="text-slate-500 text-sm mb-6">For large dealerships</p>
             <div className="mb-5">
-              <span className="text-4xl font-bold text-slate-900">Custom</span>
-              <p className="text-slate-400 text-sm mt-1">contact us for pricing</p>
+              <span className="text-4xl font-bold text-slate-900">8 000 kr</span>
+              <span className="text-slate-400 text-sm ml-1">/ month</span>
             </div>
             <button
-              onClick={() => toast.success('Our sales team will reach out shortly!')}
+              onClick={() => { setSelectedPlan('pro'); setStep(1); }}
               className="w-full bg-slate-900 text-white py-3 rounded-xl font-semibold hover:bg-slate-800 transition-colors mb-7"
             >
-              Contact Sales
+              Start Free Trial
             </button>
             <ul className="space-y-3 flex-1">
-              {PLANS.enterprise.features.map(f => (
+              {PLANS.pro.features.map((f: string) => (
                 <li key={f} className="flex items-center gap-2.5 text-sm text-slate-700">
                   <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
@@ -941,6 +941,19 @@ export default function SignupPage() {
                       toast.error('Failed to create dealership — please try again.');
                       return;
                     }
+
+                    // Start 14-day Stripe trial (fire-and-forget — non-fatal)
+                    fetch('/api/billing/start-trial', {
+                      method:  'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        dealershipId,
+                        email:  admin.email,
+                        name:   business.dealershipName,
+                        planId: selectedPlan,
+                      }),
+                    }).catch(() => {});
+
 
                     // Mirror data into dealership_settings (required for customers/leads FK references)
                     const { error: dsErr } = await supabase

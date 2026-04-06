@@ -12,7 +12,7 @@ import { getSupabaseBrowser } from '@/lib/supabase';
 
 //──Types ────────────────────────────────────────────────────────────────────
 
-type Role   = 'admin' | 'sales' | 'service';
+type Role   = 'admin' | 'sales' | 'service' | 'sales_manager' | 'accountant' | 'technician';
 type Status = 'active' | 'inactive' | 'pending';
 
 interface StaffUser {
@@ -32,17 +32,32 @@ const ROLES: Record<Role, { label: string; color: string; permissions: string[] 
   admin: {
     label: 'Admin',
     color: 'bg-purple-100 text-purple-700',
-    permissions: ['Dashboard', 'Leads & Offers', 'Customers', 'Invoices', 'Inventory', 'Documents', 'Settings', 'Audit Log'],
+    permissions: ['Dashboard', 'Leads & Offers', 'Customers', 'Invoices', 'Inventory', 'Documents', 'Settings', 'Billing', 'Audit Log', 'Analytics', 'Accounting', 'Branches'],
+  },
+  sales_manager: {
+    label: 'Sales Manager',
+    color: 'bg-amber-100 text-amber-700',
+    permissions: ['Dashboard', 'Leads & Offers', 'Customers', 'Invoices', 'Inventory', 'Analytics', 'Performance'],
   },
   sales: {
     label: 'Försäljning',
     color: 'bg-[#FF6B2C]/10 text-[#FF6B2C]',
     permissions: ['Dashboard', 'Leads & Offers', 'Customers', 'Invoices', 'Inventory'],
   },
+  accountant: {
+    label: 'Accountant',
+    color: 'bg-green-100 text-green-700',
+    permissions: ['Dashboard', 'Invoices', 'Accounting', 'Analytics'],
+  },
+  technician: {
+    label: 'Technician',
+    color: 'bg-sky-100 text-sky-700',
+    permissions: ['Dashboard', 'Inventory', 'Documents', 'Service'],
+  },
   service: {
     label: 'Service',
     color: 'bg-blue-100 text-blue-700',
-    permissions: ['Dashboard', 'Inventory', 'Documents'],
+    permissions: ['Dashboard', 'Inventory', 'Documents', 'Service'],
   },
 };
 

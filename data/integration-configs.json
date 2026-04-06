@@ -30,7 +30,7 @@
       "trygg_hansa"
     ],
     "credentials": {},
-    "updatedAt": "2026-03-18T00:54:57.053Z"
+    "updatedAt": "2026-04-01T22:23:09.563Z"
   },
   "stockholm-motors-ab": {
     "dealerId": "stockholm-motors-ab",
@@ -64,5 +64,12 @@
     "enabledIntegrations": [],
     "credentials": {},
     "updatedAt": "2026-03-30T16:11:25.371Z"
+  },
+  "tiktok-mc-ab": {
+    "dealerId": "tiktok-mc-ab",
+    "dealerName": "Tiktok MC AB",
+    "enabledIntegrations": [],
+    "credentials": {},
+    "updatedAt": "2026-04-01T13:13:34.901Z"
   }
 }

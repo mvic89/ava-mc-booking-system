@@ -35,13 +35,20 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function NotificationsSettingsPage() {
-  const router  = useRouter();
+  const router = useRouter();
   const t = useTranslations('notifications');
+
   const [prefs, setPrefs]   = useState<NotificationPreferences>(DEFAULT_PREFS);
   const [saving, setSaving] = useState(false);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<{ email?: string } | null>(null);
+  const [dealershipId, setDealershipId] = useState('');
+  const [adminPhone, setAdminPhone] = useState('');
+  const [savingPhone, setSavingPhone] = useState(false);
+  const [smtpOk, setSmtpOk]     = useState<boolean | null>(null);
+  const [twilioOk, setTwilioOk] = useState<boolean | null>(null);
+  const [adminEmail, setAdminEmail] = useState('');
 
-  // ─── Event definitions (inside component to access t()) ───────────────────
+  // ─── Event definitions ────────────────────────────────────────────────────
 
   const EVENTS: {
     id:    keyof NotificationPreferences;
@@ -56,51 +63,69 @@ export default function NotificationsSettingsPage() {
     { id: 'newCustomer',     icon: '👤', title: t('events.newCustomer.title'),     desc: t('events.newCustomer.desc'),     dot: 'bg-purple-500' },
   ];
 
-  // ─── Channel metadata (inside component to access t()) ────────────────────
-
-  const CHANNELS: { id: 'inApp' | 'email' | 'sms'; label: string; icon: string; note: string }[] = [
-    { id: 'inApp', label: t('channels.inApp.label'), icon: '🔔', note: t('channels.inApp.note') },
-    { id: 'email', label: t('channels.email.label'), icon: '📧', note: t('channels.email.note') },
-    { id: 'sms',   label: t('channels.sms.label'),   icon: '📱', note: t('channels.sms.note')   },
+  const CHANNELS: { id: 'inApp' | 'email' | 'sms'; label: string; icon: string }[] = [
+    { id: 'inApp', label: t('channels.inApp.label'), icon: '🔔' },
+    { id: 'email', label: t('channels.email.label'), icon: '📧' },
+    { id: 'sms',   label: t('channels.sms.label'),   icon: '📱' },
   ];
 
   useEffect(() => {
     const raw = localStorage.getItem('user');
     if (!raw) { router.replace('/auth/login'); return; }
+    const u = JSON.parse(raw) as { dealershipId?: string };
     setPrefs(getPreferences());
     try {
       const p = JSON.parse(localStorage.getItem('dealership_profile') || '{}');
       if (p.email) setProfile(p);
     } catch {}
+
+    const did = u.dealershipId ?? '';
+    setDealershipId(did);
+
+    if (did) {
+      fetch(`/api/notifications/config?dealershipId=${encodeURIComponent(did)}`)
+        .then(r => r.ok ? r.json() : null)
+        .then((data: { smtpOk: boolean; twilioOk: boolean; adminPhone: string | null; adminEmail: string | null } | null) => {
+          if (!data) return;
+          setSmtpOk(data.smtpOk);
+          setTwilioOk(data.twilioOk);
+          if (data.adminPhone) setAdminPhone(data.adminPhone);
+          if (data.adminEmail) setAdminEmail(data.adminEmail);
+        })
+        .catch(() => {});
+    }
   }, [router]);
 
   const setChannel = (
     event: keyof NotificationPreferences,
     channel: 'inApp' | 'email' | 'sms',
     value: boolean,
-  ) => {
-    setPrefs(p => ({
-      ...p,
-      [event]: { ...p[event], [channel]: value },
-    }));
-  };
+  ) => setPrefs(p => ({ ...p, [event]: { ...p[event], [channel]: value } }));
 
   const handleSave = () => {
     setSaving(true);
     savePreferences(prefs);
-    setTimeout(() => {
-      setSaving(false);
-      toast.success(t('saveToast'));
-    }, 300);
+    setTimeout(() => { setSaving(false); toast.success(t('saveToast')); }, 300);
   };
 
   const handleTestNotification = () => {
-    addNotification({
-      type:    'system',
-      title:   t('testNotifTitle'),
-      message: t('testNotifMessage'),
-    });
+    addNotification({ type: 'system', title: t('testNotifTitle'), message: t('testNotifMessage') });
     toast.success(t('testToast'));
+  };
+
+  const handleSavePhone = async () => {
+    if (!dealershipId) return;
+    setSavingPhone(true);
+    try {
+      const res = await fetch('/api/notifications/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dealershipId, adminPhone }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      toast.success('Telefonnummer sparat');
+    } catch { toast.error('Kunde inte spara'); }
+    finally { setSavingPhone(false); }
   };
 
   return (
@@ -152,17 +177,13 @@ export default function NotificationsSettingsPage() {
               <p className="font-semibold">{t('infoTitle')}</p>
               <p className="text-xs leading-relaxed text-blue-600">
                 {t('infoBody')}
-                {profile?.email && (
-                  <> {t('infoEmail')} <strong>{profile.email}</strong>.</>
-                )}
+                {profile?.email && <> {t('infoEmail')} <strong>{profile.email}</strong>.</>}
               </p>
             </div>
           </div>
 
           {/* Matrix table */}
           <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-
-            {/* Column headers */}
             <div className="grid grid-cols-[1fr_100px_100px_100px] gap-0 border-b border-slate-100">
               <div className="px-6 py-4">
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t('columnEvent')}</p>
@@ -175,17 +196,13 @@ export default function NotificationsSettingsPage() {
               ))}
             </div>
 
-            {/* Event rows */}
             {EVENTS.map((ev, i) => (
               <div
                 key={ev.id}
-                className={`grid grid-cols-[1fr_100px_100px_100px] gap-0 ${
-                  i < EVENTS.length - 1 ? 'border-b border-slate-50' : ''
-                }`}
+                className={`grid grid-cols-[1fr_100px_100px_100px] gap-0 ${i < EVENTS.length - 1 ? 'border-b border-slate-50' : ''}`}
               >
                 <div className="px-6 py-5 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl flex items-center justify-center text-base shrink-0"
-                    style={{ background: '#f5f7fa' }}>
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center text-base shrink-0" style={{ background: '#f5f7fa' }}>
                     {ev.icon}
                   </div>
                   <div>
@@ -196,39 +213,88 @@ export default function NotificationsSettingsPage() {
                     <p className="text-xs text-slate-400 mt-0.5">{ev.desc}</p>
                   </div>
                 </div>
-
                 {CHANNELS.map(ch => (
                   <div key={ch.id} className="px-3 py-5 flex items-center justify-center border-l border-slate-50">
-                    <Toggle
-                      checked={prefs[ev.id][ch.id]}
-                      onChange={v => setChannel(ev.id, ch.id, v)}
-                    />
+                    <Toggle checked={prefs[ev.id][ch.id]} onChange={v => setChannel(ev.id, ch.id, v)} />
                   </div>
                 ))}
               </div>
             ))}
           </div>
 
-          {/* Channel detail cards */}
+          {/* Channel status cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {CHANNELS.map(ch => (
-              <div key={ch.id} className="bg-white rounded-xl border border-slate-100 p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg">{ch.icon}</span>
-                  <p className="text-sm font-bold text-slate-900">{ch.label}</p>
-                </div>
-                <p className="text-xs text-slate-400 leading-relaxed">{ch.note}</p>
-                {ch.id === 'email' && profile?.email && (
-                  <p className="text-xs text-[#FF6B2C] mt-2 font-medium">{profile.email}</p>
-                )}
-                {ch.id === 'sms' && (
-                  <p className="text-xs text-slate-400 mt-2 italic">{t('smsNote')}</p>
-                )}
-                {ch.id === 'inApp' && (
-                  <p className="text-xs text-green-600 mt-2 font-medium">{t('inAppNote')}</p>
-                )}
+
+            {/* In-app */}
+            <div className="bg-white rounded-xl border border-slate-100 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-lg">🔔</span>
+                <p className="text-sm font-bold text-slate-900">{t('channels.inApp.label')}</p>
               </div>
-            ))}
+              <p className="text-xs text-slate-400 leading-relaxed">{t('channels.inApp.note')}</p>
+              <p className="text-xs text-green-600 mt-2 font-medium">✓ {t('inAppNote')}</p>
+            </div>
+
+            {/* Email */}
+            <div className="bg-white rounded-xl border border-slate-100 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">📧</span>
+                  <p className="text-sm font-bold text-slate-900">{t('channels.email.label')}</p>
+                </div>
+                {smtpOk === true  && <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">✓ Konfigurerad</span>}
+                {smtpOk === false && <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">Ej konfigurerad</span>}
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed mb-3">{t('channels.email.note')}</p>
+              {adminEmail && smtpOk && (
+                <p className="text-xs text-[#FF6B2C] mb-3 font-medium">{adminEmail}</p>
+              )}
+              <Link
+                href="/settings/integrations"
+                className="block w-full py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:border-[#FF6B2C]/40 hover:bg-orange-50 transition-all text-center"
+              >
+                {smtpOk ? '✏️ Ändra e-postinställningar →' : '⚙️ Konfigurera e-post →'}
+              </Link>
+            </div>
+
+            {/* SMS */}
+            <div className="bg-white rounded-xl border border-slate-100 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">📱</span>
+                  <p className="text-sm font-bold text-slate-900">{t('channels.sms.label')}</p>
+                </div>
+                {twilioOk === true  && <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">✓ Konfigurerad</span>}
+                {twilioOk === false && <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">Ej konfigurerad</span>}
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed mb-3">{t('channels.sms.note')}</p>
+
+              {/* Admin phone — quick edit stays here since it's just one field */}
+              <div className="flex gap-1.5 mb-3">
+                <input
+                  type="tel"
+                  value={adminPhone}
+                  onChange={e => setAdminPhone(e.target.value)}
+                  placeholder="+46701234567"
+                  className="flex-1 min-w-0 px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs outline-none focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C]/20"
+                />
+                <button
+                  onClick={handleSavePhone}
+                  disabled={savingPhone}
+                  className="px-2.5 py-1.5 rounded-lg bg-[#FF6B2C] hover:bg-orange-600 text-white text-xs font-semibold transition-colors disabled:opacity-60 shrink-0"
+                >
+                  {savingPhone ? '…' : 'Spara'}
+                </button>
+              </div>
+
+              <Link
+                href="/settings/integrations"
+                className="block w-full py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:border-[#FF6B2C]/40 hover:bg-orange-50 transition-all text-center"
+              >
+                {twilioOk ? '✏️ Ändra SMS-inställningar →' : '⚙️ Konfigurera SMS (Twilio) →'}
+              </Link>
+            </div>
+
           </div>
 
           {/* Bottom save bar */}

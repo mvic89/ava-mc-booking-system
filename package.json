@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "NODE_OPTIONS=--max-old-space-size=4096 next dev",
+    "build": "NODE_OPTIONS=--max-old-space-size=4096 next build",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "node -e \"const fs=require('fs');fs.copyFileSync('node_modules/pdfjs-dist/build/pdf.worker.min.mjs','public/pdf.worker.min.mjs');\""
@@ -12,6 +12,8 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
     "@react-email/render": "^2.0.4",
+    "@stripe/react-stripe-js": "^6.1.0",
+    "@stripe/stripe-js": "^9.0.1",
     "@supabase/supabase-js": "^2.99.0",
     "@types/mailparser": "^3.4.6",
     "@types/pdf-parse": "^1.1.5",

@@ -36,6 +36,7 @@
     "offer": "Tilbud",
     "accounting": "Regnskap",
     "auditLog": "Revisjonslogg",
+    "service": "Service",
     "subscribedDealer": "Abonnert forhandler",
     "groups": {
       "core": "KJERNE",

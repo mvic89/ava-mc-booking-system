@@ -644,7 +644,7 @@ export default function DealershipProfilePage() {
                 <Input
                   value={profile.email}
                   onChange={set('email')}
-                  placeholder="info@avamc.se"
+                  placeholder="info@bikeme.se"
                   type="email"
                 />
               </Field>
@@ -658,7 +658,7 @@ export default function DealershipProfilePage() {
                     type="text"
                     value={profile.emailDomain}
                     onChange={e => setProfile(p => ({ ...p, emailDomain: e.target.value.toLowerCase().replace(/^@/, '') }))}
-                    placeholder="avamc.se"
+                    placeholder="bikeme.se"
                     className="flex-1 py-2.5 pr-3 text-sm text-slate-900 bg-transparent outline-none font-mono"
                   />
                 </div>
@@ -667,7 +667,7 @@ export default function DealershipProfilePage() {
                 <Input
                   value={profile.website}
                   onChange={set('website')}
-                  placeholder="https://avamc.se"
+                  placeholder="https://bikeme.se"
                   type="url"
                 />
               </Field>

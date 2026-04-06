@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/poll-delivery-inbox",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/reports/weekly",
+      "schedule": "0 8 * * 1"
     }
   ]
 }

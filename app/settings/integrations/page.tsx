@@ -40,15 +40,28 @@ function isUrlField(envVar: string): boolean {
 }
 
 const CATEGORY_META: Record<string, { label: string; icon: string; desc: string }> = {
-  accounting:    { label: 'Bokföring',      icon: '📊', desc: 'Fortnox — auto-fakturering och bokföring när avtal signeras' },
+  accounting:    { label: 'Bokföring',       icon: '📊', desc: 'Fortnox — auto-fakturering och bokföring när avtal signeras' },
   registry:      { label: 'Fordonsregister', icon: '🚗', desc: 'Transportstyrelsen — fordonsuppgifter och digitalt ägarbyte' },
-  marketplace:   { label: 'Annonsering',    icon: '📢', desc: 'Blocket — publicera och ta bort fordonsannonser automatiskt' },
-  insurance:     { label: 'Försäkring',     icon: '🛡', desc: 'MC-försäkring direkt i kassan — offerter och direktbindning' },
-  communication: { label: 'Kommunikation',  icon: '✉️', desc: 'E-post och SMS-notiser till kunder och personal' },
-  crm:           { label: 'CRM',            icon: '🤝', desc: 'Kundrelationshantering och leadspårning' },
+  marketplace:   { label: 'Annonsering',     icon: '📢', desc: 'Blocket — publicera och ta bort fordonsannonser automatiskt' },
+  insurance:     { label: 'Försäkring',      icon: '🛡', desc: 'MC-försäkring direkt i kassan — offerter och direktbindning' },
+  communication: { label: 'Kommunikation',   icon: '✉️', desc: 'E-post (SMTP/Gmail) och SMS (Twilio) — notiser till handläggare vid nya leads, betalningar och avtal' },
+  crm:           { label: 'CRM',             icon: '🤝', desc: 'Kundrelationshantering och leadspårning' },
 };
 
-const CATEGORIES = ['accounting', 'registry', 'marketplace', 'insurance'];
+const CATEGORIES = ['accounting', 'registry', 'marketplace', 'insurance', 'communication'];
+
+// ── Comm credential → API body key mapping ────────────────────────────────────
+const COMM_BODY_KEY: Record<string, string> = {
+  SMTP_USER:          'smtpUser',
+  SMTP_PASS:          'smtpPass',
+  SMTP_HOST:          'smtpHost',
+  SMTP_PORT:          'smtpPort',
+  ADMIN_EMAIL:        'adminEmail',
+  TWILIO_ACCOUNT_SID: 'twilioAccountSid',
+  TWILIO_AUTH_TOKEN:  'twilioAuthToken',
+  TWILIO_FROM_NUMBER: 'twilioFromNumber',
+  ADMIN_PHONE:        'adminPhone',
+};
 
 function FieldStatusPip({ status }: { status: FieldStatus }) {
   if (status === 'configured') return <span className="text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">✓ saved</span>;
@@ -78,11 +91,13 @@ export default function IntegrationsSettingsPage() {
   const [saveResult,       setSaveResult]       = useState<'idle' | 'ok' | 'error'>('idle');
   const [dealerId,         setDealerId]         = useState('ava-mc');
   const [dealerName,       setDealerName]       = useState('');
+  const [supabaseDealershipId, setSupabaseDealershipId] = useState('');
   const [integrationStates, setIntegrationStates] = useState<Record<string, IntegrationState>>({});
   const [showPasswords,    setShowPasswords]    = useState<Record<string, boolean>>({});
   const [restartBanner,    setRestartBanner]    = useState(false);
   const [zapierToken,      setZapierToken]      = useState<string | null>(null);
   const [zapierCopied,     setZapierCopied]     = useState(false);
+  const [savingComm,       setSavingComm]       = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const raw = localStorage.getItem('user');
@@ -100,12 +115,38 @@ export default function IntegrationsSettingsPage() {
     setDealerName(name);
     loadConfig(id, name);
 
-    // Load Zapier token for this dealership (async, non-blocking)
+    // Load Supabase dealership UUID + comm config + Zapier token (async, non-blocking)
     (async () => {
       const { getDealershipId } = await import('@/lib/tenant');
       const { supabase }        = await import('@/lib/supabase');
       const dealershipId        = getDealershipId();
       if (dealershipId) {
+        setSupabaseDealershipId(dealershipId);
+
+        // Pre-fill comm field statuses from /api/notifications/config
+        fetch(`/api/notifications/config?dealershipId=${encodeURIComponent(dealershipId)}`)
+          .then(r => r.ok ? r.json() : null)
+          .then((cfg: { smtpOk: boolean; twilioOk: boolean } | null) => {
+            if (!cfg) return;
+            setIntegrationStates(prev => {
+              const next = { ...prev };
+              if (next.smtp) {
+                const smtpStatus = cfg.smtpOk ? 'configured' : 'empty';
+                next.smtp = { ...next.smtp, fieldStatus: {
+                  SMTP_USER: smtpStatus, SMTP_PASS: smtpStatus, SMTP_HOST: smtpStatus, SMTP_PORT: smtpStatus, ADMIN_EMAIL: smtpStatus,
+                }};
+              }
+              if (next.twilio) {
+                const twilioStatus = cfg.twilioOk ? 'configured' : 'empty';
+                next.twilio = { ...next.twilio, fieldStatus: {
+                  TWILIO_ACCOUNT_SID: twilioStatus, TWILIO_AUTH_TOKEN: twilioStatus, TWILIO_FROM_NUMBER: twilioStatus, ADMIN_PHONE: twilioStatus,
+                }};
+              }
+              return next;
+            });
+          })
+          .catch(() => {});
+
         const { data } = await supabase
           .from('dealerships')
           .select('zapier_token')
@@ -237,6 +278,44 @@ export default function IntegrationsSettingsPage() {
     } finally {
       setSaving(false);
     }
+  }
+
+  // Save SMTP or Twilio credentials to Supabase via /api/notifications/config
+  async function saveCommIntegration(integrationId: string) {
+    if (!supabaseDealershipId) { toast.error('Dealership ID not found — log in again'); return; }
+    setSavingComm(prev => ({ ...prev, [integrationId]: true }));
+    try {
+      const creds = integrationStates[integrationId]?.credentials ?? {};
+      const body: Record<string, unknown> = { dealershipId: supabaseDealershipId };
+      for (const [envVar, value] of Object.entries(creds)) {
+        const apiKey = COMM_BODY_KEY[envVar];
+        if (apiKey && value.trim()) body[apiKey] = value.trim();
+      }
+      const res = await fetch('/api/notifications/config', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error('Save failed');
+      // Refresh comm statuses
+      const cfg = await fetch(`/api/notifications/config?dealershipId=${encodeURIComponent(supabaseDealershipId)}`).then(r => r.json()) as { smtpOk: boolean; twilioOk: boolean };
+      setIntegrationStates(prev => {
+        const next = { ...prev };
+        if (next.smtp) {
+          const s = cfg.smtpOk ? 'configured' : 'empty';
+          next.smtp = { ...next.smtp, fieldStatus: { SMTP_USER: s, SMTP_PASS: s, SMTP_HOST: s, SMTP_PORT: s, ADMIN_EMAIL: s } };
+        }
+        if (next.twilio) {
+          const s = cfg.twilioOk ? 'configured' : 'empty';
+          next.twilio = { ...next.twilio, fieldStatus: { TWILIO_ACCOUNT_SID: s, TWILIO_AUTH_TOKEN: s, TWILIO_FROM_NUMBER: s, ADMIN_PHONE: s } };
+        }
+        return next;
+      });
+      toast.success(`${integrationId === 'smtp' ? 'E-post' : 'SMS'}-konfiguration sparad`);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Kunde inte spara');
+    }
+    setSavingComm(prev => ({ ...prev, [integrationId]: false }));
   }
 
   const enabledCount = Object.values(integrationStates).filter(s => s.enabled).length;
@@ -507,27 +586,41 @@ export default function IntegrationsSettingsPage() {
                                   })}
                                 </div>
 
-                                {/* Test connection */}
+                                {/* Save (comm) or Test Connection (others) */}
                                 <div className="flex items-center gap-3 flex-wrap">
-                                  <button
-                                    onClick={() => testIntegration(integration.id)}
-                                    disabled={state.testStatus === 'testing'}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0b1524] hover:bg-[#1a2a42] text-white text-xs font-bold transition-colors disabled:opacity-60"
-                                  >
-                                    {state.testStatus === 'testing' ? (
-                                      <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Testing…</>
-                                    ) : 'Test Connection'}
-                                  </button>
+                                  {integration.category === 'communication' ? (
+                                    <button
+                                      onClick={() => saveCommIntegration(integration.id)}
+                                      disabled={savingComm[integration.id]}
+                                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FF6B2C] hover:bg-[#e55a1f] text-white text-xs font-bold transition-colors disabled:opacity-60"
+                                    >
+                                      {savingComm[integration.id] ? (
+                                        <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Sparar…</>
+                                      ) : 'Spara'}
+                                    </button>
+                                  ) : (
+                                    <>
+                                      <button
+                                        onClick={() => testIntegration(integration.id)}
+                                        disabled={state.testStatus === 'testing'}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0b1524] hover:bg-[#1a2a42] text-white text-xs font-bold transition-colors disabled:opacity-60"
+                                      >
+                                        {state.testStatus === 'testing' ? (
+                                          <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Testing…</>
+                                        ) : 'Test Connection'}
+                                      </button>
 
-                                  {state.testStatus === 'ok' && (
-                                    <span className="text-xs font-bold text-green-600 bg-green-50 px-2.5 py-1 rounded-lg border border-green-200">
-                                      ✓ {state.testMessage}
-                                    </span>
-                                  )}
-                                  {state.testStatus === 'failed' && (
-                                    <span className="text-xs font-bold text-red-600 bg-red-50 px-2.5 py-1 rounded-lg border border-red-200">
-                                      ✗ {state.testMessage}
-                                    </span>
+                                      {state.testStatus === 'ok' && (
+                                        <span className="text-xs font-bold text-green-600 bg-green-50 px-2.5 py-1 rounded-lg border border-green-200">
+                                          ✓ {state.testMessage}
+                                        </span>
+                                      )}
+                                      {state.testStatus === 'failed' && (
+                                        <span className="text-xs font-bold text-red-600 bg-red-50 px-2.5 py-1 rounded-lg border border-red-200">
+                                          ✗ {state.testMessage}
+                                        </span>
+                                      )}
+                                    </>
                                   )}
                                 </div>
 

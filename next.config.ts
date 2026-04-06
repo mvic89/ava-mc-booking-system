@@ -30,14 +30,16 @@ const securityHeaders = [
       "default-src 'self'",
       // unsafe-eval needed for Next.js HMR; vercel.live for preview toolbar
       // x.klarnacdn.net — Klarna Payments JS SDK
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://x.klarnacdn.net",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://x.klarnacdn.net https://js.stripe.com",
       "style-src 'self' 'unsafe-inline' https://vercel.live https://www.gstatic.com https://*.klarnacdn.net",
       "img-src 'self' data: blob: https://vercel.live https://*.vercel.com https://www.gstatic.com https://*.klarnacdn.net https://*.klarna.com",
       "font-src 'self' https://vercel.live https://fonts.gstatic.com https://*.klarnacdn.net",
       // *.klarna.com — Klarna SDK makes direct API calls to Klarna from the browser
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vercel.live wss://ws-us3.pusher.com https://*.klarna.com https://*.klarnacdn.net",
+      // api.stripe.com — Stripe.js makes direct calls to Stripe from the browser
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vercel.live wss://ws-us3.pusher.com https://*.klarna.com https://*.klarnacdn.net https://api.stripe.com",
       // *.klarnacdn.net + *.klarna.com — Klarna widget iframe origins
-      "frame-src https://vercel.live https://*.klarnacdn.net https://*.klarna.com",
+      // js.stripe.com + hooks.stripe.com — Stripe Elements iframes
+      "frame-src https://vercel.live https://*.klarnacdn.net https://*.klarna.com https://js.stripe.com https://hooks.stripe.com",
       "frame-ancestors 'none'",
     ].join('; '),
   },

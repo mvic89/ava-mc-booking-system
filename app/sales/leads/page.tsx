@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
-import { getLeads, type Lead } from '@/lib/leads';
+import { getLeads, computeLeadScore, type Lead } from '@/lib/leads';
 import { useAutoRefresh, emit } from '@/lib/realtime';
 
 type Status = Lead['status'];
@@ -75,6 +75,20 @@ function OverdueBadge({ days, stage }: { days: number; stage: Stage }) {
   );
 }
 
+function ScoreBadge({ lead }: { lead: Lead }) {
+  const score = lead.leadScore || computeLeadScore({
+    verified: lead.verified, notes: (lead as any).notes ?? '', stage: lead.stage,
+    costPrice: lead.costPrice, rawValue: lead.rawValue, source: lead.source,
+    email: lead.email, phone: lead.phone,
+  });
+  const color = score >= 70 ? 'text-emerald-700 bg-emerald-50' : score >= 40 ? 'text-amber-700 bg-amber-50' : 'text-slate-500 bg-slate-100';
+  return (
+    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded tabular-nums ${color}`} title="Lead score">
+      {score}
+    </span>
+  );
+}
+
 function MarginBadge({ lead }: { lead: Lead }) {
   if (!lead.costPrice || lead.costPrice === 0) return null;
   const color = lead.marginPct >= 15
@@ -128,6 +142,7 @@ function LeadCard({ lead, statusLabel, stageColor, onStatusChange }: {
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-sm font-bold text-[#0b1524]">{lead.value}</span>
             <MarginBadge lead={lead} />
+            <ScoreBadge lead={lead} />
           </div>
           <span className="text-[11px] text-slate-400">{lead.time}</span>
         </div>

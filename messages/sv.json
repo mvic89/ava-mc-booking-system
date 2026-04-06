@@ -36,6 +36,7 @@
     "offer": "Offerter",
     "accounting": "Bokföring",
     "auditLog": "Granskningslogg",
+    "service": "Service",
     "subscribedDealer": "Prenumerant återförsäljare",
     "groups": {
       "core": "KÄRNA",
