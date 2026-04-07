@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import * as postmark from 'postmark'
+import { ServerClient } from 'postmark'
 
 export async function POST(req: NextRequest) {
     const {
@@ -12,6 +12,8 @@ export async function POST(req: NextRequest) {
     }
 
     const postmarkApiKey = process.env.POSTMARK_API_KEY
+    const fromEmail      = process.env.GMAIL_SENDER_USER ?? 'invoice@bikeme.now'
+
     if (!postmarkApiKey) {
         return NextResponse.json(
             { error: 'Email not configured. Add POSTMARK_API_KEY to environment variables.' },
@@ -22,7 +24,6 @@ export async function POST(req: NextRequest) {
     const base64Data  = pdfBase64.includes(',') ? pdfBase64.split(',')[1] : pdfBase64
     const etaLine     = eta && eta !== '—' ? `Expected Delivery: ${eta}` : ''
     const senderName  = fromName || 'Procurement'
-    const fromEmail   = process.env.GMAIL_SENDER_USER ?? 'invoice@bikeme.now'
 
     const dealerEmail    = replyTo || fromEmail
     const inboundDomain  = process.env.POSTMARK_INBOUND_DOMAIN
@@ -98,12 +99,12 @@ export async function POST(req: NextRequest) {
         '',
         senderName,
         'Procurement Department',
-        dealerPhone ? `Tel: ${dealerPhone}` : '',
-        replyToAddr ? `Email: ${replyToAddr}` : '',
+        dealerPhone    ? `Tel: ${dealerPhone}` : '',
+        replyToAddr    ? `Email: ${replyToAddr}` : '',
     ].filter(Boolean).join('\n')
 
     try {
-        const client = new postmark.ServerClient(postmarkApiKey)
+        const client = new ServerClient(postmarkApiKey)
         await client.sendEmail({
             From:     `${senderName} Procurement <${fromEmail}>`,
             To:       toEmail,
@@ -116,6 +117,7 @@ export async function POST(req: NextRequest) {
                 Name:        `${poId}.pdf`,
                 Content:     base64Data,
                 ContentType: 'application/pdf',
+                ContentID:   '',
             }],
         })
     } catch (err) {
