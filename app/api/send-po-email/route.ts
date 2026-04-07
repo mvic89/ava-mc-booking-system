@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import * as postmark from 'postmark'
+import { ServerClient } from 'postmark'
 
 export async function POST(req: NextRequest) {
     const {
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
     ].filter(Boolean).join('\n')
 
     try {
-        const client = new postmark.ServerClient(postmarkApiKey)
+        const client = new ServerClient(postmarkApiKey)
         await client.sendEmail({
             From:     `${senderName} Procurement <${fromEmail}>`,
             To:       toEmail,
@@ -117,6 +117,7 @@ export async function POST(req: NextRequest) {
                 Name:        `${poId}.pdf`,
                 Content:     base64Data,
                 ContentType: 'application/pdf',
+                ContentID:   '',
             }],
         })
     } catch (err) {
