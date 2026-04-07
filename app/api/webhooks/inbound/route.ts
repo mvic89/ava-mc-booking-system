@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
-import * as postmark from 'postmark'
+import { ServerClient } from 'postmark'
 
 /**
  * Postmark Inbound Email Webhook
@@ -37,7 +37,7 @@ async function notifyDealer(opts: {
     subject?:      string
 }) {
     const postmarkApiKey = process.env.POSTMARK_API_KEY
-    const fromEmail      = process.env.GMAIL_SENDER_USER ?? 'invoice@bikeme.now'
+    const fromEmail      = process.env.POSTMARK_FROM_EMAIL ?? 'invoice@bikeme.now'
     if (!postmarkApiKey) return
 
     const { data: settings } = await opts.db
@@ -55,7 +55,7 @@ async function notifyDealer(opts: {
     const receiptId = (opts.receiptResult.receipt_id as string) ?? 'GR-NEW'
     const poId      = (opts.receiptResult.po_id      as string) ?? ''
 
-    const client = new postmark.ServerClient(postmarkApiKey)
+    const client = new ServerClient(postmarkApiKey)
     await client.sendEmail({
         From:    `BikeMeNow Inventory <${fromEmail}>`,
         To:      dealerEmail,
