@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     }
 
     const postmarkApiKey = process.env.POSTMARK_API_KEY
-    const fromEmail      = process.env.GMAIL_SENDER_USER ?? 'invoice@bikeme.now'
+    const fromEmail      = process.env.POSTMARK_FROM_EMAIL ?? 'invoice@bikeme.now'
 
     if (!postmarkApiKey) {
         return NextResponse.json(

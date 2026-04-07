@@ -82,6 +82,7 @@ export function POModal({
     // Email send state
     const [sending,      setSending]      = useState(false)
     const [emailStatus,  setEmailStatus]  = useState<'idle' | 'sent' | 'error'>('idle')
+    const [emailError,   setEmailError]   = useState<string>('')
     const [downloading,  setDownloading]  = useState(false)
 
     const style       = STATUS_STYLE[po.status] ?? STATUS_STYLE['Draft']
@@ -390,6 +391,7 @@ export function POModal({
 
         } catch (err) {
             console.error('Export/Email error:', err)
+            setEmailError(err instanceof Error ? err.message : 'Unknown error')
             setEmailStatus('error')
         } finally {
             setSending(false)
@@ -636,7 +638,7 @@ export function POModal({
                         }`}>
                             {emailStatus === 'sent'
                                 ? `✓ Email sent to ${vendorEmail} — status updated to Sent`
-                                : '✗ Failed to send — check GMAIL_SENDER_USER + GMAIL_SENDER_APP_PASSWORD in .env.local'}
+                                : `✗ Failed to send${emailError ? ` — ${emailError}` : ''}`}
                         </div>
                     )}
 
