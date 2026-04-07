@@ -76,6 +76,7 @@ async function notifyDealer(opts: {
             Name:        opts.pdfName ?? 'delivery-note.pdf',
             Content:     opts.pdfBase64,
             ContentType: 'application/pdf',
+            ContentID:   '',
         }] : [],
     })
 }
