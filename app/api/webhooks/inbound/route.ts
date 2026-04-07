@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
-import nodemailer from 'nodemailer'
+import * as postmark from 'postmark'
 
 /**
  * Postmark Inbound Email Webhook
@@ -36,11 +36,10 @@ async function notifyDealer(opts: {
     pdfName?:      string
     subject?:      string
 }) {
-    const smtpUser = process.env.GMAIL_SENDER_USER
-    const smtpPass = process.env.GMAIL_SENDER_APP_PASSWORD
-    if (!smtpUser || !smtpPass) return
+    const postmarkApiKey = process.env.POSTMARK_API_KEY
+    const fromEmail      = process.env.GMAIL_SENDER_USER ?? 'invoice@bikeme.now'
+    if (!postmarkApiKey) return
 
-    // Use delivery_note_email if set, otherwise fall back to general contact email
     const { data: settings } = await opts.db
         .from('dealership_settings')
         .select('email, delivery_note_email')
@@ -56,16 +55,12 @@ async function notifyDealer(opts: {
     const receiptId = (opts.receiptResult.receipt_id as string) ?? 'GR-NEW'
     const poId      = (opts.receiptResult.po_id      as string) ?? ''
 
-    const transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com', port: 587, secure: false,
-        auth: { user: smtpUser, pass: smtpPass },
-    })
-
-    await transporter.sendMail({
-        from:    `BikeMeNow Inventory <${smtpUser}>`,
-        to:      dealerEmail,
-        subject: `[Delivery Received] ${receiptId} — ${opts.vendorName}${poId ? ` · ${poId}` : ''}`,
-        html: `
+    const client = new postmark.ServerClient(postmarkApiKey)
+    await client.sendEmail({
+        From:    `BikeMeNow Inventory <${fromEmail}>`,
+        To:      dealerEmail,
+        Subject: `[Delivery Received] ${receiptId} — ${opts.vendorName}${poId ? ` · ${poId}` : ''}`,
+        HtmlBody: `
             <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
                 <div style="background:#16a34a;padding:20px 28px;border-radius:8px 8px 0 0;">
                     <p style="margin:0;color:#bbf7d0;font-size:11px;letter-spacing:2px;text-transform:uppercase;">Goods Receipt</p>
@@ -77,10 +72,10 @@ async function notifyDealer(opts: {
                     <p style="color:#6b7280;font-size:12px;margin-top:24px;">Log in to BikeMeNow → Goods Receipts to review and approve.</p>
                 </div>
             </div>`,
-        attachments: opts.pdfBase64 ? [{
-            filename:    opts.pdfName ?? 'delivery-note.pdf',
-            content:     Buffer.from(opts.pdfBase64, 'base64'),
-            contentType: 'application/pdf',
+        Attachments: opts.pdfBase64 ? [{
+            Name:        opts.pdfName ?? 'delivery-note.pdf',
+            Content:     opts.pdfBase64,
+            ContentType: 'application/pdf',
         }] : [],
     })
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { google } from 'googleapis'
-import nodemailer from 'nodemailer'
+import * as postmark from 'postmark'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -214,10 +214,10 @@ async function notifyDealer(result: {
     pdfBase64?:   string   // original delivery note / invoice PDF forwarded to dealer
     pdfName?:     string
 }) {
-    const dealerEmail  = result.dealerEmail
-    const smtpUser     = process.env.GMAIL_SENDER_USER
-    const smtpPass     = process.env.GMAIL_SENDER_APP_PASSWORD
-    if (!dealerEmail || !smtpUser || !smtpPass) return
+    const dealerEmail    = result.dealerEmail
+    const postmarkApiKey = process.env.POSTMARK_API_KEY
+    const fromEmail      = process.env.GMAIL_SENDER_USER ?? 'invoice@bikeme.now'
+    if (!dealerEmail || !postmarkApiKey) return
 
     const matched   = result.items.filter(i => i.matched)
     const unmatched = result.items.filter(i => !i.matched)
@@ -294,21 +294,16 @@ async function notifyDealer(result: {
     </body>
     </html>`
 
-    const transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com', port: 587, secure: false,
-        auth: { user: smtpUser, pass: smtpPass },
-    })
-
-    await transporter.sendMail({
-        from:    `BikeMeNow Inventory <${smtpUser}>`,
-        to:      dealerEmail,
-        subject: `[Delivery Received] ${result.receiptId} — ${result.vendor}${result.po_id ? ` · ${result.po_id}` : ''}`,
-        html,
-        // Forward the original delivery note / invoice PDF so dealer has a copy
-        attachments: result.pdfBase64 ? [{
-            filename:    result.pdfName ?? 'delivery-note.pdf',
-            content:     Buffer.from(result.pdfBase64, 'base64'),
-            contentType: 'application/pdf',
+    const client = new postmark.ServerClient(postmarkApiKey)
+    await client.sendEmail({
+        From:    `BikeMeNow Inventory <${fromEmail}>`,
+        To:      dealerEmail,
+        Subject: `[Delivery Received] ${result.receiptId} — ${result.vendor}${result.po_id ? ` · ${result.po_id}` : ''}`,
+        HtmlBody: html,
+        Attachments: result.pdfBase64 ? [{
+            Name:        result.pdfName ?? 'delivery-note.pdf',
+            Content:     result.pdfBase64,
+            ContentType: 'application/pdf',
         }] : [],
     })
 }
