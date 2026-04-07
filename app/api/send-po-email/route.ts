@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import nodemailer from 'nodemailer'
+import * as postmark from 'postmark'
 
 export async function POST(req: NextRequest) {
     const {
@@ -11,12 +11,12 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    const gmailUser = process.env.GMAIL_SENDER_USER
-    const gmailPass = process.env.GMAIL_SENDER_APP_PASSWORD
+    const postmarkApiKey = process.env.POSTMARK_API_KEY
+    const fromEmail      = process.env.GMAIL_SENDER_USER ?? 'invoice@bikeme.now'
 
-    if (!gmailUser || !gmailPass) {
+    if (!postmarkApiKey) {
         return NextResponse.json(
-            { error: 'Email not configured. Add GMAIL_SENDER_USER + GMAIL_SENDER_APP_PASSWORD to .env.local' },
+            { error: 'Email not configured. Add POSTMARK_API_KEY to environment variables.' },
             { status: 500 },
         )
     }
@@ -25,9 +25,7 @@ export async function POST(req: NextRequest) {
     const etaLine     = eta && eta !== '—' ? `Expected Delivery: ${eta}` : ''
     const senderName  = fromName || 'Procurement'
 
-    // dealerEmail  → BCC on PO so dealer gets a copy in their inbox
-    // replyToAddr  → Reply-To so supplier's reply (delivery note) goes to Postmark webhook
-    const dealerEmail    = replyTo || gmailUser
+    const dealerEmail    = replyTo || fromEmail
     const inboundDomain  = process.env.POSTMARK_INBOUND_DOMAIN
     const inboundAddress = process.env.POSTMARK_INBOUND_ADDRESS
     const replyToAddr = inboundDomain && dealershipId
@@ -60,7 +58,7 @@ export async function POST(req: NextRequest) {
                     </p>
                     <p style="margin:0 0 24px;color:#4b5563;font-size:14px;line-height:1.6;">
                       When dispatching, please send your delivery note PDF to:<br/>
-                      <strong style="color:#1e3a5f;">${gmailUser}</strong><br/>
+                      <strong style="color:#1e3a5f;">${replyToAddr}</strong><br/>
                       <span style="color:#6b7280;font-size:13px;">You can reply to this email or send a new email with the PO number <strong>${poId}</strong> in the subject line.</span>
                     </p>
                     <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
@@ -96,7 +94,7 @@ export async function POST(req: NextRequest) {
         '',
         `Please find attached Purchase Order ${poId} from ${senderName}.`,
         'Kindly confirm receipt and advise on stock availability at your earliest convenience.',
-        `When dispatching, please send your delivery note PDF to: ${gmailUser}`,
+        `When dispatching, please send your delivery note PDF to: ${replyToAddr}`,
         `You can reply to this email or send a new email with ${poId} in the subject line.`,
         '',
         senderName,
@@ -105,34 +103,25 @@ export async function POST(req: NextRequest) {
         replyToAddr    ? `Email: ${replyToAddr}` : '',
     ].filter(Boolean).join('\n')
 
-    const transporter = nodemailer.createTransport({
-        host:   'smtp.gmail.com',
-        port:   587,
-        secure: false,
-        auth: {
-            user: gmailUser,
-            pass: gmailPass,
-        },
-    })
-
     try {
-        await transporter.sendMail({
-            from:     `${senderName} Procurement <${gmailUser}>`,
-            to:       toEmail,
-            bcc:      dealerEmail,   // dealer gets silent copy of the PO
-            replyTo:  replyToAddr,   // supplier replies → Postmark → auto stock update
-            subject:  `[Purchase Order] ${poId} from ${senderName}`,
-            text:     textBody,
-            html:     htmlBody,
-            attachments: [{
-                filename:    `${poId}.pdf`,
-                content:     Buffer.from(base64Data, 'base64'),
-                contentType: 'application/pdf',
+        const client = new postmark.ServerClient(postmarkApiKey)
+        await client.sendEmail({
+            From:     `${senderName} Procurement <${fromEmail}>`,
+            To:       toEmail,
+            Bcc:      dealerEmail,
+            ReplyTo:  replyToAddr,
+            Subject:  `[Purchase Order] ${poId} from ${senderName}`,
+            TextBody: textBody,
+            HtmlBody: htmlBody,
+            Attachments: [{
+                Name:        `${poId}.pdf`,
+                Content:     base64Data,
+                ContentType: 'application/pdf',
             }],
         })
     } catch (err) {
         const message = err instanceof Error ? err.message : 'Unknown error'
-        console.error('Gmail SMTP error:', message)
+        console.error('Postmark send error:', message)
         return NextResponse.json({ error: message }, { status: 500 })
     }
 
