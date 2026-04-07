@@ -4,17 +4,19 @@ import { useState } from 'react';
 import { useLocale } from 'next-intl';
 
 const languageOptions = [
-  { code: 'en', label: 'English',  flag: '🇬🇧' },
-  { code: 'sv', label: 'Svenska',  flag: '🇸🇪' },
-  { code: 'no', label: 'Norsk',    flag: '🇳🇴' },
-  { code: 'da', label: 'Dansk',    flag: '🇩🇰' },
-  { code: 'ar', label: 'العربية', flag: '🇸🇦' },
-  { code: 'fr', label: 'Français', flag: '🇫🇷' },
-  { code: 'es', label: 'Español',  flag: '🇪🇸' },
+  { code: 'en', label: 'English',    flag: '🇬🇧' },
+  { code: 'sv', label: 'Svenska',    flag: '🇸🇪' },
+  { code: 'no', label: 'Norsk',      flag: '🇳🇴' },
+  { code: 'da', label: 'Dansk',      flag: '🇩🇰' },
+  { code: 'ar', label: 'العربية',   flag: '🇸🇦' },
+  { code: 'fr', label: 'Français',   flag: '🇫🇷' },
+  { code: 'es', label: 'Español',    flag: '🇪🇸' },
+  { code: 'de', label: 'Deutsch',    flag: '🇩🇪' },
+  { code: 'nl', label: 'Nederlands', flag: '🇳🇱' },
 ];
 
 interface LanguageSwitcherProps {
-  variant?: 'default' | 'compact';
+  variant?: 'default' | 'compact' | 'landing';
 }
 
 export default function LanguageSwitcher({ variant = 'default' }: LanguageSwitcherProps) {
@@ -36,6 +38,39 @@ export default function LanguageSwitcher({ variant = 'default' }: LanguageSwitch
   };
 
   const currentLanguage = languageOptions.find(lang => lang.code === locale) || languageOptions[0];
+
+  if (variant === 'landing') {
+    return (
+      <div className="relative">
+        <button
+          onClick={() => setShowMenu(!showMenu)}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors text-slate-600"
+        >
+          <span className="text-base leading-none">{currentLanguage.flag}</span>
+          <span className="text-sm font-medium">{currentLanguage.label}</span>
+          <span className="text-[10px] text-slate-400">▼</span>
+        </button>
+        {showMenu && (
+          <>
+            <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+            <div className="absolute top-full right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden z-20 min-w-40">
+              {languageOptions.map((lang) => (
+                <button key={lang.code} onClick={() => handleLanguageChange(lang.code)}
+                  className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors ${
+                    lang.code === locale
+                      ? 'bg-[#FF6B2C] text-white'
+                      : 'text-slate-700 hover:bg-slate-50'
+                  }`}>
+                  <span className="text-base">{lang.flag}</span>
+                  <span className="font-medium">{lang.label}</span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
 
   if (variant === 'compact') {
     return (

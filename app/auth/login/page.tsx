@@ -343,11 +343,10 @@ export default function LoginPage() {
         <div className="absolute bottom-0 right-0 w-80 h-80 bg-blue-600 opacity-[0.06] rounded-full blur-3xl pointer-events-none" />
 
         {/* Logo mark */}
-        <div className="flex items-center gap-3 relative z-10">
-          <div className="w-9 h-9 rounded-xl bg-[#FF6B2C] flex items-center justify-center shrink-0">
-            <span className="text-white font-black text-lg leading-none">B</span>
-          </div>
-          <span className="text-white font-bold text-xl tracking-tight">BikeMeNow</span>
+        <div className="relative z-10">
+          <Link href="/" className="bg-white rounded-xl p-1.5 inline-block hover:opacity-90 transition-opacity">
+            <img src="/BikeMeNow_logo_test.png" alt="BikeMeNow" className="h-10 w-auto object-contain" />
+          </Link>
         </div>
 
         {/* Hero copy */}
@@ -398,11 +397,10 @@ export default function LoginPage() {
         </div>
 
         {/* Mobile wordmark */}
-        <div className="md:hidden absolute top-4 left-4 flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-[#FF6B2C] flex items-center justify-center">
-            <span className="text-white font-black text-sm leading-none">B</span>
-          </div>
-          <span className="font-bold text-slate-900 text-sm">BikeMeNow</span>
+        <div className="md:hidden absolute top-4 left-4">
+          <Link href="/" className="hover:opacity-90 transition-opacity">
+            <img src="/BikeMeNow_logo_test.png" alt="BikeMeNow" className="h-8 w-auto object-contain" />
+          </Link>
         </div>
 
         <div className="w-full max-w-md mt-12 md:mt-0">
