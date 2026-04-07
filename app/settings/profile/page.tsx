@@ -178,8 +178,6 @@ async function fetchProfileFromSupabase(dealershipId: string): Promise<Partial<D
       website:           data.website               ?? '',
       bankgiro:          data.bankgiro              ?? '',
       swish:             data.swish                 ?? '',
-      deliveryNoteEmail: data.delivery_note_email   ?? '',
-      invoiceEmail:      data.invoice_email         ?? '',
       logoDataUrl:       data.logo_data_url         ?? '',
       coverImageDataUrl: data.cover_image_data_url  ?? '',
     };
