@@ -209,6 +209,7 @@ function MobileMockup() {
 export default function LandingPage() {
   const router = useRouter();
   const hasChecked = useRef(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const t = useTranslations('landing');
 
   useEffect(() => {
@@ -216,6 +217,23 @@ export default function LandingPage() {
     hasChecked.current = true;
     if (localStorage.getItem('user')) router.replace('/dashboard');
   }, [router]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: 0.4 },
+    );
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, []);
 
   const FEATURES = FEATURE_META.map((m, i) => ({
     ...m,
@@ -297,6 +315,7 @@ export default function LandingPage() {
             <a href="#pricing" className="hover:text-[#FF6B2C] transition-colors">{t('nav.pricing')}</a>
             <a href="#testimonials" className="hover:text-[#FF6B2C] transition-colors">{t('nav.reviews')}</a>
             <a href="#faq" className="hover:text-[#FF6B2C] transition-colors">{t('nav.faq')}</a>
+            <a href="mailto:info@bikeme.now" className="hover:text-[#FF6B2C] transition-colors">Contact</a>
           </div>
           <div className="flex items-center gap-2 md:gap-3 shrink-0">
             <LanguageSwitcher variant="landing" />
@@ -393,60 +412,103 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Dashboard mock — full width */}
-          <div className="rounded-2xl overflow-hidden shadow-2xl" style={{ border: '1px solid rgba(255,255,255,0.1)', background: '#0d1b2e' }}>
-            <div className="flex items-center gap-2 px-5 py-3.5 border-b" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-red-500/70" />
-                <div className="w-3 h-3 rounded-full bg-amber-400/70" />
-                <div className="w-3 h-3 rounded-full bg-emerald-400/70" />
+          {/* Video + Pipeline — side by side */}
+          <div className="grid lg:grid-cols-[55fr_45fr] gap-6 items-stretch">
+
+            {/* LEFT — Video player */}
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#FF6B2C] animate-pulse" />
+                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Life is short. Buy the bike. Take the ride</span>
               </div>
-              <div className="flex-1 flex justify-center">
-                <div className="px-4 py-1 rounded-md text-xs text-slate-500 flex items-center gap-2" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  BikeMeNow — Sales Pipeline
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl flex-1" style={{ border: '1px solid rgba(255,107,44,0.3)', background: '#000' }}>
+                <video
+                  ref={videoRef}
+                  className="w-full h-full object-cover block"
+                  controls
+                  playsInline
+                  muted
+                  poster="/bike1.jpeg"
+                >
+                  <source src="/api/media/movie.mp4" type="video/mp4" />
+                </video>
+              </div>
+            </div>
+
+            {/* RIGHT — Sales Pipeline mock */}
+            <div className="rounded-2xl overflow-hidden shadow-2xl flex flex-col" style={{ border: '1px solid rgba(255,255,255,0.1)', background: '#0d1b2e' }}>
+              {/* Title bar */}
+              <div className="flex items-center gap-2 px-4 py-3 border-b shrink-0" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-amber-400/70" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-400/70" />
+                </div>
+                <div className="flex-1 flex justify-center">
+                  <div className="px-3 py-1 rounded-md text-[11px] text-slate-500 flex items-center gap-1.5" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    BikeMeNow — Sales Pipeline
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 flex flex-col gap-4 flex-1">
+                {/* KPI cards — 2×2 */}
+                <div className="grid grid-cols-2 gap-2.5">
+                  {[
+                    { label: 'Pipeline value', value: '1.24M kr', color: '#FF6B2C', up: '+12%' },
+                    { label: 'Revenue (month)', value: '342 800 kr', color: '#10b981', up: '+8%' },
+                    { label: 'Active leads', value: '23', color: '#8b5cf6', up: '+5' },
+                    { label: 'Closing rate', value: '68%', color: '#f59e0b', up: '+3%' },
+                  ].map(k => (
+                    <div key={k.label} className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                      <p className="text-[9px] text-slate-500 uppercase tracking-wider mb-1">{k.label}</p>
+                      <p className="text-base font-black" style={{ color: k.color }}>{k.value}</p>
+                      <p className="text-[9px] text-emerald-400 mt-0.5">↑ {k.up}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Kanban columns */}
+                <div className="grid grid-cols-3 gap-2 flex-1">
+                  {[
+                    { name: 'Ny', count: 3, color: '#FF6B2C' },
+                    { name: 'Förhandling', count: 3, color: '#3b82f6' },
+                    { name: 'Avslutad', count: 2, color: '#10b981' },
+                  ].map((col) => (
+                    <div key={col.name} className="rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div className="flex items-center gap-1 mb-2">
+                        <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: col.color }} />
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">{col.name}</p>
+                        <span className="ml-auto text-[9px] font-black text-slate-500">{col.count}</span>
+                      </div>
+                      {Array.from({ length: col.count }).map((_, j) => (
+                        <div key={j} className="rounded-lg p-2 mb-1.5 last:mb-0" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                          <div className="h-1.5 rounded-full mb-1" style={{ background: col.color, width: `${50 + j * 15}%`, opacity: 0.8 }} />
+                          <div className="h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.1)', width: '70%' }} />
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Bottom highlights */}
+                <div className="grid grid-cols-3 gap-2 pt-1">
+                  {[
+                    { icon: '⚡', label: 'BankID', desc: 'Instant verify' },
+                    { icon: '💳', label: 'Swish', desc: 'Instant pay' },
+                    { icon: '📄', label: 'Auto', desc: 'Agreements' },
+                  ].map(item => (
+                    <div key={item.label} className="flex flex-col items-center gap-1 py-2 rounded-xl text-center" style={{ background: 'rgba(255,107,44,0.07)', border: '1px solid rgba(255,107,44,0.15)' }}>
+                      <span className="text-sm">{item.icon}</span>
+                      <p className="text-[9px] font-black text-white">{item.label}</p>
+                      <p className="text-[8px] text-slate-500">{item.desc}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
-            <div className="p-5">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-                {[
-                  { label: 'Pipeline value', value: '1.24M kr', color: '#FF6B2C', up: '+12%' },
-                  { label: 'Revenue (month)', value: '342 800 kr', color: '#10b981', up: '+8%' },
-                  { label: 'Active leads', value: '23', color: '#8b5cf6', up: '+5' },
-                  { label: 'Closing rate', value: '68%', color: '#f59e0b', up: '+3%' },
-                ].map(k => (
-                  <div key={k.label} className="rounded-xl p-3.5" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                    <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1.5">{k.label}</p>
-                    <p className="text-lg font-black" style={{ color: k.color }}>{k.value}</p>
-                    <p className="text-[10px] text-emerald-400 mt-0.5">↑ {k.up}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-                {[
-                  { name: 'Ny', count: 3, color: '#FF6B2C' },
-                  { name: 'Kontaktad', count: 4, color: '#f59e0b' },
-                  { name: 'Provkörning', count: 2, color: '#8b5cf6' },
-                  { name: 'Förhandling', count: 3, color: '#3b82f6' },
-                  { name: 'Betalning', count: 1, color: '#f97316' },
-                  { name: 'Avslutad', count: 2, color: '#10b981' },
-                ].map((col) => (
-                  <div key={col.name} className="rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                    <div className="flex items-center gap-1 mb-2">
-                      <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: col.color }} />
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">{col.name}</p>
-                    </div>
-                    {Array.from({ length: col.count }).map((_, j) => (
-                      <div key={j} className="rounded-lg p-2 mb-1.5 last:mb-0" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                        <div className="h-1.5 rounded-full mb-1" style={{ background: col.color, width: `${50 + j * 15}%`, opacity: 0.8 }} />
-                        <div className="h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.1)', width: '70%' }} />
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </div>
+
           </div>
         </div>
       </section>
@@ -466,9 +528,34 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── Bike Reveal Strip — bike1 ──────────────────────────────────────── */}
+      <section className="relative h-64 md:h-80 overflow-hidden">
+        <img
+          src="/bike1.jpeg"
+          alt="Motorcycle"
+          className="w-full h-full object-cover object-center"
+          style={{ transform: 'scale(1.05)', filter: 'brightness(0.55)' }}
+        />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(7,14,26,0.92) 0%, rgba(7,14,26,0.4) 55%, rgba(7,14,26,0.15) 100%)' }} />
+        <div className="absolute inset-0 flex items-center px-8 md:px-20">
+          <div>
+            <p className="text-[#FF6B2C] text-xs font-black uppercase tracking-widest mb-3">Built for the industry</p>
+            <h2 className="text-3xl md:text-5xl font-black text-white leading-tight max-w-2xl">
+              Sell more bikes.<br />
+              <span style={{ background: 'linear-gradient(90deg, #FF6B2C, #ffaa7a)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Close faster.</span>
+            </h2>
+            <p className="text-slate-300 text-sm mt-3 max-w-md">The complete platform purpose-built for motorcycle dealerships.</p>
+          </div>
+        </div>
+      </section>
+
       {/* ── Stats ───────────────────────────────────────────────────────────── */}
-      <section className="py-16" style={{ background: 'linear-gradient(135deg, #0b1524, #1a3050)' }}>
-        <div className="max-w-7xl mx-auto px-5 md:px-8 grid grid-cols-2 md:grid-cols-4 gap-6">
+      <section className="py-16 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0b1524, #1a3050)' }}>
+        <div className="absolute inset-0">
+          <img src="/bike2.jpeg" alt="" className="w-full h-full object-cover opacity-15 mix-blend-luminosity" style={{ objectPosition: 'center 60%' }} />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(11,21,36,0.88) 0%, rgba(26,48,80,0.82) 100%)' }} />
+        </div>
+        <div className="relative max-w-7xl mx-auto px-5 md:px-8 grid grid-cols-2 md:grid-cols-4 gap-6">
           {STATS.map(s => (
             <div key={s.value} className="text-center p-6 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
               <div className="text-2xl mb-2">{s.icon}</div>
@@ -500,6 +587,50 @@ export default function LandingPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Bike Gallery Split — bike3 ──────────────────────────────────────── */}
+      <section className="bg-slate-50">
+        <div className="max-w-7xl mx-auto px-5 md:px-8 py-16">
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl h-72 md:h-96 group">
+              <img
+                src="/bike7.jpeg"
+                alt="Motorcycle showcase"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                style={{ objectPosition: 'center' }}
+              />
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(7,14,26,0.6) 0%, transparent 60%)' }} />
+              <div className="absolute bottom-6 left-6">
+                <span className="text-[10px] font-black text-[#FF6B2C] uppercase tracking-widest">Premium fleet</span>
+                <p className="text-white font-black text-xl mt-1">Every model. Every deal.</p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-6">
+              <div>
+                <span className="inline-block text-xs font-black text-[#FF6B2C] uppercase tracking-widest bg-orange-50 px-3 py-1.5 rounded-full mb-4">Why BikeMeNow</span>
+                <h2 className="text-3xl md:text-4xl font-black text-[#0b1524] leading-tight mb-4">
+                  Designed around<br />how you actually work
+                </h2>
+                <p className="text-slate-500 leading-relaxed text-sm">From the first test-ride inquiry to a signed deal and Swish payment — every step lives in one place. No more spreadsheets. No more missed follow-ups.</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { icon: '⚡', label: 'Instant BankID ID', desc: 'Verify customers in seconds' },
+                  { icon: '📄', label: 'Auto agreements', desc: 'Legally compliant, 1 click' },
+                  { icon: '💳', label: 'All payment methods', desc: 'Klarna, Swish, Svea & more' },
+                  { icon: '📊', label: 'Live analytics', desc: 'Pipeline value in real-time' },
+                ].map(item => (
+                  <div key={item.label} className="p-4 rounded-2xl border border-slate-200 bg-white hover:border-[#FF6B2C]/30 hover:shadow-md transition-all">
+                    <span className="text-xl mb-2 block">{item.icon}</span>
+                    <p className="text-xs font-bold text-slate-900">{item.label}</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -691,6 +822,24 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── Full-width Bike Banner — bike4 ──────────────────────────────────── */}
+      <section className="relative h-56 md:h-72 overflow-hidden">
+        <img
+          src="/bike4.jpeg"
+          alt="Motorcycle"
+          className="w-full h-full object-cover"
+          style={{ objectPosition: 'center 40%', filter: 'brightness(0.5) saturate(1.2)' }}
+        />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(7,14,26,0.7) 0%, rgba(255,107,44,0.15) 50%, rgba(7,14,26,0.8) 100%)' }} />
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
+          <p className="text-[#FF6B2C] text-xs font-black uppercase tracking-[0.25em] mb-3">Your dealership, elevated</p>
+          <h2 className="text-3xl md:text-5xl font-black text-white leading-tight max-w-2xl">
+            The road to more sales<br />
+            <span style={{ background: 'linear-gradient(90deg, #FF6B2C, #ffaa7a)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>starts here.</span>
+          </h2>
+        </div>
+      </section>
+
       {/* ── Final CTA ───────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden py-32" style={{ background: 'linear-gradient(135deg, #070e1a 0%, #0f1d35 60%, #1a2f50 100%)' }}>
         <div className="absolute inset-0 pointer-events-none">
@@ -757,6 +906,12 @@ export default function LandingPage() {
                 <ul className="space-y-2.5">
                   <li><Link href="/privacy" className="hover:text-white transition-colors">{t('footer.privacy')}</Link></li>
                   <li><Link href="/terms" className="hover:text-white transition-colors">{t('footer.terms')}</Link></li>
+                  <li>
+                    <a href="mailto:info@bikeme.now" className="hover:text-white transition-colors flex items-center gap-1.5">
+                      <span className="text-[#FF6B2C] text-xs">✉</span>
+                      info@bikeme.now
+                    </a>
+                  </li>
                 </ul>
               </div>
             </div>

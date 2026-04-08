@@ -37,6 +37,7 @@ const securityHeaders = [
       // *.klarna.com — Klarna SDK makes direct API calls to Klarna from the browser
       // api.stripe.com — Stripe.js makes direct calls to Stripe from the browser
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vercel.live wss://ws-us3.pusher.com https://*.klarna.com https://*.klarnacdn.net https://api.stripe.com",
+      "media-src 'self' blob:",
       // *.klarnacdn.net + *.klarna.com — Klarna widget iframe origins
       // js.stripe.com + hooks.stripe.com — Stripe Elements iframes
       "frame-src https://vercel.live https://*.klarnacdn.net https://*.klarna.com https://js.stripe.com https://hooks.stripe.com",
@@ -56,6 +57,14 @@ const nextConfig: NextConfig = {
         // Apply security headers to all routes
         source: '/(.*)',
         headers: securityHeaders,
+      },
+      {
+        source: '/bike.mp4',
+        headers: [{ key: 'Content-Type', value: 'video/mp4' }],
+      },
+      {
+        source: '/bike.mp3',
+        headers: [{ key: 'Content-Type', value: 'audio/mpeg' }],
       },
     ];
   },
