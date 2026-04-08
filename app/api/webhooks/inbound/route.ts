@@ -316,19 +316,53 @@ export async function POST(req: NextRequest) {
     }
 
     if (isInvoiceInbox) {
-        // Store raw invoice email for accounts payable processing
-        await db.from('purchase_invoice_emails').insert({
-            dealership_id: resolvedDealershipId,
-            from_email:  From,
-            subject:     Subject,
-            body_text:   TextBody,
-            has_pdf:     Attachments.some(a => a.ContentType === 'application/pdf'),
-            pdf_content: Attachments.find(a => a.ContentType === 'application/pdf')?.Content ?? null,
-            received_at: new Date().toISOString(),
-            status:      'pending',
+        if (!resolvedDealershipId) {
+            console.warn(`[inbound] Cannot resolve dealership for invoice — From: ${From}`)
+            return NextResponse.json({ error: 'Dealer not identified' }, { status: 422 })
+        }
+
+        const pdfAttachment = Attachments.find(a =>
+            a.ContentType === 'application/pdf' || a.Name.toLowerCase().endsWith('.pdf'),
+        )
+
+        const baseUrl = process.env.NODE_ENV === 'development'
+            ? 'http://localhost:3000'
+            : `https://${req.headers.get('host')}`
+
+        const invRes = await fetch(`${baseUrl}/api/purchase-invoice/process`, {
+            method:  'POST',
+            headers: {
+                'Content-Type':     'application/json',
+                'x-webhook-secret': process.env.GOODS_RECEIPT_WEBHOOK_SECRET ?? '',
+            },
+            body: JSON.stringify({
+                dealership_id: resolvedDealershipId,
+                vendor:        vendor?.name ?? senderDomain,
+                from_email:    senderEmail,
+                pdf_base64:    pdfAttachment?.Content ?? undefined,
+                pdf_text:      TextBody || undefined,
+            }),
         })
 
-        return NextResponse.json({ ok: true, routed_to: 'invoice-queue' })
+        const result = await invRes.json()
+
+        // Push in-app notification
+        fetch(`${baseUrl}/api/notifications/add`, {
+            method:  'POST',
+            headers: {
+                'Content-Type':     'application/json',
+                'x-webhook-secret': process.env.GOODS_RECEIPT_WEBHOOK_SECRET ?? '',
+            },
+            body: JSON.stringify({
+                dealership_id: resolvedDealershipId,
+                type:    'system',
+                title:   `🧾 Invoice received — ${vendor?.name ?? senderDomain}`,
+                message: `${result.invoice_id} · ${result.po_id ? `PO: ${result.po_id} · ` : ''}Amount: ${result.amount ?? '—'} · Due: ${result.due_date ?? '—'}. Review in Purchase Invoices.`,
+                href:    '/purchaseinvoice',
+            }),
+        }).catch((e) => console.warn('[inbound] invoice notify failed:', e))
+
+        return NextResponse.json({ ok: true, routed_to: 'purchase-invoice', ...result })
     }
 
     // Unrecognised To address — log and acknowledge
