@@ -50,6 +50,9 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  turbopack: {
+    root: __dirname,
+  },
   async headers() {
     return [
       {
