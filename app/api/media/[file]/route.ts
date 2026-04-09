@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createReadStream, statSync } from 'fs';
 import { join } from 'path';
-import { Readable } from 'stream';
 
 const ALLOWED: Record<string, string> = {
   'bike.mp4': 'video/mp4',
@@ -30,35 +29,42 @@ export async function GET(
   const fileSize = stat.size;
   const rangeHeader = request.headers.get('range');
 
-  if (rangeHeader) {
-    const [startStr, endStr] = rangeHeader.replace(/bytes=/, '').split('-');
-    const start = parseInt(startStr, 10);
-    const end = endStr ? parseInt(endStr, 10) : fileSize - 1;
-    const chunkSize = end - start + 1;
+  const start = rangeHeader ? parseInt(rangeHeader.replace(/bytes=/, '').split('-')[0], 10) : 0;
+  const end = rangeHeader
+    ? (parseInt(rangeHeader.replace(/bytes=/, '').split('-')[1], 10) || fileSize - 1)
+    : fileSize - 1;
+  const chunkSize = end - start + 1;
 
-    const stream = createReadStream(filePath, { start, end });
-    const readable = Readable.toWeb(stream) as ReadableStream;
+  const nodeStream = createReadStream(filePath, { start, end });
 
-    return new NextResponse(readable, {
-      status: 206,
-      headers: {
-        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
-        'Accept-Ranges': 'bytes',
-        'Content-Length': String(chunkSize),
-        'Content-Type': contentType,
-      },
-    });
-  }
-
-  const stream = createReadStream(filePath);
-  const readable = Readable.toWeb(stream) as ReadableStream;
+  const readable = new ReadableStream({
+    start(controller) {
+      nodeStream.on('data', (chunk: Buffer | string) => {
+        try {
+          controller.enqueue(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+        } catch {
+          nodeStream.destroy();
+        }
+      });
+      nodeStream.on('end', () => {
+        try { controller.close(); } catch { /* already closed */ }
+      });
+      nodeStream.on('error', (err) => {
+        try { controller.error(err); } catch { /* already closed */ }
+      });
+    },
+    cancel() {
+      nodeStream.destroy();
+    },
+  });
 
   return new NextResponse(readable, {
-    status: 200,
+    status: rangeHeader ? 206 : 200,
     headers: {
-      'Content-Length': String(fileSize),
       'Content-Type': contentType,
+      'Content-Length': String(chunkSize),
       'Accept-Ranges': 'bytes',
+      ...(rangeHeader ? { 'Content-Range': `bytes ${start}-${end}/${fileSize}` } : {}),
     },
   });
 }
