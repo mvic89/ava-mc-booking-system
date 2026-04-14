@@ -1251,5 +1251,342 @@
       "sub": "Om een bestelling te plaatsen of vragen te stellen, neem contact op via",
       "cta": "Neem contact op"
     }
+  },
+  "inventory": {
+    "title": "Voorraad",
+    "breadcrumb": "Voorraad",
+    "tabs": {
+      "motorcycles": "Motorfietsen",
+      "spareParts": "Onderdelen",
+      "accessories": "Accessoires"
+    },
+    "search": "Voorraad doorzoeken...",
+    "stats": {
+      "totalSkus": "Totaal SKU's",
+      "unitsInStock": "Eenheden op voorraad",
+      "lowStock": "Lage voorraadwaarschuwingen",
+      "stockValue": "Voorraadwaarde"
+    },
+    "table": {
+      "id": "ID",
+      "name": "Naam / Merk",
+      "articleNo": "Artikelnr.",
+      "vin": "VIN",
+      "year": "Jaar",
+      "engine": "Motor",
+      "color": "Kleur",
+      "mcType": "MC-type",
+      "warehouse": "Magazijn",
+      "stock": "Voorraad",
+      "reorderQty": "Nabestelhoeveelheid",
+      "cost": "Kosten",
+      "sellPrice": "Verkoopprijs",
+      "margin": "Marge",
+      "vendor": "Leverancier"
+    },
+    "empty": "Nog geen voorraad",
+    "noMatch": "Geen artikelen komen overeen met uw zoekopdracht",
+    "hint": "Beweeg de muis over een rij om de voorraad aan te passen",
+    "import": "Importeer vanuit Excel of voeg handmatig toe",
+    "export": {
+      "pdf": "PDF",
+      "excel": "Excel (.xlsx)",
+      "spreadsheet": "Spreadsheet",
+      "print": "Afdrukindeling"
+    }
+  },
+  "goodsReceipts": {
+    "title": "Goederenontvangsten",
+    "breadcrumb": "Goederenontvangsten",
+    "subtitle": "Ontvangen artikelen vastleggen — voorraad wordt automatisch bijgewerkt",
+    "stats": {
+      "total": "Totaal ontvangsten",
+      "units": "Ontvangen eenheden",
+      "items": "Ontvangen artikelen",
+      "pending": "In afwachting van goedkeuring"
+    },
+    "table": {
+      "receiptId": "Ontvangst-ID",
+      "po": "Inkooporder #",
+      "deliveryNote": "Pakbon",
+      "item": "Artikel",
+      "artNo": "Art.nr.",
+      "lineItems": "Regels",
+      "ordered": "Besteld",
+      "received": "Ontvangen",
+      "status": "Status",
+      "source": "Bron",
+      "notes": "Opmerkingen"
+    },
+    "newReceipt": "Nieuwe ontvangst",
+    "search": "Ontvangsten doorzoeken...",
+    "empty": "Nog geen goederenontvangsten",
+    "noMatch": "Geen ontvangsten komen overeen met uw zoekopdracht",
+    "approve": "Goedkeuren",
+    "pending": "In behandeling",
+    "approved": "Goedgekeurd",
+    "rejected": "Afgewezen",
+    "backorder": "Nabestelling",
+    "linkPo": "Koppelen aan inkooporder (optioneel)",
+    "deliveryNoteLabel": "Pakbonnr. (optioneel)",
+    "receivedBy": "Ontvangen door",
+    "noOpenPos": "Geen openstaande inkooporders gevonden"
+  },
+  "accounting": {
+    "title": "Boekhouding",
+    "breadcrumb": "Boekhouding",
+    "exportBtn": "Niet-gesynchroniseerde exporteren",
+    "checking": "Verbinding controleren…",
+    "connected": "Verbonden met Fortnox",
+    "tokenInvalid": "Token geconfigureerd maar ongeldig — opnieuw verbinden",
+    "notConnected": "Niet verbonden met Fortnox",
+    "howItWorks": "Hoe het werkt",
+    "synced": "Gesynchroniseerd",
+    "pending": "In behandeling",
+    "failed": "Mislukt",
+    "search": "Factuur, klant of voertuig zoeken…",
+    "noInvoices": "Geen facturen gevonden.",
+    "showAll": "Toon alles",
+    "reconnect": "Opnieuw verbinden",
+    "connect": "Verbinden met Fortnox",
+    "update": "Vernieuwen",
+    "adminOnly": "Boekhouding is alleen beschikbaar voor beheerders.",
+    "cols": {
+      "id": "Factuur",
+      "date": "Datum",
+      "customer": "Klant",
+      "vehicle": "Voertuig",
+      "amount": "Bedrag",
+      "payment": "Betaling",
+      "fortnox": "Fortnox",
+      "action": "Actie"
+    }
+  },
+  "suppliers": {
+    "title": "Leveranciers",
+    "breadcrumb": "Leveranciers",
+    "subtitle": "Klik op een rij om leveranciersdetails te bekijken of te bewerken.",
+    "addBtn": "Leverancier toevoegen",
+    "importBtn": "Excel importeren",
+    "search": "Leveranciers doorzoeken...",
+    "empty": "Nog geen leveranciers",
+    "noMatch": "Geen leveranciers komen overeen met uw zoekopdracht",
+    "stats": {
+      "total": "Totaal leveranciers",
+      "withContact": "Met contactgegevens",
+      "lowStock": "Lage voorraadwaarschuwingen",
+      "totalSkus": "Totaal geleverde SKU's"
+    },
+    "cols": {
+      "no": "Leveranciernr.",
+      "name": "Leveranciernaam",
+      "address": "Adres",
+      "phone": "Telefoon",
+      "orgNo": "KVK-nummer",
+      "skus": "SKU's",
+      "categories": "Categorieën",
+      "status": "Voorraadstatus"
+    },
+    "poModal": {
+      "title": "Inkooporders",
+      "noPo": "Geen inkooporders voor deze leverancier"
+    }
+  },
+  "purchaseInvoices": {
+    "title": "Inkoopfacturen",
+    "breadcrumb": "Inkoopfacturen",
+    "subtitle": "Facturen van leveranciers bijhouden en beheren",
+    "newBtn": "Nieuwe factuur",
+    "search": "Inkooporder, leverancier, factuurnr. zoeken...",
+    "empty": "Nog geen inkoopfacturen",
+    "noMatch": "Geen facturen komen overeen met uw filter",
+    "cols": {
+      "supplierInvoice": "Leveranciersfactuur #",
+      "systemRef": "Systeemreferentie #",
+      "po": "Inkooporder (optioneel)",
+      "amount": "Bedrag",
+      "invoiceDate": "Factuurdatum",
+      "dueDate": "Vervaldatum",
+      "vendor": "Leverancier",
+      "status": "Status",
+      "notes": "Opmerkingen"
+    },
+    "status": {
+      "pending": "In behandeling",
+      "paid": "Betaald",
+      "overdue": "Achterstallig",
+      "disputed": "Betwist"
+    }
+  },
+  "purchaseOrders": {
+    "title": "Inkooporders",
+    "breadcrumb": "Inkooporders",
+    "subtitle": "Klik op een rij om de volledige inkooporder te openen.",
+    "newBtn": "Inkooporder aanmaken",
+    "importBtn": "Excel importeren",
+    "search": "Inkooporder, leverancier, artikel zoeken...",
+    "empty": "Nog geen inkooporders",
+    "noMatch": "Geen inkooporders komen overeen met uw filter",
+    "tabs": {
+      "all": "Alle",
+      "draft": "Concept",
+      "reviewed": "Beoordeeld",
+      "sent": "Verzonden",
+      "received": "Ontvangen"
+    },
+    "cols": {
+      "number": "Inkoopordernr.",
+      "vendor": "Leverancier",
+      "date": "Datum",
+      "items": "Artikelen",
+      "total": "Totale kosten",
+      "eta": "Verwachte levering",
+      "status": "Status"
+    },
+    "autoPos": "automatisch gegenereerde inkooporder vanuit lage voorraad",
+    "allAboveReorder": "Alle voorraadartikelen zijn boven hun bestelpunten — geen inkooporders nodig."
+  },
+  "service": {
+    "title": "Service",
+    "subtitle": "Werkplaatsbeheer, boekingen en servicegeschiedenis",
+    "comingSoon": "De servicemodule komt eraan",
+    "launching": "Lancering Q3 2026",
+    "earlyAccess": "Vroege toegang aanvragen",
+    "benefits": {
+      "faster": "Snellere check-in met digitale werkopdrachten",
+      "scheduling": "Minder tijd aan handmatige planning",
+      "history": "Servicegeschiedenis altijd toegankelijk"
+    },
+    "features": "Wat er komt"
+  },
+  "settingsUsers": {
+    "title": "Gebruikers & Rechten",
+    "subtitle": "Personeelsaccounts, rollen en toegangsniveaus beheren.",
+    "breadcrumb": "Instellingen / Gebruikers",
+    "inviteBtn": "Gebruiker uitnodigen",
+    "stats": {
+      "active": "Actieve gebruikers",
+      "admins": "Beheerders",
+      "bankid": "BankID geverifieerd"
+    },
+    "table": {
+      "staff": "Personeelsaccounts",
+      "lastLogin": "Laatste aanmelding"
+    },
+    "status": {
+      "verified": "BankID geverifieerd",
+      "inactive": "Inactief",
+      "pending": "In behandeling"
+    },
+    "roles": {
+      "admin": "Beheerder",
+      "sales": "Verkoop",
+      "service": "Service"
+    },
+    "invite": {
+      "title": "Nieuwe gebruiker uitnodigen",
+      "name": "Volledige naam",
+      "email": "E-mailadres",
+      "role": "Rol",
+      "cancel": "Annuleren",
+      "send": "Uitnodiging versturen",
+      "sending": "Versturen...",
+      "linkLabel": "Uitnodigingslink (geldig 7 dagen):",
+      "copy": "Kopiëren"
+    },
+    "adminOnly": "Alleen beheerders kunnen gebruikers en rechten beheren.",
+    "noUsers": "Nog geen gebruikers — nodig uw personeel uit."
+  },
+  "settingsPayments": {
+    "title": "Betalingsproviders",
+    "breadcrumb": "Instellingen / Betalingsproviders",
+    "subtitle": "Schakel de betaalmethoden in die uw dealer accepteert.",
+    "saveBtn": "Alle wijzigingen opslaan",
+    "saving": "Opslaan…",
+    "saved": "Opgeslagen",
+    "saveFailed": "Opslaan mislukt — probeer opnieuw",
+    "primaryLabel": "Primaire financieringspartner",
+    "noneSelected": "Geen geselecteerd",
+    "comingSoon": "Binnenkort",
+    "testConnection": "Verbinding testen",
+    "testing": "Testen…",
+    "noCredentials": "Geen inloggegevens vereist."
+  },
+  "settingsAuth": {
+    "title": "Beheerdersauthenticatie",
+    "subtitle": "Bevestig uw identiteit om door te gaan",
+    "accessDenied": "Toegang geweigerd",
+    "bankid": "BankID",
+    "secure": "Veilige elektronische identificatie",
+    "recommended": "AANBEVOLEN",
+    "personnummer": "Persoonlijk nummer",
+    "email": "E-mailadres",
+    "backToDashboard": "← Terug naar dashboard",
+    "verify": "Verifiëren",
+    "useInstead": "Gebruik BankID in plaats daarvan →",
+    "adminOnly": "Instellingen vereisen beheerdersrechten en geverifieerde identiteit"
+  },
+  "settingsEmail": {
+    "title": "E-mail verzenden",
+    "breadcrumb": "Instellingen / E-mail verzenden",
+    "subtitle": "Inkooporder-e-mails worden verstuurd via Resend. Configureer waarheen leveranciersantwoorden gaan.",
+    "replyToLabel": "Uw antwoord-aan-e-mail",
+    "replyToDesc": "Wanneer de leverancier Beantwoorden klikt, komt zijn e-mail hier.",
+    "phoneLabel": "Dealertelefoon (optioneel)",
+    "phoneDesc": "Wordt weergegeven in de voettekst van inkooporder-e-mails.",
+    "save": "Opslaan",
+    "saving": "Opslaan…",
+    "saved": "Opgeslagen!",
+    "loading": "Laden…"
+  },
+  "settingsIntegrations": {
+    "title": "Integraties",
+    "breadcrumb": "Instellingen / Integraties",
+    "categories": {
+      "crm": "CRM",
+      "accounting": "Boekhouding",
+      "vehicles": "Voertuigregister",
+      "insurance": "Verzekering",
+      "communication": "Communicatie",
+      "advertising": "Adverteren"
+    },
+    "cols": {
+      "credentials": "Inloggegevens",
+      "status": "Status",
+      "action": "Actie"
+    },
+    "noCredentials": "Geen inloggegevens vereist.",
+    "comingSoon": "Binnenkort",
+    "live": "Actief",
+    "configured": "geconfigureerd"
+  },
+  "analytics": {
+    "title": "Rapporten",
+    "subtitle": "Realtime gegevens van verkopen, leads en klanten",
+    "tabs": {
+      "overview": "Overzicht",
+      "sources": "Bronanalyse",
+      "margins": "Margeanalyse",
+      "leaderboard": "Ranglijst"
+    },
+    "stats": {
+      "closed": "Gesloten",
+      "grossProfit": "Brutowinst",
+      "revenue": "Omzet",
+      "conversion": "Conv.",
+      "leads": "Leads",
+      "salesperson": "Verkoper",
+      "avgDeal": "Gem. deal",
+      "rank": "Rang"
+    },
+    "empty": {
+      "invoices": "Nog geen betaalde facturen",
+      "leads": "Nog geen leads",
+      "closed": "Nog geen gesloten deals",
+      "brands": "Nog geen merkgegevens",
+      "salespeople": "Nog geen verkopers"
+    },
+    "marginNote": "Groen ≥ 10 % · Geel 5–10 % · Rood < 5 %",
+    "timeNote": "Groen ≤ 14 d · Geel ≤ 30 d · Rood > 30 d"
   }
 }

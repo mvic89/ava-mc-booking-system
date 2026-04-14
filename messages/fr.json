@@ -1251,5 +1251,342 @@
     "goToLogin": "Aller à la connexion",
     "alreadyHaveAccount": "Vous avez déjà un compte ?",
     "loginLink": "Se connecter"
+  },
+  "inventory": {
+    "title": "Stock",
+    "breadcrumb": "Stock",
+    "tabs": {
+      "motorcycles": "Motos",
+      "spareParts": "Pièces détachées",
+      "accessories": "Accessoires"
+    },
+    "search": "Rechercher dans le stock...",
+    "stats": {
+      "totalSkus": "Total SKUs",
+      "unitsInStock": "Unités en stock",
+      "lowStock": "Alertes stock bas",
+      "stockValue": "Valeur du stock"
+    },
+    "table": {
+      "id": "ID",
+      "name": "Nom / Marque",
+      "articleNo": "N° article",
+      "vin": "NIV",
+      "year": "Année",
+      "engine": "Moteur",
+      "color": "Couleur",
+      "mcType": "Type moto",
+      "warehouse": "Entrepôt",
+      "stock": "Stock",
+      "reorderQty": "Qté réapprovisionnement",
+      "cost": "Coût",
+      "sellPrice": "Prix de vente",
+      "margin": "Marge",
+      "vendor": "Fournisseur"
+    },
+    "empty": "Aucun stock pour l'instant",
+    "noMatch": "Aucun article ne correspond à votre recherche",
+    "hint": "Survolez une ligne pour ajuster le stock",
+    "import": "Importer depuis Excel ou ajouter manuellement",
+    "export": {
+      "pdf": "PDF",
+      "excel": "Excel (.xlsx)",
+      "spreadsheet": "Tableur",
+      "print": "Format impression"
+    }
+  },
+  "goodsReceipts": {
+    "title": "Bons de réception",
+    "breadcrumb": "Bons de réception",
+    "subtitle": "Enregistrer les articles reçus — le stock se met à jour automatiquement",
+    "stats": {
+      "total": "Total des réceptions",
+      "units": "Unités reçues",
+      "items": "Articles reçus",
+      "pending": "En attente d'approbation"
+    },
+    "table": {
+      "receiptId": "ID réception",
+      "po": "Bon de commande #",
+      "deliveryNote": "Bon de livraison",
+      "item": "Article",
+      "artNo": "N° art.",
+      "lineItems": "Lignes",
+      "ordered": "Commandé",
+      "received": "Reçu",
+      "status": "Statut",
+      "source": "Source",
+      "notes": "Notes"
+    },
+    "newReceipt": "Nouvelle réception",
+    "search": "Rechercher des réceptions...",
+    "empty": "Aucune réception pour l'instant",
+    "noMatch": "Aucune réception ne correspond à votre recherche",
+    "approve": "Approuver",
+    "pending": "En attente",
+    "approved": "Approuvé",
+    "rejected": "Rejeté",
+    "backorder": "Commande en souffrance",
+    "linkPo": "Lier à un bon de commande (optionnel)",
+    "deliveryNoteLabel": "N° bon de livraison (optionnel)",
+    "receivedBy": "Reçu par",
+    "noOpenPos": "Aucun bon de commande ouvert trouvé"
+  },
+  "accounting": {
+    "title": "Comptabilité",
+    "breadcrumb": "Comptabilité",
+    "exportBtn": "Exporter les non-synchronisés",
+    "checking": "Vérification de la connexion…",
+    "connected": "Connecté à Fortnox",
+    "tokenInvalid": "Token configuré mais invalide — reconnectez-vous",
+    "notConnected": "Non connecté à Fortnox",
+    "howItWorks": "Comment ça fonctionne",
+    "synced": "Synchronisé",
+    "pending": "En attente",
+    "failed": "Échoué",
+    "search": "Rechercher facture, client ou véhicule…",
+    "noInvoices": "Aucune facture trouvée.",
+    "showAll": "Afficher tout",
+    "reconnect": "Reconnecter",
+    "connect": "Connecter à Fortnox",
+    "update": "Actualiser",
+    "adminOnly": "La comptabilité n'est disponible que pour les administrateurs.",
+    "cols": {
+      "id": "Facture",
+      "date": "Date",
+      "customer": "Client",
+      "vehicle": "Véhicule",
+      "amount": "Montant",
+      "payment": "Paiement",
+      "fortnox": "Fortnox",
+      "action": "Action"
+    }
+  },
+  "suppliers": {
+    "title": "Fournisseurs",
+    "breadcrumb": "Fournisseurs",
+    "subtitle": "Cliquez sur une ligne pour afficher ou modifier les détails du fournisseur.",
+    "addBtn": "Ajouter un fournisseur",
+    "importBtn": "Importer Excel",
+    "search": "Rechercher des fournisseurs...",
+    "empty": "Aucun fournisseur pour l'instant",
+    "noMatch": "Aucun fournisseur ne correspond à votre recherche",
+    "stats": {
+      "total": "Total fournisseurs",
+      "withContact": "Avec coordonnées",
+      "lowStock": "Alertes stock bas",
+      "totalSkus": "Total SKUs fournis"
+    },
+    "cols": {
+      "no": "N° fournisseur",
+      "name": "Nom du fournisseur",
+      "address": "Adresse",
+      "phone": "Téléphone",
+      "orgNo": "N° SIRET",
+      "skus": "SKUs",
+      "categories": "Catégories",
+      "status": "Statut stock"
+    },
+    "poModal": {
+      "title": "Bons de commande",
+      "noPo": "Aucun bon de commande pour ce fournisseur"
+    }
+  },
+  "purchaseInvoices": {
+    "title": "Factures fournisseurs",
+    "breadcrumb": "Factures fournisseurs",
+    "subtitle": "Suivre et gérer les factures reçues des fournisseurs",
+    "newBtn": "Nouvelle facture",
+    "search": "Rechercher commande, fournisseur, facture #...",
+    "empty": "Aucune facture fournisseur pour l'instant",
+    "noMatch": "Aucune facture ne correspond à votre filtre",
+    "cols": {
+      "supplierInvoice": "Facture fournisseur #",
+      "systemRef": "Réf. système #",
+      "po": "Bon de commande (optionnel)",
+      "amount": "Montant",
+      "invoiceDate": "Date de facture",
+      "dueDate": "Date d'échéance",
+      "vendor": "Fournisseur",
+      "status": "Statut",
+      "notes": "Notes"
+    },
+    "status": {
+      "pending": "En attente",
+      "paid": "Payée",
+      "overdue": "En retard",
+      "disputed": "Contestée"
+    }
+  },
+  "purchaseOrders": {
+    "title": "Bons de commande",
+    "breadcrumb": "Bons de commande",
+    "subtitle": "Cliquez sur une ligne pour ouvrir le bon de commande complet.",
+    "newBtn": "Créer un bon de commande",
+    "importBtn": "Importer Excel",
+    "search": "Rechercher BC, fournisseur, article...",
+    "empty": "Aucun bon de commande pour l'instant",
+    "noMatch": "Aucun bon de commande ne correspond à votre filtre",
+    "tabs": {
+      "all": "Tous",
+      "draft": "Brouillon",
+      "reviewed": "Révisé",
+      "sent": "Envoyé",
+      "received": "Reçu"
+    },
+    "cols": {
+      "number": "N° BC",
+      "vendor": "Fournisseur",
+      "date": "Date",
+      "items": "Articles",
+      "total": "Coût total",
+      "eta": "Livraison prévue",
+      "status": "Statut"
+    },
+    "autoPos": "bon de commande auto-généré depuis stock bas",
+    "allAboveReorder": "Tous les articles en stock sont au-dessus de leurs points de commande — aucun BC nécessaire."
+  },
+  "service": {
+    "title": "Service",
+    "subtitle": "Gestion de l'atelier, réservations et historique de service",
+    "comingSoon": "Le module service arrive",
+    "launching": "Lancement T3 2026",
+    "earlyAccess": "Demander un accès anticipé",
+    "benefits": {
+      "faster": "Enregistrement plus rapide avec ordres de travail numériques",
+      "scheduling": "Moins de temps sur la planification manuelle",
+      "history": "Historique de service toujours accessible"
+    },
+    "features": "Ce qui arrive"
+  },
+  "settingsUsers": {
+    "title": "Utilisateurs & Permissions",
+    "subtitle": "Gérer les comptes du personnel, les rôles et les niveaux d'accès.",
+    "breadcrumb": "Paramètres / Utilisateurs",
+    "inviteBtn": "Inviter un utilisateur",
+    "stats": {
+      "active": "Utilisateurs actifs",
+      "admins": "Administrateurs",
+      "bankid": "BankID vérifiés"
+    },
+    "table": {
+      "staff": "Comptes du personnel",
+      "lastLogin": "Dernière connexion"
+    },
+    "status": {
+      "verified": "BankID vérifié",
+      "inactive": "Inactif",
+      "pending": "En attente"
+    },
+    "roles": {
+      "admin": "Admin",
+      "sales": "Ventes",
+      "service": "Service"
+    },
+    "invite": {
+      "title": "Inviter un nouvel utilisateur",
+      "name": "Nom complet",
+      "email": "Adresse e-mail",
+      "role": "Rôle",
+      "cancel": "Annuler",
+      "send": "Envoyer l'invitation",
+      "sending": "Envoi...",
+      "linkLabel": "Lien d'invitation (valable 7 jours) :",
+      "copy": "Copier"
+    },
+    "adminOnly": "Seuls les administrateurs peuvent gérer les utilisateurs et les permissions.",
+    "noUsers": "Aucun utilisateur pour l'instant — invitez votre personnel."
+  },
+  "settingsPayments": {
+    "title": "Fournisseurs de paiement",
+    "breadcrumb": "Paramètres / Fournisseurs de paiement",
+    "subtitle": "Activez les modes de paiement acceptés par votre concession.",
+    "saveBtn": "Enregistrer toutes les modifications",
+    "saving": "Enregistrement…",
+    "saved": "Enregistré",
+    "saveFailed": "Échec de l'enregistrement — réessayez",
+    "primaryLabel": "Fournisseur de financement principal",
+    "noneSelected": "Aucun sélectionné",
+    "comingSoon": "Bientôt disponible",
+    "testConnection": "Tester la connexion",
+    "testing": "Test en cours…",
+    "noCredentials": "Aucun identifiant requis."
+  },
+  "settingsAuth": {
+    "title": "Authentification administrateur",
+    "subtitle": "Vérifiez votre identité pour continuer",
+    "accessDenied": "Accès refusé",
+    "bankid": "BankID",
+    "secure": "Identification électronique sécurisée",
+    "recommended": "RECOMMANDÉ",
+    "personnummer": "Numéro personnel",
+    "email": "Adresse e-mail",
+    "backToDashboard": "← Retour au tableau de bord",
+    "verify": "Vérifier",
+    "useInstead": "Utiliser BankID à la place →",
+    "adminOnly": "Les paramètres nécessitent des droits d'administrateur et une identité vérifiée"
+  },
+  "settingsEmail": {
+    "title": "Envoi d'e-mails",
+    "breadcrumb": "Paramètres / Envoi d'e-mails",
+    "subtitle": "Les e-mails de BC sont envoyés via Resend. Configurez où les réponses des fournisseurs arrivent.",
+    "replyToLabel": "Votre e-mail de réponse",
+    "replyToDesc": "Quand le fournisseur clique sur Répondre, son e-mail arrive ici.",
+    "phoneLabel": "Téléphone du concessionnaire (optionnel)",
+    "phoneDesc": "Affiché dans le pied de page des e-mails de BC.",
+    "save": "Enregistrer",
+    "saving": "Enregistrement…",
+    "saved": "Enregistré !",
+    "loading": "Chargement…"
+  },
+  "settingsIntegrations": {
+    "title": "Intégrations",
+    "breadcrumb": "Paramètres / Intégrations",
+    "categories": {
+      "crm": "CRM",
+      "accounting": "Comptabilité",
+      "vehicles": "Registre des véhicules",
+      "insurance": "Assurance",
+      "communication": "Communication",
+      "advertising": "Publicité"
+    },
+    "cols": {
+      "credentials": "Identifiants",
+      "status": "Statut",
+      "action": "Action"
+    },
+    "noCredentials": "Aucun identifiant requis.",
+    "comingSoon": "Bientôt",
+    "live": "Actif",
+    "configured": "configuré"
+  },
+  "analytics": {
+    "title": "Rapports",
+    "subtitle": "Données en temps réel des ventes, leads et clients",
+    "tabs": {
+      "overview": "Aperçu",
+      "sources": "Analyse des sources",
+      "margins": "Analyse des marges",
+      "leaderboard": "Classement"
+    },
+    "stats": {
+      "closed": "Clôturé",
+      "grossProfit": "Bénéfice brut",
+      "revenue": "Chiffre d'affaires",
+      "conversion": "Conv.",
+      "leads": "Leads",
+      "salesperson": "Commercial",
+      "avgDeal": "Deal moyen",
+      "rank": "Rang"
+    },
+    "empty": {
+      "invoices": "Aucune facture payée pour l'instant",
+      "leads": "Aucun lead pour l'instant",
+      "closed": "Aucune affaire clôturée pour l'instant",
+      "brands": "Aucune donnée de marque pour l'instant",
+      "salespeople": "Aucun commercial pour l'instant"
+    },
+    "marginNote": "Vert ≥ 10 % · Jaune 5–10 % · Rouge < 5 %",
+    "timeNote": "Vert ≤ 14 j · Jaune ≤ 30 j · Rouge > 30 j"
   }
 }

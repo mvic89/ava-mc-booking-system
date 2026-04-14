@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useInventory } from '@/context/InventoryContext'
 import { Motorcycle, SparePart, Accessory, BaseInventoryItem, InventoryCategory } from '@/utils/types'
 import { AddItemModal } from '@/components/AddItemModal'
@@ -56,14 +57,6 @@ function StockCell({
     )
 }
 
-// ─── Tab config ───────────────────────────────────────────────────────────────
-
-const TABS: { id: InventoryCategory; label: string; icon: string }[] = [
-    { id: 'motorcycles', label: 'Motorcycles', icon: '🏍️' },
-    { id: 'spareParts',  label: 'Spare Parts',  icon: '🔧' },
-    { id: 'accessories', label: 'Accessories',  icon: '🪖' },
-]
-
 // ─── Table: Motorcycles ───────────────────────────────────────────────────────
 
 function MotorcycleTable({
@@ -74,26 +67,27 @@ function MotorcycleTable({
     onRowClick: (item: Motorcycle) => void
     onDelete:   (id: string) => void
 }) {
+    const t = useTranslations('inventory')
     return (
         <div className="overflow-x-auto">
             <table className="w-full text-sm">
                 <thead>
                     <tr className="border-b border-slate-100 text-left text-xs uppercase text-slate-400 tracking-wider font-semibold">
-                        <th className="px-4 py-3">ID</th>
-                        <th className="px-4 py-3">Name / Brand</th>
-                        <th className="px-4 py-3">Article No.</th>
-                        <th className="px-4 py-3">VIN</th>
-                        <th className="px-4 py-3">Year</th>
-                        <th className="px-4 py-3">Engine</th>
-                        <th className="px-4 py-3">Color</th>
-                        <th className="px-4 py-3">MC Type</th>
-                        <th className="px-4 py-3">Warehouse</th>
-                        <th className="px-4 py-3">Stock</th>
-                        <th className="px-4 py-3">Reorder Qty</th>
-                        <th className="px-4 py-3">Cost</th>
-                        <th className="px-4 py-3">Sell Price</th>
-                        <th className="px-4 py-3">Margin</th>
-                        <th className="px-4 py-3">Vendor</th>
+                        <th className="px-4 py-3">{t('table.id')}</th>
+                        <th className="px-4 py-3">{t('table.name')}</th>
+                        <th className="px-4 py-3">{t('table.articleNo')}</th>
+                        <th className="px-4 py-3">{t('table.vin')}</th>
+                        <th className="px-4 py-3">{t('table.year')}</th>
+                        <th className="px-4 py-3">{t('table.engine')}</th>
+                        <th className="px-4 py-3">{t('table.color')}</th>
+                        <th className="px-4 py-3">{t('table.mcType')}</th>
+                        <th className="px-4 py-3">{t('table.warehouse')}</th>
+                        <th className="px-4 py-3">{t('table.stock')}</th>
+                        <th className="px-4 py-3">{t('table.reorderQty')}</th>
+                        <th className="px-4 py-3">{t('table.cost')}</th>
+                        <th className="px-4 py-3">{t('table.sellPrice')}</th>
+                        <th className="px-4 py-3">{t('table.margin')}</th>
+                        <th className="px-4 py-3">{t('table.vendor')}</th>
                         <th className="px-4 py-3" />
                     </tr>
                 </thead>
@@ -156,21 +150,22 @@ function SparePartsTable({
     onRowClick: (item: SparePart) => void
     onDelete:   (id: string) => void
 }) {
+    const t = useTranslations('inventory')
     return (
         <div className="overflow-x-auto">
             <table className="w-full text-sm">
                 <thead>
                     <tr className="border-b border-slate-100 text-left text-xs uppercase text-slate-400 tracking-wider font-semibold">
-                        <th className="px-4 py-3">ID</th>
-                        <th className="px-4 py-3">Name / Brand</th>
-                        <th className="px-4 py-3">Article No.</th>
-                        <th className="px-4 py-3">Category</th>
-                        <th className="px-4 py-3">Stock</th>
-                        <th className="px-4 py-3">Reorder Qty</th>
-                        <th className="px-4 py-3">Cost</th>
-                        <th className="px-4 py-3">Sell Price</th>
-                        <th className="px-4 py-3">Margin</th>
-                        <th className="px-4 py-3">Vendor</th>
+                        <th className="px-4 py-3">{t('table.id')}</th>
+                        <th className="px-4 py-3">{t('table.name')}</th>
+                        <th className="px-4 py-3">{t('table.articleNo')}</th>
+                        <th className="px-4 py-3">{t('table.mcType')}</th>
+                        <th className="px-4 py-3">{t('table.stock')}</th>
+                        <th className="px-4 py-3">{t('table.reorderQty')}</th>
+                        <th className="px-4 py-3">{t('table.cost')}</th>
+                        <th className="px-4 py-3">{t('table.sellPrice')}</th>
+                        <th className="px-4 py-3">{t('table.margin')}</th>
+                        <th className="px-4 py-3">{t('table.vendor')}</th>
                         <th className="px-4 py-3" />
                     </tr>
                 </thead>
@@ -219,22 +214,23 @@ function AccessoriesTable({
     onRowClick: (item: Accessory) => void
     onDelete:   (id: string) => void
 }) {
+    const t = useTranslations('inventory')
     return (
         <div className="overflow-x-auto">
             <table className="w-full text-sm">
                 <thead>
                     <tr className="border-b border-slate-100 text-left text-xs uppercase text-slate-400 tracking-wider font-semibold">
-                        <th className="px-4 py-3">ID</th>
-                        <th className="px-4 py-3">Name / Brand</th>
-                        <th className="px-4 py-3">Article No.</th>
-                        <th className="px-4 py-3">Category</th>
-                        <th className="px-4 py-3">Size</th>
-                        <th className="px-4 py-3">Stock</th>
-                        <th className="px-4 py-3">Reorder Qty</th>
-                        <th className="px-4 py-3">Cost</th>
-                        <th className="px-4 py-3">Sell Price</th>
-                        <th className="px-4 py-3">Margin</th>
-                        <th className="px-4 py-3">Vendor</th>
+                        <th className="px-4 py-3">{t('table.id')}</th>
+                        <th className="px-4 py-3">{t('table.name')}</th>
+                        <th className="px-4 py-3">{t('table.articleNo')}</th>
+                        <th className="px-4 py-3">{t('table.mcType')}</th>
+                        <th className="px-4 py-3">{t('table.color')}</th>
+                        <th className="px-4 py-3">{t('table.stock')}</th>
+                        <th className="px-4 py-3">{t('table.reorderQty')}</th>
+                        <th className="px-4 py-3">{t('table.cost')}</th>
+                        <th className="px-4 py-3">{t('table.sellPrice')}</th>
+                        <th className="px-4 py-3">{t('table.margin')}</th>
+                        <th className="px-4 py-3">{t('table.vendor')}</th>
                         <th className="px-4 py-3" />
                     </tr>
                 </thead>
@@ -277,16 +273,17 @@ function AccessoriesTable({
 // ─── Summary Cards ────────────────────────────────────────────────────────────
 
 function SummaryCards({ data }: { data: BaseInventoryItem[] }) {
+    const t          = useTranslations('inventory')
     const totalItems = data.length
     const totalStock = data.reduce((s, i) => s + i.stock, 0)
     const lowStock   = data.filter((i) => i.stock <= i.reorderQty).length
     const totalValue = data.reduce((s, i) => s + i.sellingPrice * i.stock, 0)
 
     const cards = [
-        { label: 'Total SKUs',         value: String(totalItems),         icon: '📦', color: 'text-[#FF6B2C]'   },
-        { label: 'Units in Stock',     value: String(totalStock),         icon: '🗃️', color: 'text-green-600'   },
-        { label: 'Low Stock Alerts',   value: String(lowStock),           icon: '⚠️', color: 'text-red-600'     },
-        { label: 'Stock Value (Sell)', value: formatCurrency(totalValue), icon: '💰', color: 'text-slate-900'   },
+        { label: t('stats.totalSkus'),    value: String(totalItems),         icon: '📦', color: 'text-[#FF6B2C]' },
+        { label: t('stats.unitsInStock'), value: String(totalStock),         icon: '🗃️', color: 'text-green-600' },
+        { label: t('stats.lowStock'),     value: String(lowStock),           icon: '⚠️', color: 'text-red-600'   },
+        { label: t('stats.stockValue'),   value: formatCurrency(totalValue), icon: '💰', color: 'text-slate-900' },
     ]
 
     return (
@@ -307,11 +304,12 @@ function SummaryCards({ data }: { data: BaseInventoryItem[] }) {
 // ─── Empty State ──────────────────────────────────────────────────────────────
 
 function EmptyState({ onImport, isFiltered }: { onImport: () => void; isFiltered: boolean }) {
+    const t = useTranslations('inventory')
     if (isFiltered) {
         return (
             <div className="flex flex-col items-center justify-center h-48 text-slate-400">
                 <span className="text-4xl mb-2">🔍</span>
-                <p className="text-sm font-medium">No items match your search</p>
+                <p className="text-sm font-medium">{t('noMatch')}</p>
             </div>
         )
     }
@@ -319,14 +317,14 @@ function EmptyState({ onImport, isFiltered }: { onImport: () => void; isFiltered
         <div className="flex flex-col items-center justify-center h-64 gap-4">
             <span className="text-5xl">📦</span>
             <div className="text-center">
-                <p className="text-slate-700 font-semibold">No inventory yet</p>
-                <p className="text-slate-400 text-sm mt-1">Import from Excel or add items one by one</p>
+                <p className="text-slate-700 font-semibold">{t('empty')}</p>
+                <p className="text-slate-400 text-sm mt-1">{t('import')}</p>
             </div>
             <button
                 onClick={onImport}
                 className="bg-[#FF6B2C] hover:bg-[#e55a1f] text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2"
             >
-                ⬆ Import from Excel
+                ⬆ {t('import')}
             </button>
         </div>
     )
@@ -408,8 +406,15 @@ async function downloadInventoryPDF(data: BaseInventoryItem[], tabName: string) 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function InventoryPage() {
+    const t = useTranslations('inventory')
     const { motorcycles, spareParts, accessories, updateStock, deleteItem, autoPOs } = useInventory()
     const [activeTab, setActiveTab]     = useState<InventoryCategory>('motorcycles')
+
+    const TABS: { id: InventoryCategory; label: string; icon: string }[] = [
+        { id: 'motorcycles', label: t('tabs.motorcycles'), icon: '🏍️' },
+        { id: 'spareParts',  label: t('tabs.spareParts'),  icon: '🔧' },
+        { id: 'accessories', label: t('tabs.accessories'), icon: '🪖' },
+    ]
     const [search, setSearch]           = useState('')
     const [showAddModal,    setShowAddModal]    = useState(false)
     const [showImportModal, setShowImportModal] = useState(false)
@@ -459,11 +464,11 @@ export default function InventoryPage() {
             <div className="px-5 md:px-8 py-6 bg-white border-b border-slate-100 animate-fade-up">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold mb-1">Lager</p>
+                        <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold mb-1">{t('breadcrumb')}</p>
                         <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                            🏍 Inventory
+                            🏍 {t('title')}
                         </h1>
-                        <p className="text-sm text-slate-400 mt-1">Hover any row to adjust stock — POs update instantly</p>
+                        <p className="text-sm text-slate-400 mt-1">{t('hint')}</p>
                     </div>
                     <div className="flex items-center gap-2">
                         {pendingPOs > 0 && (
@@ -578,7 +583,7 @@ export default function InventoryPage() {
                         </svg>
                         <input
                             type="text"
-                            placeholder="Search inventory..."
+                            placeholder={t('search')}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#FF6B2C]/30 focus:border-[#FF6B2C]/50 w-64 bg-white"

@@ -6,7 +6,7 @@ import { getDealershipId } from './tenant';
 function db() { return getSupabaseBrowser() as any; }
 
 export type Status = 'hot' | 'warm' | 'cold';
-export type Stage  = 'new' | 'contacted' | 'testride' | 'negotiating' | 'pending_payment' | 'closed';
+export type Stage  = 'new' | 'contacted' | 'testride' | 'offer' | 'negotiating' | 'pending_payment' | 'closed';
 
 export interface Lead {
   id:             number;
@@ -181,8 +181,9 @@ export async function updateLeadStage(id: number, stage: Stage): Promise<void> {
 }
 
 /**
- * Advance a lead to 'negotiating' only if it is still at 'new' or 'contacted'.
- * Called when the agreement page is opened so the kanban column updates.
+ * Advance a lead to 'negotiating' only if it is still at 'new', 'contacted',
+ * 'testride', or 'offer'. Called when the agreement page is opened so the
+ * kanban column updates.
  */
 export async function advanceLeadToNegotiating(id: number): Promise<void> {
   const dealershipId = getDealershipId();
@@ -192,7 +193,7 @@ export async function advanceLeadToNegotiating(id: number): Promise<void> {
     .update({ stage: 'negotiating' })
     .eq('id', id)
     .eq('dealership_id', dealershipId)
-    .in('stage', ['new', 'contacted']);   // never regress a further-along lead
+    .in('stage', ['new', 'contacted', 'testride', 'offer']);  // never regress further-along leads
 }
 
 /**

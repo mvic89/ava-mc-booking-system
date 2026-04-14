@@ -770,6 +770,7 @@
       "new": "New",
       "contacted": "Contacted",
       "testRide": "Test Ride",
+      "offer": "Offer",
       "negotiating": "Negotiating",
       "pendingPayment": "Pending Payment",
       "closed": "Closed"
@@ -1251,5 +1252,342 @@
     "goToLogin": "Go to login",
     "alreadyHaveAccount": "Already have an account?",
     "loginLink": "Log in"
+  },
+  "inventory": {
+    "title": "Inventory",
+    "breadcrumb": "Inventory",
+    "tabs": {
+      "motorcycles": "Motorcycles",
+      "spareParts": "Spare Parts",
+      "accessories": "Accessories"
+    },
+    "search": "Search inventory...",
+    "stats": {
+      "totalSkus": "Total SKUs",
+      "unitsInStock": "Units in Stock",
+      "lowStock": "Low Stock Alerts",
+      "stockValue": "Stock Value"
+    },
+    "table": {
+      "id": "ID",
+      "name": "Name / Brand",
+      "articleNo": "Article No.",
+      "vin": "VIN",
+      "year": "Year",
+      "engine": "Engine",
+      "color": "Color",
+      "mcType": "MC Type",
+      "warehouse": "Warehouse",
+      "stock": "Stock",
+      "reorderQty": "Reorder Qty",
+      "cost": "Cost",
+      "sellPrice": "Sell Price",
+      "margin": "Margin",
+      "vendor": "Vendor"
+    },
+    "empty": "No inventory yet",
+    "noMatch": "No items match your search",
+    "hint": "Hover any row to adjust stock",
+    "import": "Import from Excel or add items one by one",
+    "export": {
+      "pdf": "PDF",
+      "excel": "Excel (.xlsx)",
+      "spreadsheet": "Spreadsheet",
+      "print": "Print-ready"
+    }
+  },
+  "goodsReceipts": {
+    "title": "Goods Receipts",
+    "breadcrumb": "Goods Receipts",
+    "subtitle": "Record items received — stock updates automatically",
+    "stats": {
+      "total": "Total Receipts",
+      "units": "Units Received",
+      "items": "Items Received",
+      "pending": "Pending Approval"
+    },
+    "table": {
+      "receiptId": "Receipt ID",
+      "po": "PO #",
+      "deliveryNote": "Delivery Note",
+      "item": "Item",
+      "artNo": "Art #",
+      "lineItems": "Line Items",
+      "ordered": "Ordered",
+      "received": "Received",
+      "status": "Status",
+      "source": "Source",
+      "notes": "Notes"
+    },
+    "newReceipt": "New Receipt",
+    "search": "Search receipts...",
+    "empty": "No goods receipts yet",
+    "noMatch": "No receipts match your search",
+    "approve": "Approve",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "backorder": "Backorder",
+    "linkPo": "Link to PO # (optional)",
+    "deliveryNoteLabel": "Delivery Note # (optional)",
+    "receivedBy": "Received By",
+    "noOpenPos": "No open POs found"
+  },
+  "accounting": {
+    "title": "Accounting",
+    "breadcrumb": "Accounting",
+    "exportBtn": "Export unsynced",
+    "checking": "Checking connection…",
+    "connected": "Connected to Fortnox",
+    "tokenInvalid": "Token configured but invalid — reconnect",
+    "notConnected": "Not connected to Fortnox",
+    "howItWorks": "How it works",
+    "synced": "Synced",
+    "pending": "Pending",
+    "failed": "Failed",
+    "search": "Search invoice, customer or vehicle…",
+    "noInvoices": "No invoices found.",
+    "showAll": "Show all",
+    "reconnect": "Reconnect",
+    "connect": "Connect to Fortnox",
+    "update": "Refresh",
+    "adminOnly": "Accounting is only available for administrators.",
+    "cols": {
+      "id": "Invoice",
+      "date": "Date",
+      "customer": "Customer",
+      "vehicle": "Vehicle",
+      "amount": "Amount",
+      "payment": "Payment",
+      "fortnox": "Fortnox",
+      "action": "Action"
+    }
+  },
+  "suppliers": {
+    "title": "Suppliers",
+    "breadcrumb": "Suppliers",
+    "subtitle": "Click any row to view or edit supplier details.",
+    "addBtn": "Add Supplier",
+    "importBtn": "Import Excel",
+    "search": "Search suppliers...",
+    "empty": "No suppliers yet",
+    "noMatch": "No suppliers match your search",
+    "stats": {
+      "total": "Total Suppliers",
+      "withContact": "With Contact Details",
+      "lowStock": "Low Stock Alerts",
+      "totalSkus": "Total SKUs Supplied"
+    },
+    "cols": {
+      "no": "Supplier No.",
+      "name": "Supplier Name",
+      "address": "Address",
+      "phone": "Phone",
+      "orgNo": "Org Number",
+      "skus": "SKUs",
+      "categories": "Categories",
+      "status": "Stock Status"
+    },
+    "poModal": {
+      "title": "Purchase Orders",
+      "noPo": "No purchase orders for this supplier"
+    }
+  },
+  "purchaseInvoices": {
+    "title": "Purchase Invoices",
+    "breadcrumb": "Purchase Invoices",
+    "subtitle": "Track and manage invoices received from suppliers",
+    "newBtn": "New Invoice",
+    "search": "Search PO, vendor, invoice #...",
+    "empty": "No purchase invoices yet",
+    "noMatch": "No invoices match your filter",
+    "cols": {
+      "supplierInvoice": "Supplier Invoice #",
+      "systemRef": "System Ref #",
+      "po": "PO (optional)",
+      "amount": "Amount",
+      "invoiceDate": "Invoice Date",
+      "dueDate": "Due Date",
+      "vendor": "Vendor",
+      "status": "Status",
+      "notes": "Notes"
+    },
+    "status": {
+      "pending": "Pending",
+      "paid": "Paid",
+      "overdue": "Overdue",
+      "disputed": "Disputed"
+    }
+  },
+  "purchaseOrders": {
+    "title": "Purchase Orders",
+    "breadcrumb": "Purchase Orders",
+    "subtitle": "Click any row to open the full PO.",
+    "newBtn": "Create PO",
+    "importBtn": "Import Excel",
+    "search": "Search PO, vendor, item...",
+    "empty": "No purchase orders yet",
+    "noMatch": "No purchase orders match your filter",
+    "tabs": {
+      "all": "All",
+      "draft": "Draft",
+      "reviewed": "Reviewed",
+      "sent": "Sent",
+      "received": "Received"
+    },
+    "cols": {
+      "number": "PO Number",
+      "vendor": "Vendor",
+      "date": "Date",
+      "items": "Items",
+      "total": "Total Cost",
+      "eta": "ETA",
+      "status": "Status"
+    },
+    "autoPos": "auto-generated PO from low-stock inventory",
+    "allAboveReorder": "All inventory items are above reorder points — no POs needed right now."
+  },
+  "service": {
+    "title": "Service",
+    "subtitle": "Workshop management, bookings, and service history",
+    "comingSoon": "Service module is on its way",
+    "launching": "Launching Q3 2026",
+    "earlyAccess": "Request early access",
+    "benefits": {
+      "faster": "Faster check-in with digital work orders",
+      "scheduling": "Less time on manual scheduling",
+      "history": "Service history always accessible"
+    },
+    "features": "What's coming"
+  },
+  "settingsUsers": {
+    "title": "Users & Permissions",
+    "subtitle": "Manage staff accounts, roles and access levels.",
+    "breadcrumb": "Settings / Users",
+    "inviteBtn": "Invite user",
+    "stats": {
+      "active": "Active users",
+      "admins": "Administrators",
+      "bankid": "BankID verified"
+    },
+    "table": {
+      "staff": "Staff accounts",
+      "lastLogin": "Last login"
+    },
+    "status": {
+      "verified": "BankID verified",
+      "inactive": "Inactive",
+      "pending": "Pending"
+    },
+    "roles": {
+      "admin": "Admin",
+      "sales": "Sales",
+      "service": "Service"
+    },
+    "invite": {
+      "title": "Invite new user",
+      "name": "Full name",
+      "email": "Email address",
+      "role": "Role",
+      "cancel": "Cancel",
+      "send": "Send invitation",
+      "sending": "Sending...",
+      "linkLabel": "Invitation link (valid 7 days):",
+      "copy": "Copy"
+    },
+    "adminOnly": "Only administrators can manage users and permissions.",
+    "noUsers": "No users yet — invite your staff."
+  },
+  "settingsPayments": {
+    "title": "Payment Providers",
+    "breadcrumb": "Settings / Payment Providers",
+    "subtitle": "Enable the payment methods your dealership accepts.",
+    "saveBtn": "Save All Changes",
+    "saving": "Saving…",
+    "saved": "Saved successfully",
+    "saveFailed": "Save failed — try again",
+    "primaryLabel": "Primary Financing Provider",
+    "noneSelected": "None selected",
+    "comingSoon": "Coming soon",
+    "testConnection": "Test Connection",
+    "testing": "Testing…",
+    "noCredentials": "No credentials required."
+  },
+  "settingsAuth": {
+    "title": "Admin Authentication",
+    "subtitle": "Verify your identity to continue",
+    "accessDenied": "Access denied",
+    "bankid": "BankID",
+    "secure": "Secure electronic identification",
+    "recommended": "RECOMMENDED",
+    "personnummer": "Personal number",
+    "email": "Email",
+    "backToDashboard": "← Back to dashboard",
+    "verify": "Verify",
+    "useInstead": "Use BankID instead →",
+    "adminOnly": "Settings require administrator rights and verified identity"
+  },
+  "settingsEmail": {
+    "title": "Email Sending",
+    "breadcrumb": "Settings / Email Sending",
+    "subtitle": "PO emails are sent via Resend. Configure where vendor replies come back to.",
+    "replyToLabel": "Your Reply-To Email",
+    "replyToDesc": "When the vendor hits Reply, their email comes here.",
+    "phoneLabel": "Dealership Phone (optional)",
+    "phoneDesc": "Shown in the PO email footer so the vendor can call you.",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved!",
+    "loading": "Loading…"
+  },
+  "settingsIntegrations": {
+    "title": "Integrations",
+    "breadcrumb": "Settings / Integrations",
+    "categories": {
+      "crm": "CRM",
+      "accounting": "Accounting",
+      "vehicles": "Vehicle Registry",
+      "insurance": "Insurance",
+      "communication": "Communication",
+      "advertising": "Advertising"
+    },
+    "cols": {
+      "credentials": "Credentials",
+      "status": "Status",
+      "action": "Action"
+    },
+    "noCredentials": "No credentials required.",
+    "comingSoon": "Coming soon",
+    "live": "Live",
+    "configured": "configured"
+  },
+  "analytics": {
+    "title": "Reports",
+    "subtitle": "Real-time data from sales, leads and customers",
+    "tabs": {
+      "overview": "Overview",
+      "sources": "Source Analysis",
+      "margins": "Margin Analysis",
+      "leaderboard": "Leaderboard"
+    },
+    "stats": {
+      "closed": "Closed",
+      "grossProfit": "Gross Profit",
+      "revenue": "Revenue",
+      "conversion": "Conv.",
+      "leads": "Leads",
+      "salesperson": "Salesperson",
+      "avgDeal": "Avg. Deal",
+      "rank": "Rank"
+    },
+    "empty": {
+      "invoices": "No paid invoices yet",
+      "leads": "No leads yet",
+      "closed": "No closed deals yet",
+      "brands": "No brand data yet",
+      "salespeople": "No salespeople yet"
+    },
+    "marginNote": "Green ≥ 10% · Yellow 5–10% · Red < 5%",
+    "timeNote": "Green ≤ 14d · Yellow ≤ 30d · Red > 30d"
   }
 }

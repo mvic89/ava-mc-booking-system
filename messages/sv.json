@@ -770,6 +770,7 @@
       "new": "Ny",
       "contacted": "Kontaktad",
       "testRide": "Provkörning",
+      "offer": "Offert",
       "negotiating": "Förhandling",
       "pendingPayment": "Betalning pågår",
       "closed": "Avslutad"
@@ -1251,5 +1252,342 @@
     "goToLogin": "Gå till inloggning",
     "alreadyHaveAccount": "Har du redan ett konto?",
     "loginLink": "Logga in"
+  },
+  "inventory": {
+    "title": "Lager",
+    "breadcrumb": "Lager",
+    "tabs": {
+      "motorcycles": "Motorcyklar",
+      "spareParts": "Reservdelar",
+      "accessories": "Tillbehör"
+    },
+    "search": "Sök i lager...",
+    "stats": {
+      "totalSkus": "Totalt antal SKU",
+      "unitsInStock": "Enheter i lager",
+      "lowStock": "Låga lagervarningar",
+      "stockValue": "Lagervärde"
+    },
+    "table": {
+      "id": "ID",
+      "name": "Namn / Märke",
+      "articleNo": "Artikelnr",
+      "vin": "VIN",
+      "year": "År",
+      "engine": "Motor",
+      "color": "Färg",
+      "mcType": "MC-typ",
+      "warehouse": "Lager",
+      "stock": "Lager",
+      "reorderQty": "Återbeställningsantal",
+      "cost": "Kostnad",
+      "sellPrice": "Försäljningspris",
+      "margin": "Marginal",
+      "vendor": "Leverantör"
+    },
+    "empty": "Inget lager ännu",
+    "noMatch": "Inga artiklar matchar din sökning",
+    "hint": "Håll muspekaren på en rad för att justera lagret",
+    "import": "Importera från Excel eller lägg till manuellt",
+    "export": {
+      "pdf": "PDF",
+      "excel": "Excel (.xlsx)",
+      "spreadsheet": "Kalkylblad",
+      "print": "Utskriftsformat"
+    }
+  },
+  "goodsReceipts": {
+    "title": "Varuinleveranser",
+    "breadcrumb": "Varuinleveranser",
+    "subtitle": "Registrera mottagna varor — lagret uppdateras automatiskt",
+    "stats": {
+      "total": "Totalt antal inleveranser",
+      "units": "Mottagna enheter",
+      "items": "Mottagna artiklar",
+      "pending": "Väntar på godkännande"
+    },
+    "table": {
+      "receiptId": "Inleverans-ID",
+      "po": "Inköpsorder #",
+      "deliveryNote": "Följesedel",
+      "item": "Artikel",
+      "artNo": "Art.nr",
+      "lineItems": "Rader",
+      "ordered": "Beställt",
+      "received": "Mottaget",
+      "status": "Status",
+      "source": "Källa",
+      "notes": "Anteckningar"
+    },
+    "newReceipt": "Ny inleverans",
+    "search": "Sök inleveranser...",
+    "empty": "Inga varuinleveranser ännu",
+    "noMatch": "Inga inleveranser matchar din sökning",
+    "approve": "Godkänn",
+    "pending": "Väntande",
+    "approved": "Godkänd",
+    "rejected": "Avvisad",
+    "backorder": "Restorder",
+    "linkPo": "Koppla till Inköpsorder (valfritt)",
+    "deliveryNoteLabel": "Följesedelnr (valfritt)",
+    "receivedBy": "Mottagen av",
+    "noOpenPos": "Inga öppna inköpsorder hittades"
+  },
+  "accounting": {
+    "title": "Bokföring",
+    "breadcrumb": "Bokföring",
+    "exportBtn": "Exportera osynkade",
+    "checking": "Kontrollerar anslutning…",
+    "connected": "Ansluten till Fortnox",
+    "tokenInvalid": "Token konfigurerad men ogiltig — anslut igen",
+    "notConnected": "Ej ansluten till Fortnox",
+    "howItWorks": "Hur det fungerar",
+    "synced": "Synkade",
+    "pending": "Väntande",
+    "failed": "Misslyckade",
+    "search": "Sök faktura, kund eller fordon…",
+    "noInvoices": "Inga fakturor hittades.",
+    "showAll": "Visa alla",
+    "reconnect": "Återanslut",
+    "connect": "Anslut till Fortnox",
+    "update": "Uppdatera",
+    "adminOnly": "Bokföring är bara tillgänglig för administratörer.",
+    "cols": {
+      "id": "Faktura",
+      "date": "Datum",
+      "customer": "Kund",
+      "vehicle": "Fordon",
+      "amount": "Belopp",
+      "payment": "Betalning",
+      "fortnox": "Fortnox",
+      "action": "Åtgärd"
+    }
+  },
+  "suppliers": {
+    "title": "Leverantörer",
+    "breadcrumb": "Leverantörer",
+    "subtitle": "Klicka på en rad för att visa eller redigera leverantörsuppgifter.",
+    "addBtn": "Lägg till leverantör",
+    "importBtn": "Importera Excel",
+    "search": "Sök leverantörer...",
+    "empty": "Inga leverantörer ännu",
+    "noMatch": "Inga leverantörer matchar din sökning",
+    "stats": {
+      "total": "Totalt antal leverantörer",
+      "withContact": "Med kontaktuppgifter",
+      "lowStock": "Låga lagervarningar",
+      "totalSkus": "Totalt levererade SKU:er"
+    },
+    "cols": {
+      "no": "Leverantörsnr",
+      "name": "Leverantörsnamn",
+      "address": "Adress",
+      "phone": "Telefon",
+      "orgNo": "Organisationsnummer",
+      "skus": "SKU:er",
+      "categories": "Kategorier",
+      "status": "Lagerstatus"
+    },
+    "poModal": {
+      "title": "Inköpsorder",
+      "noPo": "Inga inköpsorder för denna leverantör"
+    }
+  },
+  "purchaseInvoices": {
+    "title": "Leverantörsfakturor",
+    "breadcrumb": "Leverantörsfakturor",
+    "subtitle": "Spåra och hantera fakturor från leverantörer",
+    "newBtn": "Ny faktura",
+    "search": "Sök inköpsorder, leverantör, fakturanr...",
+    "empty": "Inga leverantörsfakturor ännu",
+    "noMatch": "Inga fakturor matchar ditt filter",
+    "cols": {
+      "supplierInvoice": "Leverantörsfaktura #",
+      "systemRef": "Systemreferens #",
+      "po": "Inköpsorder (valfritt)",
+      "amount": "Belopp",
+      "invoiceDate": "Fakturadatum",
+      "dueDate": "Förfallodatum",
+      "vendor": "Leverantör",
+      "status": "Status",
+      "notes": "Anteckningar"
+    },
+    "status": {
+      "pending": "Väntande",
+      "paid": "Betald",
+      "overdue": "Förfallen",
+      "disputed": "Bestridd"
+    }
+  },
+  "purchaseOrders": {
+    "title": "Inköpsorder",
+    "breadcrumb": "Inköpsorder",
+    "subtitle": "Klicka på en rad för att öppna hela inköpsordern.",
+    "newBtn": "Skapa inköpsorder",
+    "importBtn": "Importera Excel",
+    "search": "Sök inköpsorder, leverantör, artikel...",
+    "empty": "Inga inköpsorder ännu",
+    "noMatch": "Inga inköpsorder matchar ditt filter",
+    "tabs": {
+      "all": "Alla",
+      "draft": "Utkast",
+      "reviewed": "Granskade",
+      "sent": "Skickade",
+      "received": "Mottagna"
+    },
+    "cols": {
+      "number": "Inköpsordernr",
+      "vendor": "Leverantör",
+      "date": "Datum",
+      "items": "Artiklar",
+      "total": "Totalkostnad",
+      "eta": "Beräknad leverans",
+      "status": "Status"
+    },
+    "autoPos": "automatiskt genererad inköpsorder från lager med lågt saldo",
+    "allAboveReorder": "Alla lagerartiklar är över sina beställningspunkter — inga inköpsorder behövs just nu."
+  },
+  "service": {
+    "title": "Service",
+    "subtitle": "Verkstadshantering, bokningar och servicehistorik",
+    "comingSoon": "Servicemodulen är på väg",
+    "launching": "Lansering Q3 2026",
+    "earlyAccess": "Begär tidig åtkomst",
+    "benefits": {
+      "faster": "Snabbare incheckning med digitala arbetsorder",
+      "scheduling": "Mindre tid på manuell schemaläggning",
+      "history": "Servicehistorik alltid tillgänglig"
+    },
+    "features": "Det som kommer"
+  },
+  "settingsUsers": {
+    "title": "Användare & Behörigheter",
+    "subtitle": "Hantera personalkonton, roller och åtkomstnivåer.",
+    "breadcrumb": "Inställningar / Användare",
+    "inviteBtn": "Bjud in användare",
+    "stats": {
+      "active": "Aktiva användare",
+      "admins": "Administratörer",
+      "bankid": "BankID-verifierade"
+    },
+    "table": {
+      "staff": "Personalkonton",
+      "lastLogin": "Senaste inloggning"
+    },
+    "status": {
+      "verified": "BankID-verifierad",
+      "inactive": "Inaktiv",
+      "pending": "Väntande"
+    },
+    "roles": {
+      "admin": "Admin",
+      "sales": "Försäljning",
+      "service": "Service"
+    },
+    "invite": {
+      "title": "Bjud in ny användare",
+      "name": "Fullständigt namn",
+      "email": "E-postadress",
+      "role": "Roll",
+      "cancel": "Avbryt",
+      "send": "Skicka inbjudan",
+      "sending": "Skickar...",
+      "linkLabel": "Inbjudningslänk (giltig 7 dagar):",
+      "copy": "Kopiera"
+    },
+    "adminOnly": "Endast administratörer kan hantera användare och behörigheter.",
+    "noUsers": "Inga användare ännu — bjud in din personal."
+  },
+  "settingsPayments": {
+    "title": "Betalningsleverantörer",
+    "breadcrumb": "Inställningar / Betalningsleverantörer",
+    "subtitle": "Aktivera de betalningsmetoder din återförsäljare accepterar.",
+    "saveBtn": "Spara alla ändringar",
+    "saving": "Sparar…",
+    "saved": "Sparades",
+    "saveFailed": "Misslyckades — försök igen",
+    "primaryLabel": "Primär finansieringspartner",
+    "noneSelected": "Inget valt",
+    "comingSoon": "Kommer snart",
+    "testConnection": "Testa anslutning",
+    "testing": "Testar…",
+    "noCredentials": "Inga uppgifter behövs."
+  },
+  "settingsAuth": {
+    "title": "Administratörsinloggning",
+    "subtitle": "Verifiera din identitet för att fortsätta",
+    "accessDenied": "Åtkomst nekad",
+    "bankid": "BankID",
+    "secure": "Säker elektronisk identifiering",
+    "recommended": "REKOMMENDERAT",
+    "personnummer": "Personnummer",
+    "email": "E-postadress",
+    "backToDashboard": "← Tillbaka till dashboard",
+    "verify": "Verifiera",
+    "useInstead": "Använd BankID istället →",
+    "adminOnly": "Inställningar kräver administratörsbehörighet och verifierad identitet"
+  },
+  "settingsEmail": {
+    "title": "E-postutskick",
+    "breadcrumb": "Inställningar / E-postutskick",
+    "subtitle": "Inköpsorder-e-post skickas via Resend. Konfigurera vart leverantörssvar skickas.",
+    "replyToLabel": "Ditt svar-till-e-post",
+    "replyToDesc": "När leverantören trycker på Svara skickas deras e-post hit.",
+    "phoneLabel": "Återförsäljarens telefon (valfritt)",
+    "phoneDesc": "Visas i sidfoten på inköpsorder-e-post så att leverantören kan ringa dig.",
+    "save": "Spara",
+    "saving": "Sparar…",
+    "saved": "Sparat!",
+    "loading": "Laddar…"
+  },
+  "settingsIntegrations": {
+    "title": "Integrationer",
+    "breadcrumb": "Inställningar / Integrationer",
+    "categories": {
+      "crm": "CRM",
+      "accounting": "Bokföring",
+      "vehicles": "Fordonsregister",
+      "insurance": "Försäkring",
+      "communication": "Kommunikation",
+      "advertising": "Annonsering"
+    },
+    "cols": {
+      "credentials": "Uppgifter",
+      "status": "Status",
+      "action": "Åtgärd"
+    },
+    "noCredentials": "Inga uppgifter behövs.",
+    "comingSoon": "Kommer snart",
+    "live": "Aktiv",
+    "configured": "konfigurerade"
+  },
+  "analytics": {
+    "title": "Rapporter",
+    "subtitle": "Realtidsdata från försäljning, leads och kunder",
+    "tabs": {
+      "overview": "Översikt",
+      "sources": "Källanalys",
+      "margins": "Marginanalys",
+      "leaderboard": "Topplista"
+    },
+    "stats": {
+      "closed": "Avslut",
+      "grossProfit": "Bruttovinst",
+      "revenue": "Intäkt",
+      "conversion": "Konv.",
+      "leads": "Leads",
+      "salesperson": "Säljare",
+      "avgDeal": "Snittaffär",
+      "rank": "Rank"
+    },
+    "empty": {
+      "invoices": "Inga betalda fakturor än",
+      "leads": "Inga leads ännu",
+      "closed": "Inga avslutade affärer ännu",
+      "brands": "Inga avslutade affärer med märkesdata",
+      "salespeople": "Inga säljare ännu"
+    },
+    "marginNote": "Grönt ≥ 10 % · Gult 5–10 % · Rött < 5 %",
+    "timeNote": "Grönt ≤ 14 d · Gult ≤ 30 d · Rött > 30 d"
   }
 }

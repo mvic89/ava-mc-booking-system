@@ -555,34 +555,29 @@ export default function AgreementCompletePage() {
           <div className="max-w-6xl mx-auto space-y-6">
 
             {/* ── Hero deal-closed banner ── */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-600 via-green-600 to-emerald-700 px-8 py-8 shadow-lg animate-fade-up">
-              {/* Decorative circles */}
-              <div className="pointer-events-none absolute -right-10 -top-10 w-48 h-48 rounded-full bg-white/5" />
-              <div className="pointer-events-none absolute right-8 top-12 w-28 h-28 rounded-full bg-white/5" />
-              <div className="pointer-events-none absolute -right-4 bottom-0 w-20 h-20 rounded-full bg-white/5" />
-
-              <div className="relative flex items-center gap-6">
+            <div className="rounded-2xl bg-white border border-slate-100 px-8 py-8 shadow-sm animate-fade-up">
+              <div className="flex items-center gap-6">
                 {/* Checkmark */}
-                <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/20 flex items-center justify-center shrink-0">
-                  <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <div className="w-16 h-16 rounded-2xl bg-green-50 border border-green-100 flex items-center justify-center shrink-0">
+                  <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-xs font-bold tracking-widest text-green-200 uppercase">Avtal signerat</span>
+                    <span className="text-xs font-bold tracking-widest text-slate-400 uppercase">Avtal signerat</span>
                     {storedAgr.agreementNumber && (
                       <>
-                        <span className="w-1 h-1 rounded-full bg-green-400" />
-                        <span className="text-xs text-green-200 font-mono">{storedAgr.agreementNumber}</span>
+                        <span className="w-1 h-1 rounded-full bg-slate-300" />
+                        <span className="text-xs text-slate-500 font-mono">{storedAgr.agreementNumber}</span>
                       </>
                     )}
                   </div>
-                  <h1 className="text-2xl md:text-3xl font-extrabold text-white leading-tight">
+                  <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 leading-tight">
                     {t('complete.successTitle')}
                   </h1>
-                  <p className="mt-1.5 text-sm text-green-100">
+                  <p className="mt-1.5 text-sm text-slate-500">
                     {[buyerName, storedAgr.vehicle || buyerBike].filter(Boolean).join(' · ')}
                     {paymentMethod && (
                       <span className="ml-2 font-medium">{paymentMethod.icon} {paymentMethod.name}</span>
@@ -593,28 +588,28 @@ export default function AgreementCompletePage() {
                 {/* Deal price */}
                 {dealPrice > 0 && (
                   <div className="text-right shrink-0 hidden sm:block">
-                    <p className="text-4xl font-extrabold text-white tabular-nums">
+                    <p className="text-4xl font-extrabold text-slate-900 tabular-nums">
                       {fmt(dealPrice)}
                     </p>
-                    <p className="text-sm text-green-200 mt-0.5">kr inkl. moms</p>
+                    <p className="text-sm text-slate-400 mt-0.5">kr inkl. moms</p>
                   </div>
                 )}
               </div>
 
               {/* Signature pills */}
               {signatures && (
-                <div className="relative mt-5 flex flex-wrap gap-2">
+                <div className="mt-5 flex flex-wrap gap-2">
                   {[
                     { label: 'Köpare', rec: signatures.customer },
                     { label: 'Säljare', rec: signatures.dealer },
                   ].map(({ label, rec }) => (
-                    <div key={label} className="flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-3.5 py-1.5">
-                      <svg className="w-3 h-3 text-green-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <div key={label} className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-full px-3.5 py-1.5">
+                      <svg className="w-3 h-3 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span className="text-xs text-green-100 font-medium">{label}:</span>
-                      <span className="text-xs text-white font-semibold">{rec.name}</span>
-                      <span className="text-xs text-green-300">{rec.signedAt}</span>
+                      <span className="text-xs text-slate-500 font-medium">{label}:</span>
+                      <span className="text-xs text-slate-900 font-semibold">{rec.name}</span>
+                      <span className="text-xs text-slate-400">{rec.signedAt}</span>
                     </div>
                   ))}
                 </div>
@@ -696,7 +691,7 @@ export default function AgreementCompletePage() {
 
                     <Link
                       href="/invoices"
-                      className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#1d4ed8] hover:bg-[#1a44c4] text-white text-sm font-semibold transition-all shadow-sm hover:shadow-md"
+                      className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-semibold transition-all"
                     >
                       {t('complete.viewInvoice')}
                       <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -706,7 +701,7 @@ export default function AgreementCompletePage() {
 
                     <button
                       onClick={handleDownloadPDF}
-                      className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-green-300 bg-green-50 hover:bg-green-100 text-green-800 text-sm font-semibold transition-colors"
+                      className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-semibold transition-colors"
                     >
                       <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -747,8 +742,8 @@ export default function AgreementCompletePage() {
                       </div>
                     </div>
                     {allDone && (
-                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B2C] animate-pulse" />
                         Klart
                       </span>
                     )}
@@ -757,7 +752,7 @@ export default function AgreementCompletePage() {
                   {/* Thin progress bar */}
                   <div className="h-0.5 bg-slate-100">
                     <div
-                      className="h-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-500"
+                      className="h-full bg-[#FF6B2C] transition-all duration-500"
                       style={{ width: `${(completedCount / cascadeActions.length) * 100}%` }}
                     />
                   </div>
@@ -792,7 +787,7 @@ export default function AgreementCompletePage() {
                           </span>
 
                           {done && (
-                            <span className="text-[11px] text-emerald-500 font-semibold shrink-0 tabular-nums">{timeSec}s</span>
+                            <span className="text-[11px] text-slate-400 font-semibold shrink-0 tabular-nums">{timeSec}s</span>
                           )}
                         </div>
                       );
@@ -801,8 +796,8 @@ export default function AgreementCompletePage() {
 
                   {/* Completion footer */}
                   {allDone && (
-                    <div className="mx-4 mb-4 px-4 py-3 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100 text-center">
-                      <p className="text-sm font-bold text-green-700">{t('complete.allDone')}</p>
+                    <div className="mx-4 mb-4 px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 text-center">
+                      <p className="text-sm font-bold text-slate-700">{t('complete.allDone')}</p>
                     </div>
                   )}
                 </div>

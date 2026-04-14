@@ -38,25 +38,18 @@ interface OrderSummary {
   location: string;
 }
 
-// ─── Fake / Mock data (replace with real API calls) ──────────────────────────
-// REAL DATA GUIDE:
-//   orderSummary  → fetch from /api/agreements/[id]
-//   financing     → fetch from /api/financing/[applicationId]
-//   swishStatus   → poll GET /api/swish/payments/[paymentId]
-//   cardStatus    → poll GET /api/nets/transactions/[transactionId]
-//   bankTransfer  → poll GET /api/bank/transfers/[reference]
-
-const MOCK_ORDER: OrderSummary = {
-  agreementNumber: 'AGR-2024-0089',
-  customerName: 'Lars Bergman',
-  personnummer: '197506123456',
-  vehicle: 'Kawasaki Ninja ZX-6R 2024',
-  vehiclePrice: 118000,
-  accessories: 15280,
-  tradeInCredit: 32000,
-  totalAmount: 133280,
-  deposit: 13328,
-  balanceDue: 119952,
+// ─── Empty order placeholder (replaced with live data after fetch) ────────────
+const EMPTY_ORDER: OrderSummary = {
+  agreementNumber: '…',
+  customerName: '…',
+  personnummer: '',
+  vehicle: '…',
+  vehiclePrice: 0,
+  accessories: 0,
+  tradeInCredit: 0,
+  totalAmount: 0,
+  deposit: 0,
+  balanceDue: 0,
   location: '',
 };
 
@@ -144,7 +137,7 @@ function DeliveryLock({ unlocked }: { unlocked: boolean }) {
 type SveaFlowStatus = 'idle' | 'sending' | 'waiting' | 'confirmed' | 'failed';
 type DeliverStatus  = 'idle' | 'delivering' | 'delivered' | 'deliver_failed';
 
-function SveaInstoreFlow({ order }: { order: OrderSummary }) {
+function SveaInstoreFlow({ order, onConfirmed }: { order: OrderSummary; onConfirmed: () => void }) {
   const [phone, setPhone]               = useState('');
   const [flowStatus, setFlowStatus]     = useState<SveaFlowStatus>('idle');
   const [sveaOrderId, setSveaOrderId]   = useState<number | null>(null);
@@ -211,6 +204,7 @@ function SveaInstoreFlow({ order }: { order: OrderSummary }) {
         if (data.status === 'Confirmed') {
           clearInterval(interval);
           setFlowStatus('confirmed');
+          onConfirmed();
         } else if (data.status === 'Cancelled') {
           clearInterval(interval);
           setErrorMsg('Svea order was cancelled by the customer or expired.');
@@ -471,7 +465,7 @@ function SveaInstoreFlow({ order }: { order: OrderSummary }) {
 
 // ─── Financing Tab ────────────────────────────────────────────────────────────
 
-function FinancingTab({ order }: { order: OrderSummary }) {
+function FinancingTab({ order, onConfirmed }: { order: OrderSummary; onConfirmed: () => void }) {
   // Svea is the PRIMARY financing partner — selected by default
   const [selectedBank, setSelectedBank] = useState<FinancingBank>('svea');
   const [confirming, setConfirming] = useState(false);
@@ -480,7 +474,7 @@ function FinancingTab({ order }: { order: OrderSummary }) {
 
   const handleConfirmPayout = () => {
     setConfirming(true);
-    setTimeout(() => { setConfirming(false); setPayoutConfirmed(true); }, 1800);
+    setTimeout(() => { setConfirming(false); setPayoutConfirmed(true); onConfirmed(); }, 1800);
   };
 
   return (
@@ -538,7 +532,7 @@ function FinancingTab({ order }: { order: OrderSummary }) {
 
       {/* ── Svea Instore flow (PRIMARY, real API) ── */}
       {selectedBank === 'svea' && (
-        <SveaInstoreFlow order={order} />
+        <SveaInstoreFlow order={order} onConfirmed={onConfirmed} />
       )}
 
       {/* ── Santander mock details (ALTERNATIVE) ── */}
@@ -598,7 +592,7 @@ function FinancingTab({ order }: { order: OrderSummary }) {
 
 // ─── Swish Tab ────────────────────────────────────────────────────────────────
 
-function SwishTab({ order }: { order: OrderSummary }) {
+function SwishTab({ order, onConfirmed }: { order: OrderSummary; onConfirmed: () => void }) {
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('pending');
   const [phone, setPhone] = useState('');
   const [sending, setSending] = useState(false);
@@ -620,6 +614,7 @@ function SwishTab({ order }: { order: OrderSummary }) {
     setTimeout(() => {
       setSending(false);
       setPaymentStatus('confirmed');
+      onConfirmed();
     }, 3000);
   };
 
@@ -725,16 +720,19 @@ const TERMINAL_STEPS: { id: TerminalStep; label: string; desc: string }[] = [
   { id: 'confirmed',     label: 'Godkänd ✓',                 desc: 'Beloppet reserverat — kvitto skrivs ut' },
 ];
 
-const TERMINAL_SCREEN: Record<TerminalStep, { line1: string; line2: string; line3: string; bg: string; textColor: string }> = {
-  idle:          { line1: 'NETS AXEPT',       line2: 'NETS-STH-001',        line3: 'REDO',                       bg: '#1e293b', textColor: '#94a3b8' },
-  amount_shown:  { line1: '__DEALER__',        line2: '119 952,00 SEK',       line3: 'VÄNTAR PÅ KUNDEN',           bg: '#1e3a5f', textColor: '#93c5fd' },
-  awaiting_card: { line1: 'BELOPP:',          line2: '119 952,00 SEK',       line3: 'BLIPP ELLER SÄTT I KORTET', bg: '#1e3a5f', textColor: '#fbbf24' },
-  processing:    { line1: 'BEHANDLAR...',     line2: '119 952,00 SEK',       line3: 'VÄNLIGEN VÄNTA',             bg: '#1e3a5f', textColor: '#f97316' },
-  confirmed:     { line1: 'GODKÄND',          line2: 'KOD: A8F3K2',          line3: 'TACK FÖR KÖPET!',           bg: '#14532d', textColor: '#86efac' },
-  declined:      { line1: 'NEKAD',            line2: 'KOD: DECLINED',        line3: 'FÖRSÖK IGEN',                bg: '#7f1d1d', textColor: '#fca5a5' },
-};
+function buildTerminalScreen(balanceDue: number): Record<TerminalStep, { line1: string; line2: string; line3: string; bg: string; textColor: string }> {
+  const amt = balanceDue.toLocaleString('sv-SE', { minimumFractionDigits: 2 }) + ' SEK';
+  return {
+    idle:          { line1: 'NETS AXEPT',   line2: 'NETS-STH-001',  line3: 'REDO',                       bg: '#1e293b', textColor: '#94a3b8' },
+    amount_shown:  { line1: '__DEALER__',   line2: amt,              line3: 'VÄNTAR PÅ KUNDEN',           bg: '#1e3a5f', textColor: '#93c5fd' },
+    awaiting_card: { line1: 'BELOPP:',     line2: amt,              line3: 'BLIPP ELLER SÄTT I KORTET', bg: '#1e3a5f', textColor: '#fbbf24' },
+    processing:    { line1: 'BEHANDLAR...', line2: amt,             line3: 'VÄNLIGEN VÄNTA',             bg: '#1e3a5f', textColor: '#f97316' },
+    confirmed:     { line1: 'GODKÄND',     line2: 'KOD: A8F3K2',   line3: 'TACK FÖR KÖPET!',           bg: '#14532d', textColor: '#86efac' },
+    declined:      { line1: 'NEKAD',       line2: 'KOD: DECLINED', line3: 'FÖRSÖK IGEN',                bg: '#7f1d1d', textColor: '#fca5a5' },
+  };
+}
 
-function CardTab({ order }: { order: OrderSummary }) {
+function CardTab({ order, onConfirmed }: { order: OrderSummary; onConfirmed: () => void }) {
   const [step, setStep]               = useState<TerminalStep>('idle');
   const [transactionId]               = useState('NETS-' + Math.random().toString(36).slice(2, 10).toUpperCase());
   const [authCode]                    = useState('A' + Math.random().toString(36).slice(2, 7).toUpperCase());
@@ -759,13 +757,14 @@ function CardTab({ order }: { order: OrderSummary }) {
         setTimeout(() => {
           // Step 4: Approved
           setStep('confirmed');
+          onConfirmed();
         }, 2200);
       }, 3000);
     }, 1500);
   };
 
   const dealerName = getDealerInfo().name;
-  const rawScreen = TERMINAL_SCREEN[step];
+  const rawScreen = buildTerminalScreen(order.balanceDue)[step];
   const screen = { ...rawScreen, line1: rawScreen.line1 === '__DEALER__' ? (dealerName || 'ÅTERFÖRSÄLJARE') : rawScreen.line1 };
   const stepIndex = TERMINAL_STEPS.findIndex(s => s.id === step);
 
@@ -1069,7 +1068,7 @@ const CATEGORY_LABELS: Record<string, { label: string; sub: string }> = {
   pay_over_time: { label: 'Instalments',     sub: 'Split into monthly payments' },
 };
 
-function KlarnaTab({ order }: { order: OrderSummary }) {
+function KlarnaTab({ order, onConfirmed }: { order: OrderSummary; onConfirmed: () => void }) {
   const [flowStatus, setFlowStatus]         = useState<KlarnaFlowStatus>('init');
   const [categories, setCategories]         = useState<KlarnaCategory[]>([]);
   const [selectedCat, setSelectedCat]       = useState<string>('');
@@ -1186,6 +1185,7 @@ function KlarnaTab({ order }: { order: OrderSummary }) {
           setKlarnaOrderId(data.order_id);
           setFraudStatus(data.fraud_status);
           setFlowStatus('confirmed');
+          onConfirmed();
           console.log(`[Klarna] Order placed — order_id: ${data.order_id}, fraud: ${data.fraud_status}`);
         } catch (err: any) {
           setErrorMsg(err.message);
@@ -1402,7 +1402,7 @@ function KlarnaTab({ order }: { order: OrderSummary }) {
 
 // ─── Bank Transfer Tab ────────────────────────────────────────────────────────
 
-function BankTransferTab({ order }: { order: OrderSummary }) {
+function BankTransferTab({ order, onConfirmed }: { order: OrderSummary; onConfirmed: () => void }) {
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('pending');
   const [confirming, setConfirming] = useState(false);
   const reference = `BKE${order.agreementNumber.replace(/\D/g, '')}`;
@@ -1420,6 +1420,7 @@ function BankTransferTab({ order }: { order: OrderSummary }) {
     setTimeout(() => {
       setConfirming(false);
       setPaymentStatus('confirmed');
+      onConfirmed();
     }, 1500);
   };
 
@@ -1521,25 +1522,64 @@ export default function PaymentPage() {
   const params = useParams();
   const id = (params?.id as string) || 'default';
 
-  const [ready, setReady] = useState(false);
   const [activeTab, setActiveTab] = useState<PaymentMethod>('financing');
-  const [dealerLocation, setDealerLocation] = useState('');
+  const [order, setOrder] = useState<OrderSummary>(EMPTY_ORDER);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_ready, setReady] = useState(false);
+
+  const handlePaymentConfirmed = (tabId: PaymentMethod) => {
+    const tab = TABS.find(t => t.id === tabId)!;
+    sessionStorage.setItem('selectedPaymentMethod', JSON.stringify({
+      id:       tab.id,
+      name:     tab.label,
+      icon:     tab.icon,
+      category: tab.id,
+    }));
+    router.push(`/sales/leads/${id}/agreement/complete`);
+  };
 
   useEffect(() => {
-    const user = localStorage.getItem('user');
-    if (!user) { router.replace('/auth/login'); return; }
+    const stored = localStorage.getItem('user');
+    if (!stored) { router.replace('/auth/login'); return; }
+
     const info = getDealerInfo();
-    setDealerLocation([info.name, info.city].filter(Boolean).join(' '));
-    setReady(true);
-  }, [router]);
+    const location = [info.name, info.city].filter(Boolean).join(' ');
 
-  if (!ready) return (
-    <div className="flex items-center justify-center min-h-screen bg-[#f5f7fa]">
-      <div className="w-10 h-10 border-4 border-[#FF6B2C] border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
+    let parsed: { dealershipId?: string } = {};
+    try { parsed = JSON.parse(stored); } catch { /* ignore */ }
+    const dealershipId = parsed.dealershipId ?? '';
 
-  const order = { ...MOCK_ORDER, location: dealerLocation };
+    (async () => {
+      try {
+        const res  = await fetch(`/api/offers?leadId=${id}&dealershipId=${encodeURIComponent(dealershipId)}`);
+        const data = await res.json();
+        const o    = data.offer;
+        if (o) {
+          const year = new Date(o.createdAt || Date.now()).getFullYear();
+          const agreementNumber = `AGR-${year}-${String(o.id).padStart(4, '0')}`;
+          const balanceDue      = Math.max(0, (o.totalPrice ?? 0) - (o.downPayment ?? 0));
+          setOrder({
+            agreementNumber,
+            customerName:  o.customerName  ?? '—',
+            personnummer:  o.personnummer   ?? '',
+            vehicle:       o.vehicle        ?? '—',
+            vehiclePrice:  (o.listPrice ?? 0) - (o.discount ?? 0),
+            accessories:   o.accessoriesCost ?? 0,
+            tradeInCredit: o.tradeInCredit   ?? 0,
+            totalAmount:   o.totalPrice      ?? 0,
+            deposit:       o.downPayment     ?? 0,
+            balanceDue,
+            location,
+          });
+        } else {
+          setOrder({ ...EMPTY_ORDER, location });
+        }
+      } catch {
+        setOrder({ ...EMPTY_ORDER, location });
+      }
+      setReady(true);
+    })();
+  }, [id, router]);
 
   return (
     <div className="flex min-h-screen bg-[#f5f7fa]">
@@ -1579,7 +1619,7 @@ export default function PaymentPage() {
 
                 <div className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-50">
                   <div className="w-10 h-10 rounded-xl bg-[#0b1524] flex items-center justify-center text-white text-xs font-bold shrink-0">
-                    {order.customerName.split(' ').map(n => n[0]).join('')}
+                    {order.customerName.split(' ').map((n: string) => n[0]).join('')}
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-slate-900">{order.customerName}</p>
@@ -1659,11 +1699,11 @@ export default function PaymentPage() {
 
               {/* Tab content */}
               <div className="bg-white rounded-2xl border border-slate-100 p-6">
-                {activeTab === 'financing'     && <FinancingTab order={order} />}
-                {activeTab === 'swish'         && <SwishTab order={order} />}
-                {activeTab === 'card'          && <CardTab order={order} />}
-                {activeTab === 'klarna'        && <KlarnaTab order={order} />}
-                {activeTab === 'bank-transfer' && <BankTransferTab order={order} />}
+                {activeTab === 'financing'     && <FinancingTab order={order} onConfirmed={() => handlePaymentConfirmed('financing')} />}
+                {activeTab === 'swish'         && <SwishTab order={order} onConfirmed={() => handlePaymentConfirmed('swish')} />}
+                {activeTab === 'card'          && <CardTab order={order} onConfirmed={() => handlePaymentConfirmed('card')} />}
+                {activeTab === 'klarna'        && <KlarnaTab order={order} onConfirmed={() => handlePaymentConfirmed('klarna')} />}
+                {activeTab === 'bank-transfer' && <BankTransferTab order={order} onConfirmed={() => handlePaymentConfirmed('bank-transfer')} />}
               </div>
             </div>
 

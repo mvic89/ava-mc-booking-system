@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { useInventory }  from '@/context/InventoryContext'
 import { historicalPOs } from '@/data/purchaseOrders'
 import { POModal, STATUS_STYLE, formatCurrency, qtyKey } from '@/components/POModal'
@@ -162,6 +163,7 @@ function SupplierPOListModal({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SuppliersPage() {
+    const t = useTranslations('suppliers')
     const { autoPOs, motorcycles, spareParts, accessories } = useInventory()
     // SKU counts per supplier (computed from inventory, not used to auto-generate rows)
     const inventoryItems = useMemo(
@@ -408,12 +410,12 @@ export default function SuppliersPage() {
         <div className="lg:ml-64 min-h-screen flex flex-col bg-white">
             {/* Top bar */}
             <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 shrink-0">
-                <span className="text-sm text-gray-500 font-medium">Suppliers</span>
+                <span className="text-sm text-gray-500 font-medium">{t('breadcrumb')}</span>
                 <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
                     <input
                         type="text"
-                        placeholder="Search supplier, category..."
+                        placeholder={t('search')}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="pl-8 pr-4 py-1.5 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-400 w-64"
@@ -425,23 +427,21 @@ export default function SuppliersPage() {
             <div className="flex-1 overflow-auto p-6">
                 <div className="flex items-center justify-between mb-5">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Suppliers</h1>
-                        <p className="text-sm text-gray-400 mt-0.5">
-                            Click any row to view or edit supplier details.
-                        </p>
+                        <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
+                        <p className="text-sm text-gray-400 mt-0.5">{t('subtitle')}</p>
                     </div>
                     <div className="flex gap-2">
                         <button
                             onClick={() => setShowImportModal(true)}
                             className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
                         >
-                            ⬆ Import Excel
+                            ⬆ {t('importBtn')}
                         </button>
                         <button
                             onClick={() => setShowAddSupplier(true)}
                             className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
                         >
-                            + Add Supplier
+                            + {t('addBtn')}
                         </button>
                     </div>
                 </div>

@@ -81,7 +81,7 @@ export default function NewLeadPage() {
     const q       = formData.interest.toLowerCase().trim();
 
     return inStock
-      .map(m => {
+      .map((m, i) => {
         const fullName = `${m.brand} ${m.name}`;
         const margin   = m.sellingPrice > 0
           ? Math.min(99, Math.round(((m.sellingPrice - m.cost) / m.sellingPrice) * 100))
@@ -89,12 +89,16 @@ export default function NewLeadPage() {
         const textMatch = q ? fullName.toLowerCase().includes(q) : false;
         const score     = textMatch ? 100 + margin : margin;
         return {
-          name:     fullName,
-          price:    `${m.sellingPrice.toLocaleString('sv-SE')} kr`,
-          rawPrice: m.sellingPrice,
-          stock:    m.stock,
-          match:    textMatch ? Math.min(99, 70 + margin) : margin,
+          key:       `${m.brand}-${m.name}-${i}`,
+          name:      fullName,
+          price:     `${m.sellingPrice.toLocaleString('sv-SE')} kr`,
+          rawPrice:  m.sellingPrice,
+          stock:     m.stock,
+          match:     textMatch ? Math.min(99, 70 + margin) : margin,
           score,
+          color:     m.color     ?? '',
+          year:      m.year      ?? 0,
+          engineCC:  m.engineCC  ?? 0,
         };
       })
       .sort((a, b) => b.score - a.score)
@@ -108,11 +112,15 @@ export default function NewLeadPage() {
     return motorcycles
       .filter(m => `${m.brand} ${m.name}`.toLowerCase().includes(q))
       .slice(0, 8)
-      .map(m => ({
+      .map((m, i) => ({
+        key:      `${m.brand}-${m.name}-${i}`,
         name:     `${m.brand} ${m.name}`,
         price:    `${m.sellingPrice.toLocaleString('sv-SE')} kr`,
         rawPrice: m.sellingPrice,
         stock:    m.stock,
+        color:    m.color    ?? '',
+        year:     m.year     ?? 0,
+        engineCC: m.engineCC ?? 0,
       }));
   }, [motorcycles, vehicleSearch]);
 
@@ -437,7 +445,7 @@ export default function NewLeadPage() {
                     <input
                       type="number"
                       min="0"
-                      step="1000"
+                      step="1"
                       value={formData.estimatedValue || ''}
                       onChange={e => setFormData({ ...formData, estimatedValue: parseInt(e.target.value) || 0 })}
                       className={`${inputCls(false, false)} pr-12`}
@@ -592,7 +600,7 @@ export default function NewLeadPage() {
                       const active = formData.interest === v.name;
                       return (
                         <button
-                          key={v.name}
+                          key={v.key}
                           type="button"
                           onClick={() => {
                             setFormData(prev => ({ ...prev, interest: v.name, estimatedValue: v.rawPrice }));
@@ -612,7 +620,16 @@ export default function NewLeadPage() {
                               <span className="text-[9px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded shrink-0">{v.stock} st</span>
                             )}
                           </div>
-                          <span className="text-[11px] text-slate-500">{v.price}</span>
+                          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                            <span className="text-[11px] text-slate-500">{v.price}</span>
+                            {v.year > 0 && <span className="text-[10px] text-slate-400">{v.year}</span>}
+                            {v.engineCC > 0 && <span className="text-[10px] text-slate-400">{v.engineCC} cc</span>}
+                            {v.color && (
+                              <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-full truncate max-w-30">
+                                {v.color}
+                              </span>
+                            )}
+                          </div>
                         </button>
                       );
                     })}
@@ -635,7 +652,7 @@ export default function NewLeadPage() {
                     const active = formData.interest === v.name;
                     return (
                       <button
-                        key={v.name}
+                        key={v.key}
                         type="button"
                         onClick={() => setFormData(prev => ({ ...prev, interest: v.name, estimatedValue: v.rawPrice }))}
                         className={`w-full text-left rounded-xl border-2 px-4 py-3 transition-all ${
@@ -647,6 +664,15 @@ export default function NewLeadPage() {
                         <div className="flex items-center justify-between mb-1.5">
                           <span className="text-sm font-bold text-slate-900 truncate pr-2">{v.name}</span>
                           <span className={`text-xs font-bold shrink-0 ${clr.text}`}>{v.match}%</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+                          {v.year > 0 && <span className="text-[10px] text-slate-400">{v.year}</span>}
+                          {v.engineCC > 0 && <span className="text-[10px] text-slate-400">{v.engineCC} cc</span>}
+                          {v.color && (
+                            <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-full truncate max-w-30">
+                              {v.color}
+                            </span>
+                          )}
                         </div>
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-xs text-slate-500">{v.price}</span>

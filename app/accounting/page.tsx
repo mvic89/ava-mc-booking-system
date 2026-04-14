@@ -3,6 +3,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
 import { getSupabaseBrowser } from '@/lib/supabase';
@@ -51,6 +52,7 @@ function fmtDate(iso: string) {
 export default function AccountingPage() {
   const router       = useRouter();
   const searchParams = useSearchParams();
+  const t            = useTranslations('accounting');
 
   const [status,    setStatus]    = useState<FortnoxStatus | null>(null);
   const [invoices,  setInvoices]  = useState<InvoiceRow[]>([]);
@@ -95,7 +97,7 @@ export default function AccountingPage() {
     if (!raw) { router.replace('/auth/login'); return; }
     const u = JSON.parse(raw);
     if (u.role !== 'admin') {
-      toast.error('Bokföring är bara tillgänglig för administratörer.');
+      toast.error(t('adminOnly'));
       router.replace('/dashboard');
       return;
     }
@@ -199,8 +201,8 @@ export default function AccountingPage() {
         <div className="px-5 md:px-8 py-6 bg-white border-b border-slate-100">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <h1 className="text-2xl font-black text-[#0b1524]">📒 Bokföring</h1>
-              <p className="text-sm text-slate-500 mt-1">Exportera fakturor till Fortnox automatiskt</p>
+              <h1 className="text-2xl font-black text-[#0b1524]">📒 {t('title')}</h1>
+              <p className="text-sm text-slate-500 mt-1">{t('subtitle')}</p>
             </div>
             <button
               onClick={syncAll}
@@ -212,7 +214,7 @@ export default function AccountingPage() {
               ) : (
                 <span>↑</span>
               )}
-              Exportera alla osynkade
+              {t('exportBtn')}
             </button>
           </div>
 
@@ -229,12 +231,12 @@ export default function AccountingPage() {
               <div>
                 <p className={`text-sm font-bold ${status?.connected ? 'text-emerald-800' : 'text-amber-800'}`}>
                   {status === null
-                    ? 'Kontrollerar anslutning…'
+                    ? t('checking')
                     : status.connected
-                      ? `Ansluten till Fortnox${status.companyName ? ` · ${status.companyName}` : ''}`
+                      ? `${t('connected')}${status.companyName ? ` · ${status.companyName}` : ''}`
                       : status.tokenConfigured
-                        ? 'Token konfigurerad men ogiltig — anslut igen'
-                        : 'Ej ansluten till Fortnox'}
+                        ? t('tokenInvalid')
+                        : t('notConnected')}
                 </p>
                 <p className={`text-xs mt-0.5 ${status?.connected ? 'text-emerald-600' : 'text-amber-600'}`}>
                   {status?.connected
@@ -254,17 +256,17 @@ export default function AccountingPage() {
                   ? 'bg-white border-emerald-300 text-emerald-700 hover:bg-emerald-50'
                   : 'bg-[#FF6B2C] border-transparent text-white hover:bg-[#e55a1e]'}`}
             >
-              {status?.connected ? 'Återanslut' : 'Anslut till Fortnox'}
+              {status?.connected ? t('reconnect') : t('connect')}
             </button>
           </div>
 
           {/* Stats bar */}
           <div className="mt-4 flex gap-3 flex-wrap">
             {[
-              { key: 'all',     label: 'Totalt',          value: stats.total,   color: 'bg-slate-100 text-slate-700' },
-              { key: 'synced',  label: 'Synkade',         value: stats.synced,  color: 'bg-emerald-100 text-emerald-700' },
-              { key: 'pending', label: 'Väntande',        value: stats.pending, color: 'bg-amber-100 text-amber-700' },
-              { key: 'failed',  label: 'Misslyckade',     value: stats.failed,  color: 'bg-red-100 text-red-700' },
+              { key: 'all',     label: 'Total',           value: stats.total,   color: 'bg-slate-100 text-slate-700' },
+              { key: 'synced',  label: t('synced'),   value: stats.synced,  color: 'bg-emerald-100 text-emerald-700' },
+              { key: 'pending', label: t('pending'),  value: stats.pending, color: 'bg-amber-100 text-amber-700' },
+              { key: 'failed',  label: t('failed'),   value: stats.failed,  color: 'bg-red-100 text-red-700' },
             ].map(s => (
               <button
                 key={s.key}
@@ -283,7 +285,7 @@ export default function AccountingPage() {
                 type="text"
                 value={filter}
                 onChange={e => setFilter(e.target.value)}
-                placeholder="Sök faktura, kund eller fordon…"
+                placeholder={t('search')}
                 className="w-64 pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#FF6B2C]/30 focus:border-[#FF6B2C]"
               />
               <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -291,7 +293,7 @@ export default function AccountingPage() {
               </svg>
             </div>
             {filter && (
-              <button onClick={() => setFilter('')} className="text-xs text-slate-400 hover:text-slate-700">Rensa</button>
+              <button onClick={() => setFilter('')} className="text-xs text-slate-400 hover:text-slate-700">{t('showAll')}</button>
             )}
           </div>
         </div>
@@ -301,25 +303,25 @@ export default function AccountingPage() {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
               <div className="w-8 h-8 border-4 border-[#FF6B2C] border-t-transparent rounded-full animate-spin" />
-              <p className="text-sm text-slate-400">Laddar fakturor…</p>
+              <p className="text-sm text-slate-400">{t('noInvoices')}</p>
             </div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-24 text-slate-400">
               <div className="text-5xl mb-4">📒</div>
-              <p className="text-sm font-semibold">Inga fakturor hittades.</p>
+              <p className="text-sm font-semibold">{t('noInvoices')}</p>
               {tab !== 'all' && (
                 <button onClick={() => setTab('all')} className="mt-2 text-xs text-[#FF6B2C] hover:underline">
-                  Visa alla
+                  {t('showAll')}
                 </button>
               )}
             </div>
           ) : (
             <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
               <div className="overflow-x-auto">
-                <table className="w-full text-sm min-w-[860px]">
+                <table className="w-full text-sm min-w-215">
                   <thead>
                     <tr className="border-b border-slate-100 bg-slate-50/70">
-                      {['Faktura-ID', 'Datum', 'Kund', 'Fordon', 'Belopp', 'Betalning', 'Fortnox', 'Åtgärd'].map(h => (
+                      {[t('cols.id'), t('cols.date'), t('cols.customer'), t('cols.vehicle'), t('cols.amount'), t('cols.payment'), t('cols.fortnox'), t('cols.action')].map(h => (
                         <th key={h} className="text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-5 py-3.5 whitespace-nowrap">
                           {h}
                         </th>
@@ -345,12 +347,12 @@ export default function AccountingPage() {
                           </td>
 
                           {/* Kund */}
-                          <td className="px-5 py-3.5 text-sm font-medium text-slate-700 max-w-[160px] truncate">
+                          <td className="px-5 py-3.5 text-sm font-medium text-slate-700 max-w-40 truncate">
                             {inv.customer_name}
                           </td>
 
                           {/* Fordon */}
-                          <td className="px-5 py-3.5 text-xs text-slate-500 max-w-[180px] truncate">
+                          <td className="px-5 py-3.5 text-xs text-slate-500 max-w-45 truncate">
                             {inv.vehicle}
                           </td>
 
@@ -376,11 +378,11 @@ export default function AccountingPage() {
                                 title={inv.fortnox_sync_error ?? ''}
                                 className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-lg cursor-help"
                               >
-                                <span>✗</span> Fel
+                                <span>✗</span> {t('failed')}
                               </span>
                             ) : (
                               <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-lg">
-                                ⏳ Väntande
+                                ⏳ {t('pending')}
                               </span>
                             )}
                           </td>
@@ -418,7 +420,7 @@ export default function AccountingPage() {
                   Visar {filtered.length} av {invoices.length} betalda fakturor
                 </p>
                 <button onClick={refresh} className="text-xs text-[#FF6B2C] hover:underline font-semibold">
-                  Uppdatera
+                  {t('update')}
                 </button>
               </div>
             </div>
@@ -427,7 +429,7 @@ export default function AccountingPage() {
           {/* Info box — how it works */}
           {!loading && (
             <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
-              <h3 className="text-sm font-bold text-slate-700 mb-2">Hur det fungerar</h3>
+              <h3 className="text-sm font-bold text-slate-700 mb-2">{t('howItWorks')}</h3>
               <ul className="text-xs text-slate-500 space-y-1.5 list-none">
                 <li>
                   <span className="inline-block w-5 text-center">1.</span>

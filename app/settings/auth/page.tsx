@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import BankIDModal from '@/components/bankIdModel';
 import type { BankIDResult } from '@/types';
 
@@ -18,6 +19,7 @@ interface StaffUser {
 
 export default function SettingsAuthPage() {
   const router = useRouter();
+  const t      = useTranslations('settingsAuth');
 
   const [ready, setReady]         = useState(false);
   const [step, setStep]           = useState<Step>('choose');
@@ -141,11 +143,9 @@ export default function SettingsAuthPage() {
 
             {/* Heading */}
             <div className="text-center mb-6">
-              <h1 className="text-xl font-bold text-slate-900">Administratörsinställningar</h1>
+              <h1 className="text-xl font-bold text-slate-900">{t('title')}</h1>
               <p className="text-sm text-slate-400 mt-1">
-                {step === 'denied'
-                  ? 'Åtkomst nekad'
-                  : 'Verifiera din identitet för att fortsätta'}
+                {step === 'denied' ? t('accessDenied') : t('verify')}
               </p>
             </div>
 
@@ -157,16 +157,15 @@ export default function SettingsAuthPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                   </svg>
                 </div>
-                <p className="text-sm font-semibold text-red-700 mb-1">Åtkomst nekad</p>
+                <p className="text-sm font-semibold text-red-700 mb-1">{t('accessDenied')}</p>
                 <p className="text-xs text-red-500 mb-4 leading-relaxed">
-                  Ditt konto har inte administratörsrättigheter.<br />
-                  Kontakta din systemadministratör.
+                  {t('adminOnly')}
                 </p>
                 <Link
                   href="/dashboard"
                   className="inline-block text-sm font-semibold text-[#FF6B2C] hover:underline"
                 >
-                  ← Tillbaka till dashboard
+                  ← {t('backToDashboard')}
                 </Link>
               </div>
             )}
@@ -184,11 +183,11 @@ export default function SettingsAuthPage() {
                     🪪
                   </div>
                   <div className="flex-1 text-left">
-                    <p className="text-sm font-bold">BankID</p>
-                    <p className="text-xs text-slate-400">Säker elektronisk identifiering</p>
+                    <p className="text-sm font-bold">{t('bankid')}</p>
+                    <p className="text-xs text-slate-400">{t('secure')}</p>
                   </div>
                   <span className="shrink-0 text-[10px] font-bold bg-[#FF6B2C] text-white px-2 py-0.5 rounded-full">
-                    REKOMMENDERAT
+                    {t('recommended')}
                   </span>
                 </button>
 
@@ -205,8 +204,8 @@ export default function SettingsAuthPage() {
                     </svg>
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-bold">Personnummer</p>
-                    <p className="text-xs text-slate-400">Ange ditt personnummer manuellt</p>
+                    <p className="text-sm font-bold">{t('personnummer')}</p>
+                    <p className="text-xs text-slate-400">{t('subtitle')}</p>
                   </div>
                 </button>
 
@@ -223,14 +222,14 @@ export default function SettingsAuthPage() {
                     </svg>
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-bold">E-postadress</p>
-                    <p className="text-xs text-slate-400">Verifiera med din registrerade e-post</p>
+                    <p className="text-sm font-bold">{t('email')}</p>
+                    <p className="text-xs text-slate-400">{t('verify')}</p>
                   </div>
                 </button>
 
                 <div className="pt-2 text-center">
                   <Link href="/dashboard" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">
-                    ← Tillbaka till dashboard
+                    ← {t('backToDashboard')}
                   </Link>
                 </div>
               </div>
@@ -261,7 +260,7 @@ export default function SettingsAuthPage() {
                   onClick={handlePasswordSubmit}
                   className="w-full py-3 rounded-xl bg-[#FF6B2C] hover:bg-[#e55a1f] text-white text-sm font-bold transition-colors"
                 >
-                  Verifiera
+                  {t('verify')}
                 </button>
 
                 <div className="flex items-center justify-between">
@@ -269,13 +268,13 @@ export default function SettingsAuthPage() {
                     onClick={() => { setStep('choose'); setPinValue(''); setPinError(''); }}
                     className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
                   >
-                    ← Tillbaka
+                    ← {t('backToDashboard')}
                   </button>
                   <button
                     onClick={() => { setStep('choose'); setShowBankID(true); }}
                     className="text-xs text-[#FF6B2C] hover:underline"
                   >
-                    Använd BankID istället →
+                    {t('useInstead')} →
                   </button>
                 </div>
               </div>
@@ -306,7 +305,7 @@ export default function SettingsAuthPage() {
                   onClick={handleEmailSubmit}
                   className="w-full py-3 rounded-xl bg-[#FF6B2C] hover:bg-[#e55a1f] text-white text-sm font-bold transition-colors"
                 >
-                  Verifiera
+                  {t('verify')}
                 </button>
 
                 <div className="flex items-center justify-between">
@@ -314,13 +313,13 @@ export default function SettingsAuthPage() {
                     onClick={() => { setStep('choose'); setEmailValue(''); setEmailError(''); }}
                     className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
                   >
-                    ← Tillbaka
+                    ← {t('backToDashboard')}
                   </button>
                   <button
                     onClick={() => { setStep('choose'); setShowBankID(true); }}
                     className="text-xs text-[#FF6B2C] hover:underline"
                   >
-                    Använd BankID istället →
+                    {t('useInstead')} →
                   </button>
                 </div>
               </div>

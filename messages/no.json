@@ -770,6 +770,7 @@
       "new": "Ny",
       "contacted": "Kontaktet",
       "testRide": "Prøvekjøring",
+      "offer": "Tilbud",
       "negotiating": "Forhandling",
       "pendingPayment": "Venter på betaling",
       "closed": "Avsluttet"
@@ -1250,5 +1251,342 @@
     "goToLogin": "Gå til innlogging",
     "alreadyHaveAccount": "Har du allerede en konto?",
     "loginLink": "Logg inn"
+  },
+  "inventory": {
+    "title": "Lager",
+    "breadcrumb": "Lager",
+    "tabs": {
+      "motorcycles": "Motorsykler",
+      "spareParts": "Reservedeler",
+      "accessories": "Tilbehør"
+    },
+    "search": "Søk i lager...",
+    "stats": {
+      "totalSkus": "Totalt antall SKU",
+      "unitsInStock": "Enheter på lager",
+      "lowStock": "Lave lageradvarsler",
+      "stockValue": "Lagerverdi"
+    },
+    "table": {
+      "id": "ID",
+      "name": "Navn / Merke",
+      "articleNo": "Artikkelnr",
+      "vin": "VIN",
+      "year": "År",
+      "engine": "Motor",
+      "color": "Farge",
+      "mcType": "MC-type",
+      "warehouse": "Lager",
+      "stock": "Lager",
+      "reorderQty": "Bestillingsantall",
+      "cost": "Kostnad",
+      "sellPrice": "Salgspris",
+      "margin": "Margin",
+      "vendor": "Leverandør"
+    },
+    "empty": "Ingen lager ennå",
+    "noMatch": "Ingen varer samsvarer med søket",
+    "hint": "Hold musepekeren over en rad for å justere lageret",
+    "import": "Importer fra Excel eller legg til manuelt",
+    "export": {
+      "pdf": "PDF",
+      "excel": "Excel (.xlsx)",
+      "spreadsheet": "Regneark",
+      "print": "Utskriftsformat"
+    }
+  },
+  "goodsReceipts": {
+    "title": "Varemottak",
+    "breadcrumb": "Varemottak",
+    "subtitle": "Registrer mottatte varer — lageret oppdateres automatisk",
+    "stats": {
+      "total": "Totalt mottak",
+      "units": "Mottatte enheter",
+      "items": "Mottatte artikler",
+      "pending": "Venter på godkjenning"
+    },
+    "table": {
+      "receiptId": "Mottak-ID",
+      "po": "Innkjøpsordre #",
+      "deliveryNote": "Følgeseddel",
+      "item": "Artikkel",
+      "artNo": "Art.nr",
+      "lineItems": "Linjer",
+      "ordered": "Bestilt",
+      "received": "Mottatt",
+      "status": "Status",
+      "source": "Kilde",
+      "notes": "Notater"
+    },
+    "newReceipt": "Nytt mottak",
+    "search": "Søk mottak...",
+    "empty": "Ingen varemottak ennå",
+    "noMatch": "Ingen mottak samsvarer med søket",
+    "approve": "Godkjenn",
+    "pending": "Venter",
+    "approved": "Godkjent",
+    "rejected": "Avvist",
+    "backorder": "Restordre",
+    "linkPo": "Koble til innkjøpsordre (valgfritt)",
+    "deliveryNoteLabel": "Følgeseddelnr (valgfritt)",
+    "receivedBy": "Mottatt av",
+    "noOpenPos": "Ingen åpne innkjøpsordrer funnet"
+  },
+  "accounting": {
+    "title": "Regnskap",
+    "breadcrumb": "Regnskap",
+    "exportBtn": "Eksporter usynkroniserte",
+    "checking": "Sjekker tilkobling…",
+    "connected": "Koblet til Fortnox",
+    "tokenInvalid": "Token konfigurert men ugyldig — koble til igjen",
+    "notConnected": "Ikke koblet til Fortnox",
+    "howItWorks": "Slik fungerer det",
+    "synced": "Synkronisert",
+    "pending": "Venter",
+    "failed": "Mislyktes",
+    "search": "Søk faktura, kunde eller kjøretøy…",
+    "noInvoices": "Ingen fakturaer funnet.",
+    "showAll": "Vis alle",
+    "reconnect": "Koble til igjen",
+    "connect": "Koble til Fortnox",
+    "update": "Oppdater",
+    "adminOnly": "Regnskap er bare tilgjengelig for administratorer.",
+    "cols": {
+      "id": "Faktura",
+      "date": "Dato",
+      "customer": "Kunde",
+      "vehicle": "Kjøretøy",
+      "amount": "Beløp",
+      "payment": "Betaling",
+      "fortnox": "Fortnox",
+      "action": "Handling"
+    }
+  },
+  "suppliers": {
+    "title": "Leverandører",
+    "breadcrumb": "Leverandører",
+    "subtitle": "Klikk på en rad for å vise eller redigere leverandørdetaljer.",
+    "addBtn": "Legg til leverandør",
+    "importBtn": "Importer Excel",
+    "search": "Søk leverandører...",
+    "empty": "Ingen leverandører ennå",
+    "noMatch": "Ingen leverandører samsvarer med søket",
+    "stats": {
+      "total": "Totalt antall leverandører",
+      "withContact": "Med kontaktopplysninger",
+      "lowStock": "Lave lageradvarsler",
+      "totalSkus": "Totalt leverte SKU-er"
+    },
+    "cols": {
+      "no": "Leverandørnr",
+      "name": "Leverandørnavn",
+      "address": "Adresse",
+      "phone": "Telefon",
+      "orgNo": "Organisasjonsnummer",
+      "skus": "SKU-er",
+      "categories": "Kategorier",
+      "status": "Lagerstatus"
+    },
+    "poModal": {
+      "title": "Innkjøpsordrer",
+      "noPo": "Ingen innkjøpsordrer for denne leverandøren"
+    }
+  },
+  "purchaseInvoices": {
+    "title": "Leverandørfakturaer",
+    "breadcrumb": "Leverandørfakturaer",
+    "subtitle": "Spor og administrer fakturaer fra leverandører",
+    "newBtn": "Ny faktura",
+    "search": "Søk bestilling, leverandør, fakturanr...",
+    "empty": "Ingen leverandørfakturaer ennå",
+    "noMatch": "Ingen fakturaer samsvarer med filteret",
+    "cols": {
+      "supplierInvoice": "Leverandørfaktura #",
+      "systemRef": "Systemreferanse #",
+      "po": "Bestilling (valgfritt)",
+      "amount": "Beløp",
+      "invoiceDate": "Fakturadato",
+      "dueDate": "Forfallsdato",
+      "vendor": "Leverandør",
+      "status": "Status",
+      "notes": "Notater"
+    },
+    "status": {
+      "pending": "Venter",
+      "paid": "Betalt",
+      "overdue": "Forfalt",
+      "disputed": "Omstridt"
+    }
+  },
+  "purchaseOrders": {
+    "title": "Innkjøpsordrer",
+    "breadcrumb": "Innkjøpsordrer",
+    "subtitle": "Klikk på en rad for å åpne hele innkjøpsordren.",
+    "newBtn": "Opprett innkjøpsordre",
+    "importBtn": "Importer Excel",
+    "search": "Søk innkjøpsordre, leverandør, artikkel...",
+    "empty": "Ingen innkjøpsordrer ennå",
+    "noMatch": "Ingen innkjøpsordrer samsvarer med filteret",
+    "tabs": {
+      "all": "Alle",
+      "draft": "Utkast",
+      "reviewed": "Gjennomgått",
+      "sent": "Sendt",
+      "received": "Mottatt"
+    },
+    "cols": {
+      "number": "Innkjøpsordrenr",
+      "vendor": "Leverandør",
+      "date": "Dato",
+      "items": "Artikler",
+      "total": "Totalkostnad",
+      "eta": "Forventet levering",
+      "status": "Status"
+    },
+    "autoPos": "automatisk generert innkjøpsordre fra lavt lager",
+    "allAboveReorder": "Alle lagervarer er over bestillingspunktene — ingen innkjøpsordrer trengs nå."
+  },
+  "service": {
+    "title": "Service",
+    "subtitle": "Verkstedadministrasjon, bestillinger og servicehistorikk",
+    "comingSoon": "Servicemodulen er på vei",
+    "launching": "Lansering Q3 2026",
+    "earlyAccess": "Be om tidlig tilgang",
+    "benefits": {
+      "faster": "Raskere innsjekking med digitale arbeidsordrer",
+      "scheduling": "Mindre tid på manuell planlegging",
+      "history": "Servicehistorikk alltid tilgjengelig"
+    },
+    "features": "Det som kommer"
+  },
+  "settingsUsers": {
+    "title": "Brukere & Tillatelser",
+    "subtitle": "Administrer personalkontoer, roller og tilgangsnivåer.",
+    "breadcrumb": "Innstillinger / Brukere",
+    "inviteBtn": "Inviter bruker",
+    "stats": {
+      "active": "Aktive brukere",
+      "admins": "Administratorer",
+      "bankid": "BankID-verifisert"
+    },
+    "table": {
+      "staff": "Personalkontoer",
+      "lastLogin": "Siste innlogging"
+    },
+    "status": {
+      "verified": "BankID-verifisert",
+      "inactive": "Inaktiv",
+      "pending": "Venter"
+    },
+    "roles": {
+      "admin": "Admin",
+      "sales": "Salg",
+      "service": "Service"
+    },
+    "invite": {
+      "title": "Inviter ny bruker",
+      "name": "Fullt navn",
+      "email": "E-postadresse",
+      "role": "Rolle",
+      "cancel": "Avbryt",
+      "send": "Send invitasjon",
+      "sending": "Sender...",
+      "linkLabel": "Invitasjonslenke (gyldig 7 dager):",
+      "copy": "Kopier"
+    },
+    "adminOnly": "Bare administratorer kan administrere brukere og tillatelser.",
+    "noUsers": "Ingen brukere ennå — inviter personalet ditt."
+  },
+  "settingsPayments": {
+    "title": "Betalingsleverandører",
+    "breadcrumb": "Innstillinger / Betalingsleverandører",
+    "subtitle": "Aktiver betalingsmetodene forhandleren din aksepterer.",
+    "saveBtn": "Lagre alle endringer",
+    "saving": "Lagrer…",
+    "saved": "Lagret",
+    "saveFailed": "Lagring mislyktes — prøv igjen",
+    "primaryLabel": "Primær finansieringspartner",
+    "noneSelected": "Ingen valgt",
+    "comingSoon": "Kommer snart",
+    "testConnection": "Test tilkobling",
+    "testing": "Tester…",
+    "noCredentials": "Ingen påloggingsopplysninger kreves."
+  },
+  "settingsAuth": {
+    "title": "Administratorautentisering",
+    "subtitle": "Bekreft identiteten din for å fortsette",
+    "accessDenied": "Tilgang nektet",
+    "bankid": "BankID",
+    "secure": "Sikker elektronisk identifikasjon",
+    "recommended": "ANBEFALT",
+    "personnummer": "Personnummer",
+    "email": "E-postadresse",
+    "backToDashboard": "← Tilbake til dashbord",
+    "verify": "Bekreft",
+    "useInstead": "Bruk BankID i stedet →",
+    "adminOnly": "Innstillinger krever administratorrettigheter og bekreftet identitet"
+  },
+  "settingsEmail": {
+    "title": "E-postutsendelse",
+    "breadcrumb": "Innstillinger / E-postutsendelse",
+    "subtitle": "Innkjøpsordre-e-poster sendes via Resend. Konfigurer hvor leverandørsvar returneres.",
+    "replyToLabel": "Din svar-til-e-post",
+    "replyToDesc": "Når leverandøren trykker Svar, sendes e-posten hit.",
+    "phoneLabel": "Forhandlerens telefon (valgfritt)",
+    "phoneDesc": "Vises i bunnteksten på innkjøpsordre-e-poster.",
+    "save": "Lagre",
+    "saving": "Lagrer…",
+    "saved": "Lagret!",
+    "loading": "Laster…"
+  },
+  "settingsIntegrations": {
+    "title": "Integrasjoner",
+    "breadcrumb": "Innstillinger / Integrasjoner",
+    "categories": {
+      "crm": "CRM",
+      "accounting": "Regnskap",
+      "vehicles": "Kjøretøyregister",
+      "insurance": "Forsikring",
+      "communication": "Kommunikasjon",
+      "advertising": "Annonsering"
+    },
+    "cols": {
+      "credentials": "Påloggingsopplysninger",
+      "status": "Status",
+      "action": "Handling"
+    },
+    "noCredentials": "Ingen påloggingsopplysninger kreves.",
+    "comingSoon": "Kommer snart",
+    "live": "Aktiv",
+    "configured": "konfigurert"
+  },
+  "analytics": {
+    "title": "Rapporter",
+    "subtitle": "Sanntidsdata fra salg, leads og kunder",
+    "tabs": {
+      "overview": "Oversikt",
+      "sources": "Kildeanalyse",
+      "margins": "Marginanalyse",
+      "leaderboard": "Toppliste"
+    },
+    "stats": {
+      "closed": "Lukket",
+      "grossProfit": "Bruttofortjeneste",
+      "revenue": "Inntekt",
+      "conversion": "Konv.",
+      "leads": "Leads",
+      "salesperson": "Selger",
+      "avgDeal": "Snitthandel",
+      "rank": "Rang"
+    },
+    "empty": {
+      "invoices": "Ingen betalte fakturaer ennå",
+      "leads": "Ingen leads ennå",
+      "closed": "Ingen avsluttede handler ennå",
+      "brands": "Ingen merkedata ennå",
+      "salespeople": "Ingen selgere ennå"
+    },
+    "marginNote": "Grønt ≥ 10 % · Gult 5–10 % · Rødt < 5 %",
+    "timeNote": "Grønt ≤ 14 d · Gult ≤ 30 d · Rødt > 30 d"
   }
 }

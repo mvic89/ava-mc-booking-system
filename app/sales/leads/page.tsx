@@ -23,6 +23,7 @@ const STAGE_WEIGHT: Record<Stage, number> = {
   new:             0.10,
   contacted:       0.25,
   testride:        0.40,
+  offer:           0.55,
   negotiating:     0.70,
   pending_payment: 0.90,
   closed:          1.00,
@@ -33,15 +34,19 @@ const OVERDUE_DAYS: Record<Stage, number> = {
   new:             2,
   contacted:       3,
   testride:        5,
+  offer:           7,
   negotiating:     7,
   pending_payment: 14,
   closed:          999,
 };
 
 function leadHref(lead: Lead): string {
-  if (lead.stage === 'closed')      return `/sales/leads/${lead.id}`;
-  if (lead.stage === 'negotiating') return `/sales/leads/${lead.id}/agreement/payment`;
-  return `/sales/leads/${lead.id}/agreement`;
+  if (lead.stage === 'closed')          return `/sales/leads/${lead.id}`;
+  if (lead.stage === 'pending_payment') return `/sales/leads/${lead.id}/agreement/payment`;
+  if (lead.stage === 'negotiating')     return `/sales/leads/${lead.id}/agreement`;
+  if (lead.stage === 'offer')           return `/sales/leads/${lead.id}/offer`;
+  if (lead.stage === 'testride')        return `/sales/leads/${lead.id}/testdrive`;
+  return `/sales/leads/${lead.id}`;
 }
 
 const STATUS_CYCLE: Record<Status, Status> = { hot: 'warm', warm: 'cold', cold: 'hot' };
@@ -103,13 +108,18 @@ function MarginBadge({ lead }: { lead: Lead }) {
   );
 }
 
-function LeadCard({ lead, statusLabel, stageColor, onStatusChange }: {
-  lead: Lead; statusLabel: string; stageColor: string; onStatusChange: (lead: Lead, s: Status) => void;
+function LeadCard({ lead, statusLabel, stageColor, onStatusChange, onDragStart, onDragEnd, isDragging }: {
+  lead: Lead; statusLabel: string; stageColor: string;
+  onStatusChange: (lead: Lead, s: Status) => void;
+  onDragStart: () => void; onDragEnd: () => void; isDragging: boolean;
 }) {
   return (
     <Link
       href={leadHref(lead)}
-      className="kanban-card group bg-white rounded-xl border border-slate-100 p-4 block hover:shadow-md hover:border-slate-200 transition-all duration-150 relative overflow-hidden"
+      draggable
+      onDragStart={e => { e.dataTransfer.effectAllowed = 'move'; onDragStart(); }}
+      onDragEnd={onDragEnd}
+      className={`kanban-card group bg-white rounded-xl border p-4 block hover:shadow-md transition-all duration-150 relative overflow-hidden cursor-grab active:cursor-grabbing ${isDragging ? 'opacity-40 border-slate-300 shadow-lg scale-[0.98]' : 'border-slate-100 hover:border-slate-200'}`}
     >
       {/* Left stage-color accent strip */}
       <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl" style={{ background: stageColor }} />
@@ -152,25 +162,24 @@ function LeadCard({ lead, statusLabel, stageColor, onStatusChange }: {
 }
 
 function PendingPaymentCard({
-  lead,
-  statusLabel,
-  onConfirm,
-  confirming,
-  onStatusChange,
+  lead, statusLabel, onConfirm, confirming, onStatusChange, onDragStart, onDragEnd, isDragging,
 }: {
-  lead: Lead;
-  statusLabel: string;
-  onConfirm: (lead: Lead) => void;
-  confirming: boolean;
+  lead: Lead; statusLabel: string; onConfirm: (lead: Lead) => void; confirming: boolean;
   onStatusChange: (lead: Lead, s: Status) => void;
+  onDragStart: () => void; onDragEnd: () => void; isDragging: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div
+      className={`flex flex-col gap-1.5 transition-opacity duration-150 ${isDragging ? 'opacity-40' : ''}`}
+      draggable
+      onDragStart={e => { e.dataTransfer.effectAllowed = 'move'; onDragStart(); }}
+      onDragEnd={onDragEnd}
+    >
       <Link
         href={`/sales/leads/${lead.id}/agreement/payment`}
-        className="kanban-card group bg-white rounded-xl border border-orange-200 p-4 block hover:shadow-md hover:border-orange-300 transition-all duration-150 relative overflow-hidden"
+        className="kanban-card group bg-white rounded-xl border border-slate-100 p-4 block hover:shadow-md hover:border-slate-200 transition-all duration-150 relative overflow-hidden cursor-grab active:cursor-grabbing"
       >
-        <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl bg-orange-400" />
+        <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl bg-[#FF6B2C]" />
         <div className="pl-1">
           <div className="flex items-start justify-between gap-2 mb-3">
             <div className="flex items-center gap-2.5 min-w-0">
@@ -191,10 +200,10 @@ function PendingPaymentCard({
             </div>
             <StatusBadge lead={lead} statusLabel={statusLabel} onStatusChange={onStatusChange} />
           </div>
-          <div className="flex items-center justify-between pt-2.5 border-t border-orange-50">
+          <div className="flex items-center justify-between pt-2.5 border-t border-slate-50">
             <span className="text-sm font-bold text-[#0b1524]">{lead.value}</span>
-            <span className="inline-flex items-center gap-1 text-[10px] text-orange-600 font-semibold">
-              <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
+            <span className="inline-flex items-center gap-1 text-[10px] text-slate-500 font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B2C] animate-pulse" />
               Betalning pågår
             </span>
           </div>
@@ -226,6 +235,27 @@ export default function PipelinePage() {
   const [confirmingId, setConfirmingId] = useState<number | null>(null);
   const [showClosed,   setShowClosed]   = useState(true);
   const [closedLimit,  setClosedLimit]  = useState(5);
+  const [draggingId,   setDraggingId]   = useState<number | null>(null);
+  const [dragOverCol,  setDragOverCol]  = useState<Stage | null>(null);
+
+  async function handleStageChange(leadId: number, newStage: Stage) {
+    const raw = localStorage.getItem('user');
+    const dealershipId = raw ? (JSON.parse(raw) as { dealershipId?: string }).dealershipId : null;
+    if (!dealershipId) return;
+    // Optimistic update
+    setLeads(prev => prev.map(l => l.id === leadId ? { ...l, stage: newStage } : l));
+    const res = await fetch(`/api/leads/${leadId}/stage`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dealershipId, stage: newStage }),
+    });
+    if (!res.ok) {
+      toast.error('Kunde inte flytta affären');
+      getLeads().then(setLeads);
+    } else {
+      emit({ type: 'lead:updated', payload: { id: String(leadId), status: '' } });
+    }
+  }
 
   async function handleStatusChange(lead: Lead, newStatus: Status) {
     const raw = localStorage.getItem('user');
@@ -246,7 +276,15 @@ export default function PipelinePage() {
     if (!dealershipId) return;
     setConfirmingId(lead.id);
     try {
-      const res = await fetch('/api/invoice/create', {
+      // 1. Create customer if not already in the system (idempotent — uses personnummer dedup)
+      await fetch('/api/customers/create', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leadId: lead.id, dealershipId }),
+      });
+
+      // 2. Create paid sales invoice
+      const invoiceRes = await fetch('/api/invoice/create', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -260,13 +298,22 @@ export default function PipelinePage() {
           paidDate:      new Date().toISOString(),
         }),
       });
-      if (res.ok) {
-        toast.success(`Betalning bekräftad — ${lead.name}`);
-        emit({ type: 'lead:updated', payload: { id: String(lead.id), status: lead.status } });
-        getLeads().then(setLeads);
-      } else {
-        toast.error('Kunde inte bekräfta betalningen');
+
+      if (!invoiceRes.ok) {
+        toast.error('Kunde inte skapa faktura');
+        return;
       }
+
+      // 3. Move lead to closed
+      await fetch(`/api/leads/${lead.id}/stage`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dealershipId, stage: 'closed' }),
+      });
+
+      toast.success(`Betalning bekräftad — ${lead.name} → Kund skapad`);
+      emit({ type: 'lead:updated', payload: { id: String(lead.id), status: lead.status } });
+      getLeads().then(setLeads);
     } catch {
       toast.error('Nätverksfel — försök igen');
     } finally {
@@ -275,12 +322,12 @@ export default function PipelinePage() {
   }
 
   const COLUMNS: { id: Stage; label: string; color: string; bg: string; icon: string }[] = [
-    { id: 'new',             label: t('columns.new'),             color: '#FF6B2C', bg: '#fff5f0', icon: '✨' },
-    { id: 'contacted',       label: t('columns.contacted'),       color: '#f59e0b', bg: '#fffbeb', icon: '📞' },
-    { id: 'testride',        label: t('columns.testRide'),        color: '#8b5cf6', bg: '#f5f3ff', icon: '🏍' },
-    { id: 'negotiating',     label: t('columns.negotiating'),     color: '#3b82f6', bg: '#eff6ff', icon: '💼' },
-    { id: 'pending_payment', label: t('columns.pendingPayment'),  color: '#f97316', bg: '#fff7ed', icon: '⏳' },
-    { id: 'closed',          label: t('columns.closed'),          color: '#10b981', bg: '#f0fdf4', icon: '🏆' },
+    { id: 'new',             label: t('columns.new'),             color: '#94a3b8', bg: '#f8fafc', icon: '✨' },
+    { id: 'testride',        label: t('columns.testRide'),        color: '#94a3b8', bg: '#f8fafc', icon: '🏍' },
+    { id: 'offer',           label: t('columns.offer'),           color: '#FF6B2C', bg: '#fff5f0', icon: '📋' },
+    { id: 'negotiating',     label: t('columns.negotiating'),     color: '#FF6B2C', bg: '#fff5f0', icon: '💼' },
+    { id: 'pending_payment', label: t('columns.pendingPayment'),  color: '#FF6B2C', bg: '#fff5f0', icon: '⏳' },
+    { id: 'closed',          label: t('columns.closed'),          color: '#10b981', bg: '#f0fdf4', icon: '✓' },
   ];
 
   const STATUS_LABELS: Record<Status, string> = {
@@ -326,8 +373,8 @@ export default function PipelinePage() {
     l.stage !== 'closed' && l.daysInStage >= OVERDUE_DAYS[l.stage]
   ).length;
 
-  // Always show key stages; hide contacted/testride when empty; toggle 'closed'
-  const ALWAYS_SHOW = new Set<Stage>(['new', 'negotiating', 'pending_payment']);
+  // Always show key stages; toggle 'closed'
+  const ALWAYS_SHOW = new Set<Stage>(['new', 'contacted', 'testride', 'offer', 'negotiating', 'pending_payment']);
   const visibleColumns = COLUMNS.filter(col => {
     if (col.id === 'closed') return showClosed;
     if (ALWAYS_SHOW.has(col.id)) return true;
@@ -403,12 +450,11 @@ export default function PipelinePage() {
               return (
                 <div
                   key={col.id}
-                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
-                  style={{ background: `${col.color}15`, color: col.color }}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600"
                 >
                   <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: col.color }} />
                   {col.label}
-                  <span className="font-bold">{count}</span>
+                  <span className="font-bold text-slate-800">{count}</span>
                 </div>
               );
             })}
@@ -448,7 +494,7 @@ export default function PipelinePage() {
               const colLeads = filtered.filter(l => l.stage === col.id);
               const colValue = colLeads.reduce((sum, l) => sum + l.rawValue, 0);
               return (
-                <div key={col.id} className="flex-1 min-w-[160px] flex flex-col gap-2.5 animate-fade-up">
+                <div key={col.id} className="flex-1 min-w-40 flex flex-col gap-2.5 animate-fade-up">
 
                   {/* Column header card */}
                   <div className="bg-white rounded-2xl border border-slate-100 px-3.5 py-3 shadow-sm">
@@ -462,7 +508,7 @@ export default function PipelinePage() {
                         </div>
                         <span className="text-sm font-bold text-slate-800">{col.label}</span>
                         <span
-                          className="text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center"
+                          className="text-xs font-bold px-1.5 py-0.5 rounded-full min-w-5 text-center"
                           style={{ background: `${col.color}15`, color: col.color }}
                         >
                           {colLeads.length}
@@ -481,15 +527,31 @@ export default function PipelinePage() {
                     />
                   </div>
 
-                  {/* Cards */}
-                  <div className="flex flex-col gap-2">
+                  {/* Cards — drop zone */}
+                  <div
+                    className={`flex flex-col gap-2 min-h-28 rounded-xl transition-colors duration-150`}
+                    style={dragOverCol === col.id && draggingId !== null ? { background: `${col.color}10`, outline: `2px dashed ${col.color}`, outlineOffset: '2px' } : {}}
+                    onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDragOverCol(col.id); }}
+                    onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverCol(null); }}
+                    onDrop={e => {
+                      e.preventDefault();
+                      setDragOverCol(null);
+                      if (draggingId !== null) {
+                        const lead = leads.find(l => l.id === draggingId);
+                        if (lead && lead.stage !== col.id) handleStageChange(draggingId, col.id);
+                      }
+                      setDraggingId(null);
+                    }}
+                  >
                     {colLeads.length === 0 ? (
                       <div
-                        className="h-28 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1"
-                        style={{ borderColor: `${col.color}30` }}
+                        className={`h-28 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-colors duration-150 ${dragOverCol === col.id ? 'border-opacity-60' : ''}`}
+                        style={{ borderColor: dragOverCol === col.id ? col.color : `${col.color}30` }}
                       >
-                        <span className="text-xl" style={{ opacity: 0.25 }}>{col.icon}</span>
-                        <span className="text-xs font-medium" style={{ color: `${col.color}70` }}>{t('noLeads')}</span>
+                        <span className="text-xl" style={{ opacity: dragOverCol === col.id ? 0.6 : 0.25 }}>{col.icon}</span>
+                        <span className="text-xs font-medium" style={{ color: `${col.color}70` }}>
+                          {dragOverCol === col.id ? 'Släpp här' : t('noLeads')}
+                        </span>
                       </div>
                     ) : (() => {
                       const visibleLeads = col.id === 'closed' ? colLeads.slice(0, closedLimit) : colLeads;
@@ -505,6 +567,9 @@ export default function PipelinePage() {
                                 onConfirm={handleConfirmPayment}
                                 confirming={confirmingId === lead.id}
                                 onStatusChange={handleStatusChange}
+                                onDragStart={() => setDraggingId(lead.id)}
+                                onDragEnd={() => { setDraggingId(null); setDragOverCol(null); }}
+                                isDragging={draggingId === lead.id}
                               />
                             ) : (
                               <LeadCard
@@ -513,6 +578,9 @@ export default function PipelinePage() {
                                 statusLabel={STATUS_LABELS[lead.status]}
                                 stageColor={col.color}
                                 onStatusChange={handleStatusChange}
+                                onDragStart={() => setDraggingId(lead.id)}
+                                onDragEnd={() => { setDraggingId(null); setDragOverCol(null); }}
+                                isDragging={draggingId === lead.id}
                               />
                             )
                           )}

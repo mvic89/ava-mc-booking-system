@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
 import { INTEGRATION_REGISTRY } from '@/lib/integrations/registry';
@@ -85,6 +86,7 @@ function ConfiguredCount({ integration, fieldStatus }: { integration: Integratio
 
 export default function IntegrationsSettingsPage() {
   const router = useRouter();
+  const t      = useTranslations('settingsIntegrations');
 
   const [loading,          setLoading]          = useState(true);
   const [saving,           setSaving]           = useState(false);
@@ -343,14 +345,11 @@ export default function IntegrationsSettingsPage() {
           <div className="flex items-start justify-between mb-6 animate-fade-up">
             <div>
               <p className="text-xs text-slate-400 uppercase tracking-widest mb-1">
-                <Link href="/settings" className="hover:text-[#FF6B2C] transition-colors">Settings</Link>
-                {' / '}Integrations
+                <Link href="/settings" className="hover:text-[#FF6B2C] transition-colors">{t('breadcrumb')}</Link>
+                {' / '}{t('title')}
               </p>
-              <h1 className="text-2xl font-black text-[#0b1524]">Integrations</h1>
-              <p className="text-sm text-slate-500 mt-1">
-                Connect Fortnox, Transportstyrelsen, Blocket, and insurance providers.
-                Credentials are stored server-side and never exposed in responses.
-              </p>
+              <h1 className="text-2xl font-black text-[#0b1524]">{t('title')}</h1>
+              <p className="text-sm text-slate-500 mt-1">{t('subtitle')}</p>
             </div>
             <div className="flex items-center gap-3 shrink-0">
               {saveResult === 'ok' && (
@@ -483,7 +482,7 @@ export default function IntegrationsSettingsPage() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <p className="text-sm font-bold text-slate-900">{integration.name}</p>
-                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-green-100 text-green-700">Live</span>
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-green-100 text-green-700">{t('live')}</span>
                               {state.enabled && (
                                 <ConfiguredCount integration={integration} fieldStatus={state.fieldStatus} />
                               )}
@@ -648,7 +647,7 @@ export default function IntegrationsSettingsPage() {
                                 )}
                               </>
                             ) : (
-                              <p className="text-xs text-slate-400">No credentials required.</p>
+                              <p className="text-xs text-slate-400">{t('noCredentials')}</p>
                             )}
                           </div>
                         )}

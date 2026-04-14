@@ -1251,5 +1251,342 @@
       "sub": "Um eine Bestellung aufzugeben oder Fragen zu stellen, kontaktieren Sie uns unter",
       "cta": "Kontakt aufnehmen"
     }
+  },
+  "inventory": {
+    "title": "Lager",
+    "breadcrumb": "Lager",
+    "tabs": {
+      "motorcycles": "Motorräder",
+      "spareParts": "Ersatzteile",
+      "accessories": "Zubehör"
+    },
+    "search": "Lager durchsuchen...",
+    "stats": {
+      "totalSkus": "Gesamt-SKUs",
+      "unitsInStock": "Lagereinheiten",
+      "lowStock": "Niedrige Lagerbestände",
+      "stockValue": "Lagerwert"
+    },
+    "table": {
+      "id": "ID",
+      "name": "Name / Marke",
+      "articleNo": "Artikelnr.",
+      "vin": "FIN",
+      "year": "Jahr",
+      "engine": "Motor",
+      "color": "Farbe",
+      "mcType": "MC-Typ",
+      "warehouse": "Lager",
+      "stock": "Bestand",
+      "reorderQty": "Nachbestellmenge",
+      "cost": "Kosten",
+      "sellPrice": "Verkaufspreis",
+      "margin": "Marge",
+      "vendor": "Lieferant"
+    },
+    "empty": "Noch kein Lager",
+    "noMatch": "Keine Artikel entsprechen Ihrer Suche",
+    "hint": "Zeile überfahren, um Bestand anzupassen",
+    "import": "Aus Excel importieren oder manuell hinzufügen",
+    "export": {
+      "pdf": "PDF",
+      "excel": "Excel (.xlsx)",
+      "spreadsheet": "Tabelle",
+      "print": "Druckformat"
+    }
+  },
+  "goodsReceipts": {
+    "title": "Wareneingänge",
+    "breadcrumb": "Wareneingänge",
+    "subtitle": "Wareneingänge erfassen — Lager aktualisiert automatisch",
+    "stats": {
+      "total": "Wareneingänge gesamt",
+      "units": "Eingegangene Einheiten",
+      "items": "Eingegangene Artikel",
+      "pending": "Ausstehende Genehmigung"
+    },
+    "table": {
+      "receiptId": "Eingangs-ID",
+      "po": "Bestellung #",
+      "deliveryNote": "Lieferschein",
+      "item": "Artikel",
+      "artNo": "Art.nr.",
+      "lineItems": "Positionen",
+      "ordered": "Bestellt",
+      "received": "Empfangen",
+      "status": "Status",
+      "source": "Quelle",
+      "notes": "Notizen"
+    },
+    "newReceipt": "Neuer Eingang",
+    "search": "Eingänge suchen...",
+    "empty": "Noch keine Wareneingänge",
+    "noMatch": "Keine Eingänge entsprechen Ihrer Suche",
+    "approve": "Genehmigen",
+    "pending": "Ausstehend",
+    "approved": "Genehmigt",
+    "rejected": "Abgelehnt",
+    "backorder": "Nachlieferung",
+    "linkPo": "Bestellung verknüpfen (optional)",
+    "deliveryNoteLabel": "Lieferschein-Nr. (optional)",
+    "receivedBy": "Empfangen von",
+    "noOpenPos": "Keine offenen Bestellungen gefunden"
+  },
+  "accounting": {
+    "title": "Buchhaltung",
+    "breadcrumb": "Buchhaltung",
+    "exportBtn": "Nicht synchronisierte exportieren",
+    "checking": "Verbindung wird geprüft…",
+    "connected": "Mit Fortnox verbunden",
+    "tokenInvalid": "Token konfiguriert, aber ungültig — erneut verbinden",
+    "notConnected": "Nicht mit Fortnox verbunden",
+    "howItWorks": "So funktioniert es",
+    "synced": "Synchronisiert",
+    "pending": "Ausstehend",
+    "failed": "Fehlgeschlagen",
+    "search": "Rechnung, Kunde oder Fahrzeug suchen…",
+    "noInvoices": "Keine Rechnungen gefunden.",
+    "showAll": "Alle anzeigen",
+    "reconnect": "Erneut verbinden",
+    "connect": "Mit Fortnox verbinden",
+    "update": "Aktualisieren",
+    "adminOnly": "Buchhaltung ist nur für Administratoren verfügbar.",
+    "cols": {
+      "id": "Rechnung",
+      "date": "Datum",
+      "customer": "Kunde",
+      "vehicle": "Fahrzeug",
+      "amount": "Betrag",
+      "payment": "Zahlung",
+      "fortnox": "Fortnox",
+      "action": "Aktion"
+    }
+  },
+  "suppliers": {
+    "title": "Lieferanten",
+    "breadcrumb": "Lieferanten",
+    "subtitle": "Klicken Sie auf eine Zeile, um Lieferantendetails anzuzeigen oder zu bearbeiten.",
+    "addBtn": "Lieferant hinzufügen",
+    "importBtn": "Excel importieren",
+    "search": "Lieferanten suchen...",
+    "empty": "Noch keine Lieferanten",
+    "noMatch": "Keine Lieferanten entsprechen Ihrer Suche",
+    "stats": {
+      "total": "Lieferanten gesamt",
+      "withContact": "Mit Kontaktdaten",
+      "lowStock": "Niedrige Lagerbestände",
+      "totalSkus": "Gelieferte SKUs gesamt"
+    },
+    "cols": {
+      "no": "Lieferantennr.",
+      "name": "Lieferantenname",
+      "address": "Adresse",
+      "phone": "Telefon",
+      "orgNo": "Steuernummer",
+      "skus": "SKUs",
+      "categories": "Kategorien",
+      "status": "Lagerstatus"
+    },
+    "poModal": {
+      "title": "Bestellungen",
+      "noPo": "Keine Bestellungen für diesen Lieferanten"
+    }
+  },
+  "purchaseInvoices": {
+    "title": "Eingangsrechnungen",
+    "breadcrumb": "Eingangsrechnungen",
+    "subtitle": "Rechnungen von Lieferanten verfolgen und verwalten",
+    "newBtn": "Neue Rechnung",
+    "search": "Bestellung, Lieferant, Rechnungsnr. suchen...",
+    "empty": "Noch keine Eingangsrechnungen",
+    "noMatch": "Keine Rechnungen entsprechen Ihrem Filter",
+    "cols": {
+      "supplierInvoice": "Lieferantenrechnung #",
+      "systemRef": "Systemreferenz #",
+      "po": "Bestellung (optional)",
+      "amount": "Betrag",
+      "invoiceDate": "Rechnungsdatum",
+      "dueDate": "Fälligkeitsdatum",
+      "vendor": "Lieferant",
+      "status": "Status",
+      "notes": "Notizen"
+    },
+    "status": {
+      "pending": "Ausstehend",
+      "paid": "Bezahlt",
+      "overdue": "Überfällig",
+      "disputed": "Streitig"
+    }
+  },
+  "purchaseOrders": {
+    "title": "Bestellungen",
+    "breadcrumb": "Bestellungen",
+    "subtitle": "Klicken Sie auf eine Zeile, um die vollständige Bestellung zu öffnen.",
+    "newBtn": "Bestellung erstellen",
+    "importBtn": "Excel importieren",
+    "search": "Bestellung, Lieferant, Artikel suchen...",
+    "empty": "Noch keine Bestellungen",
+    "noMatch": "Keine Bestellungen entsprechen Ihrem Filter",
+    "tabs": {
+      "all": "Alle",
+      "draft": "Entwurf",
+      "reviewed": "Geprüft",
+      "sent": "Gesendet",
+      "received": "Empfangen"
+    },
+    "cols": {
+      "number": "Bestellnummer",
+      "vendor": "Lieferant",
+      "date": "Datum",
+      "items": "Artikel",
+      "total": "Gesamtkosten",
+      "eta": "Erwartete Lieferung",
+      "status": "Status"
+    },
+    "autoPos": "automatisch generierte Bestellung aus niedrigem Lagerbestand",
+    "allAboveReorder": "Alle Lagerartikel sind über ihren Meldebeständen — keine Bestellungen erforderlich."
+  },
+  "service": {
+    "title": "Service",
+    "subtitle": "Werkstattverwaltung, Buchungen und Servicehistorie",
+    "comingSoon": "Das Service-Modul ist unterwegs",
+    "launching": "Start Q3 2026",
+    "earlyAccess": "Frühzeitigen Zugang anfordern",
+    "benefits": {
+      "faster": "Schnellerer Check-in mit digitalen Arbeitsaufträgen",
+      "scheduling": "Weniger Zeit für manuelle Planung",
+      "history": "Servicehistorie immer zugänglich"
+    },
+    "features": "Was kommt"
+  },
+  "settingsUsers": {
+    "title": "Benutzer & Berechtigungen",
+    "subtitle": "Mitarbeiterkonten, Rollen und Zugriffsebenen verwalten.",
+    "breadcrumb": "Einstellungen / Benutzer",
+    "inviteBtn": "Benutzer einladen",
+    "stats": {
+      "active": "Aktive Benutzer",
+      "admins": "Administratoren",
+      "bankid": "BankID verifiziert"
+    },
+    "table": {
+      "staff": "Mitarbeiterkonten",
+      "lastLogin": "Letzter Login"
+    },
+    "status": {
+      "verified": "BankID verifiziert",
+      "inactive": "Inaktiv",
+      "pending": "Ausstehend"
+    },
+    "roles": {
+      "admin": "Admin",
+      "sales": "Vertrieb",
+      "service": "Service"
+    },
+    "invite": {
+      "title": "Neuen Benutzer einladen",
+      "name": "Vollständiger Name",
+      "email": "E-Mail-Adresse",
+      "role": "Rolle",
+      "cancel": "Abbrechen",
+      "send": "Einladung senden",
+      "sending": "Sende...",
+      "linkLabel": "Einladungslink (gültig 7 Tage):",
+      "copy": "Kopieren"
+    },
+    "adminOnly": "Nur Administratoren können Benutzer und Berechtigungen verwalten.",
+    "noUsers": "Noch keine Benutzer — laden Sie Ihr Personal ein."
+  },
+  "settingsPayments": {
+    "title": "Zahlungsanbieter",
+    "breadcrumb": "Einstellungen / Zahlungsanbieter",
+    "subtitle": "Aktivieren Sie die Zahlungsmethoden, die Ihr Händler akzeptiert.",
+    "saveBtn": "Alle Änderungen speichern",
+    "saving": "Speichert…",
+    "saved": "Gespeichert",
+    "saveFailed": "Speichern fehlgeschlagen — erneut versuchen",
+    "primaryLabel": "Primärer Finanzierungspartner",
+    "noneSelected": "Keine Auswahl",
+    "comingSoon": "Demnächst",
+    "testConnection": "Verbindung testen",
+    "testing": "Teste…",
+    "noCredentials": "Keine Anmeldeinformationen erforderlich."
+  },
+  "settingsAuth": {
+    "title": "Administrator-Authentifizierung",
+    "subtitle": "Identität zur Fortsetzung bestätigen",
+    "accessDenied": "Zugriff verweigert",
+    "bankid": "BankID",
+    "secure": "Sichere elektronische Identifizierung",
+    "recommended": "EMPFOHLEN",
+    "personnummer": "Personnummer",
+    "email": "E-Mail-Adresse",
+    "backToDashboard": "← Zurück zum Dashboard",
+    "verify": "Bestätigen",
+    "useInstead": "Stattdessen BankID verwenden →",
+    "adminOnly": "Einstellungen erfordern Administratorrechte und verifizierte Identität"
+  },
+  "settingsEmail": {
+    "title": "E-Mail-Versand",
+    "breadcrumb": "Einstellungen / E-Mail-Versand",
+    "subtitle": "Bestellungs-E-Mails werden über Resend gesendet. Konfigurieren Sie, wohin Lieferantenantworten gehen.",
+    "replyToLabel": "Ihre Antwort-an-E-Mail",
+    "replyToDesc": "Wenn der Lieferant Antworten drückt, kommt seine E-Mail hierher.",
+    "phoneLabel": "Händlertelefon (optional)",
+    "phoneDesc": "Wird in der Fußzeile der Bestellungs-E-Mail angezeigt.",
+    "save": "Speichern",
+    "saving": "Speichert…",
+    "saved": "Gespeichert!",
+    "loading": "Laden…"
+  },
+  "settingsIntegrations": {
+    "title": "Integrationen",
+    "breadcrumb": "Einstellungen / Integrationen",
+    "categories": {
+      "crm": "CRM",
+      "accounting": "Buchhaltung",
+      "vehicles": "Fahrzeugregister",
+      "insurance": "Versicherung",
+      "communication": "Kommunikation",
+      "advertising": "Werbung"
+    },
+    "cols": {
+      "credentials": "Anmeldedaten",
+      "status": "Status",
+      "action": "Aktion"
+    },
+    "noCredentials": "Keine Anmeldedaten erforderlich.",
+    "comingSoon": "Demnächst",
+    "live": "Aktiv",
+    "configured": "konfiguriert"
+  },
+  "analytics": {
+    "title": "Berichte",
+    "subtitle": "Echtzeitdaten aus Verkäufen, Leads und Kunden",
+    "tabs": {
+      "overview": "Übersicht",
+      "sources": "Quellenanalyse",
+      "margins": "Margenanalyse",
+      "leaderboard": "Bestenliste"
+    },
+    "stats": {
+      "closed": "Abgeschlossen",
+      "grossProfit": "Bruttogewinn",
+      "revenue": "Umsatz",
+      "conversion": "Konv.",
+      "leads": "Leads",
+      "salesperson": "Verkäufer",
+      "avgDeal": "Ø Abschluss",
+      "rank": "Rang"
+    },
+    "empty": {
+      "invoices": "Noch keine bezahlten Rechnungen",
+      "leads": "Noch keine Leads",
+      "closed": "Noch keine abgeschlossenen Deals",
+      "brands": "Noch keine Markendaten",
+      "salespeople": "Noch keine Verkäufer"
+    },
+    "marginNote": "Grün ≥ 10 % · Gelb 5–10 % · Rot < 5 %",
+    "timeNote": "Grün ≤ 14 T · Gelb ≤ 30 T · Rot > 30 T"
   }
 }

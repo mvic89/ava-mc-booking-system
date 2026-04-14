@@ -50,17 +50,19 @@ const STAGE_LABELS: Record<string, string> = {
   new:             'Ny',
   contacted:       'Kontaktad',
   testride:        'Provkörning',
+  offer:           'Offert',
   negotiating:     'Förhandling',
   pending_payment: 'Betalning pågår',
   closed:          'Avslutad',
 };
 
-const STAGE_ORDER = ['new', 'contacted', 'testride', 'negotiating', 'pending_payment', 'closed'];
+const STAGE_ORDER = ['new', 'contacted', 'testride', 'offer', 'negotiating', 'pending_payment', 'closed'];
 
 const STAGE_COLORS: Record<string, string> = {
   new:             '#FF6B2C',
   contacted:       '#f59e0b',
   testride:        '#8b5cf6',
+  offer:           '#0ea5e9',
   negotiating:     '#3b82f6',
   pending_payment: '#f97316',
   closed:          '#10b981',
@@ -606,13 +608,56 @@ export default function LeadDetailPage() {
                 </div>
 
                 {!isClosed && (
-                  <div className="mt-3 flex gap-2">
-                    <Link
-                      href={lead.stage === 'negotiating' ? `/sales/leads/${id}/agreement/payment` : `/sales/leads/${id}/agreement`}
-                      className="flex-1 py-2 text-xs font-semibold text-center rounded-xl bg-[#FF6B2C] hover:bg-orange-600 text-white transition-colors"
-                    >
-                      {lead.stage === 'negotiating' ? 'Gå till betalning →' : 'Öppna avtal →'}
-                    </Link>
+                  <div className="mt-3 flex gap-2 flex-wrap">
+                    {/* Stage-aware primary CTA */}
+                    {lead.stage === 'pending_payment' && (
+                      <Link href={`/sales/leads/${id}/agreement/payment`}
+                        className="flex-1 py-2 text-xs font-semibold text-center rounded-xl bg-[#FF6B2C] hover:bg-orange-600 text-white transition-colors">
+                        Gå till betalning →
+                      </Link>
+                    )}
+                    {lead.stage === 'negotiating' && (
+                      <Link href={`/sales/leads/${id}/agreement`}
+                        className="flex-1 py-2 text-xs font-semibold text-center rounded-xl bg-[#FF6B2C] hover:bg-orange-600 text-white transition-colors">
+                        Öppna avtal →
+                      </Link>
+                    )}
+                    {lead.stage === 'offer' && (
+                      <>
+                        <Link href={`/sales/leads/${id}/offer`}
+                          className="flex-1 py-2 text-xs font-semibold text-center rounded-xl bg-sky-500 hover:bg-sky-600 text-white transition-colors">
+                          Visa offert →
+                        </Link>
+                        <Link href={`/sales/leads/${id}/agreement`}
+                          className="flex-1 py-2 text-xs font-semibold text-center rounded-xl bg-[#FF6B2C] hover:bg-orange-600 text-white transition-colors">
+                          Öppna avtal →
+                        </Link>
+                      </>
+                    )}
+                    {lead.stage === 'testride' && (
+                      <>
+                        <Link href={`/sales/leads/${id}/testdrive`}
+                          className="flex-1 py-2 text-xs font-semibold text-center rounded-xl bg-violet-500 hover:bg-violet-600 text-white transition-colors">
+                          Visa provkörning →
+                        </Link>
+                        <Link href={`/sales/leads/${id}/offer`}
+                          className="flex-1 py-2 text-xs font-semibold text-center rounded-xl bg-sky-500 hover:bg-sky-600 text-white transition-colors">
+                          Skapa offert →
+                        </Link>
+                      </>
+                    )}
+                    {(lead.stage === 'new' || lead.stage === 'contacted') && (
+                      <>
+                        <Link href={`/sales/leads/${id}/testdrive`}
+                          className="flex-1 py-2 text-xs font-semibold text-center rounded-xl bg-violet-500 hover:bg-violet-600 text-white transition-colors">
+                          Boka provkörning →
+                        </Link>
+                        <Link href={`/sales/leads/${id}/offer`}
+                          className="flex-1 py-2 text-xs font-semibold text-center rounded-xl bg-sky-500 hover:bg-sky-600 text-white transition-colors">
+                          Skapa offert →
+                        </Link>
+                      </>
+                    )}
                     <button
                       onClick={() => setShowLostModal(true)}
                       className="px-3 py-2 text-xs font-semibold rounded-xl border border-red-200 text-red-600 hover:bg-red-50 transition-colors"

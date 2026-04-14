@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { PurchaseInvoice, PurchaseInvoiceStatus } from '@/utils/types';
 import { supabase } from '@/lib/supabase';
 import { getDealershipId, getDealershipTag, getDealershipProfile } from '@/lib/tenant';
