@@ -7,6 +7,7 @@ import { Motorcycle, SparePart, Accessory, BaseInventoryItem, InventoryCategory 
 import { AddItemModal } from '@/components/AddItemModal'
 import { ImportInventoryModal } from '@/components/ImportInventoryModal'
 import { EditItemModal } from '@/components/EditItemModal'
+import Sidebar from '@/components/Sidebar'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -457,7 +458,9 @@ export default function InventoryPage() {
     const pendingPOs = autoPOs.filter((p) => p.status === 'Draft').length
 
     return (
-        <div className="lg:ml-64 min-h-screen bg-[#f5f7fa] flex flex-col">
+        <div className="flex min-h-screen bg-[#f5f7fa]">
+        <Sidebar />
+        <div className="lg:ml-64 min-h-screen bg-[#f5f7fa] flex flex-col w-full">
             <div className="brand-top-bar" />
 
             {/* Header */}
@@ -631,6 +634,7 @@ export default function InventoryPage() {
                     onClose={() => setSelectedItem(null)}
                 />
             )}
+        </div>
         </div>
     )
 }

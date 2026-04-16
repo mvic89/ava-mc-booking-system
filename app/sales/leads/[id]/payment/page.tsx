@@ -1522,10 +1522,32 @@ export default function PaymentPage() {
   const params = useParams();
   const id = (params?.id as string) || 'default';
 
-  const [activeTab, setActiveTab] = useState<PaymentMethod>('financing');
-  const [order, setOrder] = useState<OrderSummary>(EMPTY_ORDER);
+  const [activeTab,     setActiveTab]     = useState<PaymentMethod>('financing');
+  const [order,         setOrder]         = useState<OrderSummary>(EMPTY_ORDER);
+  const [dealershipId,  setDealershipId]  = useState('');
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_ready, setReady] = useState(false);
+
+  // Create a pending invoice as soon as the bank-transfer tab is visible so
+  // the dealer has a trackable record before the customer sends the transfer.
+  useEffect(() => {
+    if (activeTab !== 'bank-transfer' || !dealershipId || !order.totalAmount) return;
+    fetch('/api/invoice/create', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        leadId:        String(id),
+        dealershipId,
+        customerName:  order.customerName,
+        vehicle:       order.vehicle,
+        agreementRef:  order.agreementNumber,
+        totalAmount:   order.totalAmount,
+        paymentMethod: 'Bank Transfer',
+        status:        'pending',
+      }),
+    }).catch(() => { /* non-fatal */ });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, dealershipId, order.totalAmount]);
 
   const handlePaymentConfirmed = (tabId: PaymentMethod) => {
     const tab = TABS.find(t => t.id === tabId)!;
@@ -1548,6 +1570,7 @@ export default function PaymentPage() {
     let parsed: { dealershipId?: string } = {};
     try { parsed = JSON.parse(stored); } catch { /* ignore */ }
     const dealershipId = parsed.dealershipId ?? '';
+    setDealershipId(dealershipId);
 
     (async () => {
       try {

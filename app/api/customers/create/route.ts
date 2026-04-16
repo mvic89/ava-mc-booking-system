@@ -149,6 +149,11 @@ async function handleCreate(lead: Row, dealershipId: string): Promise<NextRespon
       tag:                'Active',
       lifetime_value:     leadValue,
       last_activity:      new Date().toISOString(),
+      customer_since:     new Date().toISOString(),
+      risk_level:         'low',
+      citizenship:        null,
+      deceased:           false,
+      notes:              null,
       dealership_id:      dealershipId,
     };
 

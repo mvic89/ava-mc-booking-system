@@ -338,6 +338,14 @@ export default function TestDrivePage() {
     const profile      = getDealershipProfile();
     const parsed       = JSON.parse(raw);
     const userName     = parsed.name || parsed.givenName || '';
+    const city         = (parsed.city as string) || '';
+
+    // Build the default route string from the dealership info
+    const dealerLabel  = profile.name || 'anläggningen';
+    const locationStr  = profile.address || city;
+    const defaultRoute = locationStr
+      ? `Avresa från ${dealerLabel}, ${locationStr} — standardrutt, retur till anläggningen (~25 km)`
+      : `Avresa från ${dealerLabel} — standardrutt, retur till anläggningen (~25 km)`;
 
     setDealer({ name: profile.name, address: profile.address, phone: profile.phone });
     setLoggedInUser(userName);
@@ -409,7 +417,7 @@ export default function TestDrivePage() {
           scheduledDate:       existing.scheduled_date        ?? '',
           departureTime:       existing.departure_time        ?? '',
           returnTime:          existing.return_time           ?? '',
-          route:               existing.route                 ?? '',
+          route:               existing.route                 || defaultRoute,
           insuranceCompany:    existing.insurance_company     ?? '',
           insuranceFee:        existing.insurance_fee         ?? 250,
           preInspectionOk:     existing.pre_inspection_ok     ?? true,
@@ -430,6 +438,7 @@ export default function TestDrivePage() {
           vin:           vinDefault,
           staffName:     userName,
           scheduledDate: new Date().toISOString().slice(0, 10),
+          route:         defaultRoute,
         }));
       }
       setReady(true);

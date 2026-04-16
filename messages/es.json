@@ -1360,7 +1360,8 @@
       "payment": "Pago",
       "fortnox": "Fortnox",
       "action": "Acción"
-    }
+    },
+    "subtitle": "Integración con Fortnox — sincroniza y exporta facturas."
   },
   "suppliers": {
     "title": "Proveedores",
@@ -1588,5 +1589,38 @@
     },
     "marginNote": "Verde ≥ 10 % · Amarillo 5–10 % · Rojo < 5 %",
     "timeNote": "Verde ≤ 14 d · Amarillo ≤ 30 d · Rojo > 30 d"
+  },
+  "purchase": {
+    "title": "Órdenes de compra",
+    "subtitle": "Haz clic en una fila para abrir el pedido completo. Los pedidos automáticos se actualizan en tiempo real.",
+    "breadcrumb": "Órdenes de compra",
+    "search": "Buscar pedido, proveedor, artículo...",
+    "importBtn": "Importar Excel",
+    "createBtn": "Crear pedido",
+    "importFromExcel": "Importar desde Excel",
+    "allGoodBanner": "Los {n} artículos del inventario están por encima de sus puntos de pedido — no se necesitan pedidos.",
+    "autoPOBanner": "{n} pedido{s} automático generado por stock bajo",
+    "autoPOHide": "▲ ocultar",
+    "autoPOShow": "▼ mostrar",
+    "autoPODesc": "Estos pedidos se generan automáticamente y se actualizan en tiempo real cuando cambia el stock.",
+    "empty": "Todavía no hay órdenes de compra",
+    "emptyHint": "Importa desde Excel o crea un pedido manualmente",
+    "noMatch": "Ninguna orden de compra coincide con tu filtro",
+    "tabAll": "Todas",
+    "statusDraft": "Borrador",
+    "statusReviewed": "Revisado",
+    "statusSent": "Enviado",
+    "statusReceived": "Recibido",
+    "cardTotal": "Total pedidos",
+    "cardDraft": "Borrador",
+    "cardSent": "Enviados",
+    "cardValue": "Valor mostrado",
+    "colPO": "Nº pedido",
+    "colVendor": "Proveedor",
+    "colDate": "Fecha",
+    "colItems": "Artículos",
+    "colCost": "Coste total",
+    "colETA": "Llegada estimada",
+    "colStatus": "Estado"
   }
 }

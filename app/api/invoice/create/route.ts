@@ -33,10 +33,12 @@ function birthDateFromPnr(pnr: string | null | undefined): string | null {
 // ── Server-side customer resolution ────────────────────────────────────────────
 // Finds the existing customer for a lead, or creates one.  Uses the service-role
 // client so Supabase RLS on the customers table never blocks the INSERT.
+// totalAmount is the actual invoice amount (used as lifetime_value).
 
 async function resolveCustomer(
   leadId:       string,
   dealershipId: string,
+  totalAmount:  number,
 ): Promise<{ customerId: number | null; customerName: string }> {
   const { data: lead } = await sb()
     .from('leads')
@@ -62,14 +64,24 @@ async function resolveCustomer(
   }
 
   if (existingId) {
+    // Update lifetime_value and last_activity for existing customer
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: c } = await sb().from('customers').select('first_name, last_name').eq('id', existingId).single();
+    const { data: c } = await sb().from('customers').select('first_name, last_name, lifetime_value').eq('id', existingId).single();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const name = c ? `${(c as any).first_name} ${(c as any).last_name}`.trim() : fallbackName;
+    if (totalAmount > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const prev = parseFloat(String((c as any)?.lifetime_value ?? '0')) || 0;
+      await sb().from('customers').update({
+        lifetime_value: prev + totalAmount,
+        last_activity:  new Date().toISOString(),
+        tag:            'Active',
+      }).eq('id', existingId).eq('dealership_id', dealershipId);
+    }
     return { customerId: existingId, customerName: name };
   }
 
-  // Create new customer row
+  // Create new customer row using actual sale amount as lifetime_value
   const nameParts = fallbackName.trim().split(/\s+/);
   const firstName = nameParts[0] ?? '';
   const lastName  = nameParts.slice(1).join(' ') || '—';
@@ -82,16 +94,21 @@ async function resolveCustomer(
       email:              lead.email        || null,
       phone:              lead.phone        || null,
       address:            lead.address      || null,
-      postal_code:        lead.postal_code   || null,
-      city:               lead.city          || null,
+      postal_code:        lead.postal_code  || null,
+      city:               lead.city         || null,
       birth_date:         birthDateFromPnr(lead.personnummer as string),
       gender:             genderFromPnr(lead.personnummer as string),
       source:             lead.source === 'BankID' ? 'BankID' : 'Manual',
       bankid_verified:    lead.source === 'BankID',
       protected_identity: false,
       tag:                'Active',
-      lifetime_value:     lead.value        || 0,
+      lifetime_value:     totalAmount > 0 ? totalAmount : (parseFloat(String(lead.value ?? '0')) || 0),
       last_activity:      new Date().toISOString(),
+      customer_since:     new Date().toISOString(),
+      risk_level:         'low',
+      citizenship:        null,
+      deceased:           false,
+      notes:              null,
       dealership_id:      dealershipId,
     })
     .select('id')
@@ -119,6 +136,62 @@ async function resolveCustomer(
 
   console.error('[invoice/create] resolveCustomer insert failed:', insertErr?.code, insertErr?.message);
   return { customerId: null, customerName: fallbackName };
+}
+
+// ── Inventory deduction after a confirmed sale ─────────────────────────────────
+// Decrements stock for the motorcycle and any accessories/spare-parts in the offer.
+// Safe to call multiple times — stock never goes below 0.
+
+async function deductInventory(leadId: string, dealershipId: string): Promise<void> {
+  // Fetch the latest offer for this lead to get vehicle + accessories
+  const { data: offer } = await sb()
+    .from('offers')
+    .select('vehicle, vin, accessories')
+    .eq('lead_id', leadId)
+    .eq('dealership_id', dealershipId)
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!offer) return;
+
+  // Decrement motorcycle stock — look up by VIN first, then by name
+  const { vehicle, vin, accessories: accessoriesJson } = offer as {
+    vehicle: string; vin: string; accessories: string;
+  };
+
+  if (vin) {
+    const { data: mc } = await sb().from('motorcycles').select('id, stock').eq('vin', vin).eq('dealership_id', dealershipId).maybeSingle();
+    if (mc && mc.stock > 0) {
+      await sb().from('motorcycles').update({ stock: Math.max(0, mc.stock - 1) }).eq('id', mc.id).eq('dealership_id', dealershipId);
+      console.log('[invoice/create] decremented motorcycle stock for VIN:', vin);
+    }
+  } else if (vehicle) {
+    const { data: mc } = await sb().from('motorcycles').select('id, stock').ilike('name', `%${vehicle}%`).eq('dealership_id', dealershipId).limit(1).maybeSingle();
+    if (mc && mc.stock > 0) {
+      await sb().from('motorcycles').update({ stock: Math.max(0, mc.stock - 1) }).eq('id', mc.id).eq('dealership_id', dealershipId);
+      console.log('[invoice/create] decremented motorcycle stock for vehicle:', vehicle);
+    }
+  }
+
+  // Decrement accessories / spare parts stock
+  if (accessoriesJson) {
+    try {
+      const items = JSON.parse(accessoriesJson) as { id: string; qty: number }[];
+      if (!Array.isArray(items)) return;
+      for (const item of items) {
+        if (!item.id || !item.qty) continue;
+        const table = item.id.startsWith('SP-') ? 'spare_parts' : 'accessories';
+        const { data: inv } = await sb().from(table).select('id, stock').eq('id', item.id).eq('dealership_id', dealershipId).maybeSingle();
+        if (inv && inv.stock > 0) {
+          await sb().from(table).update({ stock: Math.max(0, inv.stock - item.qty) }).eq('id', item.id).eq('dealership_id', dealershipId);
+          console.log(`[invoice/create] decremented ${table} stock for ${item.id} by ${item.qty}`);
+        }
+      }
+    } catch {
+      // accessories field may not be JSON — skip silently
+    }
+  }
 }
 
 // ── Sequential invoice ID generator ────────────────────────────────────────────
@@ -171,7 +244,7 @@ export async function POST(req: Request) {
     let customerId    = bodyCustomerId ?? null;
     let customerName  = bodyCustomerName;
     if (leadId && customerId == null) {
-      const resolved = await resolveCustomer(leadId, dealershipId);
+      const resolved = await resolveCustomer(leadId, dealershipId, totalAmount);
       if (resolved.customerId != null)  customerId   = resolved.customerId;
       if (resolved.customerName)        customerName = resolved.customerName;
     }
@@ -266,6 +339,12 @@ export async function POST(req: Request) {
           import('@/lib/fortnox/sync')
             .then(({ syncInvoicesToFortnox }) => syncInvoicesToFortnox(dealershipId, [invoiceId]))
             .catch(() => { /* non-fatal — dealer can retry from /accounting */ });
+          // Decrement inventory stock for the sold motorcycle + accessories (fire-and-forget)
+          if (leadId) {
+            deductInventory(leadId, dealershipId).catch((err) =>
+              console.warn('[invoice/create] deductInventory failed (non-fatal):', err),
+            );
+          }
         }
         return NextResponse.json({ ok: true, invoiceId, customerId });
       }

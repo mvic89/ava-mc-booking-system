@@ -693,9 +693,20 @@ export default function AgreementPage() {
                             <DocLine label="Fordonspris efter rabatt" value={fmt(priceAfterDiscount)} bold />
                           </>
                         )}
-                        {d.accessories && (
-                          <DocLine label={`Tillbehör: ${d.accessories}`} value={`+ ${fmt(d.accessoriesCost)}`} indent />
-                        )}
+                        {d.accessories && (() => {
+                          try {
+                            const items = JSON.parse(d.accessories) as { id: string; name: string; qty: number; unitPrice: number }[];
+                            if (Array.isArray(items) && items[0]?.id) {
+                              return items.map(item => (
+                                <DocLine key={item.id} indent
+                                  label={`${item.name}${item.qty > 1 ? ` × ${item.qty}` : ''}`}
+                                  value={`+ ${fmt(item.qty * item.unitPrice)}`}
+                                />
+                              ));
+                            }
+                          } catch { /* plain text */ }
+                          return <DocLine label={`Tillbehör: ${d.accessories}`} value={`+ ${fmt(d.accessoriesCost)}`} indent />;
+                        })()}
                         {d.tradeIn && (
                           <DocLine label={`Inbyte: ${d.tradeIn}`} value={`− ${fmt(d.tradeInCredit)}`} negative indent />
                         )}

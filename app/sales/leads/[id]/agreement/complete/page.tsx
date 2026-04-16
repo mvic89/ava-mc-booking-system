@@ -125,10 +125,14 @@ export default function AgreementCompletePage() {
       setSalesperson((u.givenName ?? u.name ?? '') as string);
     } catch { /* ignore */ }
 
-    // Payment method (read before clearing)
+    // Payment method (read before clearing — capture name for invoice creation)
+    let capturedPmName = '—';
     try {
-      const pm = JSON.parse(sessionStorage.getItem('selectedPaymentMethod') ?? 'null');
-      setPaymentMethod(pm);
+      const pm = JSON.parse(sessionStorage.getItem('selectedPaymentMethod') ?? 'null') as { name?: string; icon?: string; id?: string } | null;
+      if (pm) {
+        setPaymentMethod(pm as SelectedPayment);
+        capturedPmName = pm.name ?? '—';
+      }
     } catch { /* ignore */ }
     sessionStorage.removeItem('selectedPaymentMethod');
 
@@ -202,11 +206,7 @@ export default function AgreementCompletePage() {
 
           // ── Ensure a paid invoice exists (idempotent — route deduplicates) ──
           try {
-            let pmName = '—';
-            try {
-              const pmRaw = sessionStorage.getItem('selectedPaymentMethod');
-              if (pmRaw) pmName = (JSON.parse(pmRaw) as { name: string }).name ?? '—';
-            } catch { /* ignore */ }
+            const pmName = capturedPmName;
 
             let agreementRef = '';
             let totalAmount  = val;
@@ -218,7 +218,7 @@ export default function AgreementCompletePage() {
               }
             } catch { /* ignore */ }
 
-            const res  = await fetch('/api/payment/record', {
+            const res  = await fetch('/api/invoice/create', {
               method:  'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -230,6 +230,7 @@ export default function AgreementCompletePage() {
                 customerName:  name,
                 agreementRef,
                 totalAmount,
+                paidDate:      new Date().toISOString(),
               }),
             });
             const json = await res.json().catch(() => ({}));

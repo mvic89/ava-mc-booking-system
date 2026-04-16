@@ -1360,7 +1360,8 @@
       "payment": "Paiement",
       "fortnox": "Fortnox",
       "action": "Action"
-    }
+    },
+    "subtitle": "Intégration Fortnox — synchronisez et exportez les factures."
   },
   "suppliers": {
     "title": "Fournisseurs",
@@ -1588,5 +1589,38 @@
     },
     "marginNote": "Vert ≥ 10 % · Jaune 5–10 % · Rouge < 5 %",
     "timeNote": "Vert ≤ 14 j · Jaune ≤ 30 j · Rouge > 30 j"
+  },
+  "purchase": {
+    "title": "Bons de commande",
+    "subtitle": "Cliquez sur une ligne pour ouvrir le bon de commande complet. Les BC automatiques se mettent à jour en direct.",
+    "breadcrumb": "Bons de commande",
+    "search": "Rechercher BC, fournisseur, article...",
+    "importBtn": "Importer Excel",
+    "createBtn": "Créer BC",
+    "importFromExcel": "Importer depuis Excel",
+    "allGoodBanner": "Tous les {n} articles en stock sont au-dessus de leurs points de réapprovisionnement — aucun BC nécessaire.",
+    "autoPOBanner": "{n} bon{s} de commande auto-généré depuis le stock bas",
+    "autoPOHide": "▲ masquer",
+    "autoPOShow": "▼ afficher",
+    "autoPODesc": "Ces bons de commande sont auto-générés et se mettent à jour en direct lors des changements de stock.",
+    "empty": "Aucun bon de commande pour l'instant",
+    "emptyHint": "Importez depuis Excel ou créez un BC manuellement",
+    "noMatch": "Aucun bon de commande ne correspond à votre filtre",
+    "tabAll": "Tous",
+    "statusDraft": "Brouillon",
+    "statusReviewed": "Examiné",
+    "statusSent": "Envoyé",
+    "statusReceived": "Reçu",
+    "cardTotal": "Total BC",
+    "cardDraft": "Brouillon",
+    "cardSent": "Envoyés",
+    "cardValue": "Valeur affichée",
+    "colPO": "Numéro BC",
+    "colVendor": "Fournisseur",
+    "colDate": "Date",
+    "colItems": "Articles",
+    "colCost": "Coût total",
+    "colETA": "Arrivée estimée",
+    "colStatus": "Statut"
   }
 }

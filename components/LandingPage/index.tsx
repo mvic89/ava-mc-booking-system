@@ -5,18 +5,19 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { useTheme } from '@/context/ThemeContext';
 
 // ── Static config (non-translated) ────────────────────────────────────────────
 
 const FEATURE_META = [
-  { icon: '🏍', color: '#FF6B2C', bg: '#fff4ef' },
-  { icon: '🪪', color: '#3b82f6', bg: '#eff6ff' },
-  { icon: '📄', color: '#10b981', bg: '#f0fdf4' },
-  { icon: '💳', color: '#8b5cf6', bg: '#f5f3ff' },
-  { icon: '📊', color: '#f59e0b', bg: '#fffbeb' },
-  { icon: '🔔', color: '#ef4444', bg: '#fef2f2' },
-  { icon: '👥', color: '#0891b2', bg: '#f0f9ff' },
-  { icon: '🔧', color: '#16a34a', bg: '#f0fdf4' },
+  { icon: '🏍', color: '#FF6B2C', bg: '#fff4ef', bgDark: 'rgba(255,107,44,0.12)' },
+  { icon: '🪪', color: '#3b82f6', bg: '#eff6ff', bgDark: 'rgba(59,130,246,0.12)' },
+  { icon: '📄', color: '#10b981', bg: '#f0fdf4', bgDark: 'rgba(16,185,129,0.12)' },
+  { icon: '💳', color: '#8b5cf6', bg: '#f5f3ff', bgDark: 'rgba(139,92,246,0.12)' },
+  { icon: '📊', color: '#f59e0b', bg: '#fffbeb', bgDark: 'rgba(245,158,11,0.12)' },
+  { icon: '🔔', color: '#ef4444', bg: '#fef2f2', bgDark: 'rgba(239,68,68,0.12)' },
+  { icon: '👥', color: '#0891b2', bg: '#f0f9ff', bgDark: 'rgba(8,145,178,0.12)' },
+  { icon: '🔧', color: '#16a34a', bg: '#f0fdf4', bgDark: 'rgba(22,163,74,0.12)' },
 ] as const;
 
 const STEP_META = [
@@ -211,6 +212,7 @@ export default function LandingPage() {
   const hasChecked = useRef(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const t = useTranslations('landing');
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     if (hasChecked.current) return;
@@ -239,6 +241,7 @@ export default function LandingPage() {
     ...m,
     title: t(`features.f${i + 1}t` as any),
     desc: t(`features.f${i + 1}d` as any),
+    bgResolved: theme === 'dark' ? m.bgDark : m.bg,
   }));
 
   const HOW_IT_WORKS = STEP_META.map((m, i) => ({
@@ -319,6 +322,21 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-2 md:gap-3 shrink-0">
             <LanguageSwitcher variant="landing" />
+            <button
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              className="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-all"
+            >
+              {theme === 'dark' ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+              )}
+            </button>
             <Link href="/auth/login" className="hidden sm:block text-sm font-semibold text-slate-600 hover:text-[#FF6B2C] transition-colors px-3 py-2">
               {t('nav.login')}
             </Link>
@@ -646,7 +664,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {FEATURES.map((f) => (
               <div key={f.title} className="group rounded-2xl border border-slate-200 bg-white p-6 hover:border-transparent hover:shadow-xl transition-all duration-300 cursor-default">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mb-4 transition-all group-hover:scale-110" style={{ background: f.bg }}>{f.icon}</div>
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mb-4 transition-all group-hover:scale-110" style={{ background: f.bgResolved }}>{f.icon}</div>
                 <div className="w-8 h-0.5 rounded-full mb-3 transition-all group-hover:w-12" style={{ background: f.color }} />
                 <h3 className="text-sm font-bold text-slate-900 mb-2">{f.title}</h3>
                 <p className="text-xs text-slate-500 leading-relaxed">{f.desc}</p>
@@ -710,7 +728,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {TESTIMONIALS.map(testimonial => (
               <div key={testimonial.name} className="rounded-2xl p-8 flex flex-col relative overflow-hidden border border-slate-100 hover:shadow-xl transition-all group"
-                style={{ background: 'linear-gradient(145deg, #ffffff, #f8fafc)' }}>
+                style={{ background: theme === 'dark' ? 'linear-gradient(145deg, #161b22, #1c2128)' : 'linear-gradient(145deg, #ffffff, #f8fafc)' }}>
                 <div className="absolute top-5 right-6 text-6xl font-black leading-none select-none opacity-10" style={{ color: testimonial.color }}>"</div>
                 <div className="flex gap-1 mb-5">
                   {Array.from({ length: 5 }).map((_, i) => <span key={i} className="text-amber-400 text-sm">★</span>)}
@@ -761,7 +779,7 @@ export default function LandingPage() {
                     {p.features.map(f => (
                       <li key={f} className="flex items-center gap-3 text-xs">
                         <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[9px] font-black"
-                          style={{ background: p.highlight ? 'rgba(255,107,44,0.2)' : '#f0fdf4', color: p.highlight ? '#FF6B2C' : '#16a34a' }}>✓</div>
+                          style={{ background: p.highlight ? 'rgba(255,107,44,0.2)' : (theme === 'dark' ? 'rgba(22,163,74,0.15)' : '#f0fdf4'), color: p.highlight ? '#FF6B2C' : '#16a34a' }}>✓</div>
                         <span className={p.highlight ? 'text-slate-200' : 'text-slate-600'}>{f}</span>
                       </li>
                     ))}
@@ -795,7 +813,7 @@ export default function LandingPage() {
       {/* ── Contact ─────────────────────────────────────────────────────────── */}
       <section className="py-20 bg-white border-t border-slate-100">
         <div className="max-w-5xl mx-auto px-5 md:px-8">
-          <div className="rounded-3xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #f8fafc, #f1f5f9)', border: '1px solid #e2e8f0' }}>
+          <div className="rounded-3xl overflow-hidden" style={{ background: theme === 'dark' ? 'linear-gradient(135deg, #161b22, #1c2128)' : 'linear-gradient(135deg, #f8fafc, #f1f5f9)', border: theme === 'dark' ? '1px solid #30363d' : '1px solid #e2e8f0' }}>
             <div className="grid md:grid-cols-[1fr_auto] items-center gap-8 p-10 md:p-14">
               <div>
                 <span className="inline-block text-xs font-black text-[#FF6B2C] uppercase tracking-widest bg-orange-50 px-3 py-1.5 rounded-full mb-4">{t('contact.badge' as any)}</span>

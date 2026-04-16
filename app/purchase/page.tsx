@@ -9,6 +9,8 @@ import { POModal, STATUS_STYLE, formatCurrency, qtyKey, VendorItem } from '@/com
 import { CreatePOModal, FlatInventoryItem } from '@/components/CreatePOModal'
 import { ImportPOModal } from '@/components/ImportPOModal'
 import { POLineItem, POStatus, PurchaseOrder } from '@/utils/types'
+import Sidebar from '@/components/Sidebar'
+import { useTranslations } from 'next-intl'
 
 const ALL_STATUSES: POStatus[] = ['Draft', 'Reviewed', 'Sent', 'Received']
 
@@ -36,15 +38,16 @@ async function generateNextPOId(tag: string): Promise<string> {
 // ─── Summary cards ────────────────────────────────────────────────────────────
 
 function SummaryCards({ allPOs, filtered }: { allPOs: PurchaseOrder[]; filtered: PurchaseOrder[] }) {
+    const t          = useTranslations('purchase')
     const totalValue = filtered.reduce((s, p) => s + p.totalCost, 0)
     const draft      = allPOs.filter((p) => p.status === 'Draft').length
     const sent       = allPOs.filter((p) => p.status === 'Sent').length
 
     const cards = [
-        { label: 'Total POs',       value: String(allPOs.length),      icon: '📦', color: 'bg-blue-50 text-blue-700'  },
-        { label: 'Draft',           value: String(draft),              icon: '📝', color: 'bg-gray-100 text-gray-700' },
-        { label: 'Sent',            value: String(sent),               icon: '📤', color: 'bg-orange-50 text-orange-700' },
-        { label: 'Displayed Value', value: formatCurrency(totalValue), icon: '💰', color: 'bg-green-50 text-green-700' },
+        { label: t('cardTotal'), value: String(allPOs.length),      icon: '📦', color: 'bg-blue-50 text-blue-700'  },
+        { label: t('cardDraft'), value: String(draft),              icon: '📝', color: 'bg-gray-100 text-gray-700' },
+        { label: t('cardSent'),  value: String(sent),               icon: '📤', color: 'bg-orange-50 text-orange-700' },
+        { label: t('cardValue'), value: formatCurrency(totalValue), icon: '💰', color: 'bg-green-50 text-green-700' },
     ]
 
     return (
@@ -63,6 +66,7 @@ function SummaryCards({ allPOs, filtered }: { allPOs: PurchaseOrder[]; filtered:
 // ─── Auto-PO info banner ──────────────────────────────────────────────────────
 
 function AutoPOBanner({ autoPOs, allInventoryCount }: { autoPOs: PurchaseOrder[]; allInventoryCount: number }) {
+    const t     = useTranslations('purchase')
     const [open, setOpen] = useState(false)
 
     const draft = autoPOs.filter((p) => p.status === 'Draft')
@@ -71,7 +75,7 @@ function AutoPOBanner({ autoPOs, allInventoryCount }: { autoPOs: PurchaseOrder[]
         return (
             <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-5 flex items-center gap-2 text-sm text-green-700">
                 <span>✅</span>
-                <span>All {allInventoryCount} inventory items are above their reorder points — no POs needed right now.</span>
+                <span>{t('allGoodBanner', { n: allInventoryCount })}</span>
             </div>
         )
     }
@@ -84,18 +88,14 @@ function AutoPOBanner({ autoPOs, allInventoryCount }: { autoPOs: PurchaseOrder[]
             >
                 <div className="flex items-center gap-3 text-sm text-amber-800 font-medium">
                     <span>⚡</span>
-                    <span>
-                        {autoPOs.length} auto-generated PO{autoPOs.length > 1 ? 's' : ''} from low-stock inventory
-                    </span>
+                    <span>{t('autoPOBanner', { n: autoPOs.length, s: autoPOs.length > 1 ? 's' : '' })}</span>
                 </div>
-                <span className="text-amber-500 text-xs shrink-0 ml-4">{open ? '▲ hide' : '▼ show'}</span>
+                <span className="text-amber-500 text-xs shrink-0 ml-4">{open ? t('autoPOHide') : t('autoPOShow')}</span>
             </button>
 
             {open && (
                 <div className="border-t border-amber-200 px-4 pb-4 pt-3 space-y-2">
-                    <p className="text-xs text-amber-700 mb-3">
-                        These POs are auto-generated and update live when inventory stock changes.
-                    </p>
+                    <p className="text-xs text-amber-700 mb-3">{t('autoPODesc')}</p>
                     {draft.map((po) => (
                         <div
                             key={po.id}
@@ -123,6 +123,7 @@ function AutoPOBanner({ autoPOs, allInventoryCount }: { autoPOs: PurchaseOrder[]
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function PurchasePage() {
+    const t = useTranslations('purchase')
     const { autoPOs, motorcycles, spareParts, accessories } = useInventory()
     const allInventoryCount = motorcycles.length + spareParts.length + accessories.length
 
@@ -453,17 +454,26 @@ export default function PurchasePage() {
         generateNextPOId(tag).then(setNextPOId)
     }, [historicalPOs, userPOs])
     const tabs: (POStatus | 'All')[] = ['All', ...ALL_STATUSES]
+    const tabLabels: Record<POStatus | 'All', string> = {
+        All:      t('tabAll'),
+        Draft:    t('statusDraft'),
+        Reviewed: t('statusReviewed'),
+        Sent:     t('statusSent'),
+        Received: t('statusReceived'),
+    }
 
     return (
-        <div className="lg:ml-64 min-h-screen flex flex-col bg-white">
+        <div className="flex min-h-screen bg-[#f5f7fa]">
+        <Sidebar />
+        <div className="lg:ml-64 min-h-screen flex flex-col bg-white w-full">
             {/* Top bar */}
             <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 shrink-0">
-                <span className="text-sm text-gray-500 font-medium">Purchase Orders</span>
+                <span className="text-sm text-gray-500 font-medium">{t('breadcrumb')}</span>
                 <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
                     <input
                         type="text"
-                        placeholder="Search PO, vendor, item..."
+                        placeholder={t('search')}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="pl-8 pr-4 py-1.5 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-400 w-60"
@@ -475,23 +485,21 @@ export default function PurchasePage() {
             <div className="flex-1 overflow-auto p-6">
                 <div className="flex items-center justify-between mb-5">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Purchase Orders</h1>
-                        <p className="text-sm text-gray-400 mt-0.5">
-                            Click any row to open the full PO. Auto POs update live with inventory stock.
-                        </p>
+                        <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
+                        <p className="text-sm text-gray-400 mt-0.5">{t('subtitle')}</p>
                     </div>
                     <div className="flex gap-2">
                         <button
                             onClick={() => setShowImportPO(true)}
                             className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
                         >
-                            ⬆ Import Excel
+                            ⬆ {t('importBtn')}
                         </button>
                         <button
                             onClick={() => setShowCreatePO(true)}
                             className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
                         >
-                            + Create PO
+                            + {t('createBtn')}
                         </button>
                     </div>
                 </div>
@@ -511,7 +519,7 @@ export default function PurchasePage() {
                                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                             }`}
                         >
-                            {tab}
+                            {tabLabels[tab]}
                             <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
                                 activeStatus === tab ? 'bg-white/25 text-white' : 'bg-gray-200 text-gray-500'
                             }`}>
@@ -528,33 +536,33 @@ export default function PurchasePage() {
                             <div className="flex flex-col items-center justify-center h-64 gap-4">
                                 <span className="text-5xl">📦</span>
                                 <div className="text-center">
-                                    <p className="text-gray-700 font-semibold">No purchase orders yet</p>
-                                    <p className="text-gray-400 text-sm mt-1">Import from Excel or create a PO manually</p>
+                                    <p className="text-gray-700 font-semibold">{t('empty')}</p>
+                                    <p className="text-gray-400 text-sm mt-1">{t('emptyHint')}</p>
                                 </div>
                                 <button
                                     onClick={() => setShowImportPO(true)}
                                     className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors flex items-center gap-2"
                                 >
-                                    ⬆ Import from Excel
+                                    ⬆ {t('importFromExcel')}
                                 </button>
                             </div>
                         ) : (
                             <div className="flex flex-col items-center justify-center h-40 text-gray-400">
                                 <span className="text-3xl mb-2">📭</span>
-                                <p className="text-sm">No purchase orders match your filter</p>
+                                <p className="text-sm">{t('noMatch')}</p>
                             </div>
                         )
                     ) : (
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs uppercase text-gray-500 tracking-wider">
-                                    <th className="px-4 py-3">PO Number</th>
-                                    <th className="py-3 pr-4">Vendor</th>
-                                    <th className="py-3 pr-4">Date</th>
-                                    <th className="py-3 pr-4">Items</th>
-                                    <th className="py-3 pr-4">Total Cost</th>
-                                    <th className="py-3 pr-4">ETA</th>
-                                    <th className="py-3 pr-4">Status</th>
+                                    <th className="px-4 py-3">{t('colPO')}</th>
+                                    <th className="py-3 pr-4">{t('colVendor')}</th>
+                                    <th className="py-3 pr-4">{t('colDate')}</th>
+                                    <th className="py-3 pr-4">{t('colItems')}</th>
+                                    <th className="py-3 pr-4">{t('colCost')}</th>
+                                    <th className="py-3 pr-4">{t('colETA')}</th>
+                                    <th className="py-3 pr-4">{t('colStatus')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -643,6 +651,7 @@ export default function PurchasePage() {
                     vendorEmailOverride={supplierEmails[selectedPO.vendor]}
                 />
             )}
+        </div>
         </div>
     )
 }

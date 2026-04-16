@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -12,6 +12,7 @@ import { getSupabaseBrowser } from '@/lib/supabase';
 import { stopSupabaseSync } from '@/lib/realtime';
 import { toast } from 'sonner';
 import type { BankIDResult } from '@/types';
+import { useTheme } from '@/context/ThemeContext';
 
 
 export default function Sidebar() {
@@ -19,10 +20,12 @@ export default function Sidebar() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [open, setOpen] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
   const [dealershipLogo, setDealershipLogo] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [orgNr, setOrgNr] = useState('');
   const t = useTranslations();
+  const { theme, toggleTheme } = useTheme();
 
   // ── Switch User modal state ──────────────────────────────────────────────────
   const [showSwitch,    setShowSwitch]    = useState(false);
@@ -329,6 +332,14 @@ export default function Sidebar() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.dealershipId, user?.dealershipName]);
 
+  // Restore nav scroll position when sidebar mounts on a new page
+  useEffect(() => {
+    const saved = sessionStorage.getItem('sidebar-nav-scroll');
+    if (saved && navRef.current) {
+      navRef.current.scrollTop = parseInt(saved, 10);
+    }
+  }, []);
+
   // Hide on auth, public pages, and landing page
   const AUTH_PATHS = ['/auth', '/privacy', '/terms'];
   if (pathname === '/' || AUTH_PATHS.some(p => pathname?.startsWith(p))) return null;
@@ -358,7 +369,7 @@ export default function Sidebar() {
     // Destroy the server-side session cookie, then clear user identity
     await fetch('/api/auth/session', { method: 'DELETE' });
     localStorage.removeItem('user');
-    router.replace('/auth/login');
+    router.replace('/');
   };
 
   return (
@@ -604,7 +615,11 @@ export default function Sidebar() {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 overflow-y-auto space-y-5 pb-2">
+        <nav
+          ref={navRef}
+          className="flex-1 px-3 overflow-y-auto space-y-5 pb-2"
+          onScroll={e => sessionStorage.setItem('sidebar-nav-scroll', String((e.currentTarget as HTMLElement).scrollTop))}
+        >
           {NAV_GROUPS.map((group) => (
             <div key={group.label}>
               <p className="text-[10px] font-bold text-slate-600 tracking-widest px-3 mb-1.5">
@@ -698,6 +713,26 @@ export default function Sidebar() {
             >
               <span>🔄</span> Switch User
             </button>
+
+            {/* Dark / light mode toggle */}
+            <button
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              className="w-9 h-9 shrink-0 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all"
+            >
+              {theme === 'dark' ? (
+                /* Sun icon */
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" />
+                </svg>
+              ) : (
+                /* Moon icon */
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                </svg>
+              )}
+            </button>
+
             <button
               onClick={handleSignOut}
               className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-red-600/80 text-slate-400 hover:text-white text-xs font-medium transition-all"

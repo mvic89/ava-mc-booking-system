@@ -1360,7 +1360,8 @@
       "payment": "Betaling",
       "fortnox": "Fortnox",
       "action": "Actie"
-    }
+    },
+    "subtitle": "Fortnox-integratie — facturen synchroniseren en exporteren."
   },
   "suppliers": {
     "title": "Leveranciers",
@@ -1588,5 +1589,38 @@
     },
     "marginNote": "Groen ≥ 10 % · Geel 5–10 % · Rood < 5 %",
     "timeNote": "Groen ≤ 14 d · Geel ≤ 30 d · Rood > 30 d"
+  },
+  "purchase": {
+    "title": "Inkooporders",
+    "subtitle": "Klik op een rij om de volledige inkooporder te openen. Auto-IO wordt live bijgewerkt.",
+    "breadcrumb": "Inkooporders",
+    "search": "Zoek IO, leverancier, artikel...",
+    "importBtn": "Excel importeren",
+    "createBtn": "IO aanmaken",
+    "importFromExcel": "Importeren uit Excel",
+    "allGoodBanner": "Alle {n} voorraaditems zijn boven hun bestelpunten — geen IO's nodig.",
+    "autoPOBanner": "{n} automatisch gegenereerde IO{s} door lage voorraad",
+    "autoPOHide": "▲ verbergen",
+    "autoPOShow": "▼ tonen",
+    "autoPODesc": "Deze IO's worden automatisch gegenereerd en worden live bijgewerkt bij voorraadwijzigingen.",
+    "empty": "Nog geen inkooporders",
+    "emptyHint": "Importeer uit Excel of maak handmatig een IO aan",
+    "noMatch": "Geen inkooporders komen overeen met uw filter",
+    "tabAll": "Alle",
+    "statusDraft": "Concept",
+    "statusReviewed": "Beoordeeld",
+    "statusSent": "Verzonden",
+    "statusReceived": "Ontvangen",
+    "cardTotal": "Totaal IO",
+    "cardDraft": "Concept",
+    "cardSent": "Verzonden",
+    "cardValue": "Weergegeven waarde",
+    "colPO": "IO-nummer",
+    "colVendor": "Leverancier",
+    "colDate": "Datum",
+    "colItems": "Artikelen",
+    "colCost": "Totale kosten",
+    "colETA": "Verwachte aankomst",
+    "colStatus": "Status"
   }
 }

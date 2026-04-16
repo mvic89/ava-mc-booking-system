@@ -1360,7 +1360,8 @@
       "payment": "Betaling",
       "fortnox": "Fortnox",
       "action": "Handling"
-    }
+    },
+    "subtitle": "Fortnox-integrasjon — synkroniser og eksporter fakturaer."
   },
   "suppliers": {
     "title": "Leverandører",
@@ -1588,5 +1589,38 @@
     },
     "marginNote": "Grønt ≥ 10 % · Gult 5–10 % · Rødt < 5 %",
     "timeNote": "Grønt ≤ 14 d · Gult ≤ 30 d · Rødt > 30 d"
+  },
+  "purchase": {
+    "title": "Innkjøpsordre",
+    "subtitle": "Klikk på en rad for å åpne hele PO. Auto-PO oppdateres live med lagerstatus.",
+    "breadcrumb": "Innkjøpsordre",
+    "search": "Søk PO, leverandør, vare...",
+    "importBtn": "Importer Excel",
+    "createBtn": "Opprett PO",
+    "importFromExcel": "Importer fra Excel",
+    "allGoodBanner": "Alle {n} lagervarer er over sine bestillingspunkter — ingen PO trengs nå.",
+    "autoPOBanner": "{n} auto-generert{s} PO fra lavt lager",
+    "autoPOHide": "▲ skjul",
+    "autoPOShow": "▼ vis",
+    "autoPODesc": "Disse PO-ene er auto-genererte og oppdateres live når lagerstatusen endres.",
+    "empty": "Ingen innkjøpsordre ennå",
+    "emptyHint": "Importer fra Excel eller opprett en PO manuelt",
+    "noMatch": "Ingen innkjøpsordre samsvarer med filteret ditt",
+    "tabAll": "Alle",
+    "statusDraft": "Utkast",
+    "statusReviewed": "Gjennomgått",
+    "statusSent": "Sendt",
+    "statusReceived": "Mottatt",
+    "cardTotal": "Totalt PO",
+    "cardDraft": "Utkast",
+    "cardSent": "Sendte",
+    "cardValue": "Vist verdi",
+    "colPO": "PO-nummer",
+    "colVendor": "Leverandør",
+    "colDate": "Dato",
+    "colItems": "Varer",
+    "colCost": "Totalkostnad",
+    "colETA": "Estimert ankomst",
+    "colStatus": "Status"
   }
 }

@@ -1360,7 +1360,8 @@
       "payment": "Zahlung",
       "fortnox": "Fortnox",
       "action": "Aktion"
-    }
+    },
+    "subtitle": "Fortnox-Integration — Rechnungen synchronisieren und exportieren."
   },
   "suppliers": {
     "title": "Lieferanten",
@@ -1588,5 +1589,38 @@
     },
     "marginNote": "Grün ≥ 10 % · Gelb 5–10 % · Rot < 5 %",
     "timeNote": "Grün ≤ 14 T · Gelb ≤ 30 T · Rot > 30 T"
+  },
+  "purchase": {
+    "title": "Bestellungen",
+    "subtitle": "Klicken Sie auf eine Zeile, um die vollständige Bestellung zu öffnen. Auto-Bestellungen werden live aktualisiert.",
+    "breadcrumb": "Bestellungen",
+    "search": "Bestellung, Lieferant, Artikel suchen...",
+    "importBtn": "Excel importieren",
+    "createBtn": "Bestellung erstellen",
+    "importFromExcel": "Aus Excel importieren",
+    "allGoodBanner": "Alle {n} Lagerartikel liegen über ihren Nachbestellpunkten — keine Bestellungen erforderlich.",
+    "autoPOBanner": "{n} automatisch generierte Bestellung{s} aus Niedrigbestand",
+    "autoPOHide": "▲ ausblenden",
+    "autoPOShow": "▼ anzeigen",
+    "autoPODesc": "Diese Bestellungen werden automatisch generiert und aktualisieren sich live bei Lageränderungen.",
+    "empty": "Noch keine Bestellungen",
+    "emptyHint": "Importieren Sie aus Excel oder erstellen Sie manuell eine Bestellung",
+    "noMatch": "Keine Bestellungen entsprechen Ihrem Filter",
+    "tabAll": "Alle",
+    "statusDraft": "Entwurf",
+    "statusReviewed": "Geprüft",
+    "statusSent": "Gesendet",
+    "statusReceived": "Erhalten",
+    "cardTotal": "Bestellungen gesamt",
+    "cardDraft": "Entwurf",
+    "cardSent": "Gesendet",
+    "cardValue": "Angezeigter Wert",
+    "colPO": "Bestellnummer",
+    "colVendor": "Lieferant",
+    "colDate": "Datum",
+    "colItems": "Artikel",
+    "colCost": "Gesamtkosten",
+    "colETA": "Geschätzte Ankunft",
+    "colStatus": "Status"
   }
 }
