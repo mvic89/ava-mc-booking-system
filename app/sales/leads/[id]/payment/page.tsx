@@ -36,6 +36,11 @@ interface OrderSummary {
   deposit: number;
   balanceDue: number;
   location: string;
+  dealershipId: string;
+  customerId?: number | null;
+  leadId?: number | null;
+  customerEmail?: string;
+  customerPhone?: string;
 }
 
 // ─── Empty order placeholder (replaced with live data after fetch) ────────────
@@ -51,6 +56,7 @@ const EMPTY_ORDER: OrderSummary = {
   deposit: 0,
   balanceDue: 0,
   location: '',
+  dealershipId: '',
 };
 
 const MOCK_FINANCING: Record<FinancingBank, FinancingApplication> = {
@@ -1457,17 +1463,39 @@ function BankTransferTab({ order, onConfirmed }: { order: OrderSummary; onConfir
     setSendStatus('sending');
     setSendError('');
     try {
-      const res = await fetch('/api/payment/send-details', {
+      const subject = `Betalningsinstruktioner — ${dealerCompany} (Ref: ${bankDetails.reference})`;
+      const message = [
+        `Hej ${order.customerName},`,
+        '',
+        'Tack för ditt köp! Här är bankuppgifterna för din betalning.',
+        'Ange exakt referensnummer vid överföringen.',
+        '',
+        `Mottagare:     ${bankDetails.company}`,
+        `Bankgiro:      ${bankDetails.bankgiro}`,
+        `IBAN:          ${bankDetails.iban}`,
+        `BIC/SWIFT:     ${bankDetails.bic}`,
+        `Belopp:        ${bankDetails.amount}`,
+        `Referensnummer: ${bankDetails.reference}`,
+        '',
+        'Utan rätt referens kan vi inte koppla din betalning till ditt ärende.',
+        '',
+        'Frågor? Kontakta din säljare.',
+      ].join('\n');
+
+      const res = await fetch('/api/communications/send', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contact:      sendContact.trim(),
-          method:       sendMethod,
-          customerName: order.customerName,
-          bankDetails,
-          dealerName:   dealerCompany,
-          leadId:       order.agreementNumber,
-          dealershipId: '',
+          dealershipId:    order.dealershipId,
+          channel:         sendMethod,
+          leadId:          order.leadId   ?? null,
+          customerId:      order.customerId ?? null,
+          recipientName:   order.customerName,
+          recipientEmail:  sendMethod === 'email' ? sendContact.trim() : undefined,
+          recipientPhone:  sendMethod === 'sms'   ? sendContact.trim() : undefined,
+          subject:         sendMethod === 'email' ? subject : undefined,
+          message,
+          sentBy:          'payment-page',
         }),
       });
       const data = await res.json();
@@ -1502,7 +1530,15 @@ function BankTransferTab({ order, onConfirmed }: { order: OrderSummary; onConfir
             </p>
           </div>
           <button
-            onClick={() => { setShowSendPanel(v => !v); setSendStatus('idle'); setSendError(''); }}
+            onClick={() => {
+              const next = !showSendPanel;
+              setShowSendPanel(next);
+              setSendStatus('idle');
+              setSendError('');
+              if (next && !sendContact) {
+                setSendContact(sendMethod === 'email' ? (order.customerEmail ?? '') : (order.customerPhone ?? ''));
+              }
+            }}
             className="px-3 py-1.5 rounded-lg bg-[#FF6B2C] hover:bg-[#e55a1f] text-xs font-bold transition-colors"
           >
             {showSendPanel ? 'Hide' : 'Send Details'}
@@ -1516,7 +1552,11 @@ function BankTransferTab({ order, onConfirmed }: { order: OrderSummary; onConfir
               {(['email', 'sms'] as const).map(m => (
                 <button
                   key={m}
-                  onClick={() => { setSendMethod(m); setSendContact(''); setSendStatus('idle'); }}
+                  onClick={() => {
+                    setSendMethod(m);
+                    setSendContact(m === 'email' ? (order.customerEmail ?? '') : (order.customerPhone ?? ''));
+                    setSendStatus('idle');
+                  }}
                   className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
                     sendMethod === m
                       ? 'bg-[#FF6B2C] text-white'
@@ -1906,6 +1946,10 @@ export default function PaymentPage() {
             deposit:         0,
             balanceDue:      totalAmount,
             location,
+            dealershipId,
+            leadId:          Number(id),
+            customerEmail:   lead.email ?? '',
+            customerPhone:   lead.phone ?? '',
           });
         } else {
           // Motorcycle lead — load from offer
@@ -1927,6 +1971,10 @@ export default function PaymentPage() {
               deposit:         o.downPayment     ?? 0,
               balanceDue,
               location,
+              dealershipId,
+              leadId:          Number(id),
+              customerEmail:   o.customerEmail  ?? '',
+              customerPhone:   o.customerPhone  ?? '',
             });
             // Auto-select payment tab based on what was agreed in the offer —
             // only override if no ?tab= param was given in the URL

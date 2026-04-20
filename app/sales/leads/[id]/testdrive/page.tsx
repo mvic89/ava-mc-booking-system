@@ -52,8 +52,6 @@ interface TDForm {
   departureTime:       string;
   returnTime:          string;
   route:               string;
-  insuranceCompany:    string;
-  insuranceFee:        number;
   preInspectionOk:     boolean;
   preInspectionNotes:  string;
   postInspectionNotes: string;
@@ -68,7 +66,6 @@ const BLANK: TDForm = {
   licenseNumber: '', licenseClass: 'A',
   vehicle: '', vin: '', registrationNumber: '', vehicleColor: '', odometerBefore: 0, odometerAfter: 0,
   scheduledDate: '', departureTime: '', returnTime: '', route: '',
-  insuranceCompany: '', insuranceFee: 250,
   preInspectionOk: true, preInspectionNotes: '', postInspectionNotes: '',
   staffName: '', driverSignature: '', staffSignature: '',
   status: 'scheduled',
@@ -418,8 +415,6 @@ export default function TestDrivePage() {
           departureTime:       existing.departure_time        ?? '',
           returnTime:          existing.return_time           ?? '',
           route:               existing.route                 || defaultRoute,
-          insuranceCompany:    existing.insurance_company     ?? '',
-          insuranceFee:        existing.insurance_fee         ?? 250,
           preInspectionOk:     existing.pre_inspection_ok     ?? true,
           preInspectionNotes:  existing.pre_inspection_notes  ?? '',
           postInspectionNotes: existing.post_inspection_notes ?? '',
@@ -826,21 +821,10 @@ export default function TestDrivePage() {
                   </div>
                 </div>
 
-                {/* Försäkring */}
+                {/* Besiktning */}
                 <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
-                  <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Försäkring &amp; besiktning</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Besiktning</p>
                   <div className="space-y-3">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <F label="Försäkringsbolag">
-                        <input type="text" value={draft!.insuranceCompany}
-                          onChange={e => upd('insuranceCompany', e.target.value)} className={inputCls}
-                          placeholder="Länsförsäkringar, If, Trygg-Hansa…" />
-                      </F>
-                      <F label="Försäkringsdeposition (kr)">
-                        <input type="number" min="0" step="50" value={draft!.insuranceFee}
-                          onChange={e => upd('insuranceFee', Number(e.target.value))} className={inputCls} />
-                      </F>
-                    </div>
                     <label className="flex items-center gap-3 cursor-pointer">
                       <input type="checkbox" checked={draft!.preInspectionOk}
                         onChange={e => upd('preInspectionOk', e.target.checked)}
@@ -946,12 +930,8 @@ export default function TestDrivePage() {
                   </div>
                 </SectionCard>
 
-                {/* Insurance */}
-                <SectionCard title="Försäkring &amp; besiktning" icon="🔍">
-                  <DocRow label="Försäkringsbolag" value={d.insuranceCompany} />
-                  {d.insuranceFee > 0 && (
-                    <DocRow label="Försäkringsdeposition" value={`${d.insuranceFee.toLocaleString('sv-SE')} kr`} />
-                  )}
+                {/* Besiktning */}
+                <SectionCard title="Besiktning" icon="🔍">
                   <div className="flex items-center gap-2 py-2 border-b border-slate-50">
                     <span className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 ${d.preInspectionOk ? 'bg-emerald-500' : 'bg-red-400'}`}>
                       {d.preInspectionOk ? '✓' : '✗'}

@@ -794,9 +794,9 @@ export default function AgreementPage() {
                         <DocLine label="Leveransort"          value={dealer.address || '—'} />
                         {d.validUntil && <DocLine label="Avtal giltigt till" value={fmtDate(d.validUntil)} bold />}
                         <div className="mt-3 space-y-1">
-                          <p className="text-xs text-slate-600">• Priserna inkluderar 25% mervärdesskatt (moms).</p>
-                          <p className="text-xs text-slate-600">• Fordonet levereras med 3 års garanti (Konsumentköplagen 2022:260).</p>
-                          <p className="text-xs text-slate-600">• Köparen har ångerfrist om 14 dagar enligt Distansavtalslagen.</p>
+                          <p className="text-xs text-slate-600">• Priserna inkluderar 25% mervärdesskatt (moms) enligt mervärdesskattelagen (1994:200).</p>
+                          <p className="text-xs text-slate-600">• Köparen har 3 års reklamationsrätt för fel som förelåg vid leveransen (Konsumentköplagen 2022:260, §31).</p>
+                          <p className="text-xs text-slate-600">• Ångerfrist gäller vid distansavtal och avtal utanför fasta affärslokaler (Distansavtalslagen 2005:59). Vid köp i butik föreligger ingen lagstadgad ångerfrist.</p>
                           {d.notes && <p className="text-xs text-slate-600">• {d.notes}</p>}
                         </div>
                       </DocSection>
@@ -804,14 +804,14 @@ export default function AgreementPage() {
                       {/* Legal */}
                       <DocSection title="Juridiska villkor">
                         <div className="space-y-2 text-xs text-slate-600 leading-relaxed">
-                          <p><strong>§ 1 Äganderättens övergång.</strong> Äganderätten övergår till köparen när full betalning mottagits och bekräftats av säljaren.</p>
-                          <p><strong>§ 2 Leverans.</strong> Fordonet levereras på {dealer.address || 'säljarens adress'}. Risken för fordonet övergår till köparen vid leveranstillfället.</p>
-                          <p><strong>§ 3 Garanti.</strong> Fordonet levereras med 3 (tre) års garanti enligt Konsumentköplagen (2022:260). Garantin täcker fabrikationsfel och dolda fel.</p>
-                          <p><strong>§ 4 Ångerfrist.</strong> Köparen har rätt att frånträda avtalet inom 14 dagar från leverans (Distansavtalslagen 2005:59), förutsatt att fordonet är i oförändrat skick.</p>
-                          <p><strong>§ 5 Finansiering.</strong> {d.paymentType === 'financing' ? `Finansiering sker i enlighet med Konsumentkreditlagen (2010:1846). Kredit beviljas efter godkänd kreditprövning.` : 'Betalning sker kontant vid leverans.'}</p>
-                          {d.tradeIn && <p><strong>§ 6 Inbytesfordon.</strong> Inbytesfordon ("{d.tradeIn}") värderat till {fmt(d.tradeInCredit)} avräknas mot köpeskillingen. Inbytet sker i befintligt skick om inget annat avtalats.</p>}
-                          <p><strong>§ {d.tradeIn ? '7' : '6'} Tvist.</strong> Tvist ska i första hand lösas via Allmänna reklamationsnämnden (ARN). Svensk lag tillämpas.</p>
-                          <p><strong>§ {d.tradeIn ? '8' : '7'} Personuppgifter.</strong> Personuppgifter behandlas i enlighet med GDPR (EU 2016/679). Se vår integritetspolicy på säljarens webbplats.</p>
+                          <p><strong>§ 1 Äganderättens övergång.</strong> Äganderätten övergår till köparen när full betalning mottagits och bekräftats av säljaren. {d.paymentType === 'financing' ? 'Vid kreditköp behåller säljaren eller kreditgivaren äganderätten till fordonet (äganderättsförbehåll) till dess att hela krediten är slutbetald.' : ''}</p>
+                          <p><strong>§ 2 Leverans.</strong> Fordonet levereras vid {dealer.address || 'säljarens affärslokal'}. Risken för fordonet övergår till köparen vid avlämnandet (Konsumentköplagen 2022:260, §8).</p>
+                          <p><strong>§ 3 Reklamationsrätt.</strong> Köparen har rätt att reklamera fel som förelåg vid leveransen inom 3 (tre) år från mottagandet, i enlighet med Konsumentköplagen (2022:260, §31). Fel som visar sig inom 2 år presumeras ha förelegat vid leveransen. Reklamation ska ske inom skälig tid efter att felet upptäckts.</p>
+                          <p><strong>§ 4 Ångerfrist.</strong> Rätt att frånträda avtalet (ångerfrist) gäller vid distansavtal och avtal utanför fasta affärslokaler, i enlighet med Distansavtalslagen (2005:59), och uppgår då till 14 dagar från leverans. Vid köp som ingås i säljarens fasta affärslokal föreligger ingen lagstadgad ångerfrist om inte säljaren skriftligen åtar sig detta.</p>
+                          <p><strong>§ 5 Betalning &amp; finansiering.</strong> {d.paymentType === 'financing' ? 'Finansiering sker i enlighet med Konsumentkreditlagen (2010:1846). Kreditavtal ingås separat med kreditgivaren. Kredit beviljas efter godkänd kreditprövning. Effektiv ränta och totalkostnad framgår av kreditavtalet.' : 'Betalning erlägges kontant i sin helhet vid leverans av fordonet.'}</p>
+                          {d.tradeIn && <p><strong>§ 6 Inbytesfordon.</strong> Inbytesfordon ("{d.tradeIn}") är värderat till {fmt(d.tradeInCredit)} och avräknas mot köpeskillingen. Inbytet överlåts i befintligt skick (sålt i befintligt skick, Konsumentköplagen 2022:260 §47) om inget annat skriftligen avtalats. Köparen ansvarar för att fordonet är fritt från lån och inteckningar vid inlösen.</p>}
+                          <p><strong>§ {d.tradeIn ? '7' : '6'} Tvist.</strong> Tvist angående tolkning eller tillämpning av detta avtal ska i första hand lösas genom förhandling. I andra hand kan köparen vända sig till Allmänna reklamationsnämnden (ARN), Box 174, 101 23 Stockholm, arn.se. Parterna kan även vända sig till allmän domstol. Svensk lag tillämpas.</p>
+                          <p><strong>§ {d.tradeIn ? '8' : '7'} Personuppgifter.</strong> Säljarens behandling av personuppgifter sker i enlighet med Europaparlamentets och rådets förordning (EU) 2016/679 (GDPR) samt kompletterande svensk dataskyddslag (2018:218). Ändamål: avtalsadministration, kundservice och rättsliga förpliktelser. Registrerad har rätt till tillgång, rättelse och radering. Kontakt: dataskydd@{dealer.email?.split('@')[1] || 'säljaren'}.</p>
                         </div>
                       </DocSection>
 
@@ -929,11 +929,12 @@ export default function AgreementPage() {
                   </h2>
                   {[
                     'Konsumentköplagen (2022:260)',
-                    '14 dagars ångerfrist',
-                    'GDPR-klausul inkluderad',
-                    'Moms korrekt (25%)',
-                    'F-skattebevis',
-                    '3 års garanti inkluderad',
+                    'Reklamationsrätt 3 år (KKL §31)',
+                    'Ångerfrist – distansavtal (2005:59)',
+                    'GDPR-klausul inkluderad (EU 2016/679)',
+                    'Moms 25% (ML 1994:200)',
+                    'Äganderättsförbehåll vid kredit',
+                    'ARN-tvistelösning',
                     'eIDAS-signering (EU 910/2014)',
                   ].map(item => (
                     <div key={item} className="flex items-center gap-2 py-1.5">

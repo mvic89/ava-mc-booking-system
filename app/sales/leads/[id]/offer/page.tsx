@@ -613,6 +613,17 @@ export default function OfferPage() {
     toast.success('Offert markerad som avböjd');
   }
 
+  async function reactivateOffer() {
+    if (!offerId) return;
+    const dealershipId = getDealershipId();
+    await fetch(`/api/offers/${offerId}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dealershipId, status: 'sent' }),
+    });
+    setForm(prev => ({ ...prev, status: 'sent' }));
+    toast.success('Offert återaktiverad');
+  }
+
   // ── Render guards ─────────────────────────────────────────────────────────
 
   if (!ready) return (
@@ -720,6 +731,12 @@ export default function OfferPage() {
                       className="px-3 py-1.5 text-sm font-medium bg-[#FF6B2C] text-white rounded-lg hover:bg-[#e85a1e]">
                       Öppna avtal →
                     </Link>
+                  )}
+                  {d.status === 'declined' && (
+                    <button onClick={reactivateOffer} disabled={saving}
+                      className="px-3 py-1.5 text-sm font-medium bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 disabled:opacity-50">
+                      Återaktivera offert
+                    </button>
                   )}
                 </>
               ) : (
