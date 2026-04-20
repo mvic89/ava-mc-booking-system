@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
       odometerReading:    number;
     };
 
-    const apiKey = getCredential(
+    const apiKey = await getCredential(
       body.dealerId ?? 'ava-mc',
       'transportstyrelsen',
       'TRANSPORTSTYRELSEN_API_KEY',
@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'caseId required' }, { status: 400 });
     }
 
-    const apiKey = getCredential(dealerId, 'transportstyrelsen', 'TRANSPORTSTYRELSEN_API_KEY');
+    const apiKey = await getCredential(dealerId, 'transportstyrelsen', 'TRANSPORTSTYRELSEN_API_KEY');
     if (!apiKey) {
       return NextResponse.json({ error: 'Transportstyrelsen API key not configured' }, { status: 400 });
     }

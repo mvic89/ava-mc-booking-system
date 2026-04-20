@@ -46,6 +46,8 @@ function toOffer(r: any) {
     notes:              r.notes                ?? '',
     sellerSignature:    r.seller_signature     ?? '',
     buyerSignature:     r.buyer_signature      ?? '',
+    extraVehicles:      (() => { try { const v = r.extra_vehicles; return Array.isArray(v) ? v : JSON.parse(v ?? '[]'); } catch { return []; } })(),
+    tradeInData:        (() => { try { const v = r.trade_in_data; return v ? (typeof v === 'string' ? JSON.parse(v) : v) : null; } catch { return null; } })(),
     createdAt:          r.created_at           ?? '',
     updatedAt:          r.updated_at           ?? '',
   };
@@ -114,6 +116,16 @@ export async function POST(req: NextRequest) {
       notes:               fields.notes               ?? '',
       seller_signature:    fields.sellerSignature     ?? '',
       buyer_signature:     fields.buyerSignature      ?? '',
+      extra_vehicles:      typeof fields.extraVehicles === 'string' ? fields.extraVehicles : JSON.stringify(fields.extraVehicles ?? []),
+      // tradeIns (array) takes precedence over legacy tradeInData (single object)
+      trade_in_data: (() => {
+        const arr = fields.tradeIns;
+        if (Array.isArray(arr) && arr.length > 0) return JSON.stringify(arr);
+        if (arr && typeof arr === 'string') return arr;
+        const single = fields.tradeInData;
+        if (!single) return null;
+        return typeof single === 'string' ? single : JSON.stringify(single);
+      })(),
     };
     const { data, error } = await sb()
       .from('offers')

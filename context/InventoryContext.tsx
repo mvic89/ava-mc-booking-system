@@ -15,6 +15,32 @@ import { generateAutoPOs }  from '@/utils/generateAutoPOs'
 import { emit, useAutoRefresh } from '@/lib/realtime'
 
 import type { Motorcycle, SparePart, Accessory, PurchaseOrder, InventoryCategory } from '@/utils/types'
+import type { SyncItem } from '@/lib/inventory-sync'
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function toSyncItem(
+    dealershipId: string,
+    category: InventoryCategory,
+    item: Motorcycle | SparePart | Accessory,
+): SyncItem {
+    const mc  = category === 'motorcycles' ? (item as Motorcycle) : null
+    return {
+        id:           item.id,
+        dealershipId,
+        itemType:     category === 'motorcycles' ? 'motorcycle'
+                    : category === 'spareParts'  ? 'spare_part'
+                    : 'accessory',
+        title:        item.name,
+        description:  item.description,
+        price:        item.sellingPrice,
+        condition:    'used',
+        year:         mc?.year,
+        mileage:      0,
+        color:        mc?.color,
+        vin:          mc?.vin,
+    }
+}
 
 // ─── DB row → TypeScript type mappers ─────────────────────────────────────────
 
@@ -226,6 +252,13 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
             if (error) throw new Error(error.message)
             setAccessories((prev) => [acc, ...prev])
         }
+
+        // Fire-and-forget: push to Blocket + dealer website
+        fetch('/api/inventory-sync/publish', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(toSyncItem(dealershipId, category, item)),
+        }).catch((e) => console.warn('[inventory-sync publish]', e))
     }, [])
 
     const updateItem = useCallback(async (
@@ -262,6 +295,13 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
             }).eq('id', acc.id).eq('dealership_id', dealershipId)
             setAccessories(prev => prev.map(a => a.id === acc.id ? acc : a))
         }
+        // Fire-and-forget: push updated details to Blocket + dealer website
+        fetch('/api/inventory-sync/update', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ item: toSyncItem(dealershipId ?? '', category, item) }),
+        }).catch((e) => console.warn('[inventory-sync update]', e))
+
         emit({ type: 'data:refresh' })
     }, [])
 
@@ -270,10 +310,30 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
         const table = id.startsWith('MC-') ? 'motorcycles'
                     : id.startsWith('SP-') ? 'spare_parts'
                     : 'accessories'
+
+        // Capture the item before deletion for the sync payload
+        const category: InventoryCategory = id.startsWith('MC-') ? 'motorcycles'
+                                           : id.startsWith('SP-') ? 'spareParts'
+                                           : 'accessories'
+
+        // Read current state snapshots to find the item
+        // (we'll use a ref-free approach: look up from current state via functional update)
+        let foundItem: Motorcycle | SparePart | Accessory | undefined
+        setMotorcycles(prev => { foundItem = prev.find(m => m.id === id) ?? foundItem; return prev.filter(m => m.id !== id) })
+        setSpareParts (prev => { foundItem = prev.find(s => s.id === id) ?? foundItem; return prev.filter(s => s.id !== id) })
+        setAccessories(prev => { foundItem = prev.find(a => a.id === id) ?? foundItem; return prev.filter(a => a.id !== id) })
+
         await supabase.from(table).delete().eq('id', id).eq('dealership_id', dealershipId)
-        setMotorcycles(prev => prev.filter(m => m.id !== id))
-        setSpareParts (prev => prev.filter(s => s.id !== id))
-        setAccessories(prev => prev.filter(a => a.id !== id))
+
+        // Fire-and-forget: remove from Blocket + notify dealer website
+        if (foundItem && dealershipId) {
+            fetch('/api/inventory-sync/unpublish', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ item: toSyncItem(dealershipId, category, foundItem) }),
+            }).catch((e) => console.warn('[inventory-sync unpublish]', e))
+        }
+
         emit({ type: 'data:refresh' })
     }, [])
 

@@ -97,8 +97,6 @@ export default function IntegrationsSettingsPage() {
   const [integrationStates, setIntegrationStates] = useState<Record<string, IntegrationState>>({});
   const [showPasswords,    setShowPasswords]    = useState<Record<string, boolean>>({});
   const [restartBanner,    setRestartBanner]    = useState(false);
-  const [zapierToken,      setZapierToken]      = useState<string | null>(null);
-  const [zapierCopied,     setZapierCopied]     = useState(false);
   const [savingComm,       setSavingComm]       = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -117,44 +115,60 @@ export default function IntegrationsSettingsPage() {
     setDealerName(name);
     loadConfig(id, name);
 
-    // Load Supabase dealership UUID + comm config + Zapier token (async, non-blocking)
+    // Load Supabase dealership UUID + comm config (async, non-blocking)
     (async () => {
       const { getDealershipId } = await import('@/lib/tenant');
-      const { supabase }        = await import('@/lib/supabase');
       const dealershipId        = getDealershipId();
       if (dealershipId) {
         setSupabaseDealershipId(dealershipId);
 
-        // Pre-fill comm field statuses from /api/notifications/config
+        // Pre-fill comm credentials + statuses from /api/notifications/config
         fetch(`/api/notifications/config?dealershipId=${encodeURIComponent(dealershipId)}`)
           .then(r => r.ok ? r.json() : null)
-          .then((cfg: { smtpOk: boolean; twilioOk: boolean } | null) => {
+          .then((cfg: {
+            smtpOk: boolean; twilioOk: boolean;
+            smtpUser?: string; smtpPass?: string; smtpHost?: string; smtpPort?: number | null;
+            twilioAccountSid?: string; twilioAuthToken?: string; twilioFromNumber?: string;
+            adminEmail?: string; adminPhone?: string;
+          } | null) => {
             if (!cfg) return;
             setIntegrationStates(prev => {
               const next = { ...prev };
               if (next.smtp) {
                 const smtpStatus = cfg.smtpOk ? 'configured' : 'empty';
-                next.smtp = { ...next.smtp, fieldStatus: {
-                  SMTP_USER: smtpStatus, SMTP_PASS: smtpStatus, SMTP_HOST: smtpStatus, SMTP_PORT: smtpStatus, ADMIN_EMAIL: smtpStatus,
-                }};
+                next.smtp = { ...next.smtp,
+                  fieldStatus: {
+                    SMTP_USER: smtpStatus, SMTP_PASS: smtpStatus, SMTP_HOST: smtpStatus, SMTP_PORT: smtpStatus, ADMIN_EMAIL: smtpStatus,
+                  },
+                  credentials: {
+                    ...next.smtp.credentials,
+                    ...(cfg.smtpUser       ? { SMTP_USER:   cfg.smtpUser }                       : {}),
+                    ...(cfg.smtpPass       ? { SMTP_PASS:   cfg.smtpPass }                       : {}),
+                    ...(cfg.smtpHost       ? { SMTP_HOST:   cfg.smtpHost }                       : {}),
+                    ...(cfg.smtpPort       ? { SMTP_PORT:   String(cfg.smtpPort) }               : {}),
+                    ...(cfg.adminEmail     ? { ADMIN_EMAIL: cfg.adminEmail }                     : {}),
+                  },
+                };
               }
               if (next.twilio) {
                 const twilioStatus = cfg.twilioOk ? 'configured' : 'empty';
-                next.twilio = { ...next.twilio, fieldStatus: {
-                  TWILIO_ACCOUNT_SID: twilioStatus, TWILIO_AUTH_TOKEN: twilioStatus, TWILIO_FROM_NUMBER: twilioStatus, ADMIN_PHONE: twilioStatus,
-                }};
+                next.twilio = { ...next.twilio,
+                  fieldStatus: {
+                    TWILIO_ACCOUNT_SID: twilioStatus, TWILIO_AUTH_TOKEN: twilioStatus, TWILIO_FROM_NUMBER: twilioStatus, ADMIN_PHONE: twilioStatus,
+                  },
+                  credentials: {
+                    ...next.twilio.credentials,
+                    ...(cfg.twilioAccountSid ? { TWILIO_ACCOUNT_SID:  cfg.twilioAccountSid } : {}),
+                    ...(cfg.twilioAuthToken  ? { TWILIO_AUTH_TOKEN:   cfg.twilioAuthToken }  : {}),
+                    ...(cfg.twilioFromNumber ? { TWILIO_FROM_NUMBER:  cfg.twilioFromNumber } : {}),
+                    ...(cfg.adminPhone       ? { ADMIN_PHONE:         cfg.adminPhone }       : {}),
+                  },
+                };
               }
               return next;
             });
           })
           .catch(() => {});
-
-        const { data } = await supabase
-          .from('dealerships')
-          .select('zapier_token')
-          .eq('id', dealershipId)
-          .single();
-        if (data?.zapier_token) setZapierToken(data.zapier_token);
       }
     })();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -166,12 +180,16 @@ export default function IntegrationsSettingsPage() {
 
       const states: Record<string, IntegrationState> = {};
       for (const i of INTEGRATION_REGISTRY) {
-        const item          = data.integrations?.find((x: { id: string }) => x.id === i.id);
+        const item           = data.integrations?.find((x: { id: string }) => x.id === i.id);
         const envVarDefaults = item?.envVarDefaults ?? {};
-        const fieldStatus   = item?.fieldStatus ?? {};
+        const fieldStatus    = item?.fieldStatus ?? {};
+        const savedValues    = item?.savedValues ?? {};
         const credentials: Record<string, string> = {};
         for (const envVar of i.requiredEnvVars) {
-          if (isUrlField(envVar) && (fieldStatus[envVar] ?? 'empty') === 'empty' && envVarDefaults[envVar]) {
+          if (savedValues[envVar]) {
+            // Pre-fill all saved values — secrets are masked by type="password" in the UI
+            credentials[envVar] = savedValues[envVar];
+          } else if (isUrlField(envVar) && (fieldStatus[envVar] ?? 'empty') === 'empty' && envVarDefaults[envVar]) {
             credentials[envVar] = envVarDefaults[envVar];
           }
         }
@@ -197,10 +215,26 @@ export default function IntegrationsSettingsPage() {
     const current   = integrationStates[id];
     if (!current) return;
     const nowEnabled = !current.enabled;
-    setIntegrationStates(prev => ({
+    const next = (prev: Record<string, IntegrationState>) => ({
       ...prev,
       [id]: { ...prev[id], enabled: nowEnabled, expanded: nowEnabled ? true : prev[id].expanded },
-    }));
+    });
+    setIntegrationStates(prev => {
+      const updated = next(prev);
+      // Auto-save toggle state immediately to DB
+      const enabledIntegrations = Object.entries(updated).filter(([, s]) => s.enabled).map(([k]) => k);
+      const credentials: Record<string, Record<string, string>> = {};
+      for (const [iid, state] of Object.entries(updated)) {
+        const filled = Object.entries(state.credentials).filter(([, v]) => v.trim());
+        if (filled.length > 0) credentials[iid] = Object.fromEntries(filled);
+      }
+      fetch('/api/settings/integrations', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ dealerId, dealerName, enabledIntegrations, credentials }),
+      }).catch(err => console.error('[integrations] auto-save toggle failed:', err));
+      return updated;
+    });
   }
 
   function toggleExpand(id: string) {
@@ -386,58 +420,6 @@ export default function IntegrationsSettingsPage() {
             </div>
           )}
 
-          {/* ── Zapier / Email Automation card ──────────────────────────── */}
-          {zapierToken && (() => {
-            const origin   = typeof window !== 'undefined' ? window.location.origin : ''
-            const zapierUrl = `${origin}/api/goods-receipt?token=${zapierToken}`
-            return (
-              <div className="bg-white border border-gray-200 rounded-2xl p-5 mb-6 animate-fade-up">
-                <div className="flex items-start gap-3 mb-4">
-                  <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-xl shrink-0">⚡</div>
-                  <div>
-                    <p className="text-sm font-bold text-gray-900">Zapier — Delivery Note Automation</p>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      Paste your unique webhook URL into Zapier to auto-capture delivery notes from email and update your stock.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-3 flex items-center gap-3">
-                  <code className="flex-1 text-xs font-mono text-orange-600 break-all">{zapierUrl}</code>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(zapierUrl);
-                      setZapierCopied(true);
-                      setTimeout(() => setZapierCopied(false), 2000);
-                    }}
-                    className="shrink-0 px-3 py-1.5 text-xs font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"
-                  >
-                    {zapierCopied ? '✓ Copied!' : 'Copy URL'}
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-3 gap-3 text-xs text-gray-600">
-                  {[
-                    { step: '1', label: 'Trigger', desc: 'Gmail / Outlook — New Email matching "delivery note"' },
-                    { step: '2', label: 'Action', desc: 'Webhooks by Zapier → POST → paste your URL above' },
-                    { step: '3', label: 'Body field', desc: 'pdf_base64 = file contents (base64) from email attachment' },
-                  ].map(s => (
-                    <div key={s.step} className="bg-gray-50 rounded-xl p-3">
-                      <div className="w-5 h-5 bg-orange-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center mb-1.5">{s.step}</div>
-                      <p className="font-semibold text-gray-700 mb-0.5">{s.label}</p>
-                      <p className="text-gray-400 leading-relaxed">{s.desc}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <p className="text-[10px] text-gray-400 mt-3">
-                  🔒 This URL is unique to your dealership — keep it private. Stock updates only affect your account.
-                  If compromised, contact support to regenerate your token.
-                </p>
-              </div>
-            )
-          })()}
-
           {/* Integration categories */}
           {CATEGORIES.map(category => {
             const items = INTEGRATION_REGISTRY.filter(i => i.category === category);
@@ -560,9 +542,7 @@ export default function IntegrationsSettingsPage() {
                                             placeholder={
                                               isUrl
                                                 ? (state.envVarDefaults[envVar] ?? envVar)
-                                                : status !== 'empty'
-                                                  ? '••••••••  (leave blank to keep existing)'
-                                                  : envVar
+                                                : envVar
                                             }
                                             className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-[#FF6B2C]/30 font-mono placeholder:font-sans placeholder:text-slate-300"
                                           />

@@ -39,8 +39,8 @@ export async function POST(req: NextRequest) {
     };
 
     const dealerId  = body.dealerId ?? 'ava-mc';
-    const apiKey    = getCredential(dealerId, 'blocket', 'BLOCKET_API_KEY');
-    const accountId = getCredential(dealerId, 'blocket', 'BLOCKET_ACCOUNT_ID');
+    const apiKey    = await getCredential(dealerId, 'blocket', 'BLOCKET_API_KEY');
+    const accountId = await getCredential(dealerId, 'blocket', 'BLOCKET_ACCOUNT_ID');
 
     if (!apiKey || !accountId) {
       return NextResponse.json({ error: 'Blocket credentials not configured' }, { status: 400 });

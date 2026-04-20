@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import Sidebar from '@/components/Sidebar';
 import BankIDModal from '@/components/bankIdModel';
 import type { BankIDResult } from '@/types';
 
@@ -113,13 +114,18 @@ export default function SettingsAuthPage() {
   };
 
   if (!ready) return (
-    <div className="flex items-center justify-center min-h-screen bg-[#f5f7fa]">
-      <div className="w-10 h-10 border-4 border-[#FF6B2C] border-t-transparent rounded-full animate-spin" />
+    <div className="flex min-h-screen bg-[#f5f7fa]">
+      <Sidebar />
+      <div className="lg:ml-64 flex-1 flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-[#FF6B2C] border-t-transparent rounded-full animate-spin" />
+      </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#f5f7fa] flex items-center justify-center p-4">
+    <div className="flex min-h-screen bg-[#f5f7fa]">
+      <Sidebar />
+      <div className="lg:ml-64 flex-1 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
 
         {/* Card */}
@@ -346,6 +352,7 @@ export default function SettingsAuthPage() {
           autoStart
         />
       )}
+      </div>
     </div>
   );
 }

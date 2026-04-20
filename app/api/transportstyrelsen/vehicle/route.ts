@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'regNr query parameter required' }, { status: 400 });
     }
 
-    const apiKey = getCredential(dealerId, 'transportstyrelsen', 'TRANSPORTSTYRELSEN_API_KEY');
+    const apiKey = await getCredential(dealerId, 'transportstyrelsen', 'TRANSPORTSTYRELSEN_API_KEY');
     if (!apiKey) {
       return NextResponse.json({ error: 'Transportstyrelsen API key not configured' }, { status: 400 });
     }

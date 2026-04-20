@@ -17,6 +17,11 @@ export interface DealerInfo {
   website: string;
   address: string;
   postalCode: string;
+  // Payment / bank account details (configured in Settings → Profil)
+  bankgiro:    string;   // e.g. "1234-5678"  (dealership_settings.bankgiro)
+  swish:       string;   // Swish Handel number e.g. "1231234567" (dealership_settings.swish)
+  iban:        string;   // e.g. "SE35 5000 0000 0549 1000 0003" (dealership_settings.iban)
+  bic:         string;   // e.g. "HANDSESS" (dealership_settings.bic)
 }
 
 const EMPTY: DealerInfo = {
@@ -28,6 +33,10 @@ const EMPTY: DealerInfo = {
   website: '',
   address: '',
   postalCode: '',
+  bankgiro: '',
+  swish:    '',
+  iban:     '',
+  bic:      '',
 };
 
 export function getDealerInfo(): DealerInfo {
@@ -45,6 +54,11 @@ export function getDealerInfo(): DealerInfo {
       website:    p.website          || u.website                    || '',
       address:    p.address          || u.streetAddress || u.address  || '',
       postalCode: p.postalCode       || u.postalCode                 || '',
+      // Payment fields — keys match dealership_settings columns exactly
+      bankgiro:   p.bankgiro         || u.bankgiro                   || '',
+      swish:      p.swish            || u.swish                      || '',
+      iban:       p.iban             || u.iban                       || '',
+      bic:        p.bic              || u.bic                        || '',
     };
   } catch {
     return EMPTY;

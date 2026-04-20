@@ -27,6 +27,12 @@ interface DealershipProfile {
   website:           string;
   bankgiro:              string;
   swish:                 string;
+  iban:                  string;
+  bic:                   string;
+  // SMS gateway (Twilio)
+  twilioAccountSid:      string;
+  twilioAuthToken:       string;
+  twilioFromNumber:      string;   // e.g. +46701234567
   deliveryNoteEmail:     string;   // who receives delivery note notifications
   invoiceEmail:          string;   // who receives purchase invoice notifications
   logoDataUrl:           string;
@@ -56,6 +62,11 @@ const DEFAULTS: DealershipProfile = {
   website:     '',
   bankgiro:          '',
   swish:             '',
+  iban:              '',
+  bic:               '',
+  twilioAccountSid:  '',
+  twilioAuthToken:   '',
+  twilioFromNumber:  '',
   deliveryNoteEmail: '',
   invoiceEmail:      '',
   logoDataUrl:       '',
@@ -178,6 +189,11 @@ async function fetchProfileFromSupabase(dealershipId: string): Promise<Partial<D
       website:           data.website               ?? '',
       bankgiro:          data.bankgiro              ?? '',
       swish:             data.swish                 ?? '',
+      iban:              data.iban                  ?? '',
+      bic:               data.bic                   ?? '',
+      twilioAccountSid:  data.twilio_account_sid    ?? '',
+      twilioAuthToken:   data.twilio_auth_token     ?? '',
+      twilioFromNumber:  data.twilio_from_number    ?? '',
       deliveryNoteEmail: data.delivery_note_email   ?? '',
       invoiceEmail:      data.invoice_email         ?? '',
       logoDataUrl:       data.logo_data_url         ?? '',
@@ -207,6 +223,11 @@ async function fetchProfileFromSupabase(dealershipId: string): Promise<Partial<D
     website:           data.website           ?? '',
     bankgiro:          data.bankgiro              ?? '',
     swish:             data.swish                 ?? '',
+    iban:              data.iban                  ?? '',
+    bic:               data.bic                   ?? '',
+    twilioAccountSid:  data.twilio_account_sid    ?? '',
+    twilioAuthToken:   data.twilio_auth_token     ?? '',
+    twilioFromNumber:  data.twilio_from_number    ?? '',
     deliveryNoteEmail: data.delivery_note_email   ?? '',
     invoiceEmail:      data.invoice_email         ?? '',
     logoDataUrl:       data.logo_data_url         ?? '',
@@ -234,6 +255,11 @@ async function saveProfileToSupabase(dealershipId: string, profile: DealershipPr
     website:              profile.website,
     bankgiro:             profile.bankgiro,
     swish:                profile.swish,
+    iban:                 profile.iban              || null,
+    bic:                  profile.bic               || null,
+    twilio_account_sid:   profile.twilioAccountSid  || null,
+    twilio_auth_token:    profile.twilioAuthToken   || null,
+    twilio_from_number:   profile.twilioFromNumber  || null,
     delivery_note_email:  profile.deliveryNoteEmail || null,
     invoice_email:        profile.invoiceEmail      || null,
     logo_data_url:        profile.logoDataUrl,
@@ -244,14 +270,18 @@ async function saveProfileToSupabase(dealershipId: string, profile: DealershipPr
   const { error } = await sb.from('dealership_settings').upsert(payload, { onConflict: 'dealership_id' });
 
   if (error) {
-    // If email_domain column doesn't exist yet (migration not run), retry without it
-    if (error.message?.includes('email_domain')) {
-      delete payload.email_domain;
-      const { error: error2 } = await sb.from('dealership_settings').upsert(payload, { onConflict: 'dealership_id' });
-      if (error2) throw new Error(error2.message);
-    } else {
-      throw new Error(error.message);
+    // Strip columns that may not exist yet (migration not run) and retry
+    const missingCol = (msg: string) =>
+      ['email_domain', 'twilio_account_sid', 'twilio_auth_token', 'twilio_from_number', 'iban', 'bic']
+        .find(c => msg.includes(c));
+    let retryError = error;
+    while (retryError && missingCol(retryError.message ?? '')) {
+      const col = missingCol(retryError.message ?? '')!;
+      delete payload[col];
+      const { error: e2 } = await sb.from('dealership_settings').upsert(payload, { onConflict: 'dealership_id' });
+      retryError = e2;
     }
+    if (retryError) throw new Error(retryError.message);
   }
 
   // Also keep dealerships table in sync so prefetchDealerProfile fallback works
@@ -265,8 +295,11 @@ async function saveProfileToSupabase(dealershipId: string, profile: DealershipPr
       city:          profile.city          || null,
       phone:         profile.phone         || null,
       email:         profile.email         || null,
-      website:       profile.website       || null,
-      logo_data_url: profile.logoDataUrl   || null,
+      website:              profile.website           || null,
+      logo_data_url:        profile.logoDataUrl       || null,
+      twilio_account_sid:   profile.twilioAccountSid  || null,
+      twilio_auth_token:    profile.twilioAuthToken   || null,
+      twilio_from_number:   profile.twilioFromNumber  || null,
     })
     .eq('id', dealershipId);
 
@@ -696,6 +729,61 @@ export default function DealershipProfilePage() {
                   value={profile.swish}
                   onChange={set('swish')}
                   placeholder="1231234567"
+                  mono
+                />
+              </Field>
+              <Field
+                label="IBAN"
+                hint="Internationellt bankkontonummer, t.ex. SE35 5000 0000 0549 1000 0003"
+              >
+                <Input
+                  value={profile.iban}
+                  onChange={set('iban')}
+                  placeholder="SE35 5000 0000 0549 1000 0003"
+                  mono
+                />
+              </Field>
+              <Field
+                label="BIC / SWIFT"
+                hint="Bankens identifieringskod, t.ex. HANDSESS"
+              >
+                <Input
+                  value={profile.bic}
+                  onChange={set('bic')}
+                  placeholder="HANDSESS"
+                  mono
+                />
+              </Field>
+            </SectionCard>
+
+            {/* ── SMS / Twilio ── */}
+            <SectionCard title="SMS (Twilio)" icon="📱">
+              <p className="text-xs text-slate-500 -mt-2 mb-1">
+                Krävs för att skicka SMS till kunder. Hämta dina uppgifter från{' '}
+                <a href="https://console.twilio.com" target="_blank" rel="noreferrer" className="text-[#FF6B2C] hover:underline">console.twilio.com</a>.
+              </p>
+              <Field label="Account SID" hint="Börjar med AC…">
+                <Input
+                  value={profile.twilioAccountSid}
+                  onChange={set('twilioAccountSid')}
+                  placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                  mono
+                />
+              </Field>
+              <Field label="Auth Token" hint="Hemligt — delas aldrig med kunder">
+                <Input
+                  value={profile.twilioAuthToken}
+                  onChange={set('twilioAuthToken')}
+                  placeholder="••••••••••••••••••••••••••••••••"
+                  mono
+                  type="password"
+                />
+              </Field>
+              <Field label="Avsändarnummer" hint="E.164-format, t.ex. +46701234567">
+                <Input
+                  value={profile.twilioFromNumber}
+                  onChange={set('twilioFromNumber')}
+                  placeholder="+46701234567"
                   mono
                 />
               </Field>

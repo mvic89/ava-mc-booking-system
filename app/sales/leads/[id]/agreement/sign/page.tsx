@@ -251,6 +251,7 @@ export default function BankIDSigningPage() {
       {step === 'customer-signing' && (
         <BankIDModal
           mode="sign"
+          action="sign_agreement"
           signText="Jag signerar köpeavtal AGR-2024-0089 för Kawasaki Ninja ZX-6R 2024, totalt 133 280 kr."
           title="Signera köpeavtal"
           subtitle="Kunden signerar köpeavtalet digitalt. Juridiskt bindande signatur."
@@ -264,6 +265,7 @@ export default function BankIDSigningPage() {
       {step === 'dealer-signing' && (
         <BankIDModal
           mode="sign"
+          action="sign_agreement"
           signText={`Jag signerar köpeavtal AGR-2024-0089 som auktoriserad representant för ${dealerName || 'återförsäljaren'}.`}
           title="Signera köpeavtal — Återförsäljare"
           subtitle="Återförsäljaren signerar köpeavtalet som juridiskt ombud."

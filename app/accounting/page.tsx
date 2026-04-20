@@ -188,6 +188,70 @@ export default function AccountingPage() {
 
   const stats = status?.stats ?? { total: 0, synced: 0, pending: 0, failed: 0 };
 
+  // ── BGMAX state ──────────────────────────────────────────────────────────────
+
+  const [bgmaxResult,     setBgmaxResult]     = useState<{ matched: number; unmatched: number; returns: number } | null>(null);
+  const [bgmaxUploading,  setBgmaxUploading]  = useState(false);
+  const [notifications,   setNotifications]   = useState<Array<{
+    id: string; notification_type: string; amount: number | null;
+    reference: string | null; customer_name: string | null;
+    vehicle: string | null; read: boolean; created_at: string;
+  }>>([]);
+  const [notifLoading,    setNotifLoading]    = useState(false);
+
+  const loadNotifications = useCallback(async () => {
+    if (!dealershipId) return;
+    setNotifLoading(true);
+    try {
+      const res = await fetch(`/api/payment-notifications?dealershipId=${encodeURIComponent(dealershipId)}`);
+      if (res.ok) {
+        const { notifications: n } = await res.json() as { notifications: typeof notifications };
+        setNotifications(n);
+      }
+    } finally {
+      setNotifLoading(false);
+    }
+  }, [dealershipId]);
+
+  useEffect(() => { loadNotifications(); }, [loadNotifications]);
+
+  async function handleBgmaxUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !dealershipId) return;
+    setBgmaxUploading(true);
+    setBgmaxResult(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('dealershipId', dealershipId);
+      const res = await fetch('/api/bgmax', { method: 'POST', body: formData });
+      if (!res.ok) throw new Error('Upload failed');
+      const data = await res.json() as { matched: number; unmatched: number; returns: number };
+      setBgmaxResult(data);
+      if (data.matched > 0) {
+        toast.success(`${data.matched} betalning(ar) matchade och markerades som betalda`);
+        await Promise.all([loadInvoices(), loadNotifications()]);
+      } else {
+        toast.error('Inga matchande fakturor hittades i filen');
+      }
+    } catch {
+      toast.error('Kunde inte läsa BGMAX-filen');
+    } finally {
+      setBgmaxUploading(false);
+      e.target.value = '';
+    }
+  }
+
+  async function markNotifRead(id: string) {
+    if (!dealershipId) return;
+    await fetch('/api/payment-notifications', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: [id], dealershipId }),
+    });
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  }
+
   // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
@@ -294,6 +358,119 @@ export default function AccountingPage() {
             </div>
             {filter && (
               <button onClick={() => setFilter('')} className="text-xs text-slate-400 hover:text-slate-700">{t('showAll')}</button>
+            )}
+          </div>
+        </div>
+
+        {/* ── BGMAX + Notifications row ───────────────────────────────────────── */}
+        <div className="px-5 md:px-8 pb-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+          {/* BGMAX uploader */}
+          <div className="bg-white rounded-2xl border border-slate-100 p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-lg shrink-0">🏦</div>
+              <div>
+                <h3 className="font-bold text-slate-900 text-sm">Bankgiro MAX (BGMAX)</h3>
+                <p className="text-xs text-slate-400">Importera bankfil för att automatiskt matcha betalningar</p>
+              </div>
+            </div>
+
+            <label className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-dashed cursor-pointer transition-colors ${
+              bgmaxUploading
+                ? 'border-blue-300 bg-blue-50 text-blue-600'
+                : 'border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-500 hover:text-blue-600'
+            }`}>
+              {bgmaxUploading ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-sm font-medium">Bearbetar...</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-lg">📂</span>
+                  <span className="text-sm font-semibold">Välj BGMAX-fil (.txt)</span>
+                </>
+              )}
+              <input
+                type="file" accept=".txt,.bgmax" className="hidden"
+                onChange={handleBgmaxUpload}
+                disabled={bgmaxUploading}
+              />
+            </label>
+
+            {bgmaxResult && (
+              <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                <div className="bg-emerald-50 rounded-xl py-2">
+                  <p className="text-lg font-black text-emerald-700">{bgmaxResult.matched}</p>
+                  <p className="text-[10px] text-emerald-600 font-semibold uppercase">Matchade</p>
+                </div>
+                <div className="bg-amber-50 rounded-xl py-2">
+                  <p className="text-lg font-black text-amber-700">{bgmaxResult.unmatched}</p>
+                  <p className="text-[10px] text-amber-600 font-semibold uppercase">Omatchade</p>
+                </div>
+                <div className="bg-slate-50 rounded-xl py-2">
+                  <p className="text-lg font-black text-slate-700">{bgmaxResult.returns}</p>
+                  <p className="text-[10px] text-slate-500 font-semibold uppercase">Returer</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Payment notifications */}
+          <div className="bg-white rounded-2xl border border-slate-100 p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center text-lg shrink-0">🔔</div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-sm">Betalningsnotiser</h3>
+                  <p className="text-xs text-slate-400">Senaste bekräftade betalningar</p>
+                </div>
+              </div>
+              {notifications.filter(n => !n.read).length > 0 && (
+                <span className="px-2 py-0.5 rounded-full bg-[#FF6B2C] text-white text-xs font-bold">
+                  {notifications.filter(n => !n.read).length} nya
+                </span>
+              )}
+            </div>
+
+            {notifLoading ? (
+              <div className="flex items-center justify-center py-6">
+                <div className="w-5 h-5 border-2 border-[#FF6B2C] border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : notifications.length === 0 ? (
+              <div className="text-center py-6 text-slate-400 text-sm">Inga betalningsnotiser</div>
+            ) : (
+              <div className="space-y-2 max-h-52 overflow-y-auto">
+                {notifications.map(n => (
+                  <div
+                    key={n.id}
+                    className={`flex items-start gap-3 px-3 py-2.5 rounded-xl transition-colors ${n.read ? 'bg-slate-50 opacity-60' : 'bg-orange-50 border border-orange-100'}`}
+                  >
+                    <span className="text-base mt-0.5 shrink-0">
+                      {n.notification_type === 'bgmax_matched' ? '🏦' : n.notification_type === 'manual_confirm' ? '✅' : '💳'}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-slate-800 truncate">
+                        {n.customer_name ?? 'Okänd kund'}{n.vehicle ? ` — ${n.vehicle}` : ''}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {n.amount != null ? `${n.amount.toLocaleString('sv-SE')} kr` : ''}{n.reference ? ` · Ref: ${n.reference}` : ''}
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        {new Date(n.created_at).toLocaleDateString('sv-SE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                    {!n.read && (
+                      <button
+                        onClick={() => markNotifRead(n.id)}
+                        className="text-[10px] text-orange-600 hover:text-orange-800 font-semibold shrink-0 mt-0.5"
+                      >
+                        Läst
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </div>

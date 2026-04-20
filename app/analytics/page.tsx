@@ -11,6 +11,7 @@ import {
 import { getInvoices, type Invoice } from '@/lib/invoices';
 import { getCustomers, type Customer } from '@/lib/customers';
 import { getLeads, type Lead } from '@/lib/leads';
+import { getTargets, type StaffTarget } from '@/lib/targets';
 import { useAutoRefresh } from '@/lib/realtime';
 
 // ── Colour palettes ────────────────────────────────────────────────────────────
@@ -133,15 +134,17 @@ export default function AnalyticsPage() {
   const [invoices,  setInvoices]  = useState<Invoice[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [leads,     setLeads]     = useState<Lead[]>([]);
+  const [targets,   setTargets]   = useState<StaffTarget[]>([]);
   const [ready,     setReady]     = useState(false);
   const [tab,       setTab]       = useState<Tab>('overview');
   const [sending,   setSending]   = useState(false);
 
   const loadAll = useCallback(() => {
-    Promise.all([getInvoices(), getCustomers(), getLeads()]).then(([inv, cust, lds]) => {
+    Promise.all([getInvoices(), getCustomers(), getLeads(), getTargets(new Date().getFullYear())]).then(([inv, cust, lds, tgt]) => {
       setInvoices(inv);
       setCustomers(cust);
-      setLeads(lds);
+      setLeads(lds as Lead[]);
+      setTargets(tgt as StaffTarget[]);
     });
   }, []);
 
@@ -149,15 +152,17 @@ export default function AnalyticsPage() {
     const raw = localStorage.getItem('user');
     if (!raw) { router.replace('/auth/login'); return; }
     const u = JSON.parse(raw);
-    if (u.role !== 'admin') {
-      toast.error('Analytics is only available to administrators.');
+    const allowed = ['admin', 'sales_manager', 'accountant'];
+    if (!allowed.includes(u.role)) {
+      toast.error('Du har inte behörighet till Analytics.');
       router.replace('/dashboard');
       return;
     }
-    Promise.all([getInvoices(), getCustomers(), getLeads()]).then(([inv, cust, lds]) => {
+    Promise.all([getInvoices(), getCustomers(), getLeads(), getTargets(new Date().getFullYear())]).then(([inv, cust, lds, tgt]) => {
       setInvoices(inv);
       setCustomers(cust);
-      setLeads(lds);
+      setLeads(lds as Lead[]);
+      setTargets(tgt as StaffTarget[]);
       setReady(true);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -242,6 +247,15 @@ export default function AnalyticsPage() {
       }))
       .sort((a, b) => b.revenue - a.revenue);
   }, [leads]);
+
+  // Annual targets keyed by salesperson name (periodMonth === 0)
+  const targetsMap = useMemo(() => {
+    const map: Record<string, { leadsTarget: number; revenueTarget: number }> = {};
+    targets.filter(t => t.periodMonth === 0).forEach(t => {
+      map[t.staffName] = { leadsTarget: t.leadsTarget, revenueTarget: t.revenueTarget };
+    });
+    return map;
+  }, [targets]);
 
   // ────────────────────────────────────────────────────────────────────────────
   // TAB 3 — GROSS PROFIT / MARGIN ANALYSIS
@@ -638,8 +652,11 @@ export default function AnalyticsPage() {
 
                 {/* Full leaderboard table */}
                 <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-                  <div className="px-6 py-4 border-b border-slate-100">
+                  <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                     <h2 className="font-bold text-slate-900">Fullständig topplista</h2>
+                    {Object.keys(targetsMap).length > 0 && (
+                      <span className="text-xs text-slate-400 bg-slate-50 px-2.5 py-1 rounded-full border border-slate-200">Mål vs utfall ({new Date().getFullYear()})</span>
+                    )}
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
@@ -651,29 +668,51 @@ export default function AnalyticsPage() {
                           <th className="text-right px-4 py-3 text-xs text-slate-400 font-semibold uppercase tracking-wide">Avslut</th>
                           <th className="text-right px-4 py-3 text-xs text-slate-400 font-semibold uppercase tracking-wide">Konv.</th>
                           <th className="text-right px-4 py-3 text-xs text-slate-400 font-semibold uppercase tracking-wide">Intäkt</th>
+                          {Object.keys(targetsMap).length > 0 && (
+                            <th className="text-right px-4 py-3 text-xs text-slate-400 font-semibold uppercase tracking-wide">Intäkt %</th>
+                          )}
                           <th className="text-right px-4 py-3 text-xs text-slate-400 font-semibold uppercase tracking-wide">Bruttovinst</th>
                           <th className="text-right px-6 py-3 text-xs text-slate-400 font-semibold uppercase tracking-wide">Snittaffär</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {leaderboard.map((s, i) => (
-                          <tr key={s.name} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                            <td className="px-6 py-3 text-center">
-                              <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${i === 0 ? 'bg-amber-100 text-amber-700' : i === 1 ? 'bg-slate-100 text-slate-600' : i === 2 ? 'bg-orange-100 text-orange-700' : 'bg-slate-50 text-slate-500'}`}>
-                                {i + 1}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 font-semibold text-slate-900">{s.name}</td>
-                            <td className="px-4 py-3 text-right text-slate-600">{s.totalLeads}</td>
-                            <td className="px-4 py-3 text-right text-slate-600">{s.closedLeads}</td>
-                            <td className="px-4 py-3 text-right">
-                              <span className={`font-semibold ${s.convRate >= 50 ? 'text-emerald-600' : s.convRate >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{pct(s.convRate)}</span>
-                            </td>
-                            <td className="px-4 py-3 text-right font-semibold text-slate-900">{kr(s.revenue)}</td>
-                            <td className="px-4 py-3 text-right font-semibold text-emerald-600">{kr(s.grossProfit)}</td>
-                            <td className="px-6 py-3 text-right text-slate-600">{kr(s.avgDealValue)}</td>
-                          </tr>
-                        ))}
+                        {leaderboard.map((s, i) => {
+                          const tgt = targetsMap[s.name];
+                          const revPct = tgt?.revenueTarget ? Math.round((s.revenue / tgt.revenueTarget) * 100) : null;
+                          return (
+                            <tr key={s.name} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                              <td className="px-6 py-3 text-center">
+                                <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${i === 0 ? 'bg-amber-100 text-amber-700' : i === 1 ? 'bg-slate-100 text-slate-600' : i === 2 ? 'bg-orange-100 text-orange-700' : 'bg-slate-50 text-slate-500'}`}>
+                                  {i + 1}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 font-semibold text-slate-900">{s.name}</td>
+                              <td className="px-4 py-3 text-right text-slate-600">
+                                {s.totalLeads}
+                                {tgt?.leadsTarget ? <span className="text-slate-300 ml-1">/ {tgt.leadsTarget}</span> : null}
+                              </td>
+                              <td className="px-4 py-3 text-right text-slate-600">{s.closedLeads}</td>
+                              <td className="px-4 py-3 text-right">
+                                <span className={`font-semibold ${s.convRate >= 50 ? 'text-emerald-600' : s.convRate >= 25 ? 'text-amber-600' : 'text-red-600'}`}>{pct(s.convRate)}</span>
+                              </td>
+                              <td className="px-4 py-3 text-right font-semibold text-slate-900">
+                                {kr(s.revenue)}
+                                {tgt?.revenueTarget ? <span className="block text-xs text-slate-300 font-normal">mål: {kr(tgt.revenueTarget)}</span> : null}
+                              </td>
+                              {Object.keys(targetsMap).length > 0 && (
+                                <td className="px-4 py-3 text-right">
+                                  {revPct !== null ? (
+                                    <span className={`font-bold text-sm ${revPct >= 100 ? 'text-emerald-600' : revPct >= 70 ? 'text-amber-600' : 'text-red-600'}`}>
+                                      {revPct}%
+                                    </span>
+                                  ) : <span className="text-slate-300 text-xs">—</span>}
+                                </td>
+                              )}
+                              <td className="px-4 py-3 text-right font-semibold text-emerald-600">{kr(s.grossProfit)}</td>
+                              <td className="px-6 py-3 text-right text-slate-600">{kr(s.avgDealValue)}</td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>

@@ -150,6 +150,30 @@ export const INTEGRATION_REGISTRY: IntegrationDef[] = [
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // DEALER WEBSITE
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  {
+    id:          'dealer_website',
+    name:        'Återförsäljarens webbplats',
+    description: 'Skicka webhook-notiser till din webbplats när lager läggs till, uppdateras eller säljs. Fungerar med valfritt CMS (WordPress, Webflow, etc.).',
+    icon:        '🌐',
+    category:    'dealer_website',
+    status:      'live',
+    countries:   ['SE', 'NO', 'DK', 'AR'],
+    requiredEnvVars: [
+      'WEBSITE_WEBHOOK_URL',
+      'WEBSITE_API_KEY',
+    ],
+    docsUrl: undefined,
+    apiRoutes: [
+      { method: 'POST', path: '/api/inventory-sync/publish',   description: 'Push new item to website + Blocket' },
+      { method: 'POST', path: '/api/inventory-sync/unpublish', description: 'Remove sold item from website + Blocket' },
+      { method: 'POST', path: '/api/inventory-sync/update',    description: 'Push updated price/details to website + Blocket' },
+    ],
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // COMMUNICATION
   // ═══════════════════════════════════════════════════════════════════════════
 

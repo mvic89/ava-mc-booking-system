@@ -11,16 +11,20 @@ export async function GET(req: NextRequest) {
   try {
     const leadId       = req.nextUrl.searchParams.get('leadId');
     const dealershipId = req.nextUrl.searchParams.get('dealershipId');
-    if (!leadId || !dealershipId)
-      return NextResponse.json({ error: 'Missing leadId or dealershipId' }, { status: 400 });
+    if (!dealershipId)
+      return NextResponse.json({ error: 'Missing dealershipId' }, { status: 400 });
 
-    const { data, error } = await sb()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let q: any = sb()
       .from('trade_ins')
       .select('*')
-      .eq('lead_id', leadId)
       .eq('dealership_id', dealershipId)
       .order('created_at', { ascending: false });
 
+    // leadId is optional — if provided, filter by lead; if omitted, return all for dealership
+    if (leadId && leadId !== '0') q = q.eq('lead_id', leadId);
+
+    const { data, error } = await q;
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ tradeIns: data ?? [] });
   } catch (err) {

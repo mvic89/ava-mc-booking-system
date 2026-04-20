@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
 import BankIDModal from '@/components/bankIdModel';
 import { getDealershipId, getDealershipProfile } from '@/lib/tenant';
 import { emit } from '@/lib/realtime';
+import { upsertAgreement } from '@/lib/agreements';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -223,9 +224,11 @@ function SigBlock({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AgreementPage() {
-  const router    = useRouter();
-  const params    = useParams();
-  const leadId    = Number((params?.id as string) || '0');
+  const router       = useRouter();
+  const params       = useParams();
+  const searchParams = useSearchParams();
+  const leadId       = Number((params?.id as string) || '0');
+  const paymentTab   = searchParams?.get('paymentTab') ?? 'financing';
 
   const [ready,     setReady]     = useState(false);
   const [saving,    setSaving]    = useState(false);
@@ -366,7 +369,12 @@ export default function AgreementPage() {
 
       const otherSig = form[otherField as keyof AgrForm] as string;
       if (otherSig) {
-        // Both signed — save trade-in if present, accept offer, advance lead
+        // Both signed — derive both sigs for the agreement record
+        const sellerSigJson = party === 'seller' ? proofJson : (form.sellerSignature as string);
+        const buyerSigJson  = party === 'buyer'  ? proofJson : (form.buyerSignature  as string);
+        const sellerProofParsed = sellerSigJson ? (() => { try { return JSON.parse(sellerSigJson); } catch { return null; } })() : null;
+
+        // Save trade-in if present
         if (form.tradeIn && form.tradeInCredit > 0) {
           await fetch('/api/trade-ins', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -377,6 +385,52 @@ export default function AgreementPage() {
             }),
           });
         }
+
+        // Persist agreement to agreements table
+        try {
+          await upsertAgreement({
+            dealershipId:       dealershipId ?? '',
+            leadId:             leadId || null,
+            offerId:            offerId || null,
+            agreementNumber:    form.agreementNumber,
+            status:             'signed',
+            customerName:       form.customerName,
+            personnummer:       form.personnummer,
+            customerAddress:    form.customerAddress,
+            customerPhone:      form.customerPhone,
+            customerEmail:      form.customerEmail,
+            vehicle:            form.vehicle,
+            vehicleColor:       form.vehicleColor,
+            vehicleCondition:   form.vehicleCondition,
+            vin:                form.vin,
+            registrationNumber: form.registrationNumber,
+            listPrice:          form.listPrice,
+            discount:           form.discount,
+            accessories:        form.accessories,
+            accessoriesCost:    form.accessoriesCost,
+            tradeIn:            form.tradeIn,
+            tradeInCredit:      form.tradeInCredit,
+            totalPrice:         form.totalPrice,
+            vatAmount:          form.vatAmount,
+            paymentType:        form.paymentType,
+            downPayment:        form.downPayment,
+            financingMonths:    form.financingMonths,
+            financingMonthly:   form.financingMonthly,
+            financingApr:       form.financingApr,
+            nominalRate:        form.nominalRate,
+            deliveryWeeks:      form.deliveryWeeks,
+            validUntil:         form.validUntil,
+            notes:              form.notes,
+            sellerName:         sellerProofParsed?.name ?? dealer.name,
+            sellerSignature:    sellerSigJson,
+            buyerSignature:     buyerSigJson,
+            signedAt:           new Date().toISOString(),
+          });
+        } catch (agrErr) {
+          console.error('[agreement] Failed to save agreement record:', agrErr);
+          // Non-fatal — continue with offer/lead updates
+        }
+
         await fetch(`/api/offers/${offerId}`, {
           method: 'PUT', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ dealershipId, status: 'accepted' }),
@@ -410,9 +464,7 @@ export default function AgreementPage() {
 
   const priceAfterDiscount = d.listPrice - d.discount;
   const exVat              = Math.round(d.totalPrice / 1.25);
-  const creditAmount       = d.totalPrice - d.downPayment;
-  const totalCredit        = d.financingMonthly * d.financingMonths;
-  const totalCreditCost    = totalCredit + d.downPayment;
+
   const today              = new Date().toLocaleDateString('sv-SE');
 
   return (
@@ -464,7 +516,7 @@ export default function AgreementPage() {
                     🖨 Skriv ut
                   </button>
                   {bothSigned && (
-                    <Link href={`/sales/leads/${leadId}/payment`}
+                    <Link href={`/sales/leads/${leadId}/payment?tab=${paymentTab}`}
                       className="px-3 py-1.5 text-sm font-medium bg-[#FF6B2C] text-white rounded-lg hover:bg-[#e85a1e]">
                       Gå till betalning →
                     </Link>
@@ -589,12 +641,14 @@ export default function AgreementPage() {
                         ))}
                       </div>
                       {draft!.paymentType === 'financing' && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <F label="Kontantinsats"><NumIn value={draft!.downPayment} onChange={v => upd('downPayment', v)} suffix="kr" /></F>
-                          <F label="Löptid"><NumIn value={draft!.financingMonths} onChange={v => upd('financingMonths', v)} suffix="mån" /></F>
-                          <F label="Månadskostnad"><NumIn value={draft!.financingMonthly} onChange={v => upd('financingMonthly', v)} suffix="kr/mån" /></F>
-                          <F label="Effektiv ränta"><NumIn value={draft!.financingApr} onChange={v => upd('financingApr', v)} suffix="%" step={0.1} /></F>
-                          <F label="Nominell ränta"><NumIn value={draft!.nominalRate} onChange={v => upd('nominalRate', v)} suffix="%" step={0.1} /></F>
+                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3">
+                          <svg className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <div>
+                            <p className="text-sm font-semibold text-blue-800">Finansieringsvillkor bestäms av banken</p>
+                            <p className="text-xs text-blue-600 mt-0.5">Ränta, löptid och månadsbetalning fastställs av banken (Svea, Santander, Klarna m.fl.) och väljs av kunden i betalningssteget efter kreditprövning.</p>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -722,35 +776,17 @@ export default function AgreementPage() {
                       </DocSection>
 
                       {/* Payment */}
-                      {d.paymentType === 'financing' ? (
-                        <DocSection title="Finansieringsinformation (Konsumentkreditlagen 2010:1846)">
-                          <div className="grid grid-cols-2 gap-x-8">
-                            <div>
-                              <DocLine label="Totalt att betala inkl. moms" value={fmt(d.totalPrice)} />
-                              <DocLine label="Kontantinsats"                 value={fmt(d.downPayment)} />
-                              <DocLine label="Kreditbelopp"                  value={fmt(creditAmount)} bold />
-                              <DocLine label="Löptid"                        value={`${d.financingMonths} månader`} />
-                            </div>
-                            <div>
-                              <DocLine label="Nominell ränta"                    value={`${d.nominalRate} %`} />
-                              <DocLine label="Effektiv ränta (APR)"              value={`${d.financingApr} %`} />
-                              <DocLine label="Månadskostnad"                     value={fmt(d.financingMonthly)} bold />
-                              <DocLine label="Totalt kreditbelopp"               value={fmt(totalCredit)} />
-                              <DocLine label="Totalkostnad (inkl. kontantins.)"  value={fmt(totalCreditCost)} bold highlight />
-                            </div>
-                          </div>
-                          <p className="text-[10px] text-slate-400 mt-3 leading-relaxed">
-                            Erbjudandet förutsätter godkänd kreditprövning. Effektiv ränta beräknad på kreditbeloppet {fmt(creditAmount)},
-                            {d.financingMonths} månaders löptid, {d.financingApr}% effektiv ränta och {d.financingMonths} likvärdiga
-                            betalningar om {fmt(d.financingMonthly)}/mån.
+                      <DocSection title="Betalningsinformation">
+                        <DocLine label="Betalningssätt" value={d.paymentType === 'financing' ? 'Finansiering' : 'Kontant betalning'} bold />
+                        <DocLine label="Totalt att betala inkl. moms" value={fmt(d.totalPrice)} bold />
+                        {d.paymentType === 'financing' ? (
+                          <p className="text-xs text-slate-500 mt-2">
+                            Finansiering sker via godkänd kreditgivare (t.ex. Svea, Santander eller Klarna). Ränta, löptid och månadsbetalning fastställs av banken efter kreditprövning och bekräftas i betalningssteget.
                           </p>
-                        </DocSection>
-                      ) : (
-                        <DocSection title="Betalningsinformation">
-                          <DocLine label="Betalningssätt" value="Kontant betalning" bold />
+                        ) : (
                           <p className="text-xs text-slate-500 mt-2">Hela beloppet {fmt(d.totalPrice)} betalas kontant vid leverans.</p>
-                        </DocSection>
-                      )}
+                        )}
+                      </DocSection>
 
                       {/* Delivery & Terms */}
                       <DocSection title="Leverans &amp; villkor">
@@ -868,7 +904,7 @@ export default function AgreementPage() {
                         Båda parter har signerat. Fortsätt till betalning för att slutföra affären.
                       </p>
                       <div className="flex flex-wrap gap-3">
-                        <Link href={`/sales/leads/${leadId}/payment`}
+                        <Link href={`/sales/leads/${leadId}/payment?tab=${paymentTab}`}
                           className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold bg-[#FF6B2C] text-white rounded-xl hover:bg-[#e85a1e] transition-colors shadow-sm">
                           💳 Gå till betalning →
                         </Link>
@@ -965,7 +1001,7 @@ export default function AgreementPage() {
                       🖨 Skriv ut köpeavtal
                     </button>
                     {bothSigned && (
-                      <Link href={`/sales/leads/${leadId}/payment`}
+                      <Link href={`/sales/leads/${leadId}/payment?tab=${paymentTab}`}
                         className="flex items-center gap-2 w-full px-3 py-2 text-sm font-semibold text-[#FF6B2C] hover:bg-[#FF6B2C]/5 rounded-lg transition-colors">
                         💳 Gå till betalning
                       </Link>

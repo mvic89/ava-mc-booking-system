@@ -10,6 +10,7 @@ import { storeInvite } from '@/lib/invites';
 import { isValidEmail } from '@/lib/validation';
 import { useAutoRefresh } from '@/lib/realtime';
 import { getSupabaseBrowser } from '@/lib/supabase';
+import { getBranches, type Branch } from '@/lib/branches';
 
 //──Types ────────────────────────────────────────────────────────────────────
 
@@ -115,6 +116,8 @@ export default function UsersSettingsPage() {
   const [inviteLink,    setInviteLink]    = useState('');
   const [inviteSending, setInviteSending] = useState(false);
   const [emailDomain,   setEmailDomain]   = useState('');
+  const [inviteBranch,  setInviteBranch]  = useState('');
+  const [branches,      setBranches]      = useState<Branch[]>([]);
 
   // Selected user for permission preview
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
@@ -182,6 +185,9 @@ export default function UsersSettingsPage() {
         setUsers(initial);
       }
       setReady(true);
+
+      // Load branches for the branch assignment dropdown
+      getBranches().then(bs => setBranches(bs.filter(b => b.active)));
     })();
   }, [router]);
 
@@ -608,7 +614,7 @@ export default function UsersSettingsPage() {
             <div className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md p-6 animate-fade-up">
               <div className="flex items-center justify-between mb-5">
                 <h2 className="text-lg font-bold text-slate-900">{t('invite.title')}</h2>
-                <button onClick={() => { setShowInvite(false); setInviteLink(''); setInviteName(''); setInviteEmail(''); setInviteRole('sales'); }} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">×</button>
+                <button onClick={() => { setShowInvite(false); setInviteLink(''); setInviteName(''); setInviteEmail(''); setInviteRole('sales'); setInviteBranch(''); }} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">×</button>
               </div>
 
               {/* Copy-link area — shown after invite is sent */}
@@ -714,6 +720,22 @@ export default function UsersSettingsPage() {
                     Behörigheter: {ROLES[inviteRole].permissions.join(', ')}
                   </p>
                 </div>
+
+                {branches.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Filial (valfritt)</label>
+                    <select
+                      value={inviteBranch}
+                      onChange={e => setInviteBranch(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C]/20 bg-white"
+                    >
+                      <option value="">Ingen specifik filial</option>
+                      {branches.map(b => (
+                        <option key={b.id} value={b.id}>{b.name}{b.city ? ` — ${b.city}` : ''}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <div className="flex gap-3 pt-1">
                   <button

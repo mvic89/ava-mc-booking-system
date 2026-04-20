@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Sidebar from '@/components/Sidebar';
 import { getDealerInfo } from '@/lib/dealer';
@@ -101,6 +101,8 @@ function InfoRow({ label, value, highlight }: { label: string; value: string; hi
 }
 
 function DeliveryLock({ unlocked }: { unlocked: boolean }) {
+  const params = useParams();
+  const leadId = params?.id as string | undefined;
   return (
     <div className={`rounded-xl border-2 p-4 flex items-center gap-3 transition-all ${
       unlocked ? 'border-green-300 bg-green-50' : 'border-slate-200 bg-slate-50'
@@ -116,9 +118,9 @@ function DeliveryLock({ unlocked }: { unlocked: boolean }) {
             : 'Payment must be confirmed before delivery is allowed'}
         </p>
       </div>
-      {unlocked && (
+      {unlocked && leadId && (
         <Link
-          href="#"
+          href={`/sales/leads/${leadId}/delivery`}
           className="ml-auto px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white text-xs font-bold transition-colors"
         >
           Go to Delivery →
@@ -598,31 +600,26 @@ function SwishTab({ order, onConfirmed }: { order: OrderSummary; onConfirmed: ()
   const [sending, setSending] = useState(false);
   const [paymentRef] = useState('BIKE-' + Math.random().toString(36).slice(2, 8).toUpperCase());
 
-  // REAL DATA GUIDE:
-  // POST https://mss.cpc.getswish.net/swish-cpcapi/api/v2/paymentrequests
-  // Headers: Certificate (m2m), Content-Type: application/json
-  // Body: { payeeAlias: "1231234567", amount: order.balanceDue, message: paymentRef,
-  //         callbackUrl: "https://yoursite.se/api/swish/callback" }
-  // Each location has its own Swish merchant number (e.g. 123 456 78 90)
-  // Callback updates payment status in DB → unlocks delivery
+  const dealerInfo   = getDealerInfo();
+  const swishNumber  = dealerInfo.swish;
 
   const handleSendRequest = () => {
     if (!phone.match(/^07\d{8}$/)) return;
     setSending(true);
     setPaymentStatus('processing');
-    // Simulate Swish callback after 3 seconds
+    // TODO: call POST /api/swish/request to send a real Swish payment request
+    // For now, the dealer manually verifies receipt and clicks Confirm below.
     setTimeout(() => {
       setSending(false);
-      setPaymentStatus('confirmed');
-      onConfirmed();
-    }, 3000);
+      setPaymentStatus('processing'); // stay at processing — dealer confirms manually
+    }, 500);
   };
 
   return (
     <div className="space-y-5">
       {/* Amount */}
       <div className="bg-slate-50 rounded-xl p-5 text-center">
-        <p className="text-xs text-slate-400 uppercase tracking-widest mb-1">Amount to collect</p>
+        <p className="text-xs text-slate-400 uppercase tracking-widest mb-1">Belopp att ta emot</p>
         <p className="text-4xl font-black text-slate-900">
           {order.balanceDue.toLocaleString('sv-SE')} kr
         </p>
@@ -631,18 +628,27 @@ function SwishTab({ order, onConfirmed }: { order: OrderSummary; onConfirmed: ()
 
       {/* Swish number */}
       <div className="bg-white border border-slate-200 rounded-xl p-4">
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Location Swish Number</p>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#00B4B0] flex items-center justify-center shrink-0">
-            <span className="text-white font-black text-xs">S</span>
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">Swish Handelsnummer</p>
+        {swishNumber ? (
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#00B4B0] flex items-center justify-center shrink-0">
+              <span className="text-white font-black text-xs">S</span>
+            </div>
+            <div>
+              <p className="text-lg font-black text-slate-900">{swishNumber}</p>
+              <p className="text-xs text-slate-400">{order.location} — Swish Handel</p>
+            </div>
           </div>
-          <div>
-            <p className="text-lg font-black text-slate-900">123 456 78 90</p>
-            <p className="text-xs text-slate-400">{order.location} — Swish Merchant</p>
+        ) : (
+          <div className="flex items-start gap-2 text-amber-700 bg-amber-50 rounded-lg p-3">
+            <span className="text-amber-500 shrink-0">⚠</span>
+            <p className="text-xs">
+              <strong>Swish-nummer ej konfigurerat.</strong>{' '}
+              Lägg till ditt Swish Handelsnummer i{' '}
+              <a href="/settings" className="underline hover:text-amber-900">Inställningar → Profil</a>.
+            </p>
           </div>
-        </div>
-        {/* REAL DATA GUIDE: Each location registers a Swish Handel number via swish.nu.
-            Store per-location Swish numbers in your DB: locations.swish_number */}
+        )}
       </div>
 
       {/* Send payment request */}
@@ -672,23 +678,36 @@ function SwishTab({ order, onConfirmed }: { order: OrderSummary; onConfirmed: ()
         </div>
       )}
 
-      {/* Processing */}
+      {/* Processing — dealer waits for customer to pay, then manually confirms */}
       {paymentStatus === 'processing' && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 flex items-center gap-3">
-          <div className="w-5 h-5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin shrink-0" />
-          <div>
-            <p className="text-sm font-bold text-amber-700">Waiting for customer approval…</p>
-            <p className="text-xs text-slate-500">Customer has 3 minutes to approve in Swish app</p>
+        <div className="space-y-3">
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <p className="text-sm font-bold text-amber-700">Väntar på kundens betalning</p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Be kunden öppna Swish och skicka <strong>{order.balanceDue.toLocaleString('sv-SE')} kr</strong> med referens <strong>{paymentRef}</strong>.
+            </p>
           </div>
+          <button
+            onClick={() => { setPaymentStatus('confirmed'); onConfirmed(); }}
+            className="w-full py-3 rounded-xl bg-[#00B4B0] hover:bg-[#009e9a] text-white text-sm font-bold transition-colors"
+          >
+            ✓ Bekräfta — betalningen kom in
+          </button>
+          <button
+            onClick={() => setPaymentStatus('pending')}
+            className="w-full text-xs text-slate-400 hover:text-red-500 transition-colors"
+          >
+            ✕ Avbryt
+          </button>
         </div>
       )}
 
       {/* Confirmed */}
       {paymentStatus === 'confirmed' && (
         <div className="rounded-xl border border-green-200 bg-green-50 p-4">
-          <p className="text-sm font-bold text-green-700">✅ Swish Payment Confirmed</p>
+          <p className="text-sm font-bold text-green-700">✅ Swish-betalning bekräftad</p>
           <p className="text-xs text-slate-500 mt-0.5">
-            {order.balanceDue.toLocaleString('sv-SE')} kr received • Ref: {paymentRef}
+            {order.balanceDue.toLocaleString('sv-SE')} kr mottaget • Ref: {paymentRef}
           </p>
         </div>
       )}
@@ -1402,31 +1421,175 @@ function KlarnaTab({ order, onConfirmed }: { order: OrderSummary; onConfirmed: (
 
 // ─── Bank Transfer Tab ────────────────────────────────────────────────────────
 
+type SendStatus = 'idle' | 'sending' | 'sent' | 'error';
+
 function BankTransferTab({ order, onConfirmed }: { order: OrderSummary; onConfirmed: () => void }) {
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('pending');
-  const [confirming, setConfirming] = useState(false);
-  const reference = `BKE${order.agreementNumber.replace(/\D/g, '')}`;
-  const dealerCompany = getDealerInfo().name;
+  const [confirming,    setConfirming]    = useState(false);
+  const [confirmNote,   setConfirmNote]   = useState('');
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-  // REAL DATA GUIDE:
-  // Bank transfer clearing in Sweden happens via Bankgiro (BGC).
-  // Register with Bankgirot at bankgirot.se
-  // BGC sends a daily transaction file (BGMAX format) — parse this to auto-confirm transfers.
-  // Alternatively use Open Banking / PSD2: Tink or Intergiro APIs to verify
-  // incoming transfers in real-time.
+  // Send details state
+  const [showSendPanel, setShowSendPanel] = useState(false);
+  const [sendMethod,    setSendMethod]    = useState<'email' | 'sms'>('email');
+  const [sendContact,   setSendContact]   = useState('');
+  const [sendStatus,    setSendStatus]    = useState<SendStatus>('idle');
+  const [sendError,     setSendError]     = useState('');
+
+  const reference     = `BKE${order.agreementNumber.replace(/\D/g, '')}`;
+  const dealerInfo    = getDealerInfo();
+  const dealerCompany = dealerInfo.name;
+  const bankConfigured = !!(dealerInfo.bankgiro || dealerInfo.iban);
+
+  const bankDetails = {
+    company:   dealerCompany || '—',
+    bank:      '—',
+    bankgiro:  dealerInfo.bankgiro  || '—',
+    iban:      dealerInfo.iban      || '—',
+    bic:       dealerInfo.bic       || '—',
+    amount:    `${order.balanceDue.toLocaleString('sv-SE')} kr`,
+    reference,
+    currency:  'SEK',
+  };
+
+  const handleSendDetails = async () => {
+    if (!sendContact.trim()) return;
+    setSendStatus('sending');
+    setSendError('');
+    try {
+      const res = await fetch('/api/payment/send-details', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contact:      sendContact.trim(),
+          method:       sendMethod,
+          customerName: order.customerName,
+          bankDetails,
+          dealerName:   dealerCompany,
+          leadId:       order.agreementNumber,
+          dealershipId: '',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Failed to send');
+      setSendStatus('sent');
+    } catch (err: unknown) {
+      setSendError(err instanceof Error ? err.message : 'Unknown error');
+      setSendStatus('error');
+    }
+  };
 
   const handleManualConfirm = () => {
     setConfirming(true);
     setTimeout(() => {
       setConfirming(false);
       setPaymentStatus('confirmed');
+      setShowConfirmDialog(false);
       onConfirmed();
     }, 1500);
   };
 
   return (
     <div className="space-y-5">
-      {/* Bank details */}
+
+      {/* ── Send to Customer Section ─────────────────────────────────────────── */}
+      <div className="bg-gradient-to-br from-[#0b1524] to-[#162236] rounded-xl p-5 text-white">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <p className="text-sm font-bold">Send Payment Instructions</p>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Share bank details directly with the customer
+            </p>
+          </div>
+          <button
+            onClick={() => { setShowSendPanel(v => !v); setSendStatus('idle'); setSendError(''); }}
+            className="px-3 py-1.5 rounded-lg bg-[#FF6B2C] hover:bg-[#e55a1f] text-xs font-bold transition-colors"
+          >
+            {showSendPanel ? 'Hide' : 'Send Details'}
+          </button>
+        </div>
+
+        {showSendPanel && (
+          <div className="mt-4 pt-4 border-t border-slate-700 space-y-3">
+            {/* Method toggle */}
+            <div className="flex gap-2">
+              {(['email', 'sms'] as const).map(m => (
+                <button
+                  key={m}
+                  onClick={() => { setSendMethod(m); setSendContact(''); setSendStatus('idle'); }}
+                  className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
+                    sendMethod === m
+                      ? 'bg-[#FF6B2C] text-white'
+                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                  }`}
+                >
+                  {m === 'email' ? '✉ Email' : '📱 SMS'}
+                </button>
+              ))}
+            </div>
+
+            {/* Contact input */}
+            <div>
+              <label className="text-xs text-slate-400 mb-1 block">
+                {sendMethod === 'email' ? 'Customer email address' : 'Customer phone number'}
+              </label>
+              <input
+                type={sendMethod === 'email' ? 'email' : 'tel'}
+                value={sendContact}
+                onChange={e => { setSendContact(e.target.value); setSendStatus('idle'); }}
+                placeholder={sendMethod === 'email' ? 'customer@email.com' : '07XXXXXXXX or +46…'}
+                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-[#FF6B2C] transition-colors"
+              />
+            </div>
+
+            {/* Preview summary */}
+            <div className="bg-slate-800 rounded-lg p-3 text-xs text-slate-300 space-y-1">
+              <p className="font-semibold text-slate-200 mb-1.5">Will include:</p>
+              <p>• Bankgiro <span className="text-white font-mono">{bankDetails.bankgiro}</span></p>
+              <p>• IBAN <span className="text-white font-mono">{bankDetails.iban}</span></p>
+              <p>• Amount <span className="text-[#FF6B2C] font-bold">{bankDetails.amount}</span></p>
+              <p>• Reference <span className="text-white font-mono font-bold">{reference}</span></p>
+            </div>
+
+            {/* Send button / feedback */}
+            {sendStatus === 'sent' ? (
+              <div className="flex items-center gap-2 bg-green-500/20 border border-green-500/30 rounded-lg px-3 py-2.5">
+                <span className="text-green-400 text-base">✓</span>
+                <p className="text-xs font-semibold text-green-300">
+                  Payment instructions sent via {sendMethod}!
+                </p>
+              </div>
+            ) : (
+              <>
+                {sendStatus === 'error' && (
+                  <p className="text-xs text-red-400 bg-red-500/10 rounded-lg px-3 py-2">{sendError}</p>
+                )}
+                <button
+                  onClick={handleSendDetails}
+                  disabled={!sendContact.trim() || sendStatus === 'sending'}
+                  className="w-full py-2.5 rounded-lg bg-[#FF6B2C] hover:bg-[#e55a1f] disabled:opacity-40 text-sm font-bold text-white transition-colors"
+                >
+                  {sendStatus === 'sending'
+                    ? 'Sending…'
+                    : `Send via ${sendMethod === 'email' ? 'Email' : 'SMS'}`}
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── Bank Details Card ────────────────────────────────────────────────── */}
+      {!bankConfigured && (
+        <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3">
+          <span className="text-amber-500 shrink-0">⚠</span>
+          <p className="text-xs text-amber-700">
+            <strong>Bankkonto ej konfigurerat.</strong> Lägg till Bankgiro/IBAN i{' '}
+            <a href="/settings" className="underline hover:text-amber-900">Inställningar → Profil</a>{' '}
+            innan du delar detta med kunder.
+          </p>
+        </div>
+      )}
       <div className="bg-slate-50 rounded-xl p-5">
         <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
           Bank Details — Give to Customer
@@ -1438,8 +1601,6 @@ function BankTransferTab({ order, onConfirmed }: { order: OrderSummary; onConfir
             { label: 'Bankgiro',   value: '123-4567' },
             { label: 'IBAN',       value: 'SE35 5000 0000 0549 1000 0003' },
             { label: 'BIC/SWIFT',  value: 'HANDSESS' },
-            { label: 'Amount',     value: `${order.balanceDue.toLocaleString('sv-SE')} kr` },
-            { label: 'Reference',  value: reference },
           ].map(row => (
             <div key={row.label} className="flex justify-between items-center">
               <span className="text-xs text-slate-400">{row.label}</span>
@@ -1447,28 +1608,39 @@ function BankTransferTab({ order, onConfirmed }: { order: OrderSummary; onConfir
             </div>
           ))}
         </div>
-        {/* REAL DATA GUIDE: Each location gets its own Bankgiro number.
-            Store in locations.bankgiro — used for per-store reconciliation.
-            Reference format: BIKE{agreementId} — parse from BGMAX file for auto-matching. */}
+        <div className="mt-4 pt-3 border-t border-slate-200 space-y-2">
+          <div className="flex justify-between items-center bg-orange-50 rounded-lg px-3 py-2">
+            <span className="text-xs font-semibold text-orange-700">Amount to pay</span>
+            <span className="text-base font-black text-[#FF6B2C]">
+              {order.balanceDue.toLocaleString('sv-SE')} kr
+            </span>
+          </div>
+          <div className="flex justify-between items-center bg-orange-50 rounded-lg px-3 py-2">
+            <span className="text-xs font-semibold text-orange-700">Reference (required)</span>
+            <span className="text-sm font-black text-slate-900 font-mono bg-white px-2 py-0.5 rounded border border-orange-200">
+              {reference}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Copy notice */}
       <div className="flex items-start gap-2 bg-amber-50 border border-amber-100 rounded-xl p-3">
         <span className="text-amber-500 shrink-0">⚠</span>
         <p className="text-xs text-amber-700">
-          Customer must include reference <strong>{reference}</strong> exactly.
+          Customer must include reference <strong>{reference}</strong> exactly in the payment message.
           Without it, auto-matching fails and manual reconciliation is required.
         </p>
       </div>
 
-      {/* Status */}
+      {/* ── Transfer Status ──────────────────────────────────────────────────── */}
       <div className="bg-white border border-slate-200 rounded-xl p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-3">
           <div>
             <p className="text-sm font-bold text-slate-700">Transfer Status</p>
             <p className="text-xs text-slate-400 mt-0.5">
               {paymentStatus === 'pending'
-                ? 'Typically clears within 1–2 business days'
+                ? 'Waiting for bank transfer — typically 1–2 business days'
                 : paymentStatus === 'confirmed'
                 ? `${order.balanceDue.toLocaleString('sv-SE')} kr received and matched`
                 : 'Checking...'}
@@ -1477,20 +1649,103 @@ function BankTransferTab({ order, onConfirmed }: { order: OrderSummary; onConfir
           <StatusPill status={paymentStatus} />
         </div>
 
+        {/* Status timeline */}
+        <div className="flex items-center gap-1 mb-4">
+          {[
+            { key: 'pending',    label: 'Instructions sent', done: true },
+            { key: 'processing', label: 'Transfer in progress', done: paymentStatus !== 'pending' },
+            { key: 'confirmed',  label: 'Confirmed', done: paymentStatus === 'confirmed' },
+          ].map((step, i) => (
+            <div key={step.key} className="flex items-center gap-1 flex-1">
+              <div className={`flex-1 h-1.5 rounded-full transition-colors ${
+                step.done ? 'bg-green-400' : 'bg-slate-100'
+              }`} />
+              {i === 2 && (
+                <div className={`w-2 h-2 rounded-full shrink-0 ${
+                  step.done ? 'bg-green-500' : 'bg-slate-200'
+                }`} />
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-between text-[10px] text-slate-400 -mt-2 mb-4 px-0.5">
+          <span>Sent</span>
+          <span>In transit</span>
+          <span>Received</span>
+        </div>
+
         {paymentStatus === 'pending' && (
-          <button
-            onClick={handleManualConfirm}
-            disabled={confirming}
-            className="mt-3 w-full py-2.5 rounded-xl border-2 border-slate-200 hover:border-slate-300 text-sm font-semibold text-slate-700 disabled:opacity-50 transition-colors"
-          >
-            {confirming ? 'Confirming…' : 'Mark as Received (Manual)'}
-          </button>
+          <>
+            <p className="text-xs text-slate-400 mb-3 leading-relaxed">
+              When the transfer arrives, match it by reference <strong className="text-slate-600">{reference}</strong>.
+              Use BGMAX auto-matching or confirm manually below.
+            </p>
+            <button
+              onClick={() => setShowConfirmDialog(true)}
+              className="w-full py-2.5 rounded-xl border-2 border-slate-200 hover:border-green-300 hover:bg-green-50 text-sm font-semibold text-slate-700 hover:text-green-700 transition-all"
+            >
+              Mark Transfer as Received
+            </button>
+          </>
         )}
 
         {paymentStatus === 'confirmed' && (
-          <p className="text-xs text-green-600 font-semibold mt-2">✅ bank_transfer_status = CLEARED</p>
+          <div className="flex items-center gap-2 bg-green-50 rounded-lg px-3 py-2">
+            <span className="text-green-500 text-base">✓</span>
+            <p className="text-xs font-semibold text-green-700">
+              bank_transfer_status = CLEARED · {confirmNote && `Note: ${confirmNote}`}
+            </p>
+          </div>
         )}
       </div>
+
+      {/* ── Confirm dialog overlay ───────────────────────────────────────────── */}
+      {showConfirmDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center text-xl">✓</div>
+              <div>
+                <p className="font-bold text-slate-900">Confirm Receipt</p>
+                <p className="text-xs text-slate-400">Mark this transfer as manually confirmed</p>
+              </div>
+            </div>
+            <div>
+              <p className="text-xs text-slate-500 mb-1">
+                Amount: <strong className="text-slate-900">{order.balanceDue.toLocaleString('sv-SE')} kr</strong>
+                &nbsp;· Reference: <strong className="font-mono text-slate-900">{reference}</strong>
+              </p>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-600 block mb-1">
+                Confirmation note (optional)
+              </label>
+              <input
+                type="text"
+                value={confirmNote}
+                onChange={e => setConfirmNote(e.target.value)}
+                placeholder="e.g. Verified in bank statement 16 Apr"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#FF6B2C] transition-colors"
+              />
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowConfirmDialog(false)}
+                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleManualConfirm}
+                disabled={confirming}
+                className="flex-1 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-sm font-bold text-white disabled:opacity-50 transition-colors"
+              >
+                {confirming ? 'Confirming…' : 'Confirm Received'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Real data guide */}
       <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 text-xs text-blue-700 space-y-1">
@@ -1499,7 +1754,7 @@ function BankTransferTab({ order, onConfirmed }: { order: OrderSummary; onConfir
         <p>• Enable BGMAX file delivery — Bankgirot sends daily transfer files to your SFTP</p>
         <p>• Parse BGMAX: match by reference → auto-set <code>bank_transfer_status = CLEARED</code></p>
         <p>• Or use <strong>Tink (tink.com)</strong> for real-time Open Banking — instant confirmation</p>
-        <p>• Auto-unlock delivery when status = CLEARED (no manual override without HQ)</p>
+        <p>• Configure <code>RESEND_API_KEY</code> or <code>ELKS_API_USERNAME/PASSWORD</code> to enable send button</p>
       </div>
 
       <DeliveryLock unlocked={paymentStatus === 'confirmed'} />
@@ -1518,15 +1773,27 @@ const TABS: { id: PaymentMethod; label: string; icon: string }[] = [
 ];
 
 export default function PaymentPage() {
-  const router = useRouter();
-  const params = useParams();
+  const router       = useRouter();
+  const params       = useParams();
+  const searchParams = useSearchParams();
   const id = (params?.id as string) || 'default';
 
-  const [activeTab,     setActiveTab]     = useState<PaymentMethod>('financing');
-  const [order,         setOrder]         = useState<OrderSummary>(EMPTY_ORDER);
-  const [dealershipId,  setDealershipId]  = useState('');
+  // Pre-select tab from ?tab= URL param (set by offer page based on paymentType)
+  // offer paymentType 'financing' → 'financing' tab
+  // offer paymentType 'cash'      → 'swish' tab (default direct-payment method)
+  const tabParam = searchParams?.get('tab') as PaymentMethod | null;
+  const [activeTab, setActiveTab] = useState<PaymentMethod>(tabParam ?? 'financing');
+  const [order,              setOrder]              = useState<OrderSummary>(EMPTY_ORDER);
+  const [dealershipId,       setDealershipId]       = useState('');
+  const [isAccessoriesOrder, setIsAccessoriesOrder] = useState(false);
+  const [orderItems,         setOrderItems]         = useState<{ name: string; brand: string; price: number; qty: number; itemType: string }[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_ready, setReady] = useState(false);
+
+  // Default to Swish for accessories orders (Financing is hidden and irrelevant)
+  useEffect(() => {
+    if (isAccessoriesOrder) setActiveTab('swish');
+  }, [isAccessoriesOrder]);
 
   // Create a pending invoice as soon as the bank-transfer tab is visible so
   // the dealer has a trackable record before the customer sends the transfer.
@@ -1549,14 +1816,43 @@ export default function PaymentPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, dealershipId, order.totalAmount]);
 
-  const handlePaymentConfirmed = (tabId: PaymentMethod) => {
+  const handlePaymentConfirmed = async (tabId: PaymentMethod) => {
     const tab = TABS.find(t => t.id === tabId)!;
+
+    // Persist to DB: create paid invoice → also closes lead, creates customer,
+    // deducts inventory, and fires Fortnox sync (all handled by the route).
+    let invoiceId = '';
+    try {
+      const res  = await fetch('/api/invoice/create', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          leadId:        String(id),
+          dealershipId,
+          customerName:  order.customerName,
+          vehicle:       order.vehicle,
+          agreementRef:  order.agreementNumber,
+          totalAmount:   order.totalAmount,
+          paymentMethod: tab.label,
+          status:        'paid',
+        }),
+      });
+      const data = await res.json();
+      invoiceId = data.invoiceId ?? '';
+    } catch (err) {
+      console.error('[payment] invoice create failed:', err);
+      // Non-fatal — navigate anyway so the dealer isn't stuck
+    }
+
+    // Pass payment method to the complete page (it reads this key)
     sessionStorage.setItem('selectedPaymentMethod', JSON.stringify({
       id:       tab.id,
       name:     tab.label,
       icon:     tab.icon,
       category: tab.id,
+      invoiceId,
     }));
+
     router.push(`/sales/leads/${id}/agreement/complete`);
   };
 
@@ -1574,28 +1870,72 @@ export default function PaymentPage() {
 
     (async () => {
       try {
-        const res  = await fetch(`/api/offers?leadId=${id}&dealershipId=${encodeURIComponent(dealershipId)}`);
-        const data = await res.json();
-        const o    = data.offer;
-        if (o) {
-          const year = new Date(o.createdAt || Date.now()).getFullYear();
-          const agreementNumber = `AGR-${year}-${String(o.id).padStart(4, '0')}`;
-          const balanceDue      = Math.max(0, (o.totalPrice ?? 0) - (o.downPayment ?? 0));
+        // Always fetch the lead row first to know the type
+        const leadRes  = await fetch(`/api/leads/${id}?dealershipId=${encodeURIComponent(dealershipId)}`);
+        const leadJson = leadRes.ok ? await leadRes.json() : null;
+        const lead     = leadJson?.lead ?? null;
+
+        // Determine if this is an accessories lead:
+        // - DB column lead_type (after migration) OR
+        // - bike field starts with "Tillbehör:" (fallback for leads created before migration)
+        const isAcc = lead?.lead_type === 'accessories'
+                   || (lead?.lead_type == null && (lead?.bike ?? '').startsWith('Tillbehör:'));
+
+        if (isAcc && lead) {
+          // Parse the stored items (JSONB array or JSON string)
+          const items: { name: string; brand: string; price: number; qty: number; itemType: string }[] =
+            (() => { try { const v = lead.lead_items; return Array.isArray(v) ? v : JSON.parse(v ?? '[]'); } catch { return []; } })();
+
+          // If items are empty (pre-migration lead), reconstruct a single line from value
+          const totalAmount = items.length > 0
+            ? items.reduce((s: number, i: { price: number; qty: number }) => s + i.price * i.qty, 0)
+            : parseFloat(lead.value ?? '0') || 0;
+
+          const year = new Date(lead.created_at || Date.now()).getFullYear();
+          setIsAccessoriesOrder(true);
+          setOrderItems(items);
           setOrder({
-            agreementNumber,
-            customerName:  o.customerName  ?? '—',
-            personnummer:  o.personnummer   ?? '',
-            vehicle:       o.vehicle        ?? '—',
-            vehiclePrice:  (o.listPrice ?? 0) - (o.discount ?? 0),
-            accessories:   o.accessoriesCost ?? 0,
-            tradeInCredit: o.tradeInCredit   ?? 0,
-            totalAmount:   o.totalPrice      ?? 0,
-            deposit:       o.downPayment     ?? 0,
-            balanceDue,
+            agreementNumber: `ACC-${year}-${String(lead.id).padStart(4, '0')}`,
+            customerName:    lead.name        ?? '—',
+            personnummer:    lead.personnummer ?? '',
+            vehicle:         'Tillbehör / Reservdelar',
+            vehiclePrice:    0,
+            accessories:     totalAmount,
+            tradeInCredit:   0,
+            totalAmount,
+            deposit:         0,
+            balanceDue:      totalAmount,
             location,
           });
         } else {
-          setOrder({ ...EMPTY_ORDER, location });
+          // Motorcycle lead — load from offer
+          const res  = await fetch(`/api/offers?leadId=${id}&dealershipId=${encodeURIComponent(dealershipId)}`);
+          const data = await res.json();
+          const o    = data.offer;
+          if (o) {
+            const year = new Date(o.createdAt || Date.now()).getFullYear();
+            const balanceDue = Math.max(0, (o.totalPrice ?? 0) - (o.downPayment ?? 0));
+            setOrder({
+              agreementNumber: `AGR-${year}-${String(o.id).padStart(4, '0')}`,
+              customerName:    o.customerName   ?? '—',
+              personnummer:    o.personnummer    ?? '',
+              vehicle:         o.vehicle         ?? '—',
+              vehiclePrice:    (o.listPrice ?? 0) - (o.discount ?? 0),
+              accessories:     o.accessoriesCost ?? 0,
+              tradeInCredit:   o.tradeInCredit   ?? 0,
+              totalAmount:     o.totalPrice      ?? 0,
+              deposit:         o.downPayment     ?? 0,
+              balanceDue,
+              location,
+            });
+            // Auto-select payment tab based on what was agreed in the offer —
+            // only override if no ?tab= param was given in the URL
+            if (!tabParam) {
+              setActiveTab(o.paymentType === 'financing' ? 'financing' : 'swish');
+            }
+          } else {
+            setOrder({ ...EMPTY_ORDER, location });
+          }
         }
       } catch {
         setOrder({ ...EMPTY_ORDER, location });
@@ -1616,15 +1956,23 @@ export default function PaymentPage() {
           <nav className="flex items-center gap-1.5 text-xs text-slate-400 mb-3">
             <Link href="/sales/leads" className="hover:text-[#FF6B2C] transition-colors">Sales</Link>
             <span>→</span>
-            <Link href={`/sales/leads/${id}/agreement`} className="hover:text-[#FF6B2C] transition-colors">Agreement</Link>
+            <Link href={`/sales/leads/${id}`} className="hover:text-[#FF6B2C] transition-colors">Lead</Link>
+            {!isAccessoriesOrder && (
+              <>
+                <span>→</span>
+                <Link href={`/sales/leads/${id}/agreement`} className="hover:text-[#FF6B2C] transition-colors">Agreement</Link>
+              </>
+            )}
             <span>→</span>
             <span className="text-slate-700 font-medium">Payment</span>
           </nav>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="text-2xl">💰</span>
+              <span className="text-2xl">{isAccessoriesOrder ? '🛒' : '💰'}</span>
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">Payment — {order.agreementNumber}</h1>
+                <h1 className="text-2xl font-bold text-slate-900">
+                  {isAccessoriesOrder ? 'Direktbetalning' : 'Payment'} — {order.agreementNumber}
+                </h1>
                 <p className="text-sm text-slate-400 mt-0.5">{order.location}</p>
               </div>
             </div>
@@ -1650,61 +1998,84 @@ export default function PaymentPage() {
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-500 mb-3 font-medium">{order.vehicle}</p>
+                {isAccessoriesOrder ? (
+                  /* ── Accessories order summary ── */
+                  <div className="space-y-1 text-sm">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+                      🛒 Tillbehör &amp; Reservdelar
+                    </p>
+                    {orderItems.length > 0 ? (
+                      <div className="space-y-2 mb-3">
+                        {orderItems.map((item, i) => (
+                          <div key={i} className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="text-xs shrink-0">{item.itemType === 'acc' ? '🧤' : '🔧'}</span>
+                              <div className="min-w-0">
+                                <p className="text-xs font-medium text-slate-800 truncate">{item.brand} {item.name}</p>
+                                {item.qty > 1 && (
+                                  <p className="text-[10px] text-slate-400">{item.qty} st × {item.price.toLocaleString('sv-SE')} kr</p>
+                                )}
+                              </div>
+                            </div>
+                            <span className="text-xs font-semibold text-slate-700 shrink-0 tabular-nums">
+                              {(item.price * item.qty).toLocaleString('sv-SE')} kr
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-400 italic mb-3">{order.vehicle}</p>
+                    )}
+                    <div className="border-t border-slate-100 pt-3 flex justify-between font-bold text-slate-900">
+                      <span>Totalt</span>
+                      <span>{order.totalAmount.toLocaleString('sv-SE')} kr</span>
+                    </div>
+                    <div className="flex justify-between font-black text-lg text-[#FF6B2C] pt-1">
+                      <span>Att betala</span>
+                      <span>{order.balanceDue.toLocaleString('sv-SE')} kr</span>
+                    </div>
+                  </div>
+                ) : (
+                  /* ── Motorcycle order summary ── */
+                  <>
+                    <p className="text-xs text-slate-500 mb-3 font-medium">{order.vehicle}</p>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Vehicle</span>
+                        <span className="font-medium">{order.vehiclePrice.toLocaleString('sv-SE')} kr</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Accessories</span>
+                        <span className="font-medium">+{order.accessories.toLocaleString('sv-SE')} kr</span>
+                      </div>
+                      <div className="flex justify-between text-green-600">
+                        <span>Trade-in credit</span>
+                        <span className="font-medium">−{order.tradeInCredit.toLocaleString('sv-SE')} kr</span>
+                      </div>
+                      <div className="border-t border-slate-100 pt-2 flex justify-between font-bold text-slate-900">
+                        <span>Total</span>
+                        <span>{order.totalAmount.toLocaleString('sv-SE')} kr</span>
+                      </div>
+                      <div className="flex justify-between text-slate-400 text-xs">
+                        <span>Deposit paid</span>
+                        <span>−{order.deposit.toLocaleString('sv-SE')} kr</span>
+                      </div>
+                      <div className="flex justify-between font-black text-lg text-[#FF6B2C]">
+                        <span>Balance due</span>
+                        <span>{order.balanceDue.toLocaleString('sv-SE')} kr</span>
+                      </div>
+                    </div>
 
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Vehicle</span>
-                    <span className="font-medium">{order.vehiclePrice.toLocaleString('sv-SE')} kr</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Accessories</span>
-                    <span className="font-medium">+{order.accessories.toLocaleString('sv-SE')} kr</span>
-                  </div>
-                  <div className="flex justify-between text-green-600">
-                    <span>Trade-in credit</span>
-                    <span className="font-medium">−{order.tradeInCredit.toLocaleString('sv-SE')} kr</span>
-                  </div>
-                  <div className="border-t border-slate-100 pt-2 flex justify-between font-bold text-slate-900">
-                    <span>Total</span>
-                    <span>{order.totalAmount.toLocaleString('sv-SE')} kr</span>
-                  </div>
-                  <div className="flex justify-between text-slate-400 text-xs">
-                    <span>Deposit paid</span>
-                    <span>−{order.deposit.toLocaleString('sv-SE')} kr</span>
-                  </div>
-                  <div className="flex justify-between font-black text-lg text-[#FF6B2C]">
-                    <span>Balance due</span>
-                    <span>{order.balanceDue.toLocaleString('sv-SE')} kr</span>
-                  </div>
-                </div>
-
-                {/* Commission summary */}
-                <div className="mt-4 pt-4 border-t border-slate-100">
-                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">Revenue Split</p>
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Bike margin</span>
-                      <span className="font-bold text-slate-700">~18,000 kr</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">F&I commission</span>
-                      <span className="font-bold text-slate-700">2,846 kr</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Salesperson</span>
-                      <span className="font-bold text-[#FF6B2C]">2,846 kr</span>
-                    </div>
-                  </div>
-                </div>
+                  </>
+                )}
               </div>
             </div>
 
             {/* Right: Payment methods */}
             <div className="flex-1 animate-fade-up">
-              {/* Tab selector */}
+              {/* Tab selector — hide Financing for accessories orders */}
               <div className="bg-white rounded-2xl border border-slate-100 p-1.5 flex gap-1 mb-5">
-                {TABS.map(tab => (
+                {TABS.filter(tab => !(isAccessoriesOrder && tab.id === 'financing')).map(tab => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}

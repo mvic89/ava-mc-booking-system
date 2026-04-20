@@ -30,40 +30,52 @@ interface SignedAgreement {
   dealer:   SignRecord;
 }
 
-function buildCascadeActions(
-  pm:             SelectedPayment | null,
-  invoiceId:      string | null,
-  invTotal:       number,
-  salesperson:    string,
-  transferCaseId: string | null,
-  blocketDeleted: boolean,
-) {
-  const paymentLabel = pm
-    ? `${pm.icon} Betalning initierad via ${pm.name}`
-    : 'Betalningsplan: 36 × 4,092 kr/mån skapad';
-  const invoiceLabel = invoiceId
-    ? `Faktura auto-genererad: ${invoiceId} (${invTotal.toLocaleString('sv-SE')} kr)`
+interface CascadeParams {
+  pm:               SelectedPayment | null;
+  invoiceId:        string | null;
+  invTotal:         number;
+  salesperson:      string;
+  transferCaseId:   string | null;
+  blocketDeleted:   boolean;
+  financingMonths:  number;
+  financingMonthly: number;
+  paymentType:      string; // 'financing' | 'swish' | 'card' | 'bank-transfer' | 'klarna' | ''
+}
+
+function buildCascadeActions(p: CascadeParams) {
+  const fmt = (n: number) => n.toLocaleString('sv-SE');
+
+  // Payment label: real financing data when applicable
+  let paymentLabel: string;
+  if (p.paymentType === 'financing' && p.financingMonths > 0 && p.financingMonthly > 0) {
+    paymentLabel = `🏦 Betalningsplan: ${p.financingMonths} × ${fmt(p.financingMonthly)} kr/mån skapad`;
+  } else if (p.pm) {
+    paymentLabel = `${p.pm.icon} Betalning initierad via ${p.pm.name}`;
+  } else {
+    paymentLabel = '💰 Betalning registrerad';
+  }
+
+  const invoiceLabel = p.invoiceId
+    ? `Faktura auto-genererad: ${p.invoiceId} (${fmt(p.invTotal)} kr)`
     : 'Faktura auto-genererad…';
-  const provisionAmt   = invTotal > 0 ? Math.round(invTotal * 0.022).toLocaleString('sv-SE') : '—';
-  const provisionLabel = `Provision beräknad: ${salesperson || '—'} — ${provisionAmt} kr`;
-  const transportLabel = transferCaseId
-    ? `Ägarbyte initierat via Transportstyrelsen: Ärende ${transferCaseId}`
+  const provisionAmt   = p.invTotal > 0 ? fmt(Math.round(p.invTotal * 0.022)) : '—';
+  const provisionLabel = `Provision beräknad: ${p.salesperson || '—'} — ${provisionAmt} kr`;
+  const transportLabel = p.transferCaseId
+    ? `Ägarbyte initierat via Transportstyrelsen: Ärende ${p.transferCaseId}`
     : 'Registrering initierad via Transportstyrelsen API';
-  const blocketLabel = blocketDeleted
-    ? 'Blocket-annons borttagen ✓'
-    : 'Blocket-annons borttagen';
+  const blocketLabel = p.blocketDeleted ? 'Blocket-annons borttagen ✓' : 'Blocket-annons borttagen';
 
   return [
-    { label: paymentLabel,                                   delay: 300  },
-    { label: 'Leveranskontroll aktiverad (58 punkter)',      delay: 500  },
-    { label: 'Fordonsstatus: Tillgänglig → Reserverad',     delay: 600  },
-    { label: transportLabel,                                 delay: 800  },
-    { label: 'Kundprofil: Lead → Kund',                     delay: 900  },
-    { label: 'Team notifierat: Service, Leverans, Ekonomi',  delay: 1000 },
-    { label: invoiceLabel,                                   delay: 1400 },
-    { label: 'Fortnox bokföring synkad',                    delay: 1800 },
-    { label: blocketLabel,                                   delay: 2100 },
-    { label: provisionLabel,                                 delay: 2400 },
+    { label: paymentLabel,                                  delay: 300  },
+    { label: 'Leveranskontroll aktiverad (58 punkter)',     delay: 500  },
+    { label: 'Fordonsstatus: Tillgänglig → Reserverad',    delay: 600  },
+    { label: transportLabel,                                delay: 800  },
+    { label: 'Kundprofil: Lead → Kund',                    delay: 900  },
+    { label: 'Team notifierat: Service, Leverans, Ekonomi', delay: 1000 },
+    { label: invoiceLabel,                                  delay: 1400 },
+    { label: 'Fortnox bokföring synkad',                   delay: 1800 },
+    { label: blocketLabel,                                  delay: 2100 },
+    { label: provisionLabel,                               delay: 2400 },
   ];
 }
 
@@ -85,11 +97,20 @@ export default function AgreementCompletePage() {
   const [buyerAddress, setBuyerAddress] = useState('');
   const [buyerBike, setBuyerBike]       = useState('');
   const [buyerValue, setBuyerValue]     = useState('');
-  const [invoiceId, setInvoiceId]         = useState<string | null>(null);
-  const [invoiceTotal, setInvoiceTotal]   = useState(0);
-  const [salesperson, setSalesperson]     = useState('');
+  const [invoiceId,      setInvoiceId]      = useState<string | null>(null);
+  const [invoiceTotal,   setInvoiceTotal]   = useState(0);
+  const [salesperson,    setSalesperson]    = useState('');
   const [transferCaseId, setTransferCaseId] = useState<string | null>(null);
   const [blocketDeleted, setBlocketDeleted] = useState(false);
+  // Offer data fetched from DB — authoritative source for amounts
+  const [offerTotalPrice,    setOfferTotalPrice]    = useState(0);
+  const [offerFinancingMonths,  setOfferFinancingMonths]  = useState(0);
+  const [offerFinancingMonthly, setOfferFinancingMonthly] = useState(0);
+  const [offerFinancingApr,     setOfferFinancingApr]     = useState(0);
+  const [offerVatAmount,        setOfferVatAmount]        = useState(0);
+  // Set true only after invoice creation completes — gates the cascade animation
+  const [cascadeReady,   setCascadeReady]   = useState(false);
+  const [cascadeParams,  setCascadeParams]  = useState<CascadeParams | null>(null);
 
   // Agreement data from localStorage (written by agreement editor)
   const [storedAgr, setStoredAgr] = useState({
@@ -120,18 +141,22 @@ export default function AgreementCompletePage() {
     setSellerAddress(d.city);
 
     // Salesperson name from session
+    let capturedSalesperson = '';
     try {
       const u = JSON.parse(userRaw);
-      setSalesperson((u.givenName ?? u.name ?? '') as string);
+      capturedSalesperson = (u.givenName ?? u.name ?? '') as string;
+      setSalesperson(capturedSalesperson);
     } catch { /* ignore */ }
 
-    // Payment method (read before clearing — capture name for invoice creation)
+    // Payment method (read before clearing — capture for cascade + invoice creation)
     let capturedPmName = '—';
+    let capturedPm: SelectedPayment | null = null;
     try {
-      const pm = JSON.parse(sessionStorage.getItem('selectedPaymentMethod') ?? 'null') as { name?: string; icon?: string; id?: string } | null;
-      if (pm) {
-        setPaymentMethod(pm as SelectedPayment);
-        capturedPmName = pm.name ?? '—';
+      const pmRaw = JSON.parse(sessionStorage.getItem('selectedPaymentMethod') ?? 'null') as { name?: string; icon?: string; id?: string; category?: string } | null;
+      if (pmRaw) {
+        capturedPm = pmRaw as SelectedPayment;
+        setPaymentMethod(capturedPm);
+        capturedPmName = pmRaw.name ?? '—';
       }
     } catch { /* ignore */ }
     sessionStorage.removeItem('selectedPaymentMethod');
@@ -164,119 +189,181 @@ export default function AgreementCompletePage() {
       });
     } catch { /* ignore */ }
 
-    // Fetch live buyer info from Supabase, then ensure paid invoice exists
+    // Fetch live data from DB — offer (authoritative price) + lead (buyer info)
     const leadId       = Number(id);
     const dealershipId = getDealershipId();
     if (!Number.isNaN(leadId) && dealershipId) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (getSupabaseBrowser() as any)
-        .from('leads')
-        .select('name, bike, value, customer_id, address, city')
-        .eq('id', leadId)
-        .eq('dealership_id', dealershipId)
-        .maybeSingle()
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .then(async ({ data: lead }: any) => {
-          if (!lead) return;
-          let name = (lead.name as string) ?? '';
+      (async () => {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const supabase = getSupabaseBrowser() as any;
 
-          // Prefer canonical name from customers table if already converted
+          // 1. Fetch lead + offer in parallel
+          const [{ data: lead }, offerRes] = await Promise.all([
+            supabase
+              .from('leads')
+              .select('name, bike, value, customer_id, address, city, personnummer')
+              .eq('id', leadId)
+              .eq('dealership_id', dealershipId)
+              .maybeSingle(),
+            fetch(`/api/offers?leadId=${leadId}&dealershipId=${encodeURIComponent(dealershipId)}`),
+          ]);
+
+          const offerJson = offerRes.ok ? await offerRes.json() : null;
+          const offer     = offerJson?.offer ?? null;
+
+          if (!lead) return;
+
+          // 2. Resolve buyer name from customers table if already converted
+          let name = (lead.name as string) ?? '';
           if (lead.customer_id) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { data: cust } = await (getSupabaseBrowser() as any)
+            const { data: cust } = await supabase
               .from('customers')
               .select('first_name, last_name, address, city')
               .eq('id', lead.customer_id)
               .eq('dealership_id', dealershipId)
               .maybeSingle();
             if (cust) {
-              name = `${cust.first_name} ${cust.last_name}`.trim();
-              const addr = [cust.address, cust.city].filter(Boolean).join(', ');
+              name = `${(cust as {first_name:string;last_name:string}).first_name} ${(cust as {first_name:string;last_name:string}).last_name}`.trim();
+              const addr = [(cust as {address?:string;city?:string}).address, (cust as {address?:string;city?:string}).city].filter(Boolean).join(', ');
               if (addr) setBuyerAddress(addr);
             }
           } else {
-            const addr = [lead.address, lead.city].filter(Boolean).join(', ');
+            const addr = [(lead.address as string), (lead.city as string)].filter(Boolean).join(', ');
             if (addr) setBuyerAddress(addr);
           }
 
           setBuyerName(name);
           setBuyerBike((lead.bike as string) ?? '');
-          const val = parseFloat(lead.value ?? '0');
-          setBuyerValue(val > 0 ? `${val.toLocaleString('sv-SE')} kr` : '');
 
-          // ── Ensure a paid invoice exists (idempotent — route deduplicates) ──
-          try {
-            const pmName = capturedPmName;
+          // 3. AUTHORITATIVE PRICE: offer.totalPrice > localStorage.totalPrice > lead.value
+          const localAgr = (() => { try { return JSON.parse(localStorage.getItem(`agreement_${id}`) ?? '{}'); } catch { return {}; } })();
+          const offerTotal    = offer ? (offer.totalPrice as number) : 0;
+          const offerVat      = offer ? (offer.vatAmount  as number) : 0;
+          const offerFMonths  = offer ? (offer.financingMonths  as number ?? 0) : 0;
+          const offerFMonthly = offer ? (offer.financingMonthly as number ?? 0) : 0;
+          const offerFApr     = offer ? (offer.financingApr     as number ?? 0) : 0;
 
-            let agreementRef = '';
-            let totalAmount  = val;
-            try {
-              const agr = JSON.parse(localStorage.getItem(`agreement_${id}`) ?? '{}');
-              if (agr.agreementNumber) agreementRef = agr.agreementNumber as string;
-              if (typeof agr.totalPrice === 'number' && agr.totalPrice > 0) {
-                totalAmount = agr.totalPrice;
-              }
-            } catch { /* ignore */ }
+          const totalAmount =
+            offerTotal > 0                                           ? offerTotal
+            : (typeof localAgr.totalPrice === 'number' && localAgr.totalPrice > 0) ? localAgr.totalPrice
+            : parseFloat((lead.value as string) ?? '0') || 0;
 
-            const res  = await fetch('/api/invoice/create', {
-              method:  'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                leadId:        String(leadId),
-                dealershipId,
-                status:        'paid',
-                paymentMethod: pmName,
-                vehicle:       (lead.bike as string) ?? '',
-                customerName:  name,
-                agreementRef,
-                totalAmount,
-                paidDate:      new Date().toISOString(),
-              }),
-            });
-            const json = await res.json().catch(() => ({}));
-            if (json.invoiceId) {
-              setInvoiceId(json.invoiceId as string);
-              setInvoiceTotal(totalAmount);
-            }
-            emit({ type: 'data:refresh' });
+          const vatAmount = offerVat > 0 ? offerVat : Math.round(totalAmount * 0.2);
 
-            // ── Background: sync to Fortnox ──
-            syncToFortnox({
-              dealershipId,
-              buyerName:       name,
-              personnummer:    storedAgr.personnummer,
-              agreementNumber: agreementRef,
-              vehicle:         (lead.bike as string) ?? '',
-              totalAmount,
-              vatAmount:       Math.round(totalAmount * 0.2),
-            }).catch((err) => console.warn('[complete] Fortnox sync skipped:', err));
+          // Persist offer values into state so PDF and UI use the same numbers
+          setOfferTotalPrice(totalAmount);
+          setOfferVatAmount(vatAmount);
+          setOfferFinancingMonths(offerFMonths);
+          setOfferFinancingMonthly(offerFMonthly);
+          setOfferFinancingApr(offerFApr);
+          setBuyerValue(totalAmount > 0 ? `${totalAmount.toLocaleString('sv-SE')} kr` : '');
 
-            // ── Background: Transportstyrelsen ownership transfer ──
-            const regNr = (JSON.parse(localStorage.getItem(`agreement_${id}`) ?? '{}') as { registrationNumber?: string }).registrationNumber ?? '';
-            if (regNr && storedAgr.personnummer) {
-              const sellerPnr = (() => { try { return (JSON.parse(localStorage.getItem('user') ?? '{}') as { personalNumber?: string }).personalNumber ?? ''; } catch { return ''; } })();
-              syncToTransportstyrelsen({
-                dealershipId,
-                registrationNumber: regNr,
-                sellerPersonNumber: sellerPnr,
-                buyerPersonNumber:  storedAgr.personnummer,
-                purchaseDate:       new Date().toISOString().slice(0, 10),
-                purchasePrice:      totalAmount,
-              }).then((caseId) => { if (caseId) setTransferCaseId(caseId); })
-                .catch((err) => console.warn('[complete] Transportstyrelsen skipped:', err));
-            }
-
-            // ── Background: remove Blocket listing ──
-            syncToBlocket({
-              dealershipId,
-              vehicleName: (lead.bike as string) ?? '',
-              vin:         (JSON.parse(localStorage.getItem(`agreement_${id}`) ?? '{}') as { vin?: string }).vin ?? '',
-            }).then((deleted) => { if (deleted) setBlocketDeleted(true); })
-              .catch((err) => console.warn('[complete] Blocket delete skipped:', err));
-          } catch (err) {
-            console.error('[complete] ensure invoice:', err);
+          // Also update storedAgr with the correct numbers from the offer
+          if (offer) {
+            setStoredAgr(prev => ({
+              ...prev,
+              vehicle:            (offer.vehicle             as string) || prev.vehicle,
+              vin:                (offer.vin                 as string) || prev.vin,
+              registrationNumber: (offer.registrationNumber  as string) || prev.registrationNumber,
+              accessories:        (offer.accessories         as string) || prev.accessories,
+              tradeIn:            (offer.tradeIn             as string) || prev.tradeIn,
+              tradeInCredit:      (offer.tradeInCredit       as number) ?? prev.tradeInCredit,
+              totalPrice:         totalAmount,
+              vatAmount,
+              financingMonths:    offerFMonths,
+              financingMonthly:   offerFMonthly,
+              financingApr:       offerFApr,
+              personnummer:       (offer.personnummer         as string) || (lead.personnummer as string) || prev.personnummer,
+              agreementNumber:    (offer.offerNumber          as string) || prev.agreementNumber,
+            }));
           }
-        });
+
+          const agreementRef = offer?.offerNumber as string
+            || localAgr.agreementNumber as string
+            || `AGR-${new Date().getFullYear()}-${String(leadId).padStart(4, '0')}`;
+
+          // 4. Create paid invoice using the correct totalAmount
+          const invRes  = await fetch('/api/invoice/create', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              leadId:        String(leadId),
+              dealershipId,
+              status:        'paid',
+              paymentMethod: capturedPmName,
+              vehicle:       (offer?.vehicle as string) || (lead.bike as string) || '',
+              customerName:  name,
+              agreementRef,
+              totalAmount,
+              paidDate:      new Date().toISOString(),
+            }),
+          });
+          const invJson = invRes.ok ? await invRes.json().catch(() => ({})) : {};
+          const finalInvoiceId    = (invJson.invoiceId as string | null) ?? null;
+          const finalInvoiceTotal = totalAmount;
+
+          if (finalInvoiceId) {
+            setInvoiceId(finalInvoiceId);
+            setInvoiceTotal(finalInvoiceTotal);
+          }
+          emit({ type: 'data:refresh' });
+
+          // 5. Background integrations
+          syncToFortnox({
+            dealershipId,
+            buyerName:       name,
+            personnummer:    (lead.personnummer as string) || '',
+            agreementNumber: agreementRef,
+            vehicle:         (offer?.vehicle as string) || (lead.bike as string) || '',
+            totalAmount,
+            vatAmount,
+          }).catch((err) => console.warn('[complete] Fortnox sync skipped:', err));
+
+          const regNr = (offer?.registrationNumber as string) || (localAgr.registrationNumber as string) || '';
+          const pnr   = (lead.personnummer as string) || '';
+          if (regNr && pnr) {
+            const sellerPnr = (() => { try { return (JSON.parse(localStorage.getItem('user') ?? '{}') as { personalNumber?: string }).personalNumber ?? ''; } catch { return ''; } })();
+            syncToTransportstyrelsen({
+              dealershipId,
+              registrationNumber: regNr,
+              sellerPersonNumber: sellerPnr,
+              buyerPersonNumber:  pnr,
+              purchaseDate:       new Date().toISOString().slice(0, 10),
+              purchasePrice:      totalAmount,
+            }).then((caseId) => { if (caseId) setTransferCaseId(caseId); })
+              .catch((err) => console.warn('[complete] Transportstyrelsen skipped:', err));
+          }
+
+          const vin = (offer?.vin as string) || (localAgr.vin as string) || '';
+          syncToBlocket({
+            dealershipId,
+            vehicleName: (offer?.vehicle as string) || (lead.bike as string) || '',
+            vin,
+          }).then((deleted) => { if (deleted) setBlocketDeleted(true); })
+            .catch((err) => console.warn('[complete] Blocket delete skipped:', err));
+
+          // 6. Build cascade params with real data and mark ready
+          setCascadeParams({
+            pm:               capturedPm,
+            invoiceId:        finalInvoiceId,
+            invTotal:         finalInvoiceTotal,
+            salesperson:      capturedSalesperson,
+            transferCaseId:   null, // updated async by setTransferCaseId
+            blocketDeleted:   false, // updated async by setBlocketDeleted
+            financingMonths:  offerFMonths,
+            financingMonthly: offerFMonthly,
+            paymentType:      capturedPm?.id ?? '',
+          });
+          setCascadeReady(true);
+
+        } catch (err) {
+          console.error('[complete] data load:', err);
+          setCascadeReady(true); // start cascade anyway so UI isn't stuck
+        }
+      })();
+    } else {
+      setCascadeReady(true);
     }
 
     setReady(true);
@@ -343,10 +430,10 @@ export default function AgreementCompletePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready]);
 
-  // Cascade animation — starts once ready
+  // Cascade animation — starts once cascadeParams are set (after invoice creation)
   useEffect(() => {
-    if (!ready) return;
-    const actions = buildCascadeActions(paymentMethod, invoiceId, invoiceTotal, salesperson, transferCaseId, blocketDeleted);
+    if (!cascadeParams) return;
+    const actions = buildCascadeActions(cascadeParams);
     actions.forEach((action, i) => {
       setTimeout(() => {
         setCompletedCount((prev) => prev + 1);
@@ -356,7 +443,7 @@ export default function AgreementCompletePage() {
       }, action.delay);
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready]);
+  }, [cascadeParams]);
 
   // ── PDF generation (same structure as signed/page.tsx) ──
   const fmt = (n: number) => n.toLocaleString('sv-SE');
@@ -508,8 +595,8 @@ export default function AgreementCompletePage() {
     </div>
   );
 
-  const cascadeActions = buildCascadeActions(paymentMethod, invoiceId, invoiceTotal, salesperson, transferCaseId, blocketDeleted);
-  const dealPrice = storedAgr.totalPrice > 0 ? storedAgr.totalPrice : 0;
+  const cascadeActions = cascadeParams ? buildCascadeActions(cascadeParams) : [];
+  const dealPrice = offerTotalPrice > 0 ? offerTotalPrice : (storedAgr.totalPrice > 0 ? storedAgr.totalPrice : 0);
   const provisionKr = dealPrice > 0 ? Math.round(dealPrice * 0.022) : (invoiceTotal > 0 ? Math.round(invoiceTotal * 0.022) : 0);
 
   return (
@@ -839,12 +926,13 @@ async function syncToFortnox(opts: {
       personalNumber: personnummer || undefined,
     }),
   });
-  if (!custRes.ok) {
-    const err = await custRes.json().catch(() => ({}));
-    throw new Error((err as { error?: string }).error ?? 'Fortnox customer sync failed');
-  }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const custJson = await custRes.json() as { customer?: any };
+  const custJson = await custRes.json().catch(() => ({})) as { customer?: any; skipped?: boolean; reason?: string };
+  // If Fortnox isn't configured or the API rejected the call, skip silently
+  if (custJson.skipped || !custRes.ok) {
+    console.warn('[syncToFortnox] skipped:', custJson.reason ?? custRes.status);
+    return;
+  }
   const customerNumber = custJson.customer?.CustomerNumber as string | undefined;
   if (!customerNumber) return;
 

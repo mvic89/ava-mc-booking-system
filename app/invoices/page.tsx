@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
-import { getInvoices, type Invoice } from '@/lib/invoices';
+import { getInvoices, updateInvoicePaymentMethod, type Invoice } from '@/lib/invoices';
 import { useAutoRefresh } from '@/lib/realtime';
 import { getDealerInfo } from '@/lib/dealer';
 
@@ -126,9 +127,12 @@ export default function InvoicesPage() {
   const router = useRouter();
   const t = useTranslations('invoices');
 
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [filter, setFilter]     = useState<FilterTab>('all');
-  const [search, setSearch]     = useState('');
+  const [invoices, setInvoices]       = useState<Invoice[]>([]);
+  const [filter, setFilter]           = useState<FilterTab>('all');
+  const [search, setSearch]           = useState('');
+  const [editingPmId, setEditingPmId] = useState<string | null>(null);
+  const [editingPmVal, setEditingPmVal] = useState('');
+  const pmInputRef = useRef<HTMLSelectElement>(null);
 
   useEffect(() => {
     const raw = localStorage.getItem('user');
@@ -137,6 +141,15 @@ export default function InvoicesPage() {
   }, [router]);
 
   useAutoRefresh(() => { getInvoices().then(setInvoices); });
+
+  async function savePaymentMethod(invoiceId: string) {
+    const val = editingPmVal.trim();
+    if (!val) { setEditingPmId(null); return; }
+    await updateInvoicePaymentMethod(invoiceId, val);
+    setInvoices(prev => prev.map(i => i.id === invoiceId ? { ...i, paymentMethod: val } : i));
+    setEditingPmId(null);
+    toast.success('Betalmetod uppdaterad');
+  }
 
   // ── Computed stats ────────────────────────────────────────────────────────
 
@@ -345,8 +358,40 @@ export default function InvoicesPage() {
                         </td>
 
                         {/* Payment method */}
-                        <td className="px-4 py-3 text-slate-500 whitespace-nowrap">
-                          {inv.paymentMethod}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          {editingPmId === inv.id ? (
+                            <div className="flex items-center gap-1">
+                              <select
+                                ref={pmInputRef}
+                                autoFocus
+                                value={editingPmVal}
+                                onChange={e => setEditingPmVal(e.target.value)}
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter') savePaymentMethod(inv.id);
+                                  if (e.key === 'Escape') setEditingPmId(null);
+                                }}
+                                className="text-xs border border-[#FF6B2C]/60 rounded px-1.5 py-0.5 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#FF6B2C]/40"
+                              >
+                                <option value="">-- välj --</option>
+                                {['Kort', 'Swish', 'Kontant', 'Klarna', 'Svea', 'Resurs', 'Santander', 'BankID Pay', 'Walley', 'Qliro', 'Nets', 'Adyen', 'Bambora', 'Trustly', 'Stripe'].map(m => (
+                                  <option key={m} value={m}>{m}</option>
+                                ))}
+                              </select>
+                              <button onClick={() => savePaymentMethod(inv.id)} className="text-[10px] px-1.5 py-0.5 bg-[#FF6B2C] text-white rounded font-semibold hover:bg-[#e55a1f]">✓</button>
+                              <button onClick={() => setEditingPmId(null)} className="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded hover:bg-slate-200">✕</button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => { setEditingPmId(inv.id); setEditingPmVal(inv.paymentMethod); }}
+                              className={`group flex items-center gap-1 text-sm ${inv.paymentMethod ? 'text-slate-500' : 'text-slate-300 italic'} hover:text-[#FF6B2C] transition-colors`}
+                              title="Klicka för att redigera"
+                            >
+                              {inv.paymentMethod || '—'}
+                              <svg className="w-3 h-3 opacity-0 group-hover:opacity-60 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a4 4 0 01-1.414.94l-3.828.94.94-3.828a4 4 0 01.94-1.414z" />
+                              </svg>
+                            </button>
+                          )}
                         </td>
 
                         {/* Amount */}

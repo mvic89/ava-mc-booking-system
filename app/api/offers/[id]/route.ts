@@ -45,6 +45,8 @@ function toOffer(r: any) {
     notes:              r.notes                ?? '',
     sellerSignature:    r.seller_signature     ?? '',
     buyerSignature:     r.buyer_signature      ?? '',
+    extraVehicles:      (() => { try { const v = r.extra_vehicles; return Array.isArray(v) ? v : JSON.parse(v ?? '[]'); } catch { return []; } })(),
+    tradeInData:        (() => { try { const v = r.trade_in_data; return v ? (typeof v === 'string' ? JSON.parse(v) : v) : null; } catch { return null; } })(),
     createdAt:          r.created_at           ?? '',
     updatedAt:          r.updated_at           ?? '',
   };
@@ -81,6 +83,8 @@ const KEY_MAP: Record<string, string> = {
   notes:              'notes',
   sellerSignature:    'seller_signature',
   buyerSignature:     'buyer_signature',
+  extraVehicles:      'extra_vehicles',
+  tradeInData:        'trade_in_data',
 };
 
 export async function PUT(
@@ -95,11 +99,31 @@ export async function PUT(
       return NextResponse.json({ error: 'Missing dealershipId' }, { status: 400 });
 
     const nullIfEmpty = new Set(['valid_until']);
+    const jsonFields  = new Set(['extra_vehicles', 'trade_in_data']);
     const patch: Record<string, unknown> = {};
     for (const [jsKey, dbKey] of Object.entries(KEY_MAP)) {
       if (jsKey in fields) {
         const val = fields[jsKey];
-        patch[dbKey] = nullIfEmpty.has(dbKey) ? ((val as string) || null) : (val ?? null);
+        if (jsonFields.has(dbKey)) {
+          // Serialize arrays/objects to JSON string; null/undefined → null
+          patch[dbKey] = val == null ? null
+            : typeof val === 'string' ? val
+            : JSON.stringify(val);
+        } else {
+          patch[dbKey] = nullIfEmpty.has(dbKey) ? ((val as string) || null) : (val ?? null);
+        }
+      }
+    }
+
+    // Special case: tradeIns array takes precedence over tradeInData for trade_in_data column
+    if ('tradeIns' in fields) {
+      const arr = fields.tradeIns;
+      if (Array.isArray(arr) && arr.length > 0) {
+        patch['trade_in_data'] = JSON.stringify(arr);
+      } else if (arr && typeof arr === 'string') {
+        patch['trade_in_data'] = arr;
+      } else {
+        patch['trade_in_data'] = null;
       }
     }
 

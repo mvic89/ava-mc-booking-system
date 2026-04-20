@@ -74,6 +74,8 @@ export type BankIDStatus = 'idle' | 'scanning' | 'complete' | 'failed';
 
 export interface BankIDModalProps {
   mode: 'auth' | 'sign';
+  /** Semantic action recorded in customer_bankid_logs. Defaults to 'auth'. */
+  action?: 'auth' | 'sign_agreement' | 'verify_identity';
   signText?: string;
   title?: string;
   subtitle?: string;

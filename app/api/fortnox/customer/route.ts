@@ -3,7 +3,7 @@ import { createCustomer, getCustomerByOrgNumber } from '@/lib/fortnox/client';
 import { getCredential } from '@/lib/integrations/config-store';
 
 function getToken(dealerId: string) {
-  return getCredential(dealerId, 'fortnox', 'FORTNOX_ACCESS_TOKEN');
+  return await getCredential(dealerId, 'fortnox', 'FORTNOX_ACCESS_TOKEN');
 }
 
 /**
@@ -24,24 +24,32 @@ function getToken(dealerId: string) {
  * }
  */
 export async function POST(req: NextRequest) {
+  let body: {
+    dealerId?:       string;
+    name:            string;
+    personalNumber?: string;
+    address?:        string;
+    city?:           string;
+    zipCode?:        string;
+    email?:          string;
+    phone?:          string;
+  };
+
   try {
-    const body = await req.json() as {
-      dealerId?:      string;
-      name:           string;
-      personalNumber?: string;
-      address?:       string;
-      city?:          string;
-      zipCode?:       string;
-      email?:         string;
-      phone?:         string;
-    };
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
 
-    const dealerId = body.dealerId ?? 'ava-mc';
-    const token    = getToken(dealerId);
-    if (!token) {
-      return NextResponse.json({ error: 'Fortnox access token not configured' }, { status: 400 });
-    }
+  const dealerId = body.dealerId ?? 'ava-mc';
+  const token    = getToken(dealerId);
 
+  // Fortnox is optional — if not configured, skip gracefully
+  if (!token) {
+    return NextResponse.json({ skipped: true, reason: 'Fortnox not configured' });
+  }
+
+  try {
     // Check if customer already exists by org/personal number
     if (body.personalNumber) {
       const existing = await getCustomerByOrgNumber(token, body.personalNumber);
@@ -51,20 +59,22 @@ export async function POST(req: NextRequest) {
     }
 
     const customer = await createCustomer(token, {
-      Name:                body.name,
-      OrganisationNumber:  body.personalNumber,
-      Address1:            body.address,
-      City:                body.city,
-      ZipCode:             body.zipCode,
-      Country:             'Sverige',
-      Email:               body.email,
-      Phone1:              body.phone,
-      Type:                'PRIVATE',
+      Name:               body.name,
+      OrganisationNumber: body.personalNumber,
+      Address1:           body.address,
+      City:               body.city,
+      ZipCode:            body.zipCode,
+      Country:            'Sverige',
+      Email:              body.email,
+      Phone1:             body.phone,
+      Type:               'PRIVATE',
     });
 
     return NextResponse.json({ customer, created: true });
-  } catch (error: any) {
-    console.error('[fortnox/customer POST]', error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    // External Fortnox API error — log but don't surface as 500
+    const msg = error instanceof Error ? error.message : String(error);
+    console.warn('[fortnox/customer POST] Fortnox API error (integration skipped):', msg);
+    return NextResponse.json({ skipped: true, reason: msg }, { status: 502 });
   }
 }

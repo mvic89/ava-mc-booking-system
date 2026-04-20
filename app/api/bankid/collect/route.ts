@@ -2,13 +2,55 @@ import { NextRequest, NextResponse } from 'next/server';
 import { collect, getHintMessage, getFailureMessage } from '@/lib/bankid/client';
 import { mockCollect, mockRoaringData } from '@/lib/bankid/mock';
 import { getRoaringClient } from '@/lib/roaring/client';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 const MOCK_MODE = process.env.BANKID_MOCK_MODE === 'true';
 const ROARING_MOCK_MODE = process.env.ROARING_MOCK_MODE === 'true';
 
+// ── Log a BankID event to customer_bankid_logs (fire-and-forget) ──────────────
+async function logBankIDEvent(params: {
+  action:         string;
+  status:         'success' | 'failed';
+  personalNumber: string | null;
+  ipAddress:      string | null;
+  orderRef:       string;
+  signature:      string | null;
+  riskLevel:      string | null;
+}) {
+  try {
+    const sb = getSupabaseAdmin();
+
+    // Resolve customer_id from personnummer (globally unique in Sweden)
+    let customerId: number | null = null;
+    if (params.personalNumber) {
+      const { data } = await sb
+        .from('customers')
+        .select('id')
+        .eq('personnummer', params.personalNumber)
+        .maybeSingle();
+      customerId = data?.id ?? null;
+    }
+
+    await sb.from('customer_bankid_logs').insert({
+      customer_id:     customerId,
+      action:          params.action,
+      status:          params.status,
+      personal_number: params.personalNumber,
+      ip_address:      params.ipAddress,
+      order_ref:       params.orderRef,
+      signature:       params.signature,
+      risk_level:      params.riskLevel,
+    });
+  } catch (err) {
+    // Never let logging failures surface to the caller
+    console.error('[BankID] log error:', err);
+  }
+}
+
 export const POST = async(req: NextRequest) => {
   try {
-    const { orderRef } = await req.json();
+    const body = await req.json();
+    const { orderRef, action = 'auth' } = body as { orderRef: string; action?: string };
 
     if (!orderRef) {
       return NextResponse.json({ error: 'orderRef required' }, { status: 400 });
@@ -28,6 +70,11 @@ export const POST = async(req: NextRequest) => {
 
     // ─── FAILED ──────────────────────────────────────
     if (result.status === 'failed') {
+      // Log failure (no personal number available — auth never completed)
+      logBankIDEvent({
+        action, status: 'failed', personalNumber: null,
+        ipAddress: null, orderRef, signature: null, riskLevel: null,
+      });
       return NextResponse.json({
         status: 'failed',
         hintCode: result.hintCode,
@@ -75,6 +122,17 @@ export const POST = async(req: NextRequest) => {
         }
       }
 
+      // Log successful authentication / signing to customer_bankid_logs
+      logBankIDEvent({
+        action,
+        status:         'success',
+        personalNumber: pnr,
+        ipAddress:      device.ipAddress,
+        orderRef,
+        signature:      signature || null,
+        riskLevel:      risk     || null,
+      });
+
       return NextResponse.json({
         status: 'complete',
         user: {
@@ -89,11 +147,8 @@ export const POST = async(req: NextRequest) => {
         },
         risk,
         bankIdIssueDate,
-        // In production, you'd store these in the DB rather than
-        // sending them to the client:
         signatureAvailable: !!signature,
         ocspAvailable: !!ocspResponse,
-        // Additional Roaring.io data
         roaring: roaringData,
       });
     }

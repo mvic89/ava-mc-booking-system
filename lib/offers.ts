@@ -7,8 +7,45 @@ function db() { return getSupabaseBrowser() as any; }
 
 export type OfferStatus = 'draft' | 'sent' | 'accepted' | 'declined';
 export type PaymentType = 'cash' | 'financing';
-
 export type VehicleCondition = 'new' | 'used';
+export type TradeInCondition = 'excellent' | 'good' | 'fair' | 'poor' | 'damaged';
+
+/** One additional vehicle line item in a multi-vehicle deal */
+export interface VehicleLineItem {
+  id:                 string;   // client-side stable key (crypto.randomUUID)
+  vehicle:            string;
+  vehicleColor:       string;
+  vehicleCondition:   VehicleCondition;
+  vin:                string;
+  registrationNumber: string;
+  listPrice:          number;
+  discount:           number;
+}
+
+/** Structured trade-in appraisal data */
+export interface TradeInData {
+  make:               string;
+  model:              string;
+  year:               number;
+  mileage:            number;
+  mileageUnit:        'mil' | 'km';
+  condition:          TradeInCondition;
+  color:              string;
+  vin:                string;
+  registrationNumber?: string;   // Swedish reg plate looked up at time of appraisal
+  notes:              string;
+  estimatedValue:     number;    // dealer internal estimate
+  offeredCredit:      number;    // credit applied to the deal (→ tradeInCredit)
+  // Owner + lien data from Bilvision (optional, captured at lookup time)
+  ownerName?:         string;
+  ownerCity?:         string;
+  liens?:             boolean;   // true = outstanding credit on the vehicle
+  vehicleStatus?:     string;    // 'REGISTERED' | 'STOLEN' | 'SCRAPPED' | 'DEREGISTERED'
+  lastInspection?:    string;    // ISO date
+  nextInspection?:    string;    // ISO date
+  fuelType?:          string;
+  engineCC?:          number;
+}
 
 export interface Offer {
   id:                 number;
@@ -51,6 +88,9 @@ export interface Offer {
   // BankID signatures (JSON SigProof or '')
   sellerSignature:    string;
   buyerSignature:     string;
+  // Multi-vehicle & structured trade-in
+  extraVehicles:      VehicleLineItem[];
+  tradeInData:        TradeInData | null;
   createdAt:          string;
   updatedAt:          string;
 }
@@ -95,6 +135,18 @@ function mapDbToOffer(row: Record<string, unknown>): Offer {
     notes:              (row.notes              as string) ?? '',
     sellerSignature:    (row.seller_signature   as string) ?? '',
     buyerSignature:     (row.buyer_signature    as string) ?? '',
+    extraVehicles:      (() => {
+      const raw = row.extra_vehicles;
+      if (!raw) return [];
+      try { return Array.isArray(raw) ? raw as VehicleLineItem[] : JSON.parse(raw as string) as VehicleLineItem[]; }
+      catch { return []; }
+    })(),
+    tradeInData:        (() => {
+      const raw = row.trade_in_data;
+      if (!raw) return null;
+      try { return (typeof raw === 'string' ? JSON.parse(raw) : raw) as TradeInData; }
+      catch { return null; }
+    })(),
     createdAt:          (row.created_at         as string) ?? '',
     updatedAt:          (row.updated_at         as string) ?? '',
   };
@@ -135,6 +187,8 @@ function mapOfferToDb(o: OfferInput): Record<string, unknown> {
     notes:               o.notes,
     seller_signature:    o.sellerSignature ?? '',
     buyer_signature:     o.buyerSignature  ?? '',
+    extra_vehicles:      JSON.stringify(o.extraVehicles ?? []),
+    trade_in_data:       o.tradeInData ? JSON.stringify(o.tradeInData) : null,
   };
 }
 

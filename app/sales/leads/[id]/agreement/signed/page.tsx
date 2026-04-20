@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
@@ -22,9 +22,11 @@ interface SignedAgreement {
 }
 
 export default function SignedAgreementPage() {
-  const router = useRouter();
-  const params = useParams();
+  const router       = useRouter();
+  const params       = useParams();
+  const searchParams = useSearchParams();
   const id = (params?.id as string) || 'default';
+  const paymentTab = searchParams?.get('paymentTab') ?? 'financing';
   const t = useTranslations('agreement');
 
   const [ready, setReady]             = useState(false);
@@ -532,7 +534,7 @@ export default function SignedAgreementPage() {
                 {t('signed.sendToCustomer')}
               </button>
               <Link
-                href={`/sales/leads/${id}/agreement/payment`}
+                href={`/sales/leads/${id}/payment?tab=${paymentTab}`}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2C] hover:bg-[#e55a1f] text-white text-sm font-semibold transition-colors"
               >
                 {t('signed.goToPayment')}

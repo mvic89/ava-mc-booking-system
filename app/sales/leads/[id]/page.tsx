@@ -10,8 +10,43 @@ import { getDealershipId } from '@/lib/tenant';
 import { computeLeadScore } from '@/lib/leads';
 import { emit } from '@/lib/realtime';
 import type { ActivityType } from '@/app/api/leads/[id]/activity/route';
+import DocumentAttachments from '@/components/DocumentAttachments';
+
+// ── Task types (inline) ────────────────────────────────────────────────────────
+type TaskStatus   = 'open' | 'done';
+type TaskPriority = 'low' | 'medium' | 'high';
+type TaskType     = 'call' | 'email' | 'meeting' | 'follow_up' | 'other';
+interface LeadTask {
+  id: number; title: string; type: TaskType; priority: TaskPriority;
+  status: TaskStatus; due_date: string | null; assigned_to: string | null;
+  created_at: string;
+}
+const TASK_TYPE_CFG: Record<TaskType, { icon: string; label: string }> = {
+  call:      { icon: '📞', label: 'Ring'       },
+  email:     { icon: '✉️',  label: 'E-post'     },
+  meeting:   { icon: '🤝', label: 'Möte'        },
+  follow_up: { icon: '🔔', label: 'Uppföljning' },
+  other:     { icon: '📋', label: 'Övrigt'      },
+};
+
+// ── Communication types (inline) ───────────────────────────────────────────────
+interface Communication {
+  id: number; channel: string; direction: string; subject: string | null; body: string;
+  status: string; sent_by: string | null; recipient_name: string | null;
+  recipient_email: string | null; recipient_phone: string | null;
+  sender_email: string | null; created_at: string;
+}
 
 // ── Types ──────────────────────────────────────────────────────────────────────
+
+interface LeadItem {
+  id:       string;
+  name:     string;
+  brand:    string;
+  price:    number;
+  qty:      number;
+  itemType: 'acc' | 'sp';
+}
 
 interface LeadDetail {
   id:              number;
@@ -32,6 +67,8 @@ interface LeadDetail {
   lostReason:      string | null;
   stageChangedAt:  string | null;
   closedAt:        string | null;
+  leadType:        'motorcycle' | 'accessories';
+  leadItems:       LeadItem[];
 }
 
 interface Activity {
@@ -191,12 +228,41 @@ export default function LeadDetailPage() {
   const [activityType,   setActivityType]   = useState<ActivityType>('note');
   const [activityText,   setActivityText]   = useState('');
   const [addingActivity, setAddingActivity] = useState(false);
-  const [showLostModal,  setShowLostModal]  = useState(false);
-  const [lostReason,     setLostReason]     = useState(LOST_REASONS[0]);
-  const [lostCustom,     setLostCustom]     = useState('');
-  const [closingLost,    setClosingLost]    = useState(false);
-  const [movingStage,    setMovingStage]    = useState(false);
-  const [user,           setUser]           = useState<{ name?: string; dealershipId?: string } | null>(null);
+  const [showLostModal,   setShowLostModal]   = useState(false);
+  const [lostReason,      setLostReason]      = useState(LOST_REASONS[0]);
+  const [lostCustom,      setLostCustom]      = useState('');
+  const [closingLost,     setClosingLost]     = useState(false);
+  const [movingStage,     setMovingStage]     = useState(false);
+  const [user,            setUser]            = useState<{ name?: string; dealershipId?: string } | null>(null);
+
+  // Tasks panel
+  const [tasks,           setTasks]           = useState<LeadTask[]>([]);
+  const [taskInput,       setTaskInput]       = useState('');
+  const [taskType,        setTaskType]        = useState<TaskType>('follow_up');
+  const [taskPriority,    setTaskPriority]    = useState<TaskPriority>('medium');
+  const [taskDue,         setTaskDue]         = useState('');
+  const [addingTask,      setAddingTask]      = useState(false);
+
+  // Communications panel
+  const [comms,           setComms]           = useState<Communication[]>([]);
+  const [showCommsPanel,  setShowCommsPanel]  = useState(false);
+  const [commChannel,     setCommChannel]     = useState<'email' | 'sms'>('email');
+  const [commSubject,     setCommSubject]     = useState('');
+  const [commBody,        setCommBody]        = useState('');
+  const [sendingComm,     setSendingComm]     = useState(false);
+
+  // Cancel deal modal
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelReason,    setCancelReason]    = useState<'changed_mind'|'financial'|'found_elsewhere'|'financing_denied'|'other'>('changed_mind');
+  const [cancelDetail,    setCancelDetail]    = useState('');
+  const [refundAmount,    setRefundAmount]    = useState('0');
+  const [refundBank,      setRefundBank]      = useState('');
+  const [refundClearing,  setRefundClearing]  = useState('');
+  const [refundAccount,   setRefundAccount]   = useState('');
+  const [refundReference, setRefundReference] = useState('');
+  const [cancelNotes,     setCancelNotes]     = useState('');
+  const [returnToStock,   setReturnToStock]   = useState(true);
+  const [cancelling,      setCancelling]      = useState(false);
 
   const dealershipIdRef = useRef<string | null>(null);
 
@@ -205,6 +271,22 @@ export default function LeadDetailPage() {
     if (res.ok) {
       const json = await res.json() as { activities: Activity[] };
       setActivities(json.activities);
+    }
+  }, []);
+
+  const loadTasks = useCallback(async (lid: string, did: string) => {
+    const res = await fetch(`/api/tasks?dealershipId=${encodeURIComponent(did)}&leadId=${lid}`);
+    if (res.ok) {
+      const json = await res.json() as { tasks: LeadTask[] };
+      setTasks(json.tasks);
+    }
+  }, []);
+
+  const loadComms = useCallback(async (lid: string, did: string) => {
+    const res = await fetch(`/api/communications/list?dealershipId=${encodeURIComponent(did)}&leadId=${lid}`);
+    if (res.ok) {
+      const json = await res.json() as { communications: Communication[] };
+      setComms(json.communications);
     }
   }, []);
 
@@ -223,7 +305,7 @@ export default function LeadDetailPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (getSupabaseBrowser() as any)
       .from('leads')
-      .select('id,name,bike,value,cost_price,lead_status,stage,email,phone,personnummer,created_at,notes,salesperson_name,source,lead_score,lost_reason,stage_changed_at,closed_at')
+      .select('id,name,bike,value,cost_price,lead_status,stage,email,phone,personnummer,created_at,notes,salesperson_name,source,lead_score,lost_reason,stage_changed_at,closed_at,lead_type,lead_items')
       .eq('id', leadId)
       .eq('dealership_id', dealershipId)
       .maybeSingle()
@@ -260,6 +342,14 @@ export default function LeadDetailPage() {
             lostReason:      data.lost_reason      ?? null,
             stageChangedAt:  data.stage_changed_at ?? null,
             closedAt:        data.closed_at        ?? null,
+            leadType:        data.lead_type        ?? 'motorcycle',
+            leadItems:       (() => {
+              try {
+                const v = data.lead_items;
+                if (!v) return [];
+                return Array.isArray(v) ? v : JSON.parse(v);
+              } catch { return []; }
+            })(),
           };
           setLead(ld);
         }
@@ -267,7 +357,94 @@ export default function LeadDetailPage() {
       });
 
     loadActivities(id, dealershipId);
-  }, [id, router, loadActivities]);
+    loadTasks(id, dealershipId);
+    loadComms(id, dealershipId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, router, loadActivities, loadTasks, loadComms]);
+
+  // ── Task handlers ───────────────────────────────────────────────────────────
+
+  async function handleAddTask(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!taskInput.trim() || !lead) return;
+    const did = dealershipIdRef.current;
+    if (!did) return;
+    setAddingTask(true);
+    const res = await fetch('/api/tasks', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        dealershipId: did,
+        leadId:       lead.id,
+        title:        taskInput.trim(),
+        type:         taskType,
+        priority:     taskPriority,
+        dueDate:      taskDue || null,
+        assignedTo:   user?.name ?? null,
+        createdBy:    user?.name ?? null,
+      }),
+    });
+    if (res.ok) {
+      const json = await res.json() as { task: LeadTask };
+      setTasks(prev => [json.task, ...prev]);
+      setTaskInput(''); setTaskDue('');
+      toast.success('Uppgift skapad');
+    } else {
+      toast.error('Kunde inte skapa uppgift');
+    }
+    setAddingTask(false);
+  }
+
+  async function markTaskDone(task: LeadTask) {
+    const did = dealershipIdRef.current; if (!did) return;
+    const newStatus = task.status === 'done' ? 'open' : 'done';
+    const res = await fetch(`/api/tasks/${task.id}`, {
+      method:  'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dealershipId: did, status: newStatus }),
+    });
+    if (res.ok) setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: newStatus as TaskStatus } : t));
+  }
+
+  async function deleteTask(taskId: number) {
+    const did = dealershipIdRef.current; if (!did) return;
+    await fetch(`/api/tasks/${taskId}?dealershipId=${encodeURIComponent(did)}`, { method: 'DELETE' });
+    setTasks(prev => prev.filter(t => t.id !== taskId));
+  }
+
+  // ── Communication handler ────────────────────────────────────────────────────
+
+  async function handleSendComm(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!commBody.trim() || !lead) return;
+    const did = dealershipIdRef.current; if (!did) return;
+    setSendingComm(true);
+    const res = await fetch('/api/communications/send', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        dealershipId:    did,
+        leadId:          lead.id,
+        channel:         commChannel,
+        subject:         commSubject.trim() || undefined,
+        message:         commBody.trim(),
+        recipientName:   lead.name,
+        recipientEmail:  commChannel === 'email' ? lead.email : undefined,
+        recipientPhone:  commChannel === 'sms'   ? lead.phone : undefined,
+        sentBy:          user?.name ?? undefined,
+      }),
+    });
+    const json = await res.json() as { ok: boolean; error?: string };
+    if (json.ok) {
+      toast.success(commChannel === 'email' ? 'E-post skickad' : 'SMS skickat');
+      setCommBody(''); setCommSubject('');
+      setShowCommsPanel(false);
+      loadComms(String(lead.id), did);
+    } else {
+      toast.error(json.error ?? 'Kunde inte skicka');
+    }
+    setSendingComm(false);
+  }
 
   // ── Computed ────────────────────────────────────────────────────────────────
 
@@ -282,9 +459,10 @@ export default function LeadDetailPage() {
   const daysInStage  = lead ? daysAgo(lead.stageChangedAt) : 0;
   const overdueThresh = lead ? OVERDUE_DAYS[lead.stage] ?? 7 : 7;
   const isOverdue    = lead && lead.stage !== 'closed' && daysInStage >= overdueThresh;
-  const isClosed     = lead?.stage === 'closed';
-  const isLost       = isClosed && !!lead?.lostReason;
-  const stageIdx     = lead ? STAGE_ORDER.indexOf(lead.stage) : 0;
+  const isClosed          = lead?.stage === 'closed';
+  const isLost            = isClosed && !!lead?.lostReason;
+  const stageIdx          = lead ? STAGE_ORDER.indexOf(lead.stage) : 0;
+  const isAccessoriesLead = lead?.leadType === 'accessories';
 
   // ── Add activity ────────────────────────────────────────────────────────────
 
@@ -357,6 +535,51 @@ export default function LeadDetailPage() {
       toast.error('Kunde inte uppdatera fas');
     } finally {
       setMovingStage(false);
+    }
+  }
+
+  // ── Cancel deal ────────────────────────────────────────────────────────────
+
+  async function handleCancelDeal() {
+    if (!lead) return;
+    const did = dealershipIdRef.current;
+    if (!did) return;
+    setCancelling(true);
+    try {
+      const res = await fetch(`/api/leads/${lead.id}/cancel`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dealershipId:    did,
+          reason:          cancelReason,
+          reasonDetail:    cancelDetail.trim() || undefined,
+          refundAmount:    parseFloat(refundAmount) || 0,
+          refundBank:      refundBank.trim()      || undefined,
+          refundClearing:  refundClearing.trim()  || undefined,
+          refundAccount:   refundAccount.trim()   || undefined,
+          refundReference: refundReference.trim() || undefined,
+          returnToStock,
+          notes:           cancelNotes.trim()     || undefined,
+          cancelledBy:     user?.name             ?? '',
+          customerName:    lead.name,
+          vehicle:         lead.bike,
+        }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      setLead(prev => prev ? {
+        ...prev,
+        stage:      'closed',
+        lostReason: `Annullerad: ${cancelReason}`,
+        closedAt:   new Date().toISOString(),
+      } : prev);
+      setShowCancelModal(false);
+      await loadActivities(id, did);
+      emit({ type: 'lead:updated', payload: { id, status: lead.status } });
+      toast.success('Affären annullerades och registrerades');
+    } catch {
+      toast.error('Kunde inte annullera affären');
+    } finally {
+      setCancelling(false);
     }
   }
 
@@ -568,7 +791,51 @@ export default function LeadDetailPage() {
                 </div>
               </div>
 
-              {/* Stage pipeline */}
+              {/* Stage pipeline — simplified for accessories leads */}
+              {isAccessoriesLead ? (
+                <div className="bg-white rounded-2xl border border-slate-100 p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-lg">🛒</span>
+                    <h2 className="font-bold text-sm uppercase tracking-wide text-slate-400">Direktköp</h2>
+                    <span className="ml-auto text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                      Tillbehör / Reservdelar
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+                    Detta är ett direktköp — inga provkörningar eller offerter krävs.
+                  </p>
+                  {!isClosed ? (
+                    <div className="space-y-2">
+                      <Link
+                        href={`/sales/leads/${id}/payment`}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-xl bg-[#FF6B2C] hover:bg-orange-600 text-white transition-colors"
+                      >
+                        Gå till betalning →
+                      </Link>
+                      <button
+                        onClick={() => setShowLostModal(true)}
+                        className="w-full py-2 text-xs font-semibold rounded-xl border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        Avbryt köp
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {isLost && lead.lostReason && (
+                        <div className="bg-red-50 border border-red-100 rounded-xl px-3 py-2 text-xs text-red-700">
+                          <p className="font-semibold mb-0.5">Avbrutet:</p>
+                          <p>{lead.lostReason}</p>
+                        </div>
+                      )}
+                      {!isLost && (
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 text-xs text-emerald-700 font-semibold text-center">
+                          ✓ Köp genomfört
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              ) : (
               <div className="bg-white rounded-2xl border border-slate-100 p-5">
                 <h2 className="font-bold text-sm uppercase tracking-wide text-slate-400 mb-3">Pipeline-fas</h2>
                 <div className="space-y-1.5">
@@ -609,9 +876,8 @@ export default function LeadDetailPage() {
 
                 {!isClosed && (
                   <div className="mt-3 flex gap-2 flex-wrap">
-                    {/* Stage-aware primary CTA */}
                     {lead.stage === 'pending_payment' && (
-                      <Link href={`/sales/leads/${id}/agreement/payment`}
+                      <Link href={`/sales/leads/${id}/payment`}
                         className="flex-1 py-2 text-xs font-semibold text-center rounded-xl bg-[#FF6B2C] hover:bg-orange-600 text-white transition-colors">
                         Gå till betalning →
                       </Link>
@@ -664,6 +930,14 @@ export default function LeadDetailPage() {
                     >
                       Förlora
                     </button>
+                    {['offer','negotiating','pending_payment'].includes(lead.stage) && (
+                      <button
+                        onClick={() => setShowCancelModal(true)}
+                        className="px-3 py-2 text-xs font-semibold rounded-xl border border-rose-300 text-rose-700 bg-rose-50 hover:bg-rose-100 transition-colors"
+                      >
+                        Annullera affär
+                      </button>
+                    )}
                   </div>
                 )}
 
@@ -683,11 +957,166 @@ export default function LeadDetailPage() {
                   </Link>
                 )}
               </div>
+              )}
 
             </div>
 
-            {/* RIGHT COLUMN — activity log */}
+            {/* RIGHT COLUMN — tasks, communications, activity log */}
             <div className="xl:col-span-2 space-y-4">
+
+              {/* ── Tasks panel ─────────────────────────────────────────────── */}
+              <div className="bg-white rounded-2xl border border-slate-100 p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-bold text-slate-900">Uppgifter</h2>
+                  {tasks.filter(t => t.status === 'open').length > 0 && (
+                    <span className="text-xs font-semibold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
+                      {tasks.filter(t => t.status === 'open').length} öppna
+                    </span>
+                  )}
+                </div>
+
+                {/* Quick-add task */}
+                <form onSubmit={handleAddTask} className="mb-4">
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      value={taskInput}
+                      onChange={e => setTaskInput(e.target.value)}
+                      placeholder="Lägg till uppgift..."
+                      className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-sm focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C]/20 outline-none"
+                    />
+                    <button
+                      type="submit"
+                      disabled={addingTask || !taskInput.trim()}
+                      className="px-3 py-2 rounded-xl bg-[#FF6B2C] hover:bg-orange-600 text-white text-sm font-semibold disabled:opacity-50 shrink-0"
+                    >
+                      {addingTask ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" /> : '+'}
+                    </button>
+                  </div>
+                  <div className="flex gap-2 flex-wrap">
+                    {(['follow_up','call','email','meeting'] as TaskType[]).map(tp => (
+                      <button key={tp} type="button" onClick={() => setTaskType(tp)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-colors ${taskType === tp ? 'bg-[#FF6B2C] text-white border-transparent' : 'bg-slate-50 text-slate-600 border-slate-200'}`}>
+                        {TASK_TYPE_CFG[tp].icon} {TASK_TYPE_CFG[tp].label}
+                      </button>
+                    ))}
+                    <select value={taskPriority} onChange={e => setTaskPriority(e.target.value as TaskPriority)}
+                      className="px-2 py-1 rounded-lg border border-slate-200 text-xs text-slate-600 bg-white outline-none ml-auto">
+                      <option value="high">🔴 Hög</option>
+                      <option value="medium">🟡 Medel</option>
+                      <option value="low">⚪ Låg</option>
+                    </select>
+                    <input type="date" value={taskDue.slice(0,10)} onChange={e => setTaskDue(e.target.value)}
+                      className="px-2 py-1 rounded-lg border border-slate-200 text-xs text-slate-600 outline-none" />
+                  </div>
+                </form>
+
+                {/* Task list */}
+                {tasks.length === 0 ? (
+                  <p className="text-xs text-slate-400 text-center py-3">Inga uppgifter ännu</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {tasks.slice(0, 5).map(task => {
+                      const overdue = task.status === 'open' && task.due_date && new Date(task.due_date) < new Date();
+                      return (
+                        <div key={task.id} className={`flex items-center gap-2.5 px-3 py-2 rounded-xl border ${overdue ? 'border-red-200 bg-red-50/40' : 'border-slate-100'}`}>
+                          <button onClick={() => markTaskDone(task)}
+                            className={`w-4.5 h-4.5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${task.status === 'done' ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300 hover:border-emerald-400'}`}
+                            style={{ width: 18, height: 18 }}>
+                            {task.status === 'done' && <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                          </button>
+                          <span className="text-xs mr-0.5">{TASK_TYPE_CFG[task.type]?.icon}</span>
+                          <span className={`text-sm flex-1 min-w-0 truncate ${task.status === 'done' ? 'line-through text-slate-400' : 'text-slate-800'}`}>{task.title}</span>
+                          {task.due_date && (
+                            <span className={`text-xs shrink-0 font-medium ${overdue ? 'text-red-600' : 'text-slate-400'}`}>
+                              {new Date(task.due_date).toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' })}
+                            </span>
+                          )}
+                          <button onClick={() => deleteTask(task.id)} className="text-slate-300 hover:text-red-400 text-base leading-none shrink-0">×</button>
+                        </div>
+                      );
+                    })}
+                    {tasks.length > 5 && (
+                      <a href="/tasks" className="block text-center text-xs text-[#FF6B2C] hover:underline pt-1">
+                        Visa alla {tasks.length} uppgifter →
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* ── Communications panel ────────────────────────────────────── */}
+              <div className="bg-white rounded-2xl border border-slate-100 p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-bold text-slate-900">Kundkommunikation</h2>
+                  <button
+                    onClick={() => setShowCommsPanel(p => !p)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FF6B2C] hover:bg-orange-600 text-white text-xs font-semibold transition-colors"
+                  >
+                    ✉️ Kontakta kund
+                  </button>
+                </div>
+
+                {/* Composer */}
+                {showCommsPanel && (
+                  <form onSubmit={handleSendComm} className="mb-4 space-y-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div className="flex gap-2">
+                      {(['email','sms'] as const).map(ch => (
+                        <button key={ch} type="button" onClick={() => setCommChannel(ch)}
+                          className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-colors ${commChannel === ch ? 'bg-[#FF6B2C] text-white border-transparent' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'}`}>
+                          {ch === 'email' ? '✉️ E-post' : '💬 SMS'}
+                        </button>
+                      ))}
+                    </div>
+                    {commChannel === 'email' && (
+                      <input value={commSubject} onChange={e => setCommSubject(e.target.value)}
+                        placeholder="Ämne..." className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:border-[#FF6B2C] outline-none bg-white" />
+                    )}
+                    <textarea value={commBody} onChange={e => setCommBody(e.target.value)}
+                      placeholder={commChannel === 'email' ? 'Skriv ditt meddelande...' : `SMS till ${lead?.phone || 'kunden'}...`}
+                      rows={3} className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:border-[#FF6B2C] outline-none resize-none bg-white" required />
+                    <div className="flex gap-2">
+                      <button type="button" onClick={() => setShowCommsPanel(false)}
+                        className="flex-1 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors">Avbryt</button>
+                      <button type="submit" disabled={sendingComm || !commBody.trim()}
+                        className="flex-1 py-2 rounded-xl bg-[#FF6B2C] hover:bg-orange-600 text-white text-xs font-semibold disabled:opacity-50 transition-colors">
+                        {sendingComm ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" /> : 'Skicka'}
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* Thread */}
+                {comms.length === 0 ? (
+                  <p className="text-xs text-slate-400 text-center py-3">Ingen kommunikation loggad ännu</p>
+                ) : (
+                  <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                    {[...comms].reverse().map(c => {
+                      const isInbound = c.direction === 'inbound';
+                      return (
+                        <div key={c.id} className={`flex gap-2 ${isInbound ? 'flex-row' : 'flex-row-reverse'}`}>
+                          {/* Avatar */}
+                          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ${isInbound ? 'bg-slate-100 text-slate-500' : 'bg-[#FF6B2C]/10 text-[#FF6B2C]'}`}>
+                            {isInbound ? (c.recipient_name?.[0] ?? c.sender_email?.[0] ?? '?').toUpperCase() : (c.sent_by?.[0] ?? 'D').toUpperCase()}
+                          </div>
+                          {/* Bubble */}
+                          <div className={`max-w-[75%] rounded-2xl px-3 py-2 ${isInbound ? 'bg-slate-50 border border-slate-200 rounded-tl-sm' : 'bg-[#FF6B2C]/5 border border-[#FF6B2C]/20 rounded-tr-sm'} ${c.status === 'failed' ? '!border-red-200 !bg-red-50/40' : ''}`}>
+                            {c.subject && <p className="text-xs font-semibold text-slate-700 mb-0.5">{c.subject}</p>}
+                            <p className="text-xs text-slate-600 whitespace-pre-wrap break-words">{c.body}</p>
+                            <div className={`flex items-center gap-1 mt-1 text-[10px] ${isInbound ? 'text-slate-400' : 'text-slate-400 justify-end'}`}>
+                              <span>{c.channel === 'email' ? '✉️' : '💬'}</span>
+                              <span>{isInbound ? (c.sender_email ?? c.recipient_name ?? 'Kund') : (c.sent_by ?? 'Du')}</span>
+                              <span>·</span>
+                              <span>{new Date(c.created_at).toLocaleDateString('sv-SE', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                              {c.status === 'failed' && <span className="text-red-500 font-semibold ml-1">MISSLYCKADES</span>}
+                              {isInbound && <span className="ml-1 px-1 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[9px] font-bold">SVAR</span>}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
 
               {/* Add activity */}
               <div className="bg-white rounded-2xl border border-slate-100 p-5">
@@ -737,6 +1166,9 @@ export default function LeadDetailPage() {
                   </button>
                 </form>
               </div>
+
+              {/* Documents */}
+              <DocumentAttachments leadId={lead.id} uploaderName={user?.name} />
 
               {/* Timeline */}
               <div className="bg-white rounded-2xl border border-slate-100 p-5">
@@ -828,6 +1260,148 @@ export default function LeadDetailPage() {
               >
                 {closingLost ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : null}
                 Bekräfta förlust
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Cancel deal modal ─────────────────────────────────────────────────── */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start gap-3 mb-5">
+              <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center text-xl shrink-0">↩️</div>
+              <div>
+                <h3 className="font-bold text-slate-900 text-lg">Annullera affär</h3>
+                <p className="text-sm text-slate-500 mt-0.5">Registrera avbeställning och eventuell kreditåterbetalning.</p>
+              </div>
+            </div>
+
+            {/* Reason */}
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">Anledning *</p>
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {([
+                { value: 'changed_mind',      label: 'Ångrat sig'         },
+                { value: 'financial',         label: 'Ekonomiska skäl'    },
+                { value: 'found_elsewhere',   label: 'Hittade annat'      },
+                { value: 'financing_denied',  label: 'Finansiering nekad' },
+                { value: 'other',             label: 'Annan anledning'    },
+              ] as const).map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => setCancelReason(opt.value)}
+                  className={`px-3 py-2 rounded-xl border text-sm font-medium text-left transition-colors ${
+                    cancelReason === opt.value
+                      ? 'bg-rose-50 border-rose-400 text-rose-700'
+                      : 'border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  {cancelReason === opt.value && <span className="mr-1">●</span>}{opt.label}
+                </button>
+              ))}
+            </div>
+
+            <input
+              value={cancelDetail}
+              onChange={e => setCancelDetail(e.target.value)}
+              placeholder="Detaljer (valfritt)..."
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-200 mb-4"
+            />
+
+            {/* Refund */}
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">Kreditåterbetalning</p>
+            <div className="bg-slate-50 rounded-xl p-4 space-y-3 mb-4">
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="text-xs text-slate-500 mb-1 block">Belopp (SEK)</label>
+                  <input
+                    type="number" min="0" step="100"
+                    value={refundAmount}
+                    onChange={e => setRefundAmount(e.target.value)}
+                    placeholder="0"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm outline-none focus:border-rose-400"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="text-xs text-slate-500 mb-1 block">Bank</label>
+                  <input
+                    value={refundBank}
+                    onChange={e => setRefundBank(e.target.value)}
+                    placeholder="t.ex. Handelsbanken"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm outline-none focus:border-rose-400"
+                  />
+                </div>
+              </div>
+              {parseFloat(refundAmount) > 0 && (
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-xs text-slate-500 mb-1 block">Clearingnr</label>
+                    <input
+                      value={refundClearing}
+                      onChange={e => setRefundClearing(e.target.value)}
+                      placeholder="6xxx"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm outline-none focus:border-rose-400"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-xs text-slate-500 mb-1 block">Kontonummer</label>
+                    <input
+                      value={refundAccount}
+                      onChange={e => setRefundAccount(e.target.value)}
+                      placeholder="Kontonummer"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm outline-none focus:border-rose-400"
+                    />
+                  </div>
+                  <div className="col-span-3">
+                    <label className="text-xs text-slate-500 mb-1 block">Referens</label>
+                    <input
+                      value={refundReference}
+                      onChange={e => setRefundReference(e.target.value)}
+                      placeholder="t.ex. ÅTERBET-2026-001"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm outline-none focus:border-rose-400"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Return to stock toggle */}
+            <button
+              onClick={() => setReturnToStock(v => !v)}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border mb-4 transition-colors ${
+                returnToStock ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'border-slate-200 text-slate-600'
+              }`}
+            >
+              <span className="text-sm font-medium">Återlägg fordon i lager</span>
+              <span className={`w-10 h-6 rounded-full flex items-center transition-colors relative ${returnToStock ? 'bg-emerald-500' : 'bg-slate-300'}`}>
+                <span className={`w-4 h-4 rounded-full bg-white absolute shadow transition-all ${returnToStock ? 'left-5' : 'left-1'}`} />
+              </span>
+            </button>
+
+            {/* Notes */}
+            <textarea
+              value={cancelNotes}
+              onChange={e => setCancelNotes(e.target.value)}
+              rows={2}
+              placeholder="Interna anteckningar (valfritt)..."
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-200 resize-none mb-4"
+            />
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowCancelModal(false)}
+                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                Avbryt
+              </button>
+              <button
+                onClick={handleCancelDeal}
+                disabled={cancelling}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+              >
+                {cancelling && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                Bekräfta annullering
               </button>
             </div>
           </div>
