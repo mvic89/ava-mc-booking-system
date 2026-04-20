@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createInvoice, getInvoice, bookkeepInvoice } from '@/lib/fortnox/client';
 import { getCredential } from '@/lib/integrations/config-store';
 
-function getToken(dealerId: string) {
+async function getToken(dealerId: string) {
   return await getCredential(dealerId, 'fortnox', 'FORTNOX_ACCESS_TOKEN');
 }
 
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const token = getToken(body.dealerId ?? 'ava-mc');
+  const token = await getToken(body.dealerId ?? 'ava-mc');
   if (!token) {
     return NextResponse.json({ skipped: true, reason: 'Fortnox not configured' });
   }
@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
   if (!invoiceNumber) {
     return NextResponse.json({ error: 'invoiceNumber required' }, { status: 400 });
   }
-  const token = getToken(dealerId);
+  const token = await getToken(dealerId);
   if (!token) {
     return NextResponse.json({ error: 'Fortnox access token not configured' }, { status: 400 });
   }

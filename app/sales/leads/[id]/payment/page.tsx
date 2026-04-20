@@ -1636,11 +1636,11 @@ function BankTransferTab({ order, onConfirmed }: { order: OrderSummary; onConfir
         </p>
         <div className="space-y-3">
           {[
-            { label: 'Company',    value: dealerCompany || '—' },
-            { label: 'Bank',       value: 'Handelsbanken' },
-            { label: 'Bankgiro',   value: '123-4567' },
-            { label: 'IBAN',       value: 'SE35 5000 0000 0549 1000 0003' },
-            { label: 'BIC/SWIFT',  value: 'HANDSESS' },
+            { label: 'Company',    value: bankDetails.company },
+            { label: 'Bank',       value: dealerInfo.bankName  || '—' },
+            { label: 'Bankgiro',   value: bankDetails.bankgiro },
+            { label: 'IBAN',       value: bankDetails.iban },
+            { label: 'BIC/SWIFT',  value: bankDetails.bic },
           ].map(row => (
             <div key={row.label} className="flex justify-between items-center">
               <span className="text-xs text-slate-400">{row.label}</span>

@@ -10,6 +10,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { logAudit } from '@/lib/audit';
+import { notify } from '@/lib/notify';
+
+const STAGE_LABELS: Record<string, string> = {
+  new: 'Ny', contacted: 'Kontaktad', testride: 'Provkörning',
+  offer: 'Offert', negotiating: 'Förhandling',
+  pending_payment: 'Väntande betalning', closed: 'Avslutad',
+};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function sb() { return getSupabaseAdmin() as any; }
@@ -24,6 +31,7 @@ export async function POST(
       dealershipId: string;
       stage:        string;
       fromStages?:  string[];
+      clearLost?:   boolean;
     };
     const { dealershipId, stage, fromStages } = body;
 
@@ -34,7 +42,12 @@ export async function POST(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let query: any = sb()
       .from('leads')
-      .update({ stage, stage_changed_at: new Date().toISOString() })
+      .update({
+        stage,
+        stage_changed_at: new Date().toISOString(),
+        // Clear lost/closed fields when reactivating a lost lead
+        ...(body.clearLost ? { lost_reason: null, closed_at: null } : {}),
+      })
       .eq('id', leadId)
       .eq('dealership_id', dealershipId);
 
@@ -57,6 +70,16 @@ export async function POST(
       dealershipId: dealershipId,
       ipAddress:    req.headers.get('x-forwarded-for') ?? undefined,
     });
+
+    // Fetch lead name for notification
+    const { data: lead } = await sb().from('leads').select('name, bike').eq('id', leadId).maybeSingle();
+    const label = STAGE_LABELS[stage] ?? stage;
+
+    if (body.clearLost) {
+      notify({ dealershipId, type: 'lead', title: 'Lead återaktiverat', message: `${lead?.name ?? 'Lead'} är tillbaka i pipeline`, href: `/sales/leads/${leadId}` });
+    } else {
+      notify({ dealershipId, type: 'lead', title: `Pipeline: ${label}`, message: `${lead?.name ?? 'Lead'} → ${label}`, href: `/sales/leads/${leadId}` });
+    }
 
     return NextResponse.json({ ok: true });
   } catch (err) {

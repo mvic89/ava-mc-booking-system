@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createCustomer, getCustomerByOrgNumber } from '@/lib/fortnox/client';
 import { getCredential } from '@/lib/integrations/config-store';
 
-function getToken(dealerId: string) {
+async function getToken(dealerId: string) {
   return await getCredential(dealerId, 'fortnox', 'FORTNOX_ACCESS_TOKEN');
 }
 
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
   }
 
   const dealerId = body.dealerId ?? 'ava-mc';
-  const token    = getToken(dealerId);
+  const token    = await getToken(dealerId);
 
   // Fortnox is optional — if not configured, skip gracefully
   if (!token) {

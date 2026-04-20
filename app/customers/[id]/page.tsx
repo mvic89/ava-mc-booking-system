@@ -276,40 +276,42 @@ export default function CustomerProfilePage() {
     const resolvedNps  = custRow?.nps_score  != null ? String(custRow.nps_score)  : null;
     const resolvedRisk = custRow?.risk_level ?? null;
 
-    // ── Fetch offer accessories + inventory names for Purchases tab ────────────
+    // ── Fetch offers for Purchases tab ────────────────────────────────────────
     const leadIds = (leads ?? []).map((l: any) => l.id as number);
-    const offerMap: Record<number, { vehicle: string; vehicleColor: string; accessories: string }> = {};
+    const offerMap: Record<number, { vehicle: string; vehicleColor: string; accessories: string; accessoriesCost: number }> = {};
 
     if (leadIds.length > 0) {
       const { data: offerRows } = await sb
         .from('offers')
-        .select('lead_id, vehicle, vehicle_color, accessories')
+        .select('lead_id, vehicle, vehicle_color, accessories, accessories_cost')
         .in('lead_id', leadIds)
         .eq('dealership_id', dealershipId);
       for (const o of (offerRows ?? [])) {
         offerMap[o.lead_id as number] = {
-          vehicle:     (o.vehicle        as string) ?? '',
-          vehicleColor:(o.vehicle_color  as string) ?? '',
-          accessories: (o.accessories    as string) ?? '',
+          vehicle:          (o.vehicle         as string) ?? '',
+          vehicleColor:     (o.vehicle_color   as string) ?? '',
+          accessories:      (o.accessories     as string) ?? '',
+          accessoriesCost:  parseFloat(o.accessories_cost ?? '0') || 0,
         };
       }
     }
 
-    // Collect accessory / spare-part IDs needing a name lookup
+    // Collect IDs that don't already have a name embedded — for DB fallback
     const accIds: string[] = [];
     const spIds:  string[] = [];
     for (const offer of Object.values(offerMap)) {
       if (!offer.accessories) continue;
       try {
-        const items = JSON.parse(offer.accessories) as { id: string; qty: number }[];
+        const items = JSON.parse(offer.accessories) as { id: string; name?: string; qty: number }[];
         for (const item of items) {
-          if (!item.id) continue;
+          if (!item.id || item.name) continue; // skip if name already present
           if (item.id.startsWith('SP-')) spIds.push(item.id);
           else accIds.push(item.id);
         }
-      } catch { /* not valid JSON – skip */ }
+      } catch { /* not valid JSON */ }
     }
 
+    // DB name fallback (only for old records that didn't store name in JSON)
     const accNameMap: Record<string, string> = {};
     const spNameMap:  Record<string, string> = {};
     if (accIds.length > 0) {
@@ -321,18 +323,24 @@ export default function CustomerProfilePage() {
       for (const s of (spRows ?? [])) spNameMap[s.id as string] = s.name as string;
     }
 
-    // Build one PurchaseItem per paid invoice
+    // Build one PurchaseItem per invoice — accessories & spare parts shown as line items
     const purchases: PurchaseItem[] = [];
     for (const inv of invoices) {
       const offer = inv.leadId ? offerMap[Number(inv.leadId)] : undefined;
       const accItems: PurchaseItem['accessories'] = [];
       if (offer?.accessories) {
         try {
-          const items = JSON.parse(offer.accessories) as { id: string; qty: number }[];
+          const items = JSON.parse(offer.accessories) as { id: string; name?: string; brand?: string; qty: number; unitPrice?: number }[];
           for (const item of items) {
-            const isSP  = item.id.startsWith('SP-');
-            const name  = isSP ? (spNameMap[item.id] ?? item.id) : (accNameMap[item.id] ?? item.id);
-            accItems.push({ name, qty: item.qty, itemType: isSP ? 'spare_part' : 'accessory' });
+            if (!item.id) continue;
+            const isSP = item.id.startsWith('SP-');
+            // Use embedded name first; fall back to DB lookup
+            const name = item.name || (isSP ? (spNameMap[item.id] ?? item.id) : (accNameMap[item.id] ?? item.id));
+            accItems.push({
+              name,
+              qty:      item.qty ?? 1,
+              itemType: isSP ? 'spare_part' : 'accessory',
+            });
           }
         } catch { /* skip */ }
       }
@@ -1077,7 +1085,7 @@ export default function CustomerProfilePage() {
                     <div className="bg-white rounded-2xl border border-slate-100 p-4 col-span-2 sm:col-span-1">
                       <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Tillbehör totalt</p>
                       <p className="text-2xl font-bold text-slate-900">
-                        {livePurchases.reduce((s, p) => s + p.accessories.length, 0)}
+                        {livePurchases.reduce((s, p) => s + p.accessories.reduce((a, i) => a + i.qty, 0), 0)}
                       </p>
                     </div>
                   </div>
@@ -1114,24 +1122,28 @@ export default function CustomerProfilePage() {
 
                         {/* Accessories / spare parts */}
                         {purchase.accessories.length > 0 ? (
-                          <div className="px-6 py-4">
-                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Tillbehör & Reservdelar</p>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <div className="px-6 py-3 border-t border-slate-100">
+                            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Tillbehör & Reservdelar</p>
+                            <div className="divide-y divide-slate-50">
                               {purchase.accessories.map((item, i) => (
-                                <div key={i} className="flex items-center gap-2.5 bg-slate-50 rounded-xl px-3 py-2.5">
-                                  <span className="text-base shrink-0">{item.itemType === 'spare_part' ? '🔧' : '🧰'}</span>
+                                <div key={i} className="flex items-center gap-3 py-2">
+                                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm shrink-0 ${
+                                    item.itemType === 'spare_part' ? 'bg-blue-50' : 'bg-orange-50'
+                                  }`}>
+                                    {item.itemType === 'spare_part' ? '🔧' : '🧰'}
+                                  </div>
                                   <div className="min-w-0 flex-1">
                                     <p className="text-sm font-medium text-slate-800 truncate">{item.name}</p>
                                     <p className="text-[11px] text-slate-400">{item.itemType === 'spare_part' ? 'Reservdel' : 'Tillbehör'}</p>
                                   </div>
-                                  <span className="text-xs font-bold text-slate-500 shrink-0 bg-slate-200 px-2 py-0.5 rounded-full">×{item.qty}</span>
+                                  <span className="text-xs font-bold text-slate-500 shrink-0 bg-slate-100 px-2 py-0.5 rounded-full">×{item.qty}</span>
                                 </div>
                               ))}
                             </div>
                           </div>
                         ) : (
                           <div className="px-6 py-3 border-t border-slate-50">
-                            <p className="text-xs text-slate-400">Inga tillbehör inkluderade</p>
+                            <p className="text-xs text-slate-400 italic">Inga tillbehör inkluderade</p>
                           </div>
                         )}
 

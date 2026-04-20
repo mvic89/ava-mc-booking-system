@@ -12,7 +12,7 @@ import { useAutoRefresh, emit } from '@/lib/realtime';
 type Status   = Lead['status'];
 type Stage    = Lead['stage'];
 type ViewMode = 'board' | 'list';
-type SortCol  = 'name' | 'bike' | 'value' | 'score' | 'days' | 'stage';
+type SortCol  = 'name' | 'bike' | 'value' | 'score' | 'days' | 'stage' | 'created';
 
 const STATUS_STYLE: Record<Status, { dot: string; text: string; bg: string }> = {
   hot:  { dot: 'bg-red-500',   text: 'text-red-700',   bg: 'bg-red-50'   },
@@ -186,12 +186,12 @@ export default function PipelinePage() {
   const [ready,        setReady]        = useState(false);
   const [leads,        setLeads]        = useState<Lead[]>([]);
   const [search,       setSearch]       = useState('');
-  const [viewMode,     setViewMode]     = useState<ViewMode>('board');
+  const [viewMode,     setViewMode]     = useState<ViewMode>('list');
   const [listStage,    setListStage]    = useState<Stage | 'all'>('all');
-  const [sortCol,      setSortCol]      = useState<SortCol>('days');
+  const [sortCol,      setSortCol]      = useState<SortCol>('created');
   const [sortDir,      setSortDir]      = useState<'asc' | 'desc'>('desc');
   const [confirmingId, setConfirmingId] = useState<number | null>(null);
-  const [showClosed,   setShowClosed]   = useState(true);
+  const [showClosed,   setShowClosed]   = useState(false);
   const [closedLimit,  setClosedLimit]  = useState(5);
   const [draggingId,   setDraggingId]   = useState<number | null>(null);
   const [dragOverCol,  setDragOverCol]  = useState<Stage | null>(null);
@@ -324,14 +324,15 @@ export default function PipelinePage() {
         va = a.leadScore || computeLeadScore({ verified: a.verified, notes: '', stage: a.stage, costPrice: a.costPrice, rawValue: a.rawValue, source: a.source, email: a.email, phone: a.phone });
         vb = b.leadScore || computeLeadScore({ verified: b.verified, notes: '', stage: b.stage, costPrice: b.costPrice, rawValue: b.rawValue, source: b.source, email: b.email, phone: b.phone });
       }
-      if (sortCol === 'days')  { va = a.daysInStage; vb = b.daysInStage; }
-      if (sortCol === 'stage') { va = STAGE_ORDER.indexOf(a.stage); vb = STAGE_ORDER.indexOf(b.stage); }
+      if (sortCol === 'days')    { va = a.daysInStage; vb = b.daysInStage; }
+      if (sortCol === 'stage')   { va = STAGE_ORDER.indexOf(a.stage); vb = STAGE_ORDER.indexOf(b.stage); }
+      if (sortCol === 'created') { va = a.id; vb = b.id; }
       if (typeof va === 'string') return sortDir === 'asc' ? va.localeCompare(vb as string) : (vb as string).localeCompare(va);
       return sortDir === 'asc' ? (va as number) - (vb as number) : (vb as number) - (va as number);
     });
   }, [filtered, listStage, sortCol, sortDir]);
 
-  const fmt = (n: number) => n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : `${Math.round(n / 1000)}k`;
+  const fmt = (n: number) => Math.round(n).toLocaleString('sv-SE');
 
   function toggleSort(col: SortCol) {
     if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
@@ -622,7 +623,7 @@ export default function PipelinePage() {
                         <SortTh col="value">Värde</SortTh>
                         <SortTh col="score">Score</SortTh>
                         <SortTh col="days">Dagar</SortTh>
-                        <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Skapad</th>
+                        <SortTh col="created">Skapad</SortTh>
                         <th className="px-4 py-3" />
                       </tr>
                     </thead>

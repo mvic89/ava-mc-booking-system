@@ -25,6 +25,7 @@ interface DealershipProfile {
   email:             string;
   emailDomain:       string;   // e.g. "avamc.se" — shared by all staff at this dealership
   website:           string;
+  bankName:              string;
   bankgiro:              string;
   swish:                 string;
   iban:                  string;
@@ -60,6 +61,7 @@ const DEFAULTS: DealershipProfile = {
   email:       '',
   emailDomain: '',
   website:     '',
+  bankName:          '',
   bankgiro:          '',
   swish:             '',
   iban:              '',
@@ -187,6 +189,7 @@ async function fetchProfileFromSupabase(dealershipId: string): Promise<Partial<D
       email:             data.email                 ?? '',
       emailDomain:       data.email_domain          ?? '',
       website:           data.website               ?? '',
+      bankName:          data.bank_name             ?? '',
       bankgiro:          data.bankgiro              ?? '',
       swish:             data.swish                 ?? '',
       iban:              data.iban                  ?? '',
@@ -221,6 +224,7 @@ async function fetchProfileFromSupabase(dealershipId: string): Promise<Partial<D
     email:             data.email             ?? '',
     emailDomain:       data.email_domain      ?? '',
     website:           data.website           ?? '',
+    bankName:          data.bank_name             ?? '',
     bankgiro:          data.bankgiro              ?? '',
     swish:             data.swish                 ?? '',
     iban:              data.iban                  ?? '',
@@ -253,6 +257,7 @@ async function saveProfileToSupabase(dealershipId: string, profile: DealershipPr
     email:                profile.email,
     email_domain:         profile.emailDomain,
     website:              profile.website,
+    bank_name:            profile.bankName          || null,
     bankgiro:             profile.bankgiro,
     swish:                profile.swish,
     iban:                 profile.iban              || null,
@@ -710,6 +715,16 @@ export default function DealershipProfilePage() {
 
             {/* ── Banking ── */}
             <SectionCard title="Bankuppgifter" icon="🏦">
+              <Field
+                label="Bank"
+                hint="Bankens namn, t.ex. Handelsbanken, SEB, Swedbank"
+              >
+                <Input
+                  value={profile.bankName}
+                  onChange={set('bankName')}
+                  placeholder="Handelsbanken"
+                />
+              </Field>
               <Field
                 label="Bankgironummer"
                 hint="Format: 1234-5678"

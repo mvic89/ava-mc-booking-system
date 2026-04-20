@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { notify } from '@/lib/notify';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function sb() { return getSupabaseAdmin() as any; }
@@ -73,6 +74,18 @@ export async function POST(req: NextRequest) {
   if (error) {
     console.error('[api/agreements/upsert]', error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Notify when an agreement is signed (buyer_signature just set)
+  if (body.buyerSignature && body.status === 'signed') {
+    const totalStr = Math.round((body.totalPrice as number) || 0).toLocaleString('sv-SE');
+    notify({
+      dealershipId,
+      type:    'agreement',
+      title:   'Köpeavtal signerat',
+      message: `${body.customerName || 'Kund'} — ${body.vehicle || ''} — ${totalStr} kr`,
+      href:    body.leadId ? `/sales/leads/${body.leadId}/agreement` : '/sales/leads',
+    });
   }
 
   return NextResponse.json({ agreement: data });

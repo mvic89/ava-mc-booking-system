@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { logAudit } from '@/lib/audit';
+import { notify } from '@/lib/notify';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Row = Record<string, any>;
@@ -232,5 +233,16 @@ async function handleCreate(lead: Row, dealershipId: string): Promise<NextRespon
   if (updErr) console.error('[customers/create] update lead stage failed:', updErr.message);
 
   console.log('[customers/create] done — customerId:', customerId, 'created:', created);
+
+  if (created) {
+    notify({
+      dealershipId,
+      type:    'customer',
+      title:   'Ny kund skapad',
+      message: `${lead.name} är nu registrerad som kund`,
+      href:    `/customers/${customerId}`,
+    });
+  }
+
   return NextResponse.json({ customerId, created });
 }

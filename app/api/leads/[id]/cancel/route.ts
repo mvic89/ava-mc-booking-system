@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { notify } from '@/lib/notify';
 
 /**
  * POST /api/leads/[id]/cancel
@@ -127,6 +128,14 @@ export async function POST(
           .eq('dealership_id', body.dealershipId);
       }
     }
+
+    notify({
+      dealershipId: body.dealershipId,
+      type:    'agreement',
+      title:   'Affär annullerad',
+      message: `${body.customerName ?? 'Kund'} — ${body.vehicle ?? ''} — ${body.reason}${body.reasonDetail ? ': ' + body.reasonDetail : ''}`,
+      href:    `/sales/leads/${leadId}`,
+    });
 
     return NextResponse.json({ cancellation });
   } catch (err: unknown) {

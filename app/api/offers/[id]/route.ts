@@ -3,6 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { notify } from '@/lib/notify';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function sb() { return getSupabaseAdmin() as any; }
@@ -136,7 +137,39 @@ export async function PUT(
       .single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ offer: toOffer(data) });
+    const offer = toOffer(data);
+
+    // Notify on meaningful status transitions
+    if ('status' in patch) {
+      const totalStr = Math.round(offer.totalPrice).toLocaleString('sv-SE');
+      if (patch.status === 'sent') {
+        notify({
+          dealershipId: dealershipId as string,
+          type:    'agreement',
+          title:   'Offert skickad',
+          message: `${offer.customerName || 'Kund'} — ${offer.vehicle} — ${totalStr} kr`,
+          href:    `/sales/leads/${offer.leadId}/offer`,
+        });
+      } else if (patch.status === 'accepted') {
+        notify({
+          dealershipId: dealershipId as string,
+          type:    'payment',
+          title:   'Offert accepterad',
+          message: `${offer.customerName || 'Kund'} — ${offer.vehicle} — ${totalStr} kr`,
+          href:    `/sales/leads/${offer.leadId}/offer`,
+        });
+      } else if (patch.status === 'declined') {
+        notify({
+          dealershipId: dealershipId as string,
+          type:    'lead',
+          title:   'Offert avböjd',
+          message: `${offer.customerName || 'Kund'} — ${offer.vehicle}`,
+          href:    `/sales/leads/${offer.leadId}/offer`,
+        });
+      }
+    }
+
+    return NextResponse.json({ offer });
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 });
   }

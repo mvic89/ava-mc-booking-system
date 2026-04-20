@@ -3,6 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { notify } from '@/lib/notify';
 
 export async function GET(req: NextRequest) {
   const sp           = req.nextUrl.searchParams;
@@ -92,5 +93,17 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  const typeLabels: Record<string, string> = { test_drive: 'Provkörning', meeting: 'Möte', delivery: 'Leverans', viewing: 'Visning' };
+  const typeLabel = typeLabels[body.type ?? 'test_drive'] ?? 'Bokning';
+  const startStr  = new Date(body.startTime).toLocaleString('sv-SE', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  notify({
+    dealershipId: body.dealershipId,
+    type:    'system',
+    title:   `Ny bokning: ${typeLabel}`,
+    message: `${body.customerName ?? 'Kund'} — ${body.bikeName ?? ''} ${startStr}`,
+    href:    '/calendar',
+  });
+
   return NextResponse.json({ appointment: data }, { status: 201 });
 }

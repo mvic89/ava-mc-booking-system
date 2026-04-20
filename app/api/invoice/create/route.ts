@@ -6,6 +6,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { logAudit } from '@/lib/audit';
+import { notify } from '@/lib/notify';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function sb() { return getSupabaseAdmin() as any; }
@@ -334,6 +335,26 @@ export async function POST(req: Request) {
           provider:     paymentMethod || null,
           confirmed_at: status === 'paid' ? (paidDate ?? new Date().toISOString()) : null,
         }).then(() => {});
+        // Notification
+        const amountStr = Math.round(totalAmount).toLocaleString('sv-SE');
+        if (status === 'paid') {
+          notify({
+            dealershipId,
+            type:    'payment',
+            title:   'Betalning mottagen',
+            message: `${customerName} — ${vehicle} — ${amountStr} kr`,
+            href:    leadId ? `/sales/leads/${leadId}/payment` : '/invoices',
+          });
+        } else {
+          notify({
+            dealershipId,
+            type:    'payment',
+            title:   'Faktura skapad',
+            message: `${invoiceId} — ${customerName} — ${amountStr} kr (väntande)`,
+            href:    '/invoices',
+          });
+        }
+
         // Fire-and-forget Fortnox auto-sync for paid invoices — never blocks the response
         if (status === 'paid') {
           import('@/lib/fortnox/sync')

@@ -78,11 +78,8 @@ export default function NotificationBell() {
     window.addEventListener(NOTIFS_EVENT, load);
     // Also sync when another tab writes to localStorage
     const onStorage = (e: StorageEvent) => {
-
       if (e.key === getNotifsKey()) load();
-
       if (e.key === 'app_notifications') load();
-
     };
     window.addEventListener('storage', onStorage);
     return () => {
@@ -90,6 +87,18 @@ export default function NotificationBell() {
       window.removeEventListener('storage', onStorage);
     };
   }, []);
+
+  // Close panel when clicking anywhere outside the bell component
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
 
   const unread = notifs.filter(n => !n.read).length;
 
@@ -128,10 +137,6 @@ export default function NotificationBell() {
       {/* Dropdown panel */}
       {open && (
         <>
-          {/* Backdrop */}
-          <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-
-          {/* Panel — positioned to the right of the sidebar */}
           <div className="fixed left-64 bottom-16 w-80 bg-[#0f1b2d] border border-white/10 rounded-2xl shadow-2xl z-40 overflow-hidden animate-fade-up">
 
             {/* Header */}

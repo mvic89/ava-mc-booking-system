@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { notify } from '@/lib/notify';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -52,6 +53,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     meta:          { outcome: body.outcome, lostReason: body.lostReason ?? null },
     created_by:    body.createdBy ?? null,
   });
+
+  // Notification
+  const { data: lead } = await sb.from('leads').select('name, bike').eq('id', leadId).maybeSingle();
+  if (body.outcome === 'won') {
+    notify({ dealershipId: body.dealershipId, type: 'payment', title: 'Affär avslutad', message: `${lead?.name ?? 'Kund'} — ${lead?.bike ?? ''} har köpts`, href: `/sales/leads/${leadId}` });
+  } else {
+    notify({ dealershipId: body.dealershipId, type: 'lead', title: 'Affär förlorad', message: `${lead?.name ?? 'Kund'}: ${body.lostReason ?? 'Ingen anledning angiven'}`, href: `/sales/leads/${leadId}` });
+  }
 
   return NextResponse.json({ ok: true });
 }

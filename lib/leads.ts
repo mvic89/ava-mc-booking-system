@@ -50,8 +50,7 @@ export interface Lead {
 // ── Column mapping ─────────────────────────────────────────────────────────────
 
 function formatValue(n: number): string {
-  if (n >= 1000) return `${Math.round(n / 1000)}k kr`;
-  return `${n} kr`;
+  return `${Math.round(n).toLocaleString('sv-SE')} kr`;
 }
 
 function formatTime(ts: string | null): string {

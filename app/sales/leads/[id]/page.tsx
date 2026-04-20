@@ -583,6 +583,27 @@ export default function LeadDetailPage() {
     }
   }
 
+  // ── Reactivate a lost lead ───────────────────────────────────────────────────
+
+  async function handleReactivate() {
+    if (!lead) return;
+    const did = dealershipIdRef.current;
+    if (!did) return;
+    try {
+      const res = await fetch(`/api/leads/${lead.id}/stage`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dealershipId: did, stage: 'contacted', clearLost: true }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      setLead(prev => prev ? { ...prev, stage: 'contacted', lostReason: null, closedAt: null } : prev);
+      emit({ type: 'lead:updated', payload: { id, status: lead.status } });
+      toast.success('Lead återaktiverat — återfinns i Pipeline');
+    } catch {
+      toast.error('Kunde inte återaktivera lead');
+    }
+  }
+
   // ── Close as lost ───────────────────────────────────────────────────────────
 
   async function handleCloseLost() {
@@ -941,10 +962,20 @@ export default function LeadDetailPage() {
                   </div>
                 )}
 
-                {isClosed && isLost && lead.lostReason && (
-                  <div className="mt-3 bg-red-50 border border-red-100 rounded-xl px-3 py-2 text-xs text-red-700">
-                    <p className="font-semibold mb-0.5">Anledning till förlust:</p>
-                    <p>{lead.lostReason}</p>
+                {isClosed && isLost && (
+                  <div className="mt-3 space-y-2">
+                    {lead.lostReason && (
+                      <div className="bg-red-50 border border-red-100 rounded-xl px-3 py-2 text-xs text-red-700">
+                        <p className="font-semibold mb-0.5">Anledning till förlust:</p>
+                        <p>{lead.lostReason}</p>
+                      </div>
+                    )}
+                    <button
+                      onClick={handleReactivate}
+                      className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-semibold rounded-xl bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors"
+                    >
+                      ↩ Återaktivera lead
+                    </button>
                   </div>
                 )}
 

@@ -136,6 +136,11 @@ export default function CalendarPage() {
   const [mEnd,      setMEnd]      = useState('');
   const [mNotes,    setMNotes]    = useState('');
 
+  // Inventory dropdown
+  const [inventory,      setInventory]      = useState<{ id: number; name: string }[]>([]);
+  const [bikeSearch,     setBikeSearch]     = useState('');
+  const [showBikeList,   setShowBikeList]   = useState(false);
+
   const dealershipId = user?.dealershipId ?? getDealershipId() ?? '';
 
   // ── Data loading ─────────────────────────────────────────────────────────────
@@ -236,14 +241,28 @@ export default function CalendarPage() {
   function resetModal() {
     setMType('test_drive'); setMTitle(''); setMCustomer('');
     setMBike(''); setMStaff(''); setMStart(''); setMEnd(''); setMNotes('');
+    setBikeSearch(''); setShowBikeList(false);
   }
 
-  function openNewModal(defaultStart?: Date) {
+  async function openNewModal(defaultStart?: Date) {
     resetModal();
     if (defaultStart) {
       const s = new Date(defaultStart);
       const e = new Date(s); e.setHours(s.getHours() + 1);
       setMStart(fmtLocal(s)); setMEnd(fmtLocal(e));
+    }
+    // Auto-fill staff with logged-in user
+    const raw = localStorage.getItem('user');
+    const u = raw ? JSON.parse(raw) as { name?: string; dealershipId?: string } : null;
+    if (u?.name) setMStaff(u.name);
+    // Load inventory
+    const did = u?.dealershipId ?? getDealershipId() ?? '';
+    if (did && inventory.length === 0) {
+      const res = await fetch(`/api/inventory/list?dealershipId=${encodeURIComponent(did)}`);
+      if (res.ok) {
+        const data = await res.json() as { id: number; name: string }[];
+        setInventory(data);
+      }
     }
     setShowModal(true);
   }
@@ -554,13 +573,58 @@ export default function CalendarPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1.5">Säljare</label>
-                  <input value={mStaff} onChange={e => setMStaff(e.target.value)} placeholder={user?.name ?? 'Namn...'} className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-[#FF6B2C] outline-none" />
+                  <input
+                    value={mStaff}
+                    readOnly
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-700 outline-none cursor-default"
+                  />
                 </div>
               </div>
 
-              <div>
+              <div className="relative">
                 <label className="block text-xs font-semibold text-slate-600 mb-1.5">Fordon</label>
-                <input value={mBike} onChange={e => setMBike(e.target.value)} placeholder="t.ex. Kawasaki Ninja 650 2024" className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-[#FF6B2C] outline-none" />
+                <input
+                  value={mBike || bikeSearch}
+                  onChange={e => {
+                    setBikeSearch(e.target.value);
+                    setMBike('');
+                    setShowBikeList(true);
+                  }}
+                  onFocus={() => setShowBikeList(true)}
+                  placeholder="Sök fordon från lager..."
+                  autoComplete="off"
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-[#FF6B2C] outline-none"
+                />
+                {showBikeList && (
+                  <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                    {inventory
+                      .filter(v => v.name.toLowerCase().includes((bikeSearch || mBike).toLowerCase()))
+                      .length === 0 ? (
+                      <div className="px-4 py-3 text-xs text-slate-400">Inga fordon hittades</div>
+                    ) : (
+                      inventory
+                        .filter(v => v.name.toLowerCase().includes((bikeSearch || mBike).toLowerCase()))
+                        .map(v => (
+                          <button
+                            key={v.id}
+                            type="button"
+                            onMouseDown={() => {
+                              setMBike(v.name);
+                              setBikeSearch('');
+                              setShowBikeList(false);
+                            }}
+                            className="w-full text-left px-4 py-2.5 text-sm hover:bg-orange-50 hover:text-[#FF6B2C] transition-colors"
+                          >
+                            {v.name}
+                          </button>
+                        ))
+                    )}
+                  </div>
+                )}
+                {mBike && (
+                  <button type="button" onClick={() => { setMBike(''); setBikeSearch(''); }}
+                    className="absolute right-3 top-9 text-slate-400 hover:text-slate-600 text-lg leading-none">×</button>
+                )}
               </div>
 
               <div>

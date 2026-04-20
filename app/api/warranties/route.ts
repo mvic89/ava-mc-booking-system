@@ -3,6 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { notify } from '@/lib/notify';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function sb() { return getSupabaseAdmin() as any; }
@@ -76,6 +77,15 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    notify({
+      dealershipId: dealershipId as string,
+      type:    'system',
+      title:   'Ny garanti registrerad',
+      message: `${row.vehicle_name} — ${row.type} — giltig t.o.m. ${row.end_date}`,
+      href:    '/warranties',
+    });
+
     return NextResponse.json({ warranty: data }, { status: 201 });
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 });

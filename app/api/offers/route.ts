@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { generateOfferNumber } from '@/lib/offers';
+import { notify } from '@/lib/notify';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function sb() { return getSupabaseAdmin() as any; }
@@ -133,7 +134,16 @@ export async function POST(req: NextRequest) {
       .select()
       .single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ offer: toOffer(data) }, { status: 201 });
+    const offer = toOffer(data);
+    const totalStr = Math.round(offer.totalPrice).toLocaleString('sv-SE');
+    notify({
+      dealershipId: dealershipId as string,
+      type:    'agreement',
+      title:   'Ny offert skapad',
+      message: `${offer.customerName || 'Kund'} — ${offer.vehicle} — ${totalStr} kr`,
+      href:    `/sales/leads/${leadId}/offer`,
+    });
+    return NextResponse.json({ offer }, { status: 201 });
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 });
   }
