@@ -237,18 +237,21 @@ export default function CustomerProfilePage() {
     }));
     setLiveInvoices(mappedInvoices);
 
-    // Leads — used for vehicles + timeline
+    // Leads — used for vehicles + timeline + accessories-only orders
     const { data: leads } = await sb
       .from('leads')
-      .select('id, bike, created_at, closed_at, stage')
+      .select('id, bike, created_at, closed_at, stage, lead_type, lead_items')
       .eq('customer_id', custId)
       .eq('dealership_id', dealershipId)
       .order('created_at', { ascending: false });
 
-    // Live vehicles derived from leads (deduplicated by bike name)
+    // Live vehicles derived from leads — motorcycles only, no accessories/spare-part orders
     const seenBikes = new Set<string>();
     const bikes: any[] = [];
     for (const lead of (leads ?? [])) {
+      const isAccLead = lead.lead_type === 'accessories'
+        || (lead.lead_type == null && (lead.bike ?? '').startsWith('Tillbehör:'));
+      if (isAccLead) continue;                          // skip non-vehicle orders
       if (!lead.bike || seenBikes.has(lead.bike)) continue;
       seenBikes.add(lead.bike);
       bikes.push({
@@ -279,6 +282,21 @@ export default function CustomerProfilePage() {
     // ── Fetch offers for Purchases tab ────────────────────────────────────────
     const leadIds = (leads ?? []).map((l: any) => l.id as number);
     const offerMap: Record<number, { vehicle: string; vehicleColor: string; accessories: string; accessoriesCost: number }> = {};
+
+    // Build a map of lead_items for accessories-only orders (lead_type === 'accessories')
+    // These orders have no offer — items are stored directly on the lead
+    const leadItemsMap: Record<number, { id: string; name?: string; brand?: string; qty: number; unitPrice?: number }[]> = {};
+    for (const lead of (leads ?? [])) {
+      const isAccLead = lead.lead_type === 'accessories'
+        || (lead.lead_type == null && (lead.bike ?? '').startsWith('Tillbehör:'));
+      if (!isAccLead || !lead.lead_items) continue;
+      try {
+        const items = JSON.parse(lead.lead_items as string);
+        if (Array.isArray(items) && items.length > 0) {
+          leadItemsMap[lead.id as number] = items;
+        }
+      } catch { /* skip */ }
+    }
 
     if (leadIds.length > 0) {
       const { data: offerRows } = await sb
@@ -328,22 +346,53 @@ export default function CustomerProfilePage() {
     for (const inv of invoices) {
       const offer = inv.leadId ? offerMap[Number(inv.leadId)] : undefined;
       const accItems: PurchaseItem['accessories'] = [];
+
       if (offer?.accessories) {
+        let parsed: { id: string; name?: string; brand?: string; qty: number; unitPrice?: number }[] | null = null;
         try {
-          const items = JSON.parse(offer.accessories) as { id: string; name?: string; brand?: string; qty: number; unitPrice?: number }[];
-          for (const item of items) {
-            if (!item.id) continue;
-            const isSP = item.id.startsWith('SP-');
-            // Use embedded name first; fall back to DB lookup
+          const p = JSON.parse(offer.accessories);
+          if (Array.isArray(p) && p.length > 0) parsed = p;
+        } catch { /* not JSON — will handle below */ }
+
+        if (parsed) {
+          // Structured picker data — show each item
+          for (const item of parsed) {
+            if (!item.id && !item.name) continue;
+            const isSP = (item.id ?? '').startsWith('SP-');
             const name = item.name || (isSP ? (spNameMap[item.id] ?? item.id) : (accNameMap[item.id] ?? item.id));
+            accItems.push({ name, qty: item.qty ?? 1, itemType: isSP ? 'spare_part' : 'accessory' });
+          }
+        } else if (offer.accessories.trim()) {
+          // Plain-text description — show as one line item
+          accItems.push({ name: offer.accessories.trim(), qty: 1, itemType: 'accessory' });
+        }
+      }
+
+      // For accessories-only orders (no offer) — pull items from lead_items
+      if (accItems.length === 0 && inv.leadId) {
+        const leadItems = leadItemsMap[Number(inv.leadId)];
+        if (leadItems) {
+          for (const item of leadItems) {
+            if (!item.id && !item.name) continue;
+            const isSP = (item.id ?? '').startsWith('SP-');
             accItems.push({
-              name,
+              name:     item.name || item.id,
               qty:      item.qty ?? 1,
               itemType: isSP ? 'spare_part' : 'accessory',
             });
           }
-        } catch { /* skip */ }
+        }
       }
+
+      // Last fallback: if cost > 0 but still no items resolved, show a generic line
+      if (accItems.length === 0 && (offer?.accessoriesCost ?? 0) > 0) {
+        accItems.push({
+          name:     `Tillbehör — ${Math.round(offer!.accessoriesCost).toLocaleString('sv-SE')} kr`,
+          qty:      1,
+          itemType: 'accessory',
+        });
+      }
+
       purchases.push({
         invoiceId:     inv.id,
         date:          new Date(inv.issueDate).toLocaleDateString('sv-SE'),

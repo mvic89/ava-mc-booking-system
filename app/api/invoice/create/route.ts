@@ -154,7 +154,32 @@ async function deductInventory(leadId: string, dealershipId: string): Promise<vo
     .limit(1)
     .maybeSingle();
 
-  if (!offer) return;
+  if (!offer) {
+    // No offer found — may be an accessories-only order; fall back to lead_items
+    const { data: lead } = await sb()
+      .from('leads')
+      .select('lead_items')
+      .eq('id', leadId)
+      .eq('dealership_id', dealershipId)
+      .maybeSingle();
+    if (!lead?.lead_items) return;
+    try {
+      const items = JSON.parse(lead.lead_items) as { id: string; qty: number }[];
+      if (!Array.isArray(items)) return;
+      for (const item of items) {
+        if (!item.id || !item.qty) continue;
+        const table = item.id.startsWith('SP-') ? 'spare_parts' : 'accessories';
+        const { data: inv } = await sb().from(table).select('id, stock').eq('id', item.id).eq('dealership_id', dealershipId).maybeSingle();
+        if (inv && inv.stock > 0) {
+          await sb().from(table).update({ stock: Math.max(0, inv.stock - item.qty) }).eq('id', item.id).eq('dealership_id', dealershipId);
+          console.log(`[invoice/create] decremented ${table} stock for ${item.id} by ${item.qty} (lead_items fallback)`);
+        }
+      }
+    } catch {
+      // lead_items not valid JSON — skip silently
+    }
+    return;
+  }
 
   // Decrement motorcycle stock — look up by VIN first, then by name
   const { vehicle, vin, accessories: accessoriesJson } = offer as {
@@ -252,12 +277,22 @@ export async function POST(req: Request) {
 
     // If this is a confirmed payment, mark any pending invoice for this lead as paid first
     if (status === 'paid' && leadId) {
-      await sb()
+      const { data: transitioned } = await sb()
         .from('invoices')
         .update({ status: 'paid', paid_date: paidDate ?? new Date().toISOString(), payment_method: paymentMethod })
         .eq('lead_id', leadId)
         .eq('dealership_id', dealershipId)
-        .eq('status', 'pending');
+        .eq('status', 'pending')
+        .select('id');
+
+      // If a pending invoice just transitioned to paid, deduct inventory now.
+      // We do this HERE because the deduplication check below will short-circuit
+      // and return before reaching the normal deductInventory call further down.
+      if (transitioned && (transitioned as { id: string }[]).length > 0) {
+        deductInventory(leadId, dealershipId).catch((err) =>
+          console.warn('[invoice/create] deductInventory (pending→paid) failed (non-fatal):', err),
+        );
+      }
 
       // Close the lead and link it to the customer (service-role — no RLS issue)
       await sb()

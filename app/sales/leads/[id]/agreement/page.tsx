@@ -374,18 +374,6 @@ export default function AgreementPage() {
         const buyerSigJson  = party === 'buyer'  ? proofJson : (form.buyerSignature  as string);
         const sellerProofParsed = sellerSigJson ? (() => { try { return JSON.parse(sellerSigJson); } catch { return null; } })() : null;
 
-        // Save trade-in if present
-        if (form.tradeIn && form.tradeInCredit > 0) {
-          await fetch('/api/trade-ins', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              dealershipId, leadId, offerId,
-              description: form.tradeIn,
-              creditValue: form.tradeInCredit,
-            }),
-          });
-        }
-
         // Persist agreement to agreements table
         try {
           await upsertAgreement({

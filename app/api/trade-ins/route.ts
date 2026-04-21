@@ -1,5 +1,6 @@
-// GET  /api/trade-ins?leadId=X&dealershipId=Y
-// POST /api/trade-ins
+// GET   /api/trade-ins?leadId=X&dealershipId=Y
+// POST  /api/trade-ins  (direct insert — used only when no offer exists)
+// PATCH /api/trade-ins  { id, dealershipId, status }  → update status of one row
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
@@ -64,6 +65,30 @@ export async function POST(req: NextRequest) {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ tradeIn: data }, { status: 201 });
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const body = await req.json() as { id: number; dealershipId: string; status: string };
+    const { id, dealershipId, status } = body;
+    if (!id || !dealershipId || !status)
+      return NextResponse.json({ error: 'Missing id, dealershipId or status' }, { status: 400 });
+    if (!['pending', 'completed', 'cancelled'].includes(status))
+      return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
+
+    const { data, error } = await sb()
+      .from('trade_ins')
+      .update({ status })
+      .eq('id', id)
+      .eq('dealership_id', dealershipId)
+      .select()
+      .single();
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ tradeIn: data });
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 });
   }

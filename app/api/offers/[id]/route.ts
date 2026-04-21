@@ -8,6 +8,41 @@ import { notify } from '@/lib/notify';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function sb() { return getSupabaseAdmin() as any; }
 
+/**
+ * Sync the tradeIns array to the dedicated trade_ins table.
+ * Deletes all existing rows for this offer then re-inserts them.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function syncTradeIns(offerId: number, leadId: number, dealershipId: string, tradeIns: any[]) {
+  await sb()
+    .from('trade_ins')
+    .delete()
+    .eq('offer_id', offerId)
+    .eq('dealership_id', dealershipId);
+
+  if (!tradeIns.length) return;
+
+  const rows = tradeIns.map((t: any) => ({
+    offer_id:            offerId,
+    lead_id:             leadId,
+    dealership_id:       dealershipId,
+    description:         [t.make, t.model, t.year > 0 ? t.year : ''].filter(Boolean).join(' '),
+    registration_number: t.registrationNumber ?? '',
+    vin:                 t.vin                ?? '',
+    brand:               t.make               ?? '',
+    model:               t.model              ?? '',
+    year:                t.year > 0           ? t.year  : null,
+    color:               t.color              ?? '',
+    mileage:             t.mileage > 0        ? t.mileage : null,
+    credit_value:        t.offeredCredit      ?? 0,
+    status:              'pending',
+    notes:               t.notes              ?? '',
+  }));
+
+  const { error } = await sb().from('trade_ins').insert(rows);
+  if (error) console.warn('[offers/[id]] syncTradeIns insert failed:', error.message);
+}
+
 /** Map raw DB row → camelCase offer object */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function toOffer(r: any) {
@@ -138,6 +173,18 @@ export async function PUT(
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     const offer = toOffer(data);
+
+    // Sync trade-ins to dedicated table whenever the tradeIns/tradeInData fields were touched
+    if ('tradeIns' in fields || 'tradeInData' in fields) {
+      const tradeInsArr = (() => {
+        const arr = fields.tradeIns;
+        if (Array.isArray(arr) && arr.length > 0) return arr as object[];
+        const single = fields.tradeInData;
+        if (single && typeof single === 'object' && !Array.isArray(single)) return [single];
+        return [];
+      })();
+      await syncTradeIns(Number(id), Number(offer.leadId), dealershipId as string, tradeInsArr);
+    }
 
     // Notify on meaningful status transitions
     if ('status' in patch) {
