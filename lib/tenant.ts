@@ -6,6 +6,16 @@
 // All Supabase queries must call .eq('dealership_id', getDealershipId()) so
 // that dealers can never read or write each other's data.
 
+// ── Tag cache (set once from Supabase, used everywhere) ─────────────────────
+// getDealershipTag() reads from this cache first so that all ID generators
+// always derive the tag from the authoritative dealerships.name in Supabase,
+// never from whatever was cached in localStorage.
+let _tagCache: string | null = null
+
+export function setDealershipTagCache(tag: string): void {
+  _tagCache = tag
+}
+
 export function getDealershipId(): string | null {
   if (typeof window === 'undefined') return null;
   try {
@@ -81,10 +91,12 @@ export function tagFromName(name: string): string {
 
 /**
  * Returns the tag for the currently logged-in dealership.
- * Reads dealershipName from localStorage. Prefer passing the DB name
- * directly via tagFromName() when available.
+ * Prefers the cache set by setDealershipTagCache() (populated from Supabase
+ * at startup by InventoryContext). Falls back to localStorage so the app
+ * still works if the context hasn't loaded yet.
  */
 export function getDealershipTag(): string {
+  if (_tagCache) return _tagCache;
   const name = getDealershipName();
   if (!name) return 'XXX';
   return tagFromName(name);

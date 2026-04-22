@@ -200,6 +200,14 @@ export async function POST(req: NextRequest) {
     const isInvoiceInbox = toAddress.includes('invoice')
         && (inboundDomain ? toAddress.includes(inboundDomain) : true)
 
+    // Extract dealership from invoice plus-address: invoice+{uuid}@...
+    if (!resolvedDealershipId && isInvoiceInbox) {
+        const invoicePlusMatch = toAddress.match(/invoice\+([a-f0-9\-]{36})@/)
+        if (invoicePlusMatch) resolvedDealershipId = invoicePlusMatch[1]
+    }
+
+    console.log(`[inbound] To: "${toAddress}" | isDelivery: ${isDeliveryInbox} | isInvoice: ${isInvoiceInbox} | domain: "${inboundDomain}"`)
+
     if (isDeliveryInbox) {
         const pdfAttachment = Attachments.find(a =>
             a.ContentType === 'application/pdf' ||
@@ -213,6 +221,35 @@ export async function POST(req: NextRequest) {
         if (!resolvedDealershipId) {
             console.warn(`[inbound] Cannot resolve dealership — To: ${To}, From: ${From}, PO: ${poRefEarly ?? 'none'}`)
             return NextResponse.json({ error: 'Dealer not identified' }, { status: 422 })
+        }
+
+        // ── Safety check: vendor replied to PO thread with an invoice ─────────
+        // Detect by subject or PDF filename containing invoice/faktura keywords
+        const INVOICE_RE = /\b(invoice|faktura|rechnung|facture|fattura)\b/i
+        const looksLikeInvoice =
+            INVOICE_RE.test(Subject ?? '') ||
+            (pdfAttachment && INVOICE_RE.test(pdfAttachment.Name))
+
+        if (looksLikeInvoice) {
+            console.log(`[inbound] Delivery reply looks like an invoice — re-routing. Subject: "${Subject}", File: "${pdfAttachment?.Name ?? ''}"`)
+            const baseUrl = process.env.NODE_ENV === 'development'
+                ? 'http://localhost:3000'
+                : `https://${req.headers.get('host')}`
+            const invRes = await fetch(`${baseUrl}/api/purchase-invoice/process`, {
+                method:  'POST',
+                headers: {
+                    'Content-Type':     'application/json',
+                    'x-webhook-secret': process.env.GOODS_RECEIPT_WEBHOOK_SECRET ?? '',
+                },
+                body: JSON.stringify({
+                    dealership_id: resolvedDealershipId,
+                    vendor:        vendor?.name ?? senderDomain,
+                    from_email:    senderEmail,
+                    pdf_base64:    pdfAttachment?.Content ?? undefined,
+                }),
+            })
+            const result = await invRes.json()
+            return NextResponse.json({ ok: true, routed_to: 'purchase-invoice (re-routed from delivery)', ...result })
         }
 
         // Use the PO ref extracted earlier (already normalised)
@@ -240,7 +277,11 @@ export async function POST(req: NextRequest) {
             }),
         })
 
-        const result = await grRes.json()
+        const result = await grRes.json().catch(() => ({}))
+        if (!grRes.ok) {
+            console.error('[inbound] goods-receipt failed:', grRes.status, result)
+            return NextResponse.json({ error: 'Goods receipt processing failed', detail: result }, { status: 500 })
+        }
 
         // ── Push in-app notification to bell ──────────────────────────────────
         const receiptId      = (result.receipt_id             as string)  ?? ''
@@ -316,6 +357,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (isInvoiceInbox) {
+        console.log(`[inbound] → routing to invoice inbox for dealership ${resolvedDealershipId}`)
         if (!resolvedDealershipId) {
             console.warn(`[inbound] Cannot resolve dealership for invoice — From: ${From}`)
             return NextResponse.json({ error: 'Dealer not identified' }, { status: 422 })
@@ -329,22 +371,30 @@ export async function POST(req: NextRequest) {
             ? 'http://localhost:3000'
             : `https://${req.headers.get('host')}`
 
-        const invRes = await fetch(`${baseUrl}/api/purchase-invoice/process`, {
-            method:  'POST',
-            headers: {
-                'Content-Type':     'application/json',
-                'x-webhook-secret': process.env.GOODS_RECEIPT_WEBHOOK_SECRET ?? '',
-            },
-            body: JSON.stringify({
-                dealership_id: resolvedDealershipId,
-                vendor:        vendor?.name ?? senderDomain,
-                from_email:    senderEmail,
-                pdf_base64:    pdfAttachment?.Content ?? undefined,
-                pdf_text:      TextBody || undefined,
-            }),
-        })
-
-        const result = await invRes.json()
+        let result: Record<string, unknown> = {}
+        try {
+            const invRes = await fetch(`${baseUrl}/api/purchase-invoice/process`, {
+                method:  'POST',
+                headers: {
+                    'Content-Type':     'application/json',
+                    'x-webhook-secret': process.env.GOODS_RECEIPT_WEBHOOK_SECRET ?? '',
+                },
+                body: JSON.stringify({
+                    dealership_id: resolvedDealershipId,
+                    vendor:        vendor?.name ?? senderDomain,
+                    from_email:    senderEmail,
+                    pdf_base64:    pdfAttachment?.Content ?? undefined,
+                }),
+            })
+            result = await invRes.json().catch(() => ({}))
+            if (!invRes.ok) {
+                console.error('[inbound] purchase-invoice/process failed:', invRes.status, result)
+                return NextResponse.json({ error: 'Invoice processing failed', detail: result }, { status: 500 })
+            }
+        } catch (e) {
+            console.error('[inbound] invoice fetch error:', e)
+            return NextResponse.json({ error: 'Invoice processing error', detail: String(e) }, { status: 500 })
+        }
 
         // Push in-app notification
         fetch(`${baseUrl}/api/notifications/add`, {

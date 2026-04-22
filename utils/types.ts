@@ -58,7 +58,7 @@ export type POStatus = 'Draft' | 'Reviewed' | 'Sent' | 'Received';
 
 // ─── Invoice Types ────────────────────────────────────────────────────────────
 
-export type PurchaseInvoiceStatus = 'Pending' | 'Paid' | 'Overdue' | 'Disputed'
+export type PurchaseInvoiceStatus = 'Pending' | 'Awaiting Approval' | 'Paid' | 'Overdue' | 'Disputed'
 
 export interface PurchaseInvoice {
     id: string                    // e.g. PINV-2026-001
@@ -68,8 +68,29 @@ export interface PurchaseInvoice {
     invoiceDate: string           // ISO date string
     dueDate: string
     amount: number
+    creditedAmount?: number       // total credit applied against this invoice
     status: PurchaseInvoiceStatus
     notes?: string
+    pdfUrl?: string               // URL to the stored supplier invoice PDF
+    poFullyReceived?: boolean     // true if the linked PO has been fully received
+}
+
+// ─── Credit Note Types ─────────────────────────────────────────────────────────
+
+export type CreditNoteStatus = 'Unmatched' | 'Pending' | 'Partially Applied' | 'Applied'
+
+export interface CreditNote {
+    id: string                       // e.g. CN-STO-2026-001
+    supplierCreditNumber: string | null
+    originalInvoiceId: string | null // links to purchase_invoices.id
+    vendor: string
+    creditDate: string
+    amount: number                   // full credit value (positive number)
+    remainingAmount: number          // amount not yet applied
+    status: CreditNoteStatus
+    reason: string | null
+    pdfUrl: string | null
+    notes: string | null
 }
 
 export type SalesInvoiceStatus = 'Draft' | 'Sent' | 'Paid' | 'Overdue'
