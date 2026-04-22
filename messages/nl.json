@@ -1574,32 +1574,127 @@
   },
   "analytics": {
     "title": "Rapporten",
-    "subtitle": "Realtime gegevens van verkopen, leads en klanten",
+    "subtitle": "Realtime gegevens van verkoop, leads en klanten",
     "tabs": {
       "overview": "Overzicht",
       "sources": "Bronanalyse",
       "margins": "Margeanalyse",
       "leaderboard": "Ranglijst"
     },
-    "stats": {
-      "closed": "Gesloten",
+    "kpi": {
+      "totalRevenue": "Totale omzet",
+      "avgOrder": "Gem. orderwaarde",
+      "convRate": "Conversieratio",
       "grossProfit": "Brutowinst",
+      "avgMargin": "Gem. marge",
+      "totalCustomers": "Totaal klanten",
+      "pendingInvoices": "Openstaande facturen",
+      "totalGrossProfit": "Totale brutowinst",
+      "bestDeal": "Beste deal",
+      "totalClosed": "Totaal gesloten",
+      "totalLeads": "Totaal leads",
+      "uniqueSources": "Unieke bronnen",
+      "bestSource": "Beste bron",
+      "avgConv": "Gem. conv."
+    },
+    "sub": {
+      "paidInvoices": "{n} betaalde facturen",
+      "perInvoice": "per betaalde factuur",
+      "paidOf": "{paid} van {total} facturen",
+      "dealsWithCost": "{n} deals met kostprijs",
+      "perDeal": "per gesloten deal met kostprijs",
+      "vip": "{vip} VIP · {active} actief",
+      "notPaid": "nog niet betaald",
+      "noCost": "n.v.t.",
+      "allChannels": "alle kanalen",
+      "identifiedSources": "geïdentificeerde leadbronnen",
+      "avgAllSources": "alle bronnen gecombineerd",
+      "sourceRevenue": "{rev} omzet"
+    },
+    "series": {
+      "paid": "Betaald",
+      "pending": "Openstaand",
       "revenue": "Omzet",
-      "conversion": "Conv.",
+      "grossProfit": "Brutowinst",
+      "deals": "Deals",
       "leads": "Leads",
+      "avgDays": "Gem. dagen"
+    },
+    "sections": {
+      "revenueTitle": "Omzetontwikkeling — laatste 12 maanden",
+      "revenueSub": "Betaalde en openstaande facturen per maand (kr)",
+      "invoicesTitle": "Facturen per maand",
+      "invoicesSub": "Laatste 6 maanden (aantal)",
+      "paymentTitle": "Betaalmethoden",
+      "paymentSub": "Verdeling van betaalde facturen",
+      "customersTitle": "Klantsegmenten",
+      "customersSub": "{n} klanten in totaal",
+      "reportsTitle": "📧 Geplande rapporten",
+      "reportsSub": "Elke maandag om 08:00 wordt automatisch een wekelijkse samenvatting naar het admin e-mailadres gestuurd.",
+      "reportsHint": "Configureer SMTP onder Instellingen → Integraties.",
+      "sellerTitle": "Omzet per verkoper",
+      "sellerSub": "Totaal uit gesloten deals",
+      "leaderboardTitle": "Volledige ranglijst",
+      "grossTitle": "Brutowinst per maand — laatste 12 maanden",
+      "grossSub": "Omzet vs brutowinst (kr)",
+      "brandTitle": "Omzet per merk (top 10)",
+      "brandSub": "Gesloten deals, gesorteerd op omzet",
+      "marginTitle": "Margeverdeling",
+      "marginSub": "Aantal deals per margebereik",
+      "turnoverTitle": "Voorraadrotatie — gem. tijd in pipeline",
+      "turnoverSub": "Gem. dagen van leadaanmaak tot sluiting, per merk",
+      "sourceRoiTitle": "Bronanalyse — ROI per leadbron",
+      "sourceRoiSub": "Leads, conversie en omzet uitgesplitst per bron",
+      "sourceVolTitle": "Leadvolume per bron",
+      "sourceVolSub": "Totaal aantal leads",
+      "sourceRevTitle": "Omzet per bron",
+      "sourceRevSub": "Totaal uit gesloten deals",
+      "sourceConvTitle": "Conversieratio per bron",
+      "sourceConvSub": "% leads die gesloten deals zijn geworden"
+    },
+    "table": {
+      "rank": "Rang",
       "salesperson": "Verkoper",
+      "leads": "Leads",
+      "closed": "Gesloten",
+      "conv": "Conv.",
+      "revenue": "Omzet",
+      "revenuePct": "Omzet %",
+      "grossProfit": "Brutowinst",
       "avgDeal": "Gem. deal",
-      "rank": "Rang"
+      "source": "Bron",
+      "totalRevenue": "Totale omzet"
+    },
+    "leaderboard": {
+      "rankTotal": "#{n} totaal",
+      "revenueLabel": "Omzet",
+      "closedLabel": "Gesloten",
+      "ofLeads": "{closed} van {total} leads",
+      "convLabel": "Conversie",
+      "avgDealLabel": "Gem. deal",
+      "grossLabel": "Brutowinst",
+      "target": "doel: {val}",
+      "vsTarget": "Doel vs resultaat ({year})"
     },
     "empty": {
-      "invoices": "Nog geen betaalde facturen",
-      "leads": "Nog geen leads",
-      "closed": "Nog geen gesloten deals",
-      "brands": "Nog geen merkgegevens",
-      "salespeople": "Nog geen verkopers"
+      "invoices": "Nog geen betaalde facturen.",
+      "leads": "Nog geen leads.",
+      "closed": "Nog geen gesloten deals.",
+      "brands": "Geen gesloten deals met merkgegevens.",
+      "salespeople": "Nog geen verkopers.",
+      "salespeopleSub": "Verkopersnamen worden automatisch geregistreerd op nieuwe leads."
     },
+    "reports": {
+      "send": "Testrapport verzenden",
+      "sending": "Verzenden…",
+      "success": "Wekelijkse samenvatting verzonden naar {email}",
+      "error": "Rapport kon niet worden verzonden"
+    },
+    "unauthorized": "U heeft geen toegang tot Analytics.",
     "marginNote": "Groen ≥ 10 % · Geel 5–10 % · Rood < 5 %",
-    "timeNote": "Groen ≤ 14 d · Geel ≤ 30 d · Rood > 30 d"
+    "timeNote": "Groen ≤ 14 d · Geel ≤ 30 d · Rood > 30 d",
+    "daysAvg": "{n} d gem. ({count} deals)",
+    "avgPipeline": "Gem. pipeline"
   },
   "purchase": {
     "title": "Inkooporders",
@@ -1692,5 +1787,779 @@
     "previewLegalNote": "Dit document is ondertekend met BankID en vormt een geldige elektronische handtekening conform Signaturlagen (2000:832). OCSP-verificatie en tijdstempel zijn opgeslagen.",
     "previewArchive": "7 jaar gearchiveerd · Bokföringslagen",
     "previewOpen": "Openen →"
+  },
+  "tasks": {
+    "title": "Taken & Herinneringen",
+    "subtitle": "Houd bij wat er gedaan moet worden",
+    "newTask": "Nieuwe taak",
+    "overdueCount": "{count} achterstallig",
+    "todayCount": "{count} vandaag",
+    "openTotal": "{count} open totaal",
+    "filters": {
+      "open": "Open",
+      "done": "Gedaan",
+      "all": "Alle",
+      "allTypes": "Alle types"
+    },
+    "types": {
+      "call": "Bellen",
+      "email": "E-mail",
+      "meeting": "Vergadering",
+      "follow_up": "Opvolging",
+      "other": "Overig"
+    },
+    "priorities": {
+      "high": "Hoog",
+      "medium": "Gemiddeld",
+      "low": "Laag"
+    },
+    "empty": {
+      "title": "Geen taken te tonen",
+      "openHint": "Geen open taken — alles klaar!",
+      "defaultHint": "Maak een taak aan om te beginnen."
+    },
+    "badge": {
+      "overdue": "ACHTERSTALLIG",
+      "today": "VANDAAG"
+    },
+    "relative": {
+      "today": "Vandaag",
+      "tomorrow": "Morgen",
+      "yesterday": "Gisteren",
+      "daysAgo": "{n}d geleden"
+    },
+    "modal": {
+      "title": "Nieuwe taak",
+      "titleLabel": "Titel *",
+      "titlePlaceholder": "Wat moet er gedaan worden?",
+      "type": "Type",
+      "priority": "Prioriteit",
+      "dueDate": "Vervaldatum",
+      "assignedTo": "Toegewezen aan",
+      "description": "Beschrijving (optioneel)",
+      "descPlaceholder": "Extra details...",
+      "cancel": "Annuleren",
+      "save": "Taak opslaan",
+      "saving": "Opslaan..."
+    },
+    "toast": {
+      "created": "Taak aangemaakt",
+      "done": "Taak gemarkeerd als gedaan",
+      "deleted": "Taak verwijderd",
+      "error": "Kon taak niet aanmaken"
+    },
+    "deleteTitle": "Verwijderen"
+  },
+  "calendar": {
+    "newBooking": "Nieuwe boeking",
+    "today": "Vandaag",
+    "month": "Maand",
+    "week": "Week",
+    "types": {
+      "test_drive": "Proefrit",
+      "meeting": "Vergadering",
+      "delivery": "Levering",
+      "viewing": "Bezichtiging"
+    },
+    "statuses": {
+      "scheduled": "Gepland",
+      "confirmed": "Bevestigd",
+      "cancelled": "Geannuleerd",
+      "completed": "Voltooid"
+    },
+    "bookingsCount": "boek.",
+    "more": "+{n} meer",
+    "noVehicles": "Geen voertuigen gevonden",
+    "modal": {
+      "title": "Nieuwe boeking",
+      "bookingType": "Boekingstype",
+      "optionalTitle": "Titel (optioneel)",
+      "startTime": "Begintijd *",
+      "endTime": "Eindtijd *",
+      "customer": "Klant",
+      "staff": "Verkoper",
+      "vehicle": "Voertuig",
+      "vehicleSearch": "Zoek voertuigen op voorraad...",
+      "notes": "Notities",
+      "cancel": "Annuleren",
+      "book": "Boeken"
+    },
+    "detail": {
+      "confirm": "✓ Boeking bevestigen",
+      "markDone": "✓ Markeer als voltooid",
+      "cancel": "Annuleren",
+      "delete": "Boeking verwijderen"
+    },
+    "toast": {
+      "created": "Boeking aangemaakt",
+      "updated": "Status bijgewerkt",
+      "deleted": "Boeking verwijderd",
+      "timesRequired": "Voer begin- en eindtijd in",
+      "conflict": "Conflict: {error}"
+    }
+  },
+  "commissions": {
+    "title": "Provisieregister",
+    "subtitle": "Verkoopprovisies per deal",
+    "addButton": "+ Provisie",
+    "kpi": {
+      "total": "Totale provisie",
+      "deals": "Dealwaarde",
+      "pending": "Goedgekeurd, niet betaald",
+      "count": "Aantal deals"
+    },
+    "perSeller": "Per verkoper",
+    "dealUnit": "deal",
+    "dealUnitPlural": "deals",
+    "statuses": {
+      "pending": "In behandeling",
+      "approved": "Goedgekeurd",
+      "paid": "Betaald",
+      "voided": "Ongeldig",
+      "all": "Alle"
+    },
+    "months": [
+      "Jan",
+      "Feb",
+      "Mrt",
+      "Apr",
+      "Mei",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Okt",
+      "Nov",
+      "Dec"
+    ],
+    "empty": {
+      "title": "Geen provisies in deze periode",
+      "desc": "Provisies worden automatisch geregistreerd bij gesloten deals."
+    },
+    "table": {
+      "seller": "Verkoper",
+      "customerVehicle": "Klant / Voertuig",
+      "dealValue": "Dealwaarde",
+      "rate": "Tarief",
+      "commission": "Provisie",
+      "status": "Status",
+      "date": "Datum"
+    },
+    "actions": {
+      "approve": "Goedkeuren",
+      "markPaid": "Markeer betaald"
+    },
+    "modal": {
+      "title": "Provisie registreren",
+      "seller": "Verkoper *",
+      "customer": "Klant",
+      "leadId": "Lead ID",
+      "vehicle": "Voertuig",
+      "dealValue": "Dealwaarde (kr) *",
+      "commissionRate": "Provisie (%)",
+      "estimated": "Geschatte provisie:",
+      "notes": "Notities",
+      "cancel": "Annuleren",
+      "save": "Opslaan",
+      "saving": "Opslaan..."
+    },
+    "toast": {
+      "created": "Provisie geregistreerd",
+      "updated": "Status bijgewerkt",
+      "error": "Mislukt"
+    }
+  },
+  "cancellations": {
+    "title": "Annuleringen & Terugbetalingen",
+    "subtitle": "Alle geannuleerde deals en terugbetalingen",
+    "kpi": {
+      "total": "Totaal geannuleerd",
+      "refunds": "Totaal terugbetaald",
+      "pending": "Openstaande terugbetalingen",
+      "topReason": "Meest voorkomende reden"
+    },
+    "filters": {
+      "all": "Alle",
+      "open": "Open",
+      "closed": "Gesloten"
+    },
+    "reasons": {
+      "changed_mind": "Van mening veranderd",
+      "financial": "Financieel",
+      "found_elsewhere": "Elders gevonden",
+      "financing_denied": "Financiering geweigerd",
+      "other": "Andere reden"
+    },
+    "refundStatus": {
+      "pending": "In behandeling",
+      "sent": "Verstuurd",
+      "confirmed": "Bevestigd"
+    },
+    "empty": {
+      "title": "Geen annuleringen te tonen",
+      "desc": "Geannuleerde deals worden hier automatisch geregistreerd."
+    },
+    "table": {
+      "date": "Datum",
+      "customer": "Klant",
+      "vehicle": "Voertuig",
+      "reason": "Reden",
+      "refund": "Terugbetaling",
+      "refundStatus": "Terugbetalingsstatus",
+      "by": "Door"
+    }
+  },
+  "tradeIns": {
+    "title": "Inruilbeheer",
+    "subtitle": "Inruilvoertuigen taxeren en beheren",
+    "kpi": {
+      "total": "Totaal inruilen",
+      "value": "Totale kredietwaarde",
+      "pending": "In afwachting van ontvangst",
+      "received": "Ontvangen"
+    },
+    "statuses": {
+      "pending": "In behandeling",
+      "completed": "Ontvangen",
+      "cancelled": "Geannuleerd",
+      "all": "Alle"
+    },
+    "conditions": {
+      "excellent": "Uitstekend",
+      "good": "Goed",
+      "fair": "Redelijk",
+      "poor": "Slecht"
+    },
+    "empty": {
+      "title": "Geen inruilvoertuigen",
+      "desc": "Gebruik de calculator hierboven om een inruil te taxeren."
+    },
+    "table": {
+      "vehicle": "Voertuig",
+      "regVin": "Kenteken / VIN",
+      "mileage": "Kilometerstand",
+      "value": "Inruilwaarde",
+      "status": "Status",
+      "lead": "Lead",
+      "date": "Datum"
+    },
+    "valuation": {
+      "title": "Inruiltaxatie",
+      "brand": "Merk *",
+      "model": "Model *",
+      "year": "Jaar",
+      "mileageKm": "Kilometerstand (km)",
+      "regNr": "Kenteken",
+      "color": "Kleur",
+      "marketValue": "Marktwaarde (kr)",
+      "marketHint": "Controleer Marktplaats voor referentieprijs",
+      "condition": "Staat",
+      "estimatedValue": "Geschatte inruilwaarde",
+      "marketLabel": "Marktwaarde:",
+      "conditionAdj": "Staatsfactor:",
+      "ageDiscount": "Leeftijdskorting:",
+      "mileageDiscount": "Kilometerkorting:",
+      "leadId": "Lead ID *",
+      "vin": "VIN",
+      "notes": "Notities",
+      "notesPlaceholder": "Kras op de tank...",
+      "saveButton": "Inruil opslaan bij lead",
+      "saving": "Opslaan...",
+      "leadIdPlaceholder": "Lead-nummer"
+    },
+    "toast": {
+      "saved": "Inruilvoertuig opgeslagen",
+      "error": "Mislukt",
+      "required": "Lead ID, merk en model zijn vereist"
+    }
+  },
+  "warranties": {
+    "title": "Garantiebeheer",
+    "subtitle": "Actieve garanties en claims",
+    "addButton": "+ Garantie registreren",
+    "kpi": {
+      "active": "Actieve garanties",
+      "coverage": "Totale dekking",
+      "expiring": "Verloopt binnen 30 dagen",
+      "claims": "Open claims"
+    },
+    "types": {
+      "standard": "Standaard",
+      "extended": "Uitgebreid",
+      "manufacturer": "Fabrikant",
+      "third_party": "Derde partij"
+    },
+    "statuses": {
+      "active": "Actief",
+      "expired": "Verlopen",
+      "claimed": "Claim",
+      "cancelled": "Geannuleerd",
+      "voided": "Ongeldig",
+      "all": "Alle"
+    },
+    "expiresIn": "Verloopt over {days} dagen",
+    "expired": "Verlopen",
+    "empty": {
+      "title": "Geen garanties",
+      "desc": "Geregistreerde garanties worden hier weergegeven."
+    },
+    "table": {
+      "vehicle": "Voertuig",
+      "type": "Type",
+      "provider": "Leverancier",
+      "period": "Periode",
+      "coverage": "Dekking",
+      "status": "Status"
+    },
+    "actions": {
+      "claim": "Claim"
+    },
+    "modal": {
+      "title": "Garantie registreren",
+      "vehicle": "Voertuig *",
+      "vin": "VIN",
+      "regNr": "Kenteken",
+      "type": "Type",
+      "provider": "Leverancier",
+      "policyNumber": "Polisnummer",
+      "startDate": "Startdatum *",
+      "endDate": "Einddatum *",
+      "maxCoverage": "Max dekkingsbedrag (kr)",
+      "leadId": "Lead ID",
+      "notes": "Notities",
+      "cancel": "Annuleren",
+      "save": "Registreren",
+      "saving": "Opslaan..."
+    },
+    "claimModal": {
+      "title": "Claim – {vehicle}",
+      "policyNr": "Polisnr.: {nr}",
+      "amount": "Claimbedrag (kr)",
+      "details": "Details *",
+      "detailsPlaceholder": "Beschrijf het probleem...",
+      "cancel": "Annuleren",
+      "save": "Claim registreren",
+      "saving": "Opslaan..."
+    },
+    "toast": {
+      "created": "Garantie geregistreerd",
+      "claim": "Claim geregistreerd",
+      "error": "Mislukt"
+    }
+  },
+  "reservations": {
+    "title": "Reserveringen & Aanbetalingen",
+    "subtitle": "Voertuigreserveringen en aanbetalingen bijhouden",
+    "addButton": "+ Nieuwe reservering",
+    "kpi": {
+      "active": "Actieve reserveringen",
+      "deposits": "Betaalde aanbetalingen",
+      "expiring": "Verloopt binnenkort (< 48u)",
+      "total": "Totaal"
+    },
+    "statuses": {
+      "active": "Actief",
+      "converted": "Geconverteerd",
+      "expired": "Verlopen",
+      "cancelled": "Geannuleerd",
+      "refunded": "Terugbetaald",
+      "all": "Alle"
+    },
+    "depositPaid": "Betaald",
+    "depositUnpaid": "Niet betaald",
+    "expiringSoon": "Verloopt binnenkort!",
+    "expired": "Verlopen",
+    "empty": {
+      "title": "Geen reserveringen",
+      "desc": "Gereserveerde voertuigen en aanbetalingen worden hier weergegeven."
+    },
+    "table": {
+      "customer": "Klant",
+      "vehicle": "Voertuig",
+      "deposit": "Aanbetaling",
+      "validUntil": "Geldig tot",
+      "status": "Status",
+      "reservedBy": "Gereserveerd door"
+    },
+    "actions": {
+      "convert": "Converteren",
+      "cancel": "Annuleren"
+    },
+    "modal": {
+      "title": "Nieuwe reservering",
+      "leadId": "Lead ID *",
+      "reservedBy": "Gereserveerd door",
+      "reservedByPlaceholder": "Verkoper",
+      "vehicle": "Voertuig *",
+      "vinReg": "VIN / Kenteken",
+      "vinRegPlaceholder": "VIN of kenteken",
+      "deposit": "Aanbetaling (kr)",
+      "paymentMethod": "Betaalmethode",
+      "paymentPlaceholder": "iDEAL / Kaart",
+      "depositPaid": "Aanbetaling betaald",
+      "validUntil": "Geldig tot",
+      "customerInfo": "Klantinformatie",
+      "customerName": "Naam",
+      "customerPhone": "Telefoon",
+      "customerEmail": "E-mail",
+      "notes": "Notities",
+      "cancel": "Annuleren",
+      "save": "Reservering opslaan",
+      "saving": "Opslaan..."
+    },
+    "toast": {
+      "created": "Reservering aangemaakt",
+      "updated": "Status bijgewerkt",
+      "error": "Mislukt"
+    }
+  },
+  "offer": {
+    "sellerView": "Verkoopweergave",
+    "title": "BikeMenuNow",
+    "module": "Module",
+    "offers": "Offertes",
+    "testRides": "Proefritten",
+    "stats": {
+      "new": "Nieuw",
+      "reviewing": "In behandeling",
+      "sent": "Verzonden",
+      "booked": "Geboekt",
+      "completed": "Voltooid"
+    },
+    "statuses": {
+      "new": "Nieuw",
+      "reviewing": "In behandeling",
+      "sent": "Verzonden",
+      "accepted": "Geaccepteerd",
+      "declined": "Afgewezen"
+    },
+    "table": {
+      "customer": "Klant",
+      "motorcycle": "Motor",
+      "date": "Datum",
+      "payment": "Betaling",
+      "tradeIn": "Inruil",
+      "accessories": "Accessoires",
+      "status": "Status"
+    },
+    "payment": {
+      "cash": "Contant",
+      "financing": "Financiering"
+    },
+    "yes": "Ja",
+    "no": "Nee",
+    "open": "Openen →",
+    "biketesting": {
+      "title": "Proefritten",
+      "back": "Aanbiedingen",
+      "stats": {
+        "scheduled": "Gepland",
+        "completed": "Voltooid"
+      },
+      "testStatuses": {
+        "scheduled": "Geboekt",
+        "completed": "Voltooid"
+      },
+      "table": {
+        "customer": "Klant",
+        "motorcycle": "Motor",
+        "requestedDate": "Gewenste datum",
+        "submitted": "Ingediend op",
+        "seller": "Verkoper",
+        "status": "Status"
+      },
+      "waiting": "Wachten",
+      "sign": "Onderteken →",
+      "view": "Bekijk →",
+      "mobile": {
+        "customerSigned": "Klant ✓",
+        "sellerSigned": "Verkoper ✓",
+        "sellerWaiting": "Verkoper wacht"
+      },
+      "detail": {
+        "requestedDate": "Gewenste datum:",
+        "driver": "Bestuurder",
+        "name": "Naam",
+        "personalNumber": "Persoonsnummer",
+        "phone": "Telefoon",
+        "email": "E-mail",
+        "address": "Adres",
+        "zipCode": "Postcode",
+        "termsTitle": "Geldende voorwaarden",
+        "termsText": "Proefrit max. 15 minuten in de buurt van het verkooppunt. Eigen risico {excess} kr bij schade veroorzaakt door de bestuurder. De klant heeft deze voorwaarden geaccepteerd en ondertekend met BankID.",
+        "signatures": "Handtekeningen"
+      }
+    },
+    "offert": {
+      "back": "Aanbiedingen",
+      "customerSection": "Klant",
+      "fields": {
+        "name": "Naam",
+        "email": "E-mail",
+        "phone": "Telefoon",
+        "payment": "Betaling"
+      },
+      "preferences": "Klantvoorkeuren",
+      "tradeInLabel": "Inruil",
+      "noTradeIn": "Geen inruil",
+      "accessoriesLabel": "Accessoires",
+      "noAccessories": "Geen accessoires",
+      "messageLabel": "Bericht",
+      "sellerSection": "Aanvullingen van de verkoper"
+    },
+    "offerBuilder": {
+      "sentTitle": "Offerte verzonden",
+      "sentDesc": "De offerte is verzonden naar {name} op {email}.",
+      "backToDashboard": "← Terug naar dashboard",
+      "tradeInSection": "Inruilwaardering",
+      "tradeIn": {
+        "make": "Merk",
+        "model": "Model",
+        "year": "Jaar",
+        "mileage": "Kilometerstand",
+        "estimatedValue": "Geschatte inruilwaarde (kr)",
+        "hint": "Wordt afgetrokken van de totaalprijs"
+      },
+      "accessoriesSection": "Accessoires — prijsstelling",
+      "accessoriesPlaceholder": "Prijs (kr)",
+      "customerNote": "Opmerking klant:",
+      "offerSection": "Offertegegevens",
+      "regFee": "Registratiekosten (kr)",
+      "discount": "Korting (kr)",
+      "extWarranty": "Verlengde garantie",
+      "include": "Opnemen",
+      "notIncluded": "Niet inbegrepen",
+      "deliveryDate": "Leverdatum",
+      "validity": "Geldigheid offerte (dagen)",
+      "sellerComment": "Opmerking verkoper",
+      "commentPlaceholder": "Aanvullende voorwaarden of informatie voor de klant...",
+      "priceSection": "Prijsoverzicht",
+      "price": {
+        "listPrice": "Catalogusprijs",
+        "accessories": "Accessoires",
+        "regFee": "Registratiekosten",
+        "extWarranty": "Verlengde garantie",
+        "discount": "Korting",
+        "tradeInValue": "Inruilwaarde",
+        "total": "Totaal"
+      },
+      "financing": "Financiering via Santander — kredietcontrole vindt afzonderlijk plaats.",
+      "sendButton": "Offerte sturen naar {name}",
+      "sendNote": "De offerte wordt verzonden naar {email} en is {days} dagen geldig."
+    },
+    "sellerSignOff": {
+      "customerSignature": "Handtekening klant",
+      "signed": "✓ Ondertekend",
+      "viaBankId": "via BankID",
+      "sellerSignature": "Handtekening verkoper",
+      "sellerConfirm": "Onderteken om te bevestigen dat de proefrit is voltooid volgens de voorwaarden.",
+      "waiting": "Wachten op BankID...",
+      "openApp": "Open de app en keur de ondertekening goed.",
+      "sellerLabel": "AVA MC — Verkoper",
+      "signButton": "Afsluiting ondertekenen",
+      "completedTitle": "Voltooid document",
+      "vehicle": "Voertuig",
+      "driver": "Bestuurder",
+      "personalNumber": "Persoonsnummer",
+      "date": "Datum",
+      "maxTime": "Max. tijd",
+      "maxTimeValue": "15 minuten",
+      "excess": "Eigen risico",
+      "excessValue": "15 000 kr bij schade",
+      "customer": "Klant",
+      "seller": "Verkoper"
+    }
+  },
+  "settingsProfile": {
+    "breadcrumb": "Instellingen",
+    "title": "Dealerprofiel",
+    "subtitle": "Bedrijfsnaam, adres, organisatienummer, logo en contactgegevens",
+    "saving": "Opslaan…",
+    "save": "💾 Wijzigingen opslaan",
+    "backToSettings": "← Terug naar instellingen",
+    "sections": {
+      "company": "Company information",
+      "address": "Address",
+      "contact": "Contact details",
+      "banking": "Banking details",
+      "sms": "SMS (Twilio)",
+      "notifEmails": "Notification Emails",
+      "cover": "Cover image — Dashboard background",
+      "logo": "Logo"
+    },
+    "fields": {
+      "companyName": "Company name",
+      "orgNr": "Organisation number",
+      "orgNrHint": "Format: 556123-4567",
+      "vat": "VAT number",
+      "vatHint": "Derived automatically from org. no.",
+      "fSkatt": "F-tax certificate registered",
+      "street": "Street address",
+      "postalCode": "Postal code",
+      "city": "City",
+      "county": "County",
+      "phone": "Phone",
+      "email": "Email",
+      "emailDomain": "Company email domain",
+      "emailDomainHint": "Used when inviting staff",
+      "website": "Website",
+      "bankName": "Bank",
+      "bankNameHint": "Bank name",
+      "bankgiro": "Bankgiro number",
+      "bankgiroHint": "Format: 1234-5678",
+      "swish": "Swish (business number)",
+      "swishHint": "10 digits",
+      "iban": "IBAN",
+      "ibanHint": "International bank account number",
+      "bic": "BIC / SWIFT",
+      "bicHint": "Bank identifier code",
+      "twilioSid": "Account SID",
+      "twilioSidHint": "Starts with AC…",
+      "twilioToken": "Auth Token",
+      "twilioTokenHint": "Secret — never share with customers",
+      "twilioFrom": "Sender number",
+      "twilioFromHint": "E.164 format, e.g. +46701234567",
+      "deliveryEmail": "Delivery Note Email",
+      "deliveryEmailHint": "Receives email when a delivery note arrives.",
+      "invoiceEmail": "Invoice Email",
+      "invoiceEmailHint": "Receives purchase invoices from suppliers.",
+      "coverTitle": "Upload cover image",
+      "coverDesc": "PNG, JPG or WebP · Max {maxKb} KB",
+      "logoTitle": "Upload logo",
+      "logoDesc": "PNG, JPG, SVG or WebP · Max {maxKb} KB"
+    },
+    "actions": {
+      "chooseImage": "📂 Choose image",
+      "chooseFile": "📂 Choose file",
+      "remove": "🗑 Remove",
+      "resizing": "Resizing…"
+    },
+    "messages": {
+      "saved": "Profile saved",
+      "saveError": "Could not save profile.",
+      "imageOnly": "Only image files allowed.",
+      "svgTooLarge": "SVG file is too large. Max {maxKb} KB.",
+      "svgNoCover": "SVG is not supported as cover image.",
+      "processError": "Could not process image.",
+      "resizing": "⏳ Resizing automatically…",
+      "compressed": "✓ Image compressed automatically",
+      "compressedTo": "✓ Image compressed to {maxKb} KB",
+      "coverUploaded": "✓ Cover image uploaded",
+      "logoUploaded": "✓ Logo uploaded"
+    },
+    "preview": "Preview — shown on agreements and invoices",
+    "noCoverImage": "No cover image",
+    "coverRatio": "16:9 recommended",
+    "noLogo": "No logo",
+    "coverDesc2": "Shown as background on dashboard."
+  },
+  "settingsTargets": {
+    "breadcrumb": "Instellingen",
+    "nav": "Verkoopdoelstellingen",
+    "title": "Prestatiedoelen",
+    "subtitle": "Set and track targets per seller — leads and revenue",
+    "exportCSV": "CSV exporteren",
+    "newTarget": "Nieuw doel",
+    "months": [
+      "Heel jaar",
+      "Januari",
+      "Februari",
+      "Maart",
+      "April",
+      "Mei",
+      "Juni",
+      "Juli",
+      "Augustus",
+      "September",
+      "Oktober",
+      "November",
+      "December"
+    ],
+    "table": {
+      "period": "Period",
+      "leadsTarget": "Leads target",
+      "leadsActual": "Leads actual",
+      "leadsPct": "Leads %",
+      "revenueTarget": "Revenue target",
+      "revenueActual": "Revenue actual",
+      "revenuePct": "Revenue %"
+    },
+    "staff": {
+      "totalActual": "Total actual:",
+      "leads": "leads",
+      "revenue": "Revenue:"
+    },
+    "empty": {
+      "title": "No targets set for {year}",
+      "subtitle": "Set targets for sellers to start tracking performance",
+      "button": "Set target"
+    },
+    "form": {
+      "title": "Set performance target",
+      "name": "Name *",
+      "email": "Email *",
+      "year": "Year",
+      "period": "Period",
+      "leadsTarget": "Leads target",
+      "revenueTarget": "Revenue target (SEK)",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save": "Save target"
+    },
+    "actions": {
+      "edit": "Edit",
+      "fullYear": "full year"
+    },
+    "toasts": {
+      "nameEmailRequired": "Name and email are required",
+      "saved": "Target saved",
+      "deleted": "Target deleted",
+      "csvExported": "CSV exported"
+    },
+    "deleteConfirm": "Delete target for {name} — {period}?"
+  },
+  "settingsBranches": {
+    "breadcrumb": "Instellingen",
+    "nav": "Vestigingen",
+    "title": "Vestigingen en locaties",
+    "subtitle": "Manage dealership locations and assign staff",
+    "newBranch": "Nieuwe vestiging",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "empty": {
+      "title": "No branches yet",
+      "subtitle": "Create your first branch to start assigning staff and leads",
+      "button": "Create branch"
+    },
+    "actions": {
+      "edit": "Edit",
+      "deactivate": "Deactivate",
+      "activate": "Activate"
+    },
+    "form": {
+      "titleNew": "New branch",
+      "titleEdit": "Edit branch",
+      "name": "Branch name *",
+      "namePlaceholder": "e.g. Stockholm North",
+      "address": "Address",
+      "addressPlaceholder": "Street 1",
+      "city": "City",
+      "phone": "Phone",
+      "manager": "Manager",
+      "active": "Branch is active",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save": "Save changes",
+      "create": "Create branch"
+    },
+    "toasts": {
+      "nameRequired": "Name is required",
+      "updated": "Branch updated",
+      "created": "Branch created",
+      "deleted": "Branch deleted"
+    },
+    "deleteConfirm": "Delete branch {name}? Leads and staff connected to it are not affected."
   }
 }

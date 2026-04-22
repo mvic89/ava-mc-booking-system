@@ -1579,27 +1579,122 @@
       "overview": "Oversigt",
       "sources": "Kildeanalyse",
       "margins": "Marginanalyse",
-      "leaderboard": "Toppliste"
+      "leaderboard": "Topliste"
     },
-    "stats": {
-      "closed": "Lukket",
+    "kpi": {
+      "totalRevenue": "Samlet omsætning",
+      "avgOrder": "Gns. ordreværdi",
+      "convRate": "Konverteringsrate",
       "grossProfit": "Bruttofortjeneste",
+      "avgMargin": "Gns. margin",
+      "totalCustomers": "Kunder i alt",
+      "pendingInvoices": "Afventende fakturaer",
+      "totalGrossProfit": "Samlet bruttofortjeneste",
+      "bestDeal": "Bedste aftale",
+      "totalClosed": "Afsluttet i alt",
+      "totalLeads": "Leads i alt",
+      "uniqueSources": "Unikke kilder",
+      "bestSource": "Bedste kilde",
+      "avgConv": "Gns. konv."
+    },
+    "sub": {
+      "paidInvoices": "{n} betalte fakturaer",
+      "perInvoice": "pr. betalt faktura",
+      "paidOf": "{paid} af {total} fakturaer",
+      "dealsWithCost": "{n} aftaler med kostpris",
+      "perDeal": "pr. afsluttet aftale med kostpris",
+      "vip": "{vip} VIP · {active} aktive",
+      "notPaid": "ikke betalt endnu",
+      "noCost": "n/a",
+      "allChannels": "alle kanaler",
+      "identifiedSources": "identificerede leadkilder",
+      "avgAllSources": "alle kilder kombineret",
+      "sourceRevenue": "{rev} omsætning"
+    },
+    "series": {
+      "paid": "Betalte",
+      "pending": "Afventende",
       "revenue": "Omsætning",
-      "conversion": "Konv.",
+      "grossProfit": "Bruttofortjeneste",
+      "deals": "Aftaler",
       "leads": "Leads",
+      "avgDays": "Gns. dage"
+    },
+    "sections": {
+      "revenueTitle": "Omsætningsudvikling — seneste 12 måneder",
+      "revenueSub": "Betalte og afventende fakturaer pr. måned (kr)",
+      "invoicesTitle": "Fakturaer pr. måned",
+      "invoicesSub": "Seneste 6 måneder (antal)",
+      "paymentTitle": "Betalingsmetoder",
+      "paymentSub": "Fordeling af betalte fakturaer",
+      "customersTitle": "Kundesegmenter",
+      "customersSub": "{n} kunder i alt",
+      "reportsTitle": "📧 Planlagte rapporter",
+      "reportsSub": "Hver mandag kl 08:00 sendes et ugentligt resumé automatisk til admin-e-mail.",
+      "reportsHint": "Konfigurer SMTP under Indstillinger → Integrationer.",
+      "sellerTitle": "Omsætning pr. sælger",
+      "sellerSub": "Samlet fra afsluttede aftaler",
+      "leaderboardTitle": "Fuld topliste",
+      "grossTitle": "Bruttofortjeneste pr. måned — seneste 12 måneder",
+      "grossSub": "Omsætning vs bruttofortjeneste (kr)",
+      "brandTitle": "Omsætning pr. mærke (top 10)",
+      "brandSub": "Afsluttede aftaler, sorteret efter omsætning",
+      "marginTitle": "Marginfordeling",
+      "marginSub": "Antal aftaler pr. margininterval",
+      "turnoverTitle": "Lageromsætning — gns. tid i pipeline",
+      "turnoverSub": "Gns. dage fra lead til afslutning, pr. mærke",
+      "sourceRoiTitle": "Kildeanalyse — ROI pr. leadkilde",
+      "sourceRoiSub": "Leads, konvertering og omsætning fordelt pr. kilde",
+      "sourceVolTitle": "Leadvolumen pr. kilde",
+      "sourceVolSub": "Samlet antal leads",
+      "sourceRevTitle": "Omsætning pr. kilde",
+      "sourceRevSub": "Samlet fra afsluttede aftaler",
+      "sourceConvTitle": "Konverteringsrate pr. kilde",
+      "sourceConvSub": "Pct. leads der er blevet afsluttede aftaler"
+    },
+    "table": {
+      "rank": "Rang",
       "salesperson": "Sælger",
-      "avgDeal": "Snitthandel",
-      "rank": "Rang"
+      "leads": "Leads",
+      "closed": "Afsluttet",
+      "conv": "Konv.",
+      "revenue": "Omsætning",
+      "revenuePct": "Omsætning %",
+      "grossProfit": "Bruttofortjeneste",
+      "avgDeal": "Gns. aftale",
+      "source": "Kilde",
+      "totalRevenue": "Samlet omsætning"
+    },
+    "leaderboard": {
+      "rankTotal": "#{n} i alt",
+      "revenueLabel": "Omsætning",
+      "closedLabel": "Afsluttet",
+      "ofLeads": "{closed} af {total} leads",
+      "convLabel": "Konvertering",
+      "avgDealLabel": "Gns. aftale",
+      "grossLabel": "Bruttofortjeneste",
+      "target": "mål: {val}",
+      "vsTarget": "Mål vs. resultat ({year})"
     },
     "empty": {
-      "invoices": "Ingen betalte fakturaer endnu",
-      "leads": "Ingen leads endnu",
-      "closed": "Ingen afsluttede handler endnu",
-      "brands": "Ingen mærkedata endnu",
-      "salespeople": "Ingen sælgere endnu"
+      "invoices": "Ingen betalte fakturaer endnu.",
+      "leads": "Ingen leads endnu.",
+      "closed": "Ingen afsluttede aftaler endnu.",
+      "brands": "Ingen afsluttede aftaler med mærkedata.",
+      "salespeople": "Ingen sælgere endnu.",
+      "salespeopleSub": "Sælgernavne registreres automatisk på nye leads."
     },
+    "reports": {
+      "send": "Send testrapport",
+      "sending": "Sender…",
+      "success": "Ugentligt resumé sendt til {email}",
+      "error": "Kunne ikke sende rapport"
+    },
+    "unauthorized": "Du har ikke adgang til Analytics.",
     "marginNote": "Grønt ≥ 10 % · Gult 5–10 % · Rødt < 5 %",
-    "timeNote": "Grønt ≤ 14 d · Gult ≤ 30 d · Rødt > 30 d"
+    "timeNote": "Grønt ≤ 14 d · Gult ≤ 30 d · Rødt > 30 d",
+    "daysAvg": "{n} d gns. ({count} aftaler)",
+    "avgPipeline": "Gns. pipeline"
   },
   "purchase": {
     "title": "Indkøbsordrer",
@@ -1692,5 +1787,779 @@
     "previewLegalNote": "Dette dokument er underskrevet med BankID og udgør en gyldig elektronisk underskrift i henhold til Signaturlagen (2000:832). OCSP-verifikation og tidsstempel er gemt.",
     "previewArchive": "Arkiveret i 7 år · Bokföringslagen",
     "previewOpen": "Åbn →"
+  },
+  "tasks": {
+    "title": "Opgaver & Påmindelser",
+    "subtitle": "Hold styr på hvad der skal gøres",
+    "newTask": "Ny opgave",
+    "overdueCount": "{count} forsinkede",
+    "todayCount": "{count} i dag",
+    "openTotal": "{count} åbne i alt",
+    "filters": {
+      "open": "Åbne",
+      "done": "Færdige",
+      "all": "Alle",
+      "allTypes": "Alle typer"
+    },
+    "types": {
+      "call": "Ring",
+      "email": "E-mail",
+      "meeting": "Møde",
+      "follow_up": "Opfølgning",
+      "other": "Andet"
+    },
+    "priorities": {
+      "high": "Høj",
+      "medium": "Mellem",
+      "low": "Lav"
+    },
+    "empty": {
+      "title": "Ingen opgaver at vise",
+      "openHint": "Ingen åbne opgaver — alt klaret!",
+      "defaultHint": "Opret en opgave for at komme i gang."
+    },
+    "badge": {
+      "overdue": "FORSINKET",
+      "today": "I DAG"
+    },
+    "relative": {
+      "today": "I dag",
+      "tomorrow": "I morgen",
+      "yesterday": "I går",
+      "daysAgo": "{n}d siden"
+    },
+    "modal": {
+      "title": "Ny opgave",
+      "titleLabel": "Titel *",
+      "titlePlaceholder": "Hvad skal gøres?",
+      "type": "Type",
+      "priority": "Prioritet",
+      "dueDate": "Forfaldsdato",
+      "assignedTo": "Tildelt",
+      "description": "Beskrivelse (valgfri)",
+      "descPlaceholder": "Yderligere detaljer...",
+      "cancel": "Annuller",
+      "save": "Gem opgave",
+      "saving": "Gemmer..."
+    },
+    "toast": {
+      "created": "Opgave oprettet",
+      "done": "Opgave markeret som færdig",
+      "deleted": "Opgave slettet",
+      "error": "Kunne ikke oprette opgave"
+    },
+    "deleteTitle": "Slet"
+  },
+  "calendar": {
+    "newBooking": "Ny booking",
+    "today": "I dag",
+    "month": "Måned",
+    "week": "Uge",
+    "types": {
+      "test_drive": "Prøvekørsel",
+      "meeting": "Møde",
+      "delivery": "Levering",
+      "viewing": "Fremvisning"
+    },
+    "statuses": {
+      "scheduled": "Planlagt",
+      "confirmed": "Bekræftet",
+      "cancelled": "Aflyst",
+      "completed": "Gennemført"
+    },
+    "bookingsCount": "book.",
+    "more": "+{n} mere",
+    "noVehicles": "Ingen køretøjer fundet",
+    "modal": {
+      "title": "Ny booking",
+      "bookingType": "Bookingtype",
+      "optionalTitle": "Titel (valgfri)",
+      "startTime": "Starttid *",
+      "endTime": "Sluttid *",
+      "customer": "Kunde",
+      "staff": "Sælger",
+      "vehicle": "Køretøj",
+      "vehicleSearch": "Søg køretøjer fra lager...",
+      "notes": "Noter",
+      "cancel": "Annuller",
+      "book": "Book"
+    },
+    "detail": {
+      "confirm": "✓ Bekræft booking",
+      "markDone": "✓ Markér som gennemført",
+      "cancel": "Aflys",
+      "delete": "Slet booking"
+    },
+    "toast": {
+      "created": "Booking oprettet",
+      "updated": "Status opdateret",
+      "deleted": "Booking slettet",
+      "timesRequired": "Angiv start- og sluttid",
+      "conflict": "Konflikt: {error}"
+    }
+  },
+  "commissions": {
+    "title": "Provisionsregnskab",
+    "subtitle": "Sælgerprovisioner pr. handel",
+    "addButton": "+ Provision",
+    "kpi": {
+      "total": "Total provision",
+      "deals": "Handelsværdi",
+      "pending": "Godkendt, ikke udbetalt",
+      "count": "Antal handler"
+    },
+    "perSeller": "Per sælger",
+    "dealUnit": "handel",
+    "dealUnitPlural": "handler",
+    "statuses": {
+      "pending": "Afventer",
+      "approved": "Godkendt",
+      "paid": "Udbetalt",
+      "voided": "Ugyldig",
+      "all": "Alle"
+    },
+    "months": [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "Maj",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Okt",
+      "Nov",
+      "Dec"
+    ],
+    "empty": {
+      "title": "Ingen provisioner i denne periode",
+      "desc": "Provisioner registreres automatisk ved afsluttede handler."
+    },
+    "table": {
+      "seller": "Sælger",
+      "customerVehicle": "Kunde / Køretøj",
+      "dealValue": "Handelsværdi",
+      "rate": "Sats",
+      "commission": "Provision",
+      "status": "Status",
+      "date": "Dato"
+    },
+    "actions": {
+      "approve": "Godkend",
+      "markPaid": "Markér betalt"
+    },
+    "modal": {
+      "title": "Registrér provision",
+      "seller": "Sælger *",
+      "customer": "Kunde",
+      "leadId": "Lead ID",
+      "vehicle": "Køretøj",
+      "dealValue": "Handelsværdi (kr) *",
+      "commissionRate": "Provision (%)",
+      "estimated": "Beregnet provision:",
+      "notes": "Noter",
+      "cancel": "Annuller",
+      "save": "Gem",
+      "saving": "Gemmer..."
+    },
+    "toast": {
+      "created": "Provision registreret",
+      "updated": "Status opdateret",
+      "error": "Mislykkedes"
+    }
+  },
+  "cancellations": {
+    "title": "Afbestillinger & Refunderinger",
+    "subtitle": "Alle annullerede handler og refunderinger",
+    "kpi": {
+      "total": "I alt afbestilt",
+      "refunds": "I alt refunderet",
+      "pending": "Afventende refunderinger",
+      "topReason": "Hyppigste årsag"
+    },
+    "filters": {
+      "all": "Alle",
+      "open": "Åbne",
+      "closed": "Lukkede"
+    },
+    "reasons": {
+      "changed_mind": "Fortrød",
+      "financial": "Økonomi",
+      "found_elsewhere": "Fandt andet sted",
+      "financing_denied": "Finansiering afvist",
+      "other": "Anden årsag"
+    },
+    "refundStatus": {
+      "pending": "Afventer",
+      "sent": "Sendt",
+      "confirmed": "Bekræftet"
+    },
+    "empty": {
+      "title": "Ingen afbestillinger at vise",
+      "desc": "Annullerede handler registreres her automatisk."
+    },
+    "table": {
+      "date": "Dato",
+      "customer": "Kunde",
+      "vehicle": "Køretøj",
+      "reason": "Årsag",
+      "refund": "Refundering",
+      "refundStatus": "Refunderingsstatus",
+      "by": "Af"
+    }
+  },
+  "tradeIns": {
+    "title": "Indbytte-håndtering",
+    "subtitle": "Vurdér og håndtér indbyttekøretøjer",
+    "kpi": {
+      "total": "I alt indbytte",
+      "value": "Total kreditværdi",
+      "pending": "Afventer modtagelse",
+      "received": "Modtaget"
+    },
+    "statuses": {
+      "pending": "Afventer",
+      "completed": "Modtaget",
+      "cancelled": "Annulleret",
+      "all": "Alle"
+    },
+    "conditions": {
+      "excellent": "Fremragende",
+      "good": "God",
+      "fair": "OK",
+      "poor": "Dårlig"
+    },
+    "empty": {
+      "title": "Ingen indbyttekøretøjer",
+      "desc": "Brug kalkulatoren ovenfor til at vurdere og gemme et indbytte."
+    },
+    "table": {
+      "vehicle": "Køretøj",
+      "regVin": "Reg.nr / VIN",
+      "mileage": "Kilometerstand",
+      "value": "Indbytteværdi",
+      "status": "Status",
+      "lead": "Lead",
+      "date": "Dato"
+    },
+    "valuation": {
+      "title": "Indbyttevurdering",
+      "brand": "Mærke *",
+      "model": "Model *",
+      "year": "År",
+      "mileageKm": "Km-stand (km)",
+      "regNr": "Reg.nr",
+      "color": "Farve",
+      "marketValue": "Markedsværdi (kr)",
+      "marketHint": "Tjek bilbasen.dk for referencepris",
+      "condition": "Stand",
+      "estimatedValue": "Estimeret indbytteværdi",
+      "marketLabel": "Markedsværdi:",
+      "conditionAdj": "Standfaktor:",
+      "ageDiscount": "Aldersrabat:",
+      "mileageDiscount": "Kilometerrabat:",
+      "leadId": "Lead ID *",
+      "vin": "VIN",
+      "notes": "Noter",
+      "notesPlaceholder": "Ridse på tanken, nyt dæk...",
+      "saveButton": "Gem indbytte på lead",
+      "saving": "Gemmer...",
+      "leadIdPlaceholder": "Lead-nummer"
+    },
+    "toast": {
+      "saved": "Indbyttekøretøj gemt",
+      "error": "Mislykkedes",
+      "required": "Lead ID, mærke og model er påkrævet"
+    }
+  },
+  "warranties": {
+    "title": "Garantihåndtering",
+    "subtitle": "Aktive garantier og reklamationer",
+    "addButton": "+ Registrér garanti",
+    "kpi": {
+      "active": "Aktive garantier",
+      "coverage": "Total dækning",
+      "expiring": "Udløber inden 30 dage",
+      "claims": "Åbne reklamationer"
+    },
+    "types": {
+      "standard": "Standard",
+      "extended": "Udvidet",
+      "manufacturer": "Producent",
+      "third_party": "Tredjepart"
+    },
+    "statuses": {
+      "active": "Aktiv",
+      "expired": "Udløbet",
+      "claimed": "Reklamation",
+      "cancelled": "Afsluttet",
+      "voided": "Ugyldiggjort",
+      "all": "Alle"
+    },
+    "expiresIn": "Udløber om {days} dage",
+    "expired": "Udløbet",
+    "empty": {
+      "title": "Ingen garantier",
+      "desc": "Registrerede garantier vises her."
+    },
+    "table": {
+      "vehicle": "Køretøj",
+      "type": "Type",
+      "provider": "Leverandør",
+      "period": "Periode",
+      "coverage": "Dækning",
+      "status": "Status"
+    },
+    "actions": {
+      "claim": "Reklamation"
+    },
+    "modal": {
+      "title": "Registrér garanti",
+      "vehicle": "Køretøj *",
+      "vin": "VIN",
+      "regNr": "Reg.nr",
+      "type": "Type",
+      "provider": "Leverandør",
+      "policyNumber": "Polisnummer",
+      "startDate": "Startdato *",
+      "endDate": "Slutdato *",
+      "maxCoverage": "Maks dækningsbeløb (kr)",
+      "leadId": "Lead ID",
+      "notes": "Noter",
+      "cancel": "Annuller",
+      "save": "Registrér",
+      "saving": "Gemmer..."
+    },
+    "claimModal": {
+      "title": "Reklamation – {vehicle}",
+      "policyNr": "Polisnr: {nr}",
+      "amount": "Reklamationsbeløb (kr)",
+      "details": "Detaljer *",
+      "detailsPlaceholder": "Beskriv fejlen...",
+      "cancel": "Annuller",
+      "save": "Registrér reklamation",
+      "saving": "Gemmer..."
+    },
+    "toast": {
+      "created": "Garanti registreret",
+      "claim": "Reklamation registreret",
+      "error": "Mislykkedes"
+    }
+  },
+  "reservations": {
+    "title": "Reservationer & Depositum",
+    "subtitle": "Spor køretøjsreservationer og indbetalte deposita",
+    "addButton": "+ Ny reservation",
+    "kpi": {
+      "active": "Aktive reservationer",
+      "deposits": "Indbetalt depositum",
+      "expiring": "Udløber snart (< 48t)",
+      "total": "I alt"
+    },
+    "statuses": {
+      "active": "Aktiv",
+      "converted": "Konverteret",
+      "expired": "Udløbet",
+      "cancelled": "Afbestilt",
+      "refunded": "Refunderet",
+      "all": "Alle"
+    },
+    "depositPaid": "Betalt",
+    "depositUnpaid": "Ikke betalt",
+    "expiringSoon": "Udløber snart!",
+    "expired": "Udløbet",
+    "empty": {
+      "title": "Ingen reservationer",
+      "desc": "Reserverede køretøjer og deposita vises her."
+    },
+    "table": {
+      "customer": "Kunde",
+      "vehicle": "Køretøj",
+      "deposit": "Depositum",
+      "validUntil": "Gyldig til",
+      "status": "Status",
+      "reservedBy": "Reserveret af"
+    },
+    "actions": {
+      "convert": "Konvertér",
+      "cancel": "Afbestil"
+    },
+    "modal": {
+      "title": "Ny reservation",
+      "leadId": "Lead ID *",
+      "reservedBy": "Reserveret af",
+      "reservedByPlaceholder": "Sælger",
+      "vehicle": "Køretøj *",
+      "vinReg": "VIN / Reg.nr",
+      "vinRegPlaceholder": "VIN eller registreringsnummer",
+      "deposit": "Depositum (kr)",
+      "paymentMethod": "Betalingsmetode",
+      "paymentPlaceholder": "MobilePay / Kort",
+      "depositPaid": "Depositum betalt",
+      "validUntil": "Gyldig til",
+      "customerInfo": "Kundeinformation",
+      "customerName": "Navn",
+      "customerPhone": "Telefon",
+      "customerEmail": "E-mail",
+      "notes": "Noter",
+      "cancel": "Annuller",
+      "save": "Gem reservation",
+      "saving": "Gemmer..."
+    },
+    "toast": {
+      "created": "Reservation oprettet",
+      "updated": "Status opdateret",
+      "error": "Mislykkedes"
+    }
+  },
+  "offer": {
+    "sellerView": "Sælgeroversigt",
+    "title": "BikeMenuNow",
+    "module": "Modul",
+    "offers": "Tilbud",
+    "testRides": "Prøvekørsler",
+    "stats": {
+      "new": "Nye",
+      "reviewing": "Gennemgås",
+      "sent": "Sendte",
+      "booked": "Bookede",
+      "completed": "Afsluttede"
+    },
+    "statuses": {
+      "new": "Ny",
+      "reviewing": "Gennemgås",
+      "sent": "Sendt",
+      "accepted": "Accepteret",
+      "declined": "Afvist"
+    },
+    "table": {
+      "customer": "Kunde",
+      "motorcycle": "Motorcykel",
+      "date": "Dato",
+      "payment": "Betaling",
+      "tradeIn": "Indbytte",
+      "accessories": "Tilbehør",
+      "status": "Status"
+    },
+    "payment": {
+      "cash": "Kontant",
+      "financing": "Finansiering"
+    },
+    "yes": "Ja",
+    "no": "Nej",
+    "open": "Åbn →",
+    "biketesting": {
+      "title": "Prøvekørsler",
+      "back": "Tilbud",
+      "stats": {
+        "scheduled": "Planlagte",
+        "completed": "Afsluttede"
+      },
+      "testStatuses": {
+        "scheduled": "Bestilt",
+        "completed": "Afsluttet"
+      },
+      "table": {
+        "customer": "Kunde",
+        "motorcycle": "Motorcykel",
+        "requestedDate": "Ønsket dato",
+        "submitted": "Indsendt",
+        "seller": "Sælger",
+        "status": "Status"
+      },
+      "waiting": "Venter",
+      "sign": "Underskriv →",
+      "view": "Vis →",
+      "mobile": {
+        "customerSigned": "Kunde ✓",
+        "sellerSigned": "Sælger ✓",
+        "sellerWaiting": "Sælger afventer"
+      },
+      "detail": {
+        "requestedDate": "Ønsket dato:",
+        "driver": "Fører",
+        "name": "Navn",
+        "personalNumber": "CPR-nummer",
+        "phone": "Telefon",
+        "email": "E-mail",
+        "address": "Adresse",
+        "zipCode": "Postnummer",
+        "termsTitle": "Gældende vilkår",
+        "termsText": "Prøvekørsel maks 15 minutter i nærheden af salgsstedet. Selvrisiko {excess} kr ved skade forårsaget af føreren. Kunden har accepteret disse vilkår og underskrevet med BankID.",
+        "signatures": "Underskrifter"
+      }
+    },
+    "offert": {
+      "back": "Tilbud",
+      "customerSection": "Kunde",
+      "fields": {
+        "name": "Navn",
+        "email": "E-mail",
+        "phone": "Telefon",
+        "payment": "Betaling"
+      },
+      "preferences": "Kundens ønsker",
+      "tradeInLabel": "Indbytte",
+      "noTradeIn": "Intet indbytte",
+      "accessoriesLabel": "Tilbehør",
+      "noAccessories": "Intet tilbehør",
+      "messageLabel": "Besked",
+      "sellerSection": "Sælgerens tilføjelser"
+    },
+    "offerBuilder": {
+      "sentTitle": "Tilbud sendt",
+      "sentDesc": "Tilbuddet er sendt til {name} på {email}.",
+      "backToDashboard": "← Tilbage til dashboard",
+      "tradeInSection": "Indbyttevurdering",
+      "tradeIn": {
+        "make": "Mærke",
+        "model": "Model",
+        "year": "År",
+        "mileage": "Kilometerstand",
+        "estimatedValue": "Estimeret indbyttepris (kr)",
+        "hint": "Fratrækkes fra totalpris"
+      },
+      "accessoriesSection": "Tilbehør — prissætning",
+      "accessoriesPlaceholder": "Pris (kr)",
+      "customerNote": "Kundens note:",
+      "offerSection": "Tilbudsoplysninger",
+      "regFee": "Registreringsafgift (kr)",
+      "discount": "Rabat (kr)",
+      "extWarranty": "Udvidet garanti",
+      "include": "Inkluder",
+      "notIncluded": "Ikke inkluderet",
+      "deliveryDate": "Leveringsdato",
+      "validity": "Tilbuddets gyldighed (dage)",
+      "sellerComment": "Sælgerens kommentar",
+      "commentPlaceholder": "Andre vilkår eller oplysninger til kunden...",
+      "priceSection": "Prisoversigt",
+      "price": {
+        "listPrice": "Listepris",
+        "accessories": "Tilbehør",
+        "regFee": "Registreringsafgift",
+        "extWarranty": "Udvidet garanti",
+        "discount": "Rabat",
+        "tradeInValue": "Indbyttepris",
+        "total": "I alt"
+      },
+      "financing": "Finansiering via Santander — kreditvurdering foretages separat.",
+      "sendButton": "Send tilbud til {name}",
+      "sendNote": "Tilbuddet sendes til {email} og er gyldigt i {days} dage."
+    },
+    "sellerSignOff": {
+      "customerSignature": "Kundens underskrift",
+      "signed": "✓ Underskrevet",
+      "viaBankId": "via BankID",
+      "sellerSignature": "Sælgerens underskrift",
+      "sellerConfirm": "Underskriv for at bekræfte, at prøvekørslen er gennemført i henhold til vilkårene.",
+      "waiting": "Venter på BankID...",
+      "openApp": "Åbn appen og godkend underskriften.",
+      "sellerLabel": "AVA MC — Sælger",
+      "signButton": "Underskriv afslutning",
+      "completedTitle": "Afsluttet dokument",
+      "vehicle": "Køretøj",
+      "driver": "Fører",
+      "personalNumber": "CPR-nummer",
+      "date": "Dato",
+      "maxTime": "Maks tid",
+      "maxTimeValue": "15 minutter",
+      "excess": "Selvrisiko",
+      "excessValue": "15 000 kr ved skade",
+      "customer": "Kunde",
+      "seller": "Sælger"
+    }
+  },
+  "settingsProfile": {
+    "breadcrumb": "Indstillinger",
+    "title": "Forhandlerprofil",
+    "subtitle": "Firmanavn, adresse, CVR-nummer, logo og kontaktoplysninger",
+    "saving": "Gemmer…",
+    "save": "💾 Gem ændringer",
+    "backToSettings": "← Tilbage til indstillinger",
+    "sections": {
+      "company": "Company information",
+      "address": "Address",
+      "contact": "Contact details",
+      "banking": "Banking details",
+      "sms": "SMS (Twilio)",
+      "notifEmails": "Notification Emails",
+      "cover": "Cover image — Dashboard background",
+      "logo": "Logo"
+    },
+    "fields": {
+      "companyName": "Company name",
+      "orgNr": "Organisation number",
+      "orgNrHint": "Format: 556123-4567",
+      "vat": "VAT number",
+      "vatHint": "Derived automatically from org. no.",
+      "fSkatt": "F-tax certificate registered",
+      "street": "Street address",
+      "postalCode": "Postal code",
+      "city": "City",
+      "county": "County",
+      "phone": "Phone",
+      "email": "Email",
+      "emailDomain": "Company email domain",
+      "emailDomainHint": "Used when inviting staff",
+      "website": "Website",
+      "bankName": "Bank",
+      "bankNameHint": "Bank name",
+      "bankgiro": "Bankgiro number",
+      "bankgiroHint": "Format: 1234-5678",
+      "swish": "Swish (business number)",
+      "swishHint": "10 digits",
+      "iban": "IBAN",
+      "ibanHint": "International bank account number",
+      "bic": "BIC / SWIFT",
+      "bicHint": "Bank identifier code",
+      "twilioSid": "Account SID",
+      "twilioSidHint": "Starts with AC…",
+      "twilioToken": "Auth Token",
+      "twilioTokenHint": "Secret — never share with customers",
+      "twilioFrom": "Sender number",
+      "twilioFromHint": "E.164 format, e.g. +46701234567",
+      "deliveryEmail": "Delivery Note Email",
+      "deliveryEmailHint": "Receives email when a delivery note arrives.",
+      "invoiceEmail": "Invoice Email",
+      "invoiceEmailHint": "Receives purchase invoices from suppliers.",
+      "coverTitle": "Upload cover image",
+      "coverDesc": "PNG, JPG or WebP · Max {maxKb} KB",
+      "logoTitle": "Upload logo",
+      "logoDesc": "PNG, JPG, SVG or WebP · Max {maxKb} KB"
+    },
+    "actions": {
+      "chooseImage": "📂 Choose image",
+      "chooseFile": "📂 Choose file",
+      "remove": "🗑 Remove",
+      "resizing": "Resizing…"
+    },
+    "messages": {
+      "saved": "Profile saved",
+      "saveError": "Could not save profile.",
+      "imageOnly": "Only image files allowed.",
+      "svgTooLarge": "SVG file is too large. Max {maxKb} KB.",
+      "svgNoCover": "SVG is not supported as cover image.",
+      "processError": "Could not process image.",
+      "resizing": "⏳ Resizing automatically…",
+      "compressed": "✓ Image compressed automatically",
+      "compressedTo": "✓ Image compressed to {maxKb} KB",
+      "coverUploaded": "✓ Cover image uploaded",
+      "logoUploaded": "✓ Logo uploaded"
+    },
+    "preview": "Preview — shown on agreements and invoices",
+    "noCoverImage": "No cover image",
+    "coverRatio": "16:9 recommended",
+    "noLogo": "No logo",
+    "coverDesc2": "Shown as background on dashboard."
+  },
+  "settingsTargets": {
+    "breadcrumb": "Indstillinger",
+    "nav": "Sælgermål",
+    "title": "Præstationsmål",
+    "subtitle": "Set and track targets per seller — leads and revenue",
+    "exportCSV": "Eksporter CSV",
+    "newTarget": "Nyt mål",
+    "months": [
+      "Hele året",
+      "Januar",
+      "Februar",
+      "Marts",
+      "April",
+      "Maj",
+      "Juni",
+      "Juli",
+      "August",
+      "September",
+      "Oktober",
+      "November",
+      "December"
+    ],
+    "table": {
+      "period": "Period",
+      "leadsTarget": "Leads target",
+      "leadsActual": "Leads actual",
+      "leadsPct": "Leads %",
+      "revenueTarget": "Revenue target",
+      "revenueActual": "Revenue actual",
+      "revenuePct": "Revenue %"
+    },
+    "staff": {
+      "totalActual": "Total actual:",
+      "leads": "leads",
+      "revenue": "Revenue:"
+    },
+    "empty": {
+      "title": "No targets set for {year}",
+      "subtitle": "Set targets for sellers to start tracking performance",
+      "button": "Set target"
+    },
+    "form": {
+      "title": "Set performance target",
+      "name": "Name *",
+      "email": "Email *",
+      "year": "Year",
+      "period": "Period",
+      "leadsTarget": "Leads target",
+      "revenueTarget": "Revenue target (SEK)",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save": "Save target"
+    },
+    "actions": {
+      "edit": "Edit",
+      "fullYear": "full year"
+    },
+    "toasts": {
+      "nameEmailRequired": "Name and email are required",
+      "saved": "Target saved",
+      "deleted": "Target deleted",
+      "csvExported": "CSV exported"
+    },
+    "deleteConfirm": "Delete target for {name} — {period}?"
+  },
+  "settingsBranches": {
+    "breadcrumb": "Indstillinger",
+    "nav": "Filialer",
+    "title": "Filialer og lokationer",
+    "subtitle": "Manage dealership locations and assign staff",
+    "newBranch": "Ny filial",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "empty": {
+      "title": "No branches yet",
+      "subtitle": "Create your first branch to start assigning staff and leads",
+      "button": "Create branch"
+    },
+    "actions": {
+      "edit": "Edit",
+      "deactivate": "Deactivate",
+      "activate": "Activate"
+    },
+    "form": {
+      "titleNew": "New branch",
+      "titleEdit": "Edit branch",
+      "name": "Branch name *",
+      "namePlaceholder": "e.g. Stockholm North",
+      "address": "Address",
+      "addressPlaceholder": "Street 1",
+      "city": "City",
+      "phone": "Phone",
+      "manager": "Manager",
+      "active": "Branch is active",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save": "Save changes",
+      "create": "Create branch"
+    },
+    "toasts": {
+      "nameRequired": "Name is required",
+      "updated": "Branch updated",
+      "created": "Branch created",
+      "deleted": "Branch deleted"
+    },
+    "deleteConfirm": "Delete branch {name}? Leads and staff connected to it are not affected."
   }
 }

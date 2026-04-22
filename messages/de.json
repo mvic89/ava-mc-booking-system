@@ -1574,32 +1574,127 @@
   },
   "analytics": {
     "title": "Berichte",
-    "subtitle": "Echtzeitdaten aus Verkäufen, Leads und Kunden",
+    "subtitle": "Echtzeitdaten aus Vertrieb, Leads und Kunden",
     "tabs": {
       "overview": "Übersicht",
       "sources": "Quellenanalyse",
       "margins": "Margenanalyse",
       "leaderboard": "Bestenliste"
     },
-    "stats": {
-      "closed": "Abgeschlossen",
+    "kpi": {
+      "totalRevenue": "Gesamtumsatz",
+      "avgOrder": "Durchschn. Bestellwert",
+      "convRate": "Konversionsrate",
       "grossProfit": "Bruttogewinn",
+      "avgMargin": "Durchschn. Marge",
+      "totalCustomers": "Kunden gesamt",
+      "pendingInvoices": "Ausstehende Rechnungen",
+      "totalGrossProfit": "Gesamtbruttogewinn",
+      "bestDeal": "Bestes Geschäft",
+      "totalClosed": "Gesamt abgeschlossen",
+      "totalLeads": "Leads gesamt",
+      "uniqueSources": "Einzigartige Quellen",
+      "bestSource": "Beste Quelle",
+      "avgConv": "Durchschn. Konv."
+    },
+    "sub": {
+      "paidInvoices": "{n} bezahlte Rechnungen",
+      "perInvoice": "pro bezahlter Rechnung",
+      "paidOf": "{paid} von {total} Rechnungen",
+      "dealsWithCost": "{n} Geschäfte mit Kosten",
+      "perDeal": "pro abgeschlossenem Geschäft mit Kosten",
+      "vip": "{vip} VIP · {active} aktive",
+      "notPaid": "noch nicht bezahlt",
+      "noCost": "n/a",
+      "allChannels": "alle Kanäle",
+      "identifiedSources": "identifizierte Lead-Quellen",
+      "avgAllSources": "alle Quellen kombiniert",
+      "sourceRevenue": "{rev} Umsatz"
+    },
+    "series": {
+      "paid": "Bezahlt",
+      "pending": "Ausstehend",
       "revenue": "Umsatz",
-      "conversion": "Konv.",
+      "grossProfit": "Bruttogewinn",
+      "deals": "Geschäfte",
       "leads": "Leads",
+      "avgDays": "Durchschn. Tage"
+    },
+    "sections": {
+      "revenueTitle": "Umsatzentwicklung — letzte 12 Monate",
+      "revenueSub": "Bezahlte und ausstehende Rechnungen pro Monat (kr)",
+      "invoicesTitle": "Rechnungen pro Monat",
+      "invoicesSub": "Letzte 6 Monate (Anzahl)",
+      "paymentTitle": "Zahlungsmethoden",
+      "paymentSub": "Verteilung der bezahlten Rechnungen",
+      "customersTitle": "Kundensegmente",
+      "customersSub": "{n} Kunden insgesamt",
+      "reportsTitle": "📧 Geplante Berichte",
+      "reportsSub": "Jeden Montag um 08:00 Uhr wird automatisch eine Wochenzusammenfassung an die Admin-E-Mail gesendet.",
+      "reportsHint": "SMTP unter Einstellungen → Integrationen konfigurieren.",
+      "sellerTitle": "Umsatz pro Verkäufer",
+      "sellerSub": "Gesamt aus abgeschlossenen Geschäften",
+      "leaderboardTitle": "Vollständige Bestenliste",
+      "grossTitle": "Bruttogewinn pro Monat — letzte 12 Monate",
+      "grossSub": "Umsatz vs Bruttogewinn (kr)",
+      "brandTitle": "Umsatz nach Marke (Top 10)",
+      "brandSub": "Abgeschlossene Geschäfte, nach Umsatz sortiert",
+      "marginTitle": "Margenverteilung",
+      "marginSub": "Anzahl der Geschäfte pro Margenbereich",
+      "turnoverTitle": "Lagerumschlag — durchschn. Zeit in der Pipeline",
+      "turnoverSub": "Durchschn. Tage von Lead-Erstellung bis Abschluss, nach Marke",
+      "sourceRoiTitle": "Quellenanalyse — ROI pro Lead-Quelle",
+      "sourceRoiSub": "Leads, Konversion und Umsatz aufgeteilt nach Quelle",
+      "sourceVolTitle": "Lead-Volumen pro Quelle",
+      "sourceVolSub": "Gesamtanzahl der Leads",
+      "sourceRevTitle": "Umsatz pro Quelle",
+      "sourceRevSub": "Gesamt aus abgeschlossenen Geschäften",
+      "sourceConvTitle": "Konversionsrate pro Quelle",
+      "sourceConvSub": "% der Leads, die zu abgeschlossenen Geschäften wurden"
+    },
+    "table": {
+      "rank": "Rang",
       "salesperson": "Verkäufer",
-      "avgDeal": "Ø Abschluss",
-      "rank": "Rang"
+      "leads": "Leads",
+      "closed": "Abgeschlossen",
+      "conv": "Konv.",
+      "revenue": "Umsatz",
+      "revenuePct": "Umsatz %",
+      "grossProfit": "Bruttogewinn",
+      "avgDeal": "Durchschn. Geschäft",
+      "source": "Quelle",
+      "totalRevenue": "Gesamtumsatz"
+    },
+    "leaderboard": {
+      "rankTotal": "#{n} gesamt",
+      "revenueLabel": "Umsatz",
+      "closedLabel": "Abgeschlossen",
+      "ofLeads": "{closed} von {total} Leads",
+      "convLabel": "Konversion",
+      "avgDealLabel": "Durchschn. Geschäft",
+      "grossLabel": "Bruttogewinn",
+      "target": "Ziel: {val}",
+      "vsTarget": "Ziel vs. Ergebnis ({year})"
     },
     "empty": {
-      "invoices": "Noch keine bezahlten Rechnungen",
-      "leads": "Noch keine Leads",
-      "closed": "Noch keine abgeschlossenen Deals",
-      "brands": "Noch keine Markendaten",
-      "salespeople": "Noch keine Verkäufer"
+      "invoices": "Noch keine bezahlten Rechnungen.",
+      "leads": "Noch keine Leads.",
+      "closed": "Noch keine abgeschlossenen Geschäfte.",
+      "brands": "Keine abgeschlossenen Geschäfte mit Markendaten.",
+      "salespeople": "Noch keine Verkäufer.",
+      "salespeopleSub": "Verkäufernamen werden automatisch bei neuen Leads registriert."
     },
+    "reports": {
+      "send": "Testbericht senden",
+      "sending": "Wird gesendet…",
+      "success": "Wochenzusammenfassung an {email} gesendet",
+      "error": "Bericht konnte nicht gesendet werden"
+    },
+    "unauthorized": "Sie haben keine Berechtigung für Analytics.",
     "marginNote": "Grün ≥ 10 % · Gelb 5–10 % · Rot < 5 %",
-    "timeNote": "Grün ≤ 14 T · Gelb ≤ 30 T · Rot > 30 T"
+    "timeNote": "Grün ≤ 14 T · Gelb ≤ 30 T · Rot > 30 T",
+    "daysAvg": "{n} T Durchschn. ({count} Geschäfte)",
+    "avgPipeline": "Durchschn. Pipeline"
   },
   "purchase": {
     "title": "Bestellungen",
@@ -1692,5 +1787,779 @@
     "previewLegalNote": "Dieses Dokument wurde mit BankID signiert und stellt eine gültige elektronische Unterschrift gemäß Signaturlagen (2000:832) dar. OCSP-Verifizierung und Zeitstempel sind gespeichert.",
     "previewArchive": "7 Jahre archiviert · Bokföringslagen",
     "previewOpen": "Öffnen →"
+  },
+  "tasks": {
+    "title": "Aufgaben & Erinnerungen",
+    "subtitle": "Behalten Sie den Überblick über anstehende Aufgaben",
+    "newTask": "Neue Aufgabe",
+    "overdueCount": "{count} überfällig",
+    "todayCount": "{count} heute",
+    "openTotal": "{count} offen gesamt",
+    "filters": {
+      "open": "Offen",
+      "done": "Erledigt",
+      "all": "Alle",
+      "allTypes": "Alle Typen"
+    },
+    "types": {
+      "call": "Anruf",
+      "email": "E-Mail",
+      "meeting": "Meeting",
+      "follow_up": "Nachverfolgung",
+      "other": "Sonstiges"
+    },
+    "priorities": {
+      "high": "Hoch",
+      "medium": "Mittel",
+      "low": "Niedrig"
+    },
+    "empty": {
+      "title": "Keine Aufgaben zu zeigen",
+      "openHint": "Keine offenen Aufgaben — alles erledigt!",
+      "defaultHint": "Erstellen Sie eine Aufgabe, um loszulegen."
+    },
+    "badge": {
+      "overdue": "ÜBERFÄLLIG",
+      "today": "HEUTE"
+    },
+    "relative": {
+      "today": "Heute",
+      "tomorrow": "Morgen",
+      "yesterday": "Gestern",
+      "daysAgo": "vor {n}T"
+    },
+    "modal": {
+      "title": "Neue Aufgabe",
+      "titleLabel": "Titel *",
+      "titlePlaceholder": "Was muss getan werden?",
+      "type": "Typ",
+      "priority": "Priorität",
+      "dueDate": "Fälligkeitsdatum",
+      "assignedTo": "Zugewiesen an",
+      "description": "Beschreibung (optional)",
+      "descPlaceholder": "Weitere Details...",
+      "cancel": "Abbrechen",
+      "save": "Aufgabe speichern",
+      "saving": "Speichern..."
+    },
+    "toast": {
+      "created": "Aufgabe erstellt",
+      "done": "Aufgabe als erledigt markiert",
+      "deleted": "Aufgabe gelöscht",
+      "error": "Aufgabe konnte nicht erstellt werden"
+    },
+    "deleteTitle": "Löschen"
+  },
+  "calendar": {
+    "newBooking": "Neue Buchung",
+    "today": "Heute",
+    "month": "Monat",
+    "week": "Woche",
+    "types": {
+      "test_drive": "Probefahrt",
+      "meeting": "Meeting",
+      "delivery": "Lieferung",
+      "viewing": "Besichtigung"
+    },
+    "statuses": {
+      "scheduled": "Geplant",
+      "confirmed": "Bestätigt",
+      "cancelled": "Storniert",
+      "completed": "Abgeschlossen"
+    },
+    "bookingsCount": "Buch.",
+    "more": "+{n} mehr",
+    "noVehicles": "Keine Fahrzeuge gefunden",
+    "modal": {
+      "title": "Neue Buchung",
+      "bookingType": "Buchungstyp",
+      "optionalTitle": "Titel (optional)",
+      "startTime": "Startzeit *",
+      "endTime": "Endzeit *",
+      "customer": "Kunde",
+      "staff": "Verkäufer",
+      "vehicle": "Fahrzeug",
+      "vehicleSearch": "Fahrzeuge im Lager suchen...",
+      "notes": "Notizen",
+      "cancel": "Abbrechen",
+      "book": "Buchen"
+    },
+    "detail": {
+      "confirm": "✓ Buchung bestätigen",
+      "markDone": "✓ Als abgeschlossen markieren",
+      "cancel": "Stornieren",
+      "delete": "Buchung löschen"
+    },
+    "toast": {
+      "created": "Buchung erstellt",
+      "updated": "Status aktualisiert",
+      "deleted": "Buchung gelöscht",
+      "timesRequired": "Bitte Start- und Endzeit eingeben",
+      "conflict": "Konflikt: {error}"
+    }
+  },
+  "commissions": {
+    "title": "Provisionsregister",
+    "subtitle": "Verkäuferprovisionen pro Abschluss",
+    "addButton": "+ Provision",
+    "kpi": {
+      "total": "Gesamtprovision",
+      "deals": "Abschlusswert",
+      "pending": "Genehmigt, nicht ausgezahlt",
+      "count": "Anzahl Abschlüsse"
+    },
+    "perSeller": "Pro Verkäufer",
+    "dealUnit": "Abschluss",
+    "dealUnitPlural": "Abschlüsse",
+    "statuses": {
+      "pending": "Ausstehend",
+      "approved": "Genehmigt",
+      "paid": "Ausgezahlt",
+      "voided": "Storniert",
+      "all": "Alle"
+    },
+    "months": [
+      "Jan",
+      "Feb",
+      "Mär",
+      "Apr",
+      "Mai",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Okt",
+      "Nov",
+      "Dez"
+    ],
+    "empty": {
+      "title": "Keine Provisionen in diesem Zeitraum",
+      "desc": "Provisionen werden automatisch bei abgeschlossenen Deals registriert."
+    },
+    "table": {
+      "seller": "Verkäufer",
+      "customerVehicle": "Kunde / Fahrzeug",
+      "dealValue": "Abschlusswert",
+      "rate": "Satz",
+      "commission": "Provision",
+      "status": "Status",
+      "date": "Datum"
+    },
+    "actions": {
+      "approve": "Genehmigen",
+      "markPaid": "Als bezahlt markieren"
+    },
+    "modal": {
+      "title": "Provision erfassen",
+      "seller": "Verkäufer *",
+      "customer": "Kunde",
+      "leadId": "Lead ID",
+      "vehicle": "Fahrzeug",
+      "dealValue": "Abschlusswert (kr) *",
+      "commissionRate": "Provision (%)",
+      "estimated": "Geschätzte Provision:",
+      "notes": "Notizen",
+      "cancel": "Abbrechen",
+      "save": "Speichern",
+      "saving": "Speichern..."
+    },
+    "toast": {
+      "created": "Provision erfasst",
+      "updated": "Status aktualisiert",
+      "error": "Fehler"
+    }
+  },
+  "cancellations": {
+    "title": "Stornierungen & Rückerstattungen",
+    "subtitle": "Alle stornierten Deals und Rückerstattungen",
+    "kpi": {
+      "total": "Gesamt storniert",
+      "refunds": "Gesamt erstattet",
+      "pending": "Ausstehende Erstattungen",
+      "topReason": "Häufigster Grund"
+    },
+    "filters": {
+      "all": "Alle",
+      "open": "Offen",
+      "closed": "Geschlossen"
+    },
+    "reasons": {
+      "changed_mind": "Meinung geändert",
+      "financial": "Finanziell",
+      "found_elsewhere": "Woanders gefunden",
+      "financing_denied": "Finanzierung abgelehnt",
+      "other": "Anderer Grund"
+    },
+    "refundStatus": {
+      "pending": "Ausstehend",
+      "sent": "Gesendet",
+      "confirmed": "Bestätigt"
+    },
+    "empty": {
+      "title": "Keine Stornierungen zu zeigen",
+      "desc": "Stornierte Deals werden hier automatisch erfasst."
+    },
+    "table": {
+      "date": "Datum",
+      "customer": "Kunde",
+      "vehicle": "Fahrzeug",
+      "reason": "Grund",
+      "refund": "Erstattung",
+      "refundStatus": "Erstattungsstatus",
+      "by": "Von"
+    }
+  },
+  "tradeIns": {
+    "title": "Inzahlungnahme-Verwaltung",
+    "subtitle": "Inzahlungnahme-Fahrzeuge bewerten und verwalten",
+    "kpi": {
+      "total": "Gesamt Inzahlungnahmen",
+      "value": "Gesamter Kreditwert",
+      "pending": "Wartet auf Eingang",
+      "received": "Erhalten"
+    },
+    "statuses": {
+      "pending": "Ausstehend",
+      "completed": "Erhalten",
+      "cancelled": "Storniert",
+      "all": "Alle"
+    },
+    "conditions": {
+      "excellent": "Ausgezeichnet",
+      "good": "Gut",
+      "fair": "Akzeptabel",
+      "poor": "Schlecht"
+    },
+    "empty": {
+      "title": "Keine Inzahlungnahme-Fahrzeuge",
+      "desc": "Verwenden Sie den Rechner oben, um ein Fahrzeug zu bewerten."
+    },
+    "table": {
+      "vehicle": "Fahrzeug",
+      "regVin": "Kennz. / VIN",
+      "mileage": "Kilometerstand",
+      "value": "Inzahlungnahmewert",
+      "status": "Status",
+      "lead": "Lead",
+      "date": "Datum"
+    },
+    "valuation": {
+      "title": "Inzahlungnahme-Bewertung",
+      "brand": "Marke *",
+      "model": "Modell *",
+      "year": "Jahr",
+      "mileageKm": "Kilometerstand (km)",
+      "regNr": "Kennzeichen",
+      "color": "Farbe",
+      "marketValue": "Marktwert (kr)",
+      "marketHint": "Mobile.de für Referenzpreis prüfen",
+      "condition": "Zustand",
+      "estimatedValue": "Geschätzter Inzahlungnahmewert",
+      "marketLabel": "Marktwert:",
+      "conditionAdj": "Zustandsfaktor:",
+      "ageDiscount": "Altersabschlag:",
+      "mileageDiscount": "Kilometerabschlag:",
+      "leadId": "Lead ID *",
+      "vin": "VIN",
+      "notes": "Notizen",
+      "notesPlaceholder": "Kratzer am Tank...",
+      "saveButton": "Inzahlungnahme am Lead speichern",
+      "saving": "Speichern...",
+      "leadIdPlaceholder": "Lead-Nummer"
+    },
+    "toast": {
+      "saved": "Fahrzeug gespeichert",
+      "error": "Fehler",
+      "required": "Lead ID, Marke und Modell sind erforderlich"
+    }
+  },
+  "warranties": {
+    "title": "Garantieverwaltung",
+    "subtitle": "Aktive Garantien und Reklamationen",
+    "addButton": "+ Garantie erfassen",
+    "kpi": {
+      "active": "Aktive Garantien",
+      "coverage": "Gesamtdeckung",
+      "expiring": "Läuft in 30 Tagen ab",
+      "claims": "Offene Reklamationen"
+    },
+    "types": {
+      "standard": "Standard",
+      "extended": "Erweitert",
+      "manufacturer": "Hersteller",
+      "third_party": "Drittanbieter"
+    },
+    "statuses": {
+      "active": "Aktiv",
+      "expired": "Abgelaufen",
+      "claimed": "Reklamation",
+      "cancelled": "Storniert",
+      "voided": "Ungültig",
+      "all": "Alle"
+    },
+    "expiresIn": "Läuft in {days} Tagen ab",
+    "expired": "Abgelaufen",
+    "empty": {
+      "title": "Keine Garantien",
+      "desc": "Registrierte Garantien werden hier angezeigt."
+    },
+    "table": {
+      "vehicle": "Fahrzeug",
+      "type": "Typ",
+      "provider": "Anbieter",
+      "period": "Zeitraum",
+      "coverage": "Deckung",
+      "status": "Status"
+    },
+    "actions": {
+      "claim": "Reklamation"
+    },
+    "modal": {
+      "title": "Garantie erfassen",
+      "vehicle": "Fahrzeug *",
+      "vin": "VIN",
+      "regNr": "Kennzeichen",
+      "type": "Typ",
+      "provider": "Anbieter",
+      "policyNumber": "Policennummer",
+      "startDate": "Startdatum *",
+      "endDate": "Enddatum *",
+      "maxCoverage": "Max. Deckungsbetrag (kr)",
+      "leadId": "Lead ID",
+      "notes": "Notizen",
+      "cancel": "Abbrechen",
+      "save": "Erfassen",
+      "saving": "Speichern..."
+    },
+    "claimModal": {
+      "title": "Reklamation – {vehicle}",
+      "policyNr": "Policen-Nr.: {nr}",
+      "amount": "Reklamationsbetrag (kr)",
+      "details": "Details *",
+      "detailsPlaceholder": "Problem beschreiben...",
+      "cancel": "Abbrechen",
+      "save": "Reklamation erfassen",
+      "saving": "Speichern..."
+    },
+    "toast": {
+      "created": "Garantie erfasst",
+      "claim": "Reklamation erfasst",
+      "error": "Fehler"
+    }
+  },
+  "reservations": {
+    "title": "Reservierungen & Anzahlungen",
+    "subtitle": "Fahrzeugreservierungen und Anzahlungen verfolgen",
+    "addButton": "+ Neue Reservierung",
+    "kpi": {
+      "active": "Aktive Reservierungen",
+      "deposits": "Bezahlte Anzahlungen",
+      "expiring": "Läuft bald ab (< 48h)",
+      "total": "Gesamt"
+    },
+    "statuses": {
+      "active": "Aktiv",
+      "converted": "Konvertiert",
+      "expired": "Abgelaufen",
+      "cancelled": "Storniert",
+      "refunded": "Erstattet",
+      "all": "Alle"
+    },
+    "depositPaid": "Bezahlt",
+    "depositUnpaid": "Nicht bezahlt",
+    "expiringSoon": "Läuft bald ab!",
+    "expired": "Abgelaufen",
+    "empty": {
+      "title": "Keine Reservierungen",
+      "desc": "Reservierte Fahrzeuge und Anzahlungen werden hier angezeigt."
+    },
+    "table": {
+      "customer": "Kunde",
+      "vehicle": "Fahrzeug",
+      "deposit": "Anzahlung",
+      "validUntil": "Gültig bis",
+      "status": "Status",
+      "reservedBy": "Reserviert von"
+    },
+    "actions": {
+      "convert": "Konvertieren",
+      "cancel": "Stornieren"
+    },
+    "modal": {
+      "title": "Neue Reservierung",
+      "leadId": "Lead ID *",
+      "reservedBy": "Reserviert von",
+      "reservedByPlaceholder": "Verkäufer",
+      "vehicle": "Fahrzeug *",
+      "vinReg": "VIN / Kennzeichen",
+      "vinRegPlaceholder": "VIN oder Kennzeichen",
+      "deposit": "Anzahlung (kr)",
+      "paymentMethod": "Zahlungsart",
+      "paymentPlaceholder": "Karte / Überweisung",
+      "depositPaid": "Anzahlung bezahlt",
+      "validUntil": "Gültig bis",
+      "customerInfo": "Kundendaten",
+      "customerName": "Name",
+      "customerPhone": "Telefon",
+      "customerEmail": "E-Mail",
+      "notes": "Notizen",
+      "cancel": "Abbrechen",
+      "save": "Reservierung speichern",
+      "saving": "Speichern..."
+    },
+    "toast": {
+      "created": "Reservierung erstellt",
+      "updated": "Status aktualisiert",
+      "error": "Fehler"
+    }
+  },
+  "offer": {
+    "sellerView": "Verkäuferansicht",
+    "title": "BikeMenuNow",
+    "module": "Modul",
+    "offers": "Angebote",
+    "testRides": "Probefahrten",
+    "stats": {
+      "new": "Neue",
+      "reviewing": "In Prüfung",
+      "sent": "Gesendet",
+      "booked": "Gebucht",
+      "completed": "Abgeschlossen"
+    },
+    "statuses": {
+      "new": "Neu",
+      "reviewing": "In Prüfung",
+      "sent": "Gesendet",
+      "accepted": "Akzeptiert",
+      "declined": "Abgelehnt"
+    },
+    "table": {
+      "customer": "Kunde",
+      "motorcycle": "Motorrad",
+      "date": "Datum",
+      "payment": "Zahlung",
+      "tradeIn": "Inzahlungnahme",
+      "accessories": "Zubehör",
+      "status": "Status"
+    },
+    "payment": {
+      "cash": "Bar",
+      "financing": "Finanzierung"
+    },
+    "yes": "Ja",
+    "no": "Nein",
+    "open": "Öffnen →",
+    "biketesting": {
+      "title": "Probefahrten",
+      "back": "Angebote",
+      "stats": {
+        "scheduled": "Geplant",
+        "completed": "Abgeschlossen"
+      },
+      "testStatuses": {
+        "scheduled": "Gebucht",
+        "completed": "Abgeschlossen"
+      },
+      "table": {
+        "customer": "Kunde",
+        "motorcycle": "Motorrad",
+        "requestedDate": "Gewünschtes Datum",
+        "submitted": "Eingereicht am",
+        "seller": "Verkäufer",
+        "status": "Status"
+      },
+      "waiting": "Wartend",
+      "sign": "Unterzeichnen →",
+      "view": "Ansehen →",
+      "mobile": {
+        "customerSigned": "Kunde ✓",
+        "sellerSigned": "Verkäufer ✓",
+        "sellerWaiting": "Verkäufer ausstehend"
+      },
+      "detail": {
+        "requestedDate": "Gewünschtes Datum:",
+        "driver": "Fahrer",
+        "name": "Name",
+        "personalNumber": "Personalnummer",
+        "phone": "Telefon",
+        "email": "E-Mail",
+        "address": "Adresse",
+        "zipCode": "Postleitzahl",
+        "termsTitle": "Geltende Bedingungen",
+        "termsText": "Probefahrt max. 15 Minuten in der Nähe des Verkaufsorts. Selbstbehalt {excess} kr bei Schäden durch den Fahrer. Der Kunde hat diese Bedingungen akzeptiert und mit BankID unterzeichnet.",
+        "signatures": "Unterschriften"
+      }
+    },
+    "offert": {
+      "back": "Angebote",
+      "customerSection": "Kunde",
+      "fields": {
+        "name": "Name",
+        "email": "E-Mail",
+        "phone": "Telefon",
+        "payment": "Zahlung"
+      },
+      "preferences": "Kundenwünsche",
+      "tradeInLabel": "Inzahlungnahme",
+      "noTradeIn": "Keine Inzahlungnahme",
+      "accessoriesLabel": "Zubehör",
+      "noAccessories": "Kein Zubehör",
+      "messageLabel": "Nachricht",
+      "sellerSection": "Ergänzungen des Verkäufers"
+    },
+    "offerBuilder": {
+      "sentTitle": "Angebot gesendet",
+      "sentDesc": "Das Angebot wurde an {name} unter {email} gesendet.",
+      "backToDashboard": "← Zurück zum Dashboard",
+      "tradeInSection": "Inzahlungnahme-Bewertung",
+      "tradeIn": {
+        "make": "Marke",
+        "model": "Modell",
+        "year": "Jahr",
+        "mileage": "Kilometerstand",
+        "estimatedValue": "Geschätzter Inzahlungnahmewert (kr)",
+        "hint": "Wird vom Gesamtpreis abgezogen"
+      },
+      "accessoriesSection": "Zubehör — Preisgestaltung",
+      "accessoriesPlaceholder": "Preis (kr)",
+      "customerNote": "Kundennotiz:",
+      "offerSection": "Angebotsdetails",
+      "regFee": "Zulassungsgebühr (kr)",
+      "discount": "Rabatt (kr)",
+      "extWarranty": "Verlängerte Garantie",
+      "include": "Einschließen",
+      "notIncluded": "Nicht enthalten",
+      "deliveryDate": "Lieferdatum",
+      "validity": "Angebotsgültigkeit (Tage)",
+      "sellerComment": "Kommentar des Verkäufers",
+      "commentPlaceholder": "Weitere Bedingungen oder Informationen für den Kunden...",
+      "priceSection": "Preisübersicht",
+      "price": {
+        "listPrice": "Listenpreis",
+        "accessories": "Zubehör",
+        "regFee": "Zulassungsgebühr",
+        "extWarranty": "Verlängerte Garantie",
+        "discount": "Rabatt",
+        "tradeInValue": "Inzahlungnahmewert",
+        "total": "Gesamt"
+      },
+      "financing": "Finanzierung über Santander — Kreditprüfung erfolgt separat.",
+      "sendButton": "Angebot an {name} senden",
+      "sendNote": "Das Angebot wird an {email} gesendet und ist {days} Tage gültig."
+    },
+    "sellerSignOff": {
+      "customerSignature": "Unterschrift des Kunden",
+      "signed": "✓ Unterzeichnet",
+      "viaBankId": "via BankID",
+      "sellerSignature": "Unterschrift des Verkäufers",
+      "sellerConfirm": "Unterzeichnen Sie, um zu bestätigen, dass die Probefahrt gemäß den Bedingungen durchgeführt wurde.",
+      "waiting": "Warte auf BankID...",
+      "openApp": "Öffnen Sie die App und genehmigen Sie die Unterschrift.",
+      "sellerLabel": "AVA MC — Verkäufer",
+      "signButton": "Abschluss unterzeichnen",
+      "completedTitle": "Abgeschlossenes Dokument",
+      "vehicle": "Fahrzeug",
+      "driver": "Fahrer",
+      "personalNumber": "Personalnummer",
+      "date": "Datum",
+      "maxTime": "Max. Zeit",
+      "maxTimeValue": "15 Minuten",
+      "excess": "Selbstbehalt",
+      "excessValue": "15 000 kr bei Schäden",
+      "customer": "Kunde",
+      "seller": "Verkäufer"
+    }
+  },
+  "settingsProfile": {
+    "breadcrumb": "Einstellungen",
+    "title": "Händlerprofil",
+    "subtitle": "Firmenname, Adresse, Organisationsnummer, Logo und Kontaktdaten",
+    "saving": "Speichern…",
+    "save": "💾 Änderungen speichern",
+    "backToSettings": "← Zurück zu Einstellungen",
+    "sections": {
+      "company": "Company information",
+      "address": "Address",
+      "contact": "Contact details",
+      "banking": "Banking details",
+      "sms": "SMS (Twilio)",
+      "notifEmails": "Notification Emails",
+      "cover": "Cover image — Dashboard background",
+      "logo": "Logo"
+    },
+    "fields": {
+      "companyName": "Company name",
+      "orgNr": "Organisation number",
+      "orgNrHint": "Format: 556123-4567",
+      "vat": "VAT number",
+      "vatHint": "Derived automatically from org. no.",
+      "fSkatt": "F-tax certificate registered",
+      "street": "Street address",
+      "postalCode": "Postal code",
+      "city": "City",
+      "county": "County",
+      "phone": "Phone",
+      "email": "Email",
+      "emailDomain": "Company email domain",
+      "emailDomainHint": "Used when inviting staff",
+      "website": "Website",
+      "bankName": "Bank",
+      "bankNameHint": "Bank name",
+      "bankgiro": "Bankgiro number",
+      "bankgiroHint": "Format: 1234-5678",
+      "swish": "Swish (business number)",
+      "swishHint": "10 digits",
+      "iban": "IBAN",
+      "ibanHint": "International bank account number",
+      "bic": "BIC / SWIFT",
+      "bicHint": "Bank identifier code",
+      "twilioSid": "Account SID",
+      "twilioSidHint": "Starts with AC…",
+      "twilioToken": "Auth Token",
+      "twilioTokenHint": "Secret — never share with customers",
+      "twilioFrom": "Sender number",
+      "twilioFromHint": "E.164 format, e.g. +46701234567",
+      "deliveryEmail": "Delivery Note Email",
+      "deliveryEmailHint": "Receives email when a delivery note arrives.",
+      "invoiceEmail": "Invoice Email",
+      "invoiceEmailHint": "Receives purchase invoices from suppliers.",
+      "coverTitle": "Upload cover image",
+      "coverDesc": "PNG, JPG or WebP · Max {maxKb} KB",
+      "logoTitle": "Upload logo",
+      "logoDesc": "PNG, JPG, SVG or WebP · Max {maxKb} KB"
+    },
+    "actions": {
+      "chooseImage": "📂 Choose image",
+      "chooseFile": "📂 Choose file",
+      "remove": "🗑 Remove",
+      "resizing": "Resizing…"
+    },
+    "messages": {
+      "saved": "Profile saved",
+      "saveError": "Could not save profile.",
+      "imageOnly": "Only image files allowed.",
+      "svgTooLarge": "SVG file is too large. Max {maxKb} KB.",
+      "svgNoCover": "SVG is not supported as cover image.",
+      "processError": "Could not process image.",
+      "resizing": "⏳ Resizing automatically…",
+      "compressed": "✓ Image compressed automatically",
+      "compressedTo": "✓ Image compressed to {maxKb} KB",
+      "coverUploaded": "✓ Cover image uploaded",
+      "logoUploaded": "✓ Logo uploaded"
+    },
+    "preview": "Preview — shown on agreements and invoices",
+    "noCoverImage": "No cover image",
+    "coverRatio": "16:9 recommended",
+    "noLogo": "No logo",
+    "coverDesc2": "Shown as background on dashboard."
+  },
+  "settingsTargets": {
+    "breadcrumb": "Einstellungen",
+    "nav": "Verkaufsziele",
+    "title": "Leistungsziele",
+    "subtitle": "Set and track targets per seller — leads and revenue",
+    "exportCSV": "CSV exportieren",
+    "newTarget": "Neues Ziel",
+    "months": [
+      "Ganzes Jahr",
+      "Januar",
+      "Februar",
+      "März",
+      "April",
+      "Mai",
+      "Juni",
+      "Juli",
+      "August",
+      "September",
+      "Oktober",
+      "November",
+      "Dezember"
+    ],
+    "table": {
+      "period": "Period",
+      "leadsTarget": "Leads target",
+      "leadsActual": "Leads actual",
+      "leadsPct": "Leads %",
+      "revenueTarget": "Revenue target",
+      "revenueActual": "Revenue actual",
+      "revenuePct": "Revenue %"
+    },
+    "staff": {
+      "totalActual": "Total actual:",
+      "leads": "leads",
+      "revenue": "Revenue:"
+    },
+    "empty": {
+      "title": "No targets set for {year}",
+      "subtitle": "Set targets for sellers to start tracking performance",
+      "button": "Set target"
+    },
+    "form": {
+      "title": "Set performance target",
+      "name": "Name *",
+      "email": "Email *",
+      "year": "Year",
+      "period": "Period",
+      "leadsTarget": "Leads target",
+      "revenueTarget": "Revenue target (SEK)",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save": "Save target"
+    },
+    "actions": {
+      "edit": "Edit",
+      "fullYear": "full year"
+    },
+    "toasts": {
+      "nameEmailRequired": "Name and email are required",
+      "saved": "Target saved",
+      "deleted": "Target deleted",
+      "csvExported": "CSV exported"
+    },
+    "deleteConfirm": "Delete target for {name} — {period}?"
+  },
+  "settingsBranches": {
+    "breadcrumb": "Einstellungen",
+    "nav": "Filialen",
+    "title": "Filialen und Standorte",
+    "subtitle": "Manage dealership locations and assign staff",
+    "newBranch": "Neue Filiale",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "empty": {
+      "title": "No branches yet",
+      "subtitle": "Create your first branch to start assigning staff and leads",
+      "button": "Create branch"
+    },
+    "actions": {
+      "edit": "Edit",
+      "deactivate": "Deactivate",
+      "activate": "Activate"
+    },
+    "form": {
+      "titleNew": "New branch",
+      "titleEdit": "Edit branch",
+      "name": "Branch name *",
+      "namePlaceholder": "e.g. Stockholm North",
+      "address": "Address",
+      "addressPlaceholder": "Street 1",
+      "city": "City",
+      "phone": "Phone",
+      "manager": "Manager",
+      "active": "Branch is active",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save": "Save changes",
+      "create": "Create branch"
+    },
+    "toasts": {
+      "nameRequired": "Name is required",
+      "updated": "Branch updated",
+      "created": "Branch created",
+      "deleted": "Branch deleted"
+    },
+    "deleteConfirm": "Delete branch {name}? Leads and staff connected to it are not affected."
   }
 }

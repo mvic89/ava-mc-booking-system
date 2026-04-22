@@ -1577,29 +1577,124 @@
     "subtitle": "بيانات في الوقت الفعلي من المبيعات والعملاء المحتملين والعملاء",
     "tabs": {
       "overview": "نظرة عامة",
-      "sources": "تحليل المصدر",
+      "sources": "تحليل المصادر",
       "margins": "تحليل الهامش",
       "leaderboard": "قائمة المتصدرين"
     },
-    "stats": {
-      "closed": "مغلق",
+    "kpi": {
+      "totalRevenue": "إجمالي الإيرادات",
+      "avgOrder": "متوسط قيمة الطلب",
+      "convRate": "معدل التحويل",
       "grossProfit": "الربح الإجمالي",
+      "avgMargin": "متوسط الهامش",
+      "totalCustomers": "إجمالي العملاء",
+      "pendingInvoices": "الفواتير المعلقة",
+      "totalGrossProfit": "إجمالي الربح الإجمالي",
+      "bestDeal": "أفضل صفقة",
+      "totalClosed": "إجمالي المغلقة",
+      "totalLeads": "إجمالي العملاء المحتملين",
+      "uniqueSources": "مصادر فريدة",
+      "bestSource": "أفضل مصدر",
+      "avgConv": "متوسط التحويل"
+    },
+    "sub": {
+      "paidInvoices": "{n} فاتورة مدفوعة",
+      "perInvoice": "لكل فاتورة مدفوعة",
+      "paidOf": "{paid} من {total} فاتورة",
+      "dealsWithCost": "{n} صفقات بتكلفة",
+      "perDeal": "لكل صفقة مغلقة بتكلفة",
+      "vip": "{vip} VIP · {active} نشط",
+      "notPaid": "لم تُدفع بعد",
+      "noCost": "غير متاح",
+      "allChannels": "جميع القنوات",
+      "identifiedSources": "مصادر عملاء محتملين محددة",
+      "avgAllSources": "جميع المصادر مجتمعة",
+      "sourceRevenue": "{rev} إيرادات"
+    },
+    "series": {
+      "paid": "مدفوع",
+      "pending": "معلق",
       "revenue": "الإيرادات",
-      "conversion": "التحويل",
+      "grossProfit": "الربح الإجمالي",
+      "deals": "الصفقات",
       "leads": "العملاء المحتملون",
-      "salesperson": "مندوب المبيعات",
+      "avgDays": "متوسط الأيام"
+    },
+    "sections": {
+      "revenueTitle": "تطور الإيرادات — آخر 12 شهرًا",
+      "revenueSub": "الفواتير المدفوعة والمعلقة شهريًا (kr)",
+      "invoicesTitle": "الفواتير شهريًا",
+      "invoicesSub": "آخر 6 أشهر (عدد)",
+      "paymentTitle": "طرق الدفع",
+      "paymentSub": "توزيع الفواتير المدفوعة",
+      "customersTitle": "شرائح العملاء",
+      "customersSub": "{n} عميل إجمالاً",
+      "reportsTitle": "📧 التقارير المجدولة",
+      "reportsSub": "كل يوم اثنين الساعة 08:00 يتم إرسال ملخص أسبوعي تلقائيًا إلى البريد الإلكتروني للمسؤول.",
+      "reportsHint": "قم بتكوين SMTP من الإعدادات ← التكاملات.",
+      "sellerTitle": "الإيرادات لكل بائع",
+      "sellerSub": "إجمالي من الصفقات المغلقة",
+      "leaderboardTitle": "قائمة المتصدرين الكاملة",
+      "grossTitle": "الربح الإجمالي شهريًا — آخر 12 شهرًا",
+      "grossSub": "الإيرادات مقابل الربح الإجمالي (kr)",
+      "brandTitle": "الإيرادات حسب العلامة التجارية (أعلى 10)",
+      "brandSub": "الصفقات المغلقة مرتبة حسب الإيرادات",
+      "marginTitle": "توزيع الهامش",
+      "marginSub": "عدد الصفقات لكل نطاق هامش",
+      "turnoverTitle": "دوران المخزون — متوسط الوقت في المسار",
+      "turnoverSub": "متوسط الأيام من إنشاء العميل المحتمل إلى الإغلاق، حسب العلامة التجارية",
+      "sourceRoiTitle": "تحليل المصادر — العائد على الاستثمار لكل مصدر",
+      "sourceRoiSub": "العملاء المحتملون والتحويل والإيرادات مقسمة حسب المصدر",
+      "sourceVolTitle": "حجم العملاء المحتملين حسب المصدر",
+      "sourceVolSub": "إجمالي عدد العملاء المحتملين",
+      "sourceRevTitle": "الإيرادات حسب المصدر",
+      "sourceRevSub": "إجمالي من الصفقات المغلقة",
+      "sourceConvTitle": "معدل التحويل حسب المصدر",
+      "sourceConvSub": "نسبة العملاء المحتملين الذين أصبحوا صفقات مغلقة"
+    },
+    "table": {
+      "rank": "الترتيب",
+      "salesperson": "البائع",
+      "leads": "العملاء المحتملون",
+      "closed": "المغلقة",
+      "conv": "التحويل",
+      "revenue": "الإيرادات",
+      "revenuePct": "الإيرادات %",
+      "grossProfit": "الربح الإجمالي",
       "avgDeal": "متوسط الصفقة",
-      "rank": "الترتيب"
+      "source": "المصدر",
+      "totalRevenue": "إجمالي الإيرادات"
+    },
+    "leaderboard": {
+      "rankTotal": "#{n} إجمالاً",
+      "revenueLabel": "الإيرادات",
+      "closedLabel": "المغلقة",
+      "ofLeads": "{closed} من {total} عميل محتمل",
+      "convLabel": "التحويل",
+      "avgDealLabel": "متوسط الصفقة",
+      "grossLabel": "الربح الإجمالي",
+      "target": "الهدف: {val}",
+      "vsTarget": "الهدف مقابل النتيجة ({year})"
     },
     "empty": {
-      "invoices": "لا توجد فواتير مدفوعة بعد",
-      "leads": "لا يوجد عملاء محتملون بعد",
-      "closed": "لا توجد صفقات مغلقة بعد",
-      "brands": "لا توجد بيانات علامات تجارية بعد",
-      "salespeople": "لا يوجد مندوبو مبيعات بعد"
+      "invoices": "لا توجد فواتير مدفوعة بعد.",
+      "leads": "لا يوجد عملاء محتملون بعد.",
+      "closed": "لا توجد صفقات مغلقة بعد.",
+      "brands": "لا توجد صفقات مغلقة ببيانات العلامة التجارية.",
+      "salespeople": "لا يوجد مندوبو مبيعات بعد.",
+      "salespeopleSub": "يتم تسجيل أسماء مندوبي المبيعات تلقائيًا على العملاء المحتملين الجدد."
     },
-    "marginNote": "أخضر ≥ 10% · أصفر 5-10% · أحمر < 5%",
-    "timeNote": "أخضر ≤ 14 يوم · أصفر ≤ 30 يوم · أحمر > 30 يوم"
+    "reports": {
+      "send": "إرسال تقرير تجريبي",
+      "sending": "جارٍ الإرسال…",
+      "success": "تم إرسال الملخص الأسبوعي إلى {email}",
+      "error": "تعذر إرسال التقرير"
+    },
+    "unauthorized": "ليس لديك إذن للوصول إلى التحليلات.",
+    "marginNote": "أخضر ≥ 10 % · أصفر 5–10 % · أحمر < 5 %",
+    "timeNote": "أخضر ≤ 14 د · أصفر ≤ 30 د · أحمر > 30 د",
+    "daysAvg": "{n} يوم متوسط ({count} صفقات)",
+    "avgPipeline": "متوسط المسار"
   },
   "purchase": {
     "title": "أوامر الشراء",
@@ -1692,5 +1787,779 @@
     "previewLegalNote": "تم توقيع هذا المستند بـ BankID ويشكل توقيعًا إلكترونيًا صالحًا وفقًا لـ Signaturlagen (2000:832). تم تخزين التحقق من OCSP والطابع الزمني.",
     "previewArchive": "مؤرشف لمدة 7 سنوات · Bokföringslagen",
     "previewOpen": "فتح →"
+  },
+  "tasks": {
+    "title": "المهام والتذكيرات",
+    "subtitle": "تتبع ما يجب القيام به",
+    "newTask": "مهمة جديدة",
+    "overdueCount": "{count} متأخرة",
+    "todayCount": "{count} اليوم",
+    "openTotal": "{count} مفتوحة إجمالاً",
+    "filters": {
+      "open": "مفتوحة",
+      "done": "مكتملة",
+      "all": "الكل",
+      "allTypes": "جميع الأنواع"
+    },
+    "types": {
+      "call": "اتصال",
+      "email": "بريد إلكتروني",
+      "meeting": "اجتماع",
+      "follow_up": "متابعة",
+      "other": "أخرى"
+    },
+    "priorities": {
+      "high": "عالية",
+      "medium": "متوسطة",
+      "low": "منخفضة"
+    },
+    "empty": {
+      "title": "لا توجد مهام للعرض",
+      "openHint": "لا توجد مهام مفتوحة — كل شيء منجز!",
+      "defaultHint": "أنشئ مهمة للبدء."
+    },
+    "badge": {
+      "overdue": "متأخرة",
+      "today": "اليوم"
+    },
+    "relative": {
+      "today": "اليوم",
+      "tomorrow": "غداً",
+      "yesterday": "أمس",
+      "daysAgo": "منذ {n} يوم"
+    },
+    "modal": {
+      "title": "مهمة جديدة",
+      "titleLabel": "العنوان *",
+      "titlePlaceholder": "ماذا يجب فعله؟",
+      "type": "النوع",
+      "priority": "الأولوية",
+      "dueDate": "تاريخ الاستحقاق",
+      "assignedTo": "مسند إلى",
+      "description": "الوصف (اختياري)",
+      "descPlaceholder": "تفاصيل إضافية...",
+      "cancel": "إلغاء",
+      "save": "حفظ المهمة",
+      "saving": "جاري الحفظ..."
+    },
+    "toast": {
+      "created": "تم إنشاء المهمة",
+      "done": "تم تعليم المهمة كمكتملة",
+      "deleted": "تم حذف المهمة",
+      "error": "تعذر إنشاء المهمة"
+    },
+    "deleteTitle": "حذف"
+  },
+  "calendar": {
+    "newBooking": "حجز جديد",
+    "today": "اليوم",
+    "month": "شهر",
+    "week": "أسبوع",
+    "types": {
+      "test_drive": "تجربة قيادة",
+      "meeting": "اجتماع",
+      "delivery": "تسليم",
+      "viewing": "معاينة"
+    },
+    "statuses": {
+      "scheduled": "مجدول",
+      "confirmed": "مؤكد",
+      "cancelled": "ملغى",
+      "completed": "مكتمل"
+    },
+    "bookingsCount": "حجز",
+    "more": "+{n} أكثر",
+    "noVehicles": "لا توجد مركبات",
+    "modal": {
+      "title": "حجز جديد",
+      "bookingType": "نوع الحجز",
+      "optionalTitle": "العنوان (اختياري)",
+      "startTime": "وقت البدء *",
+      "endTime": "وقت الانتهاء *",
+      "customer": "العميل",
+      "staff": "مندوب المبيعات",
+      "vehicle": "المركبة",
+      "vehicleSearch": "البحث عن مركبات في المخزون...",
+      "notes": "ملاحظات",
+      "cancel": "إلغاء",
+      "book": "حجز"
+    },
+    "detail": {
+      "confirm": "✓ تأكيد الحجز",
+      "markDone": "✓ تعليم كمكتمل",
+      "cancel": "إلغاء الحجز",
+      "delete": "حذف الحجز"
+    },
+    "toast": {
+      "created": "تم إنشاء الحجز",
+      "updated": "تم تحديث الحالة",
+      "deleted": "تم حذف الحجز",
+      "timesRequired": "الرجاء إدخال وقت البدء والانتهاء",
+      "conflict": "تعارض: {error}"
+    }
+  },
+  "commissions": {
+    "title": "سجل العمولات",
+    "subtitle": "عمولات مندوبي المبيعات لكل صفقة",
+    "addButton": "+ عمولة",
+    "kpi": {
+      "total": "إجمالي العمولات",
+      "deals": "قيمة الصفقات",
+      "pending": "معتمد، غير مدفوع",
+      "count": "عدد الصفقات"
+    },
+    "perSeller": "لكل مندوب",
+    "dealUnit": "صفقة",
+    "dealUnitPlural": "صفقات",
+    "statuses": {
+      "pending": "قيد الانتظار",
+      "approved": "معتمد",
+      "paid": "مدفوع",
+      "voided": "ملغى",
+      "all": "الكل"
+    },
+    "months": [
+      "يناير",
+      "فبراير",
+      "مارس",
+      "أبريل",
+      "مايو",
+      "يونيو",
+      "يوليو",
+      "أغسطس",
+      "سبتمبر",
+      "أكتوبر",
+      "نوفمبر",
+      "ديسمبر"
+    ],
+    "empty": {
+      "title": "لا توجد عمولات في هذه الفترة",
+      "desc": "يتم تسجيل العمولات تلقائياً عند إغلاق الصفقات."
+    },
+    "table": {
+      "seller": "المندوب",
+      "customerVehicle": "العميل / المركبة",
+      "dealValue": "قيمة الصفقة",
+      "rate": "النسبة",
+      "commission": "العمولة",
+      "status": "الحالة",
+      "date": "التاريخ"
+    },
+    "actions": {
+      "approve": "اعتماد",
+      "markPaid": "تعليم كمدفوع"
+    },
+    "modal": {
+      "title": "تسجيل عمولة",
+      "seller": "المندوب *",
+      "customer": "العميل",
+      "leadId": "معرف العميل المحتمل",
+      "vehicle": "المركبة",
+      "dealValue": "قيمة الصفقة (ك.ر) *",
+      "commissionRate": "العمولة (%)",
+      "estimated": "العمولة المقدرة:",
+      "notes": "ملاحظات",
+      "cancel": "إلغاء",
+      "save": "حفظ",
+      "saving": "جاري الحفظ..."
+    },
+    "toast": {
+      "created": "تم تسجيل العمولة",
+      "updated": "تم تحديث الحالة",
+      "error": "فشلت العملية"
+    }
+  },
+  "cancellations": {
+    "title": "الإلغاءات والمبالغ المستردة",
+    "subtitle": "جميع الصفقات الملغاة والمبالغ المستردة",
+    "kpi": {
+      "total": "إجمالي الإلغاءات",
+      "refunds": "إجمالي المبالغ المستردة",
+      "pending": "مبالغ مستردة معلقة",
+      "topReason": "السبب الأكثر شيوعاً"
+    },
+    "filters": {
+      "all": "الكل",
+      "open": "مفتوحة",
+      "closed": "مغلقة"
+    },
+    "reasons": {
+      "changed_mind": "غيّر رأيه",
+      "financial": "مالي",
+      "found_elsewhere": "وجد في مكان آخر",
+      "financing_denied": "رُفض التمويل",
+      "other": "سبب آخر"
+    },
+    "refundStatus": {
+      "pending": "قيد الانتظار",
+      "sent": "مُرسل",
+      "confirmed": "مؤكد"
+    },
+    "empty": {
+      "title": "لا توجد إلغاءات للعرض",
+      "desc": "يتم تسجيل الصفقات الملغاة هنا تلقائياً."
+    },
+    "table": {
+      "date": "التاريخ",
+      "customer": "العميل",
+      "vehicle": "المركبة",
+      "reason": "السبب",
+      "refund": "المبلغ المسترد",
+      "refundStatus": "حالة الاسترداد",
+      "by": "بواسطة"
+    }
+  },
+  "tradeIns": {
+    "title": "إدارة السيارات المستبدلة",
+    "subtitle": "تقييم وإدارة مركبات المبادلة",
+    "kpi": {
+      "total": "إجمالي المبادلات",
+      "value": "إجمالي قيمة الائتمان",
+      "pending": "في انتظار الاستلام",
+      "received": "تم الاستلام"
+    },
+    "statuses": {
+      "pending": "قيد الانتظار",
+      "completed": "تم الاستلام",
+      "cancelled": "ملغى",
+      "all": "الكل"
+    },
+    "conditions": {
+      "excellent": "ممتاز",
+      "good": "جيد",
+      "fair": "مقبول",
+      "poor": "سيئ"
+    },
+    "empty": {
+      "title": "لا توجد مركبات للمبادلة",
+      "desc": "استخدم الآلة الحاسبة أعلاه لتقييم وحفظ مبادلة."
+    },
+    "table": {
+      "vehicle": "المركبة",
+      "regVin": "رقم اللوحة / VIN",
+      "mileage": "عداد المسافة",
+      "value": "قيمة المبادلة",
+      "status": "الحالة",
+      "lead": "العميل المحتمل",
+      "date": "التاريخ"
+    },
+    "valuation": {
+      "title": "تقييم المبادلة",
+      "brand": "العلامة التجارية *",
+      "model": "الموديل *",
+      "year": "السنة",
+      "mileageKm": "عداد المسافة (كم)",
+      "regNr": "رقم اللوحة",
+      "color": "اللون",
+      "marketValue": "القيمة السوقية (ك.ر)",
+      "marketHint": "تحقق من موقع السيارات للسعر المرجعي",
+      "condition": "الحالة",
+      "estimatedValue": "القيمة المقدرة للمبادلة",
+      "marketLabel": "القيمة السوقية:",
+      "conditionAdj": "معامل الحالة:",
+      "ageDiscount": "خصم العمر:",
+      "mileageDiscount": "خصم المسافة:",
+      "leadId": "معرف العميل المحتمل *",
+      "vin": "VIN",
+      "notes": "ملاحظات",
+      "notesPlaceholder": "خدش في الخزان...",
+      "saveButton": "حفظ المبادلة للعميل",
+      "saving": "جاري الحفظ...",
+      "leadIdPlaceholder": "رقم العميل المحتمل"
+    },
+    "toast": {
+      "saved": "تم حفظ مركبة المبادلة",
+      "error": "فشلت العملية",
+      "required": "معرف العميل والعلامة التجارية والموديل مطلوبة"
+    }
+  },
+  "warranties": {
+    "title": "إدارة الضمانات",
+    "subtitle": "الضمانات النشطة والمطالبات",
+    "addButton": "+ تسجيل ضمان",
+    "kpi": {
+      "active": "الضمانات النشطة",
+      "coverage": "إجمالي التغطية",
+      "expiring": "تنتهي خلال 30 يوماً",
+      "claims": "مطالبات مفتوحة"
+    },
+    "types": {
+      "standard": "قياسي",
+      "extended": "موسع",
+      "manufacturer": "المصنع",
+      "third_party": "طرف ثالث"
+    },
+    "statuses": {
+      "active": "نشط",
+      "expired": "منتهي",
+      "claimed": "مطالبة",
+      "cancelled": "ملغى",
+      "voided": "لاغٍ",
+      "all": "الكل"
+    },
+    "expiresIn": "تنتهي في {days} أيام",
+    "expired": "منتهية",
+    "empty": {
+      "title": "لا توجد ضمانات",
+      "desc": "تُعرض الضمانات المسجلة هنا."
+    },
+    "table": {
+      "vehicle": "المركبة",
+      "type": "النوع",
+      "provider": "المزود",
+      "period": "الفترة",
+      "coverage": "التغطية",
+      "status": "الحالة"
+    },
+    "actions": {
+      "claim": "مطالبة"
+    },
+    "modal": {
+      "title": "تسجيل ضمان",
+      "vehicle": "المركبة *",
+      "vin": "VIN",
+      "regNr": "رقم اللوحة",
+      "type": "النوع",
+      "provider": "المزود",
+      "policyNumber": "رقم الوثيقة",
+      "startDate": "تاريخ البدء *",
+      "endDate": "تاريخ الانتهاء *",
+      "maxCoverage": "الحد الأقصى للتغطية (ك.ر)",
+      "leadId": "معرف العميل المحتمل",
+      "notes": "ملاحظات",
+      "cancel": "إلغاء",
+      "save": "تسجيل",
+      "saving": "جاري الحفظ..."
+    },
+    "claimModal": {
+      "title": "مطالبة – {vehicle}",
+      "policyNr": "رقم الوثيقة: {nr}",
+      "amount": "مبلغ المطالبة (ك.ر)",
+      "details": "التفاصيل *",
+      "detailsPlaceholder": "وصف المشكلة...",
+      "cancel": "إلغاء",
+      "save": "تسجيل المطالبة",
+      "saving": "جاري الحفظ..."
+    },
+    "toast": {
+      "created": "تم تسجيل الضمان",
+      "claim": "تم تسجيل المطالبة",
+      "error": "فشلت العملية"
+    }
+  },
+  "reservations": {
+    "title": "الحجوزات والدفعات المقدمة",
+    "subtitle": "تتبع حجوزات المركبات والدفعات المدفوعة",
+    "addButton": "+ حجز جديد",
+    "kpi": {
+      "active": "الحجوزات النشطة",
+      "deposits": "الدفعات المقدمة المدفوعة",
+      "expiring": "تنتهي قريباً (< 48 ساعة)",
+      "total": "الإجمالي"
+    },
+    "statuses": {
+      "active": "نشط",
+      "converted": "محوّل",
+      "expired": "منتهي",
+      "cancelled": "ملغى",
+      "refunded": "مُسترد",
+      "all": "الكل"
+    },
+    "depositPaid": "مدفوع",
+    "depositUnpaid": "غير مدفوع",
+    "expiringSoon": "تنتهي قريباً!",
+    "expired": "منتهية",
+    "empty": {
+      "title": "لا توجد حجوزات",
+      "desc": "تُعرض المركبات المحجوزة والدفعات المقدمة هنا."
+    },
+    "table": {
+      "customer": "العميل",
+      "vehicle": "المركبة",
+      "deposit": "الدفعة المقدمة",
+      "validUntil": "صالح حتى",
+      "status": "الحالة",
+      "reservedBy": "محجوز بواسطة"
+    },
+    "actions": {
+      "convert": "تحويل",
+      "cancel": "إلغاء"
+    },
+    "modal": {
+      "title": "حجز جديد",
+      "leadId": "معرف العميل المحتمل *",
+      "reservedBy": "محجوز بواسطة",
+      "reservedByPlaceholder": "مندوب المبيعات",
+      "vehicle": "المركبة *",
+      "vinReg": "VIN / رقم اللوحة",
+      "vinRegPlaceholder": "VIN أو رقم اللوحة",
+      "deposit": "الدفعة المقدمة (ك.ر)",
+      "paymentMethod": "طريقة الدفع",
+      "paymentPlaceholder": "بطاقة / تحويل",
+      "depositPaid": "الدفعة المقدمة مدفوعة",
+      "validUntil": "صالح حتى",
+      "customerInfo": "معلومات العميل",
+      "customerName": "الاسم",
+      "customerPhone": "الهاتف",
+      "customerEmail": "البريد الإلكتروني",
+      "notes": "ملاحظات",
+      "cancel": "إلغاء",
+      "save": "حفظ الحجز",
+      "saving": "جاري الحفظ..."
+    },
+    "toast": {
+      "created": "تم إنشاء الحجز",
+      "updated": "تم تحديث الحالة",
+      "error": "فشلت العملية"
+    }
+  },
+  "offer": {
+    "sellerView": "عرض البائع",
+    "title": "BikeMenuNow",
+    "module": "وحدة",
+    "offers": "العروض",
+    "testRides": "تجارب القيادة",
+    "stats": {
+      "new": "جديدة",
+      "reviewing": "قيد المراجعة",
+      "sent": "مرسلة",
+      "booked": "محجوزة",
+      "completed": "مكتملة"
+    },
+    "statuses": {
+      "new": "جديد",
+      "reviewing": "قيد المراجعة",
+      "sent": "مرسل",
+      "accepted": "مقبول",
+      "declined": "مرفوض"
+    },
+    "table": {
+      "customer": "العميل",
+      "motorcycle": "الدراجة النارية",
+      "date": "التاريخ",
+      "payment": "الدفع",
+      "tradeIn": "مبادلة",
+      "accessories": "إكسسوارات",
+      "status": "الحالة"
+    },
+    "payment": {
+      "cash": "نقداً",
+      "financing": "تمويل"
+    },
+    "yes": "نعم",
+    "no": "لا",
+    "open": "فتح →",
+    "biketesting": {
+      "title": "رحلات الاختبار",
+      "back": "عروض",
+      "stats": {
+        "scheduled": "مجدولة",
+        "completed": "مكتملة"
+      },
+      "testStatuses": {
+        "scheduled": "محجوزة",
+        "completed": "مكتملة"
+      },
+      "table": {
+        "customer": "العميل",
+        "motorcycle": "الدراجة النارية",
+        "requestedDate": "التاريخ المطلوب",
+        "submitted": "تاريخ التقديم",
+        "seller": "البائع",
+        "status": "الحالة"
+      },
+      "waiting": "في الانتظار",
+      "sign": "وقّع →",
+      "view": "عرض →",
+      "mobile": {
+        "customerSigned": "العميل ✓",
+        "sellerSigned": "البائع ✓",
+        "sellerWaiting": "البائع في الانتظار"
+      },
+      "detail": {
+        "requestedDate": "التاريخ المطلوب:",
+        "driver": "السائق",
+        "name": "الاسم",
+        "personalNumber": "رقم الهوية",
+        "phone": "الهاتف",
+        "email": "البريد الإلكتروني",
+        "address": "العنوان",
+        "zipCode": "الرمز البريدي",
+        "termsTitle": "الشروط والأحكام",
+        "termsText": "رحلة اختبار بحد أقصى 15 دقيقة بالقرب من الوكالة. تحمّل {excess} كرونة عند الضرر الناجم عن السائق. وافق العميل على هذه الشروط ووقّع بـ BankID.",
+        "signatures": "التوقيعات"
+      }
+    },
+    "offert": {
+      "back": "العروض",
+      "customerSection": "العميل",
+      "fields": {
+        "name": "الاسم",
+        "email": "البريد الإلكتروني",
+        "phone": "الهاتف",
+        "payment": "الدفع"
+      },
+      "preferences": "تفضيلات العميل",
+      "tradeInLabel": "استبدال",
+      "noTradeIn": "لا استبدال",
+      "accessoriesLabel": "الملحقات",
+      "noAccessories": "لا ملحقات",
+      "messageLabel": "رسالة",
+      "sellerSection": "إضافات البائع"
+    },
+    "offerBuilder": {
+      "sentTitle": "تم إرسال العرض",
+      "sentDesc": "تم إرسال العرض إلى {name} على {email}.",
+      "backToDashboard": "← العودة إلى لوحة التحكم",
+      "tradeInSection": "تقييم الاستبدال",
+      "tradeIn": {
+        "make": "الماركة",
+        "model": "الموديل",
+        "year": "السنة",
+        "mileage": "المسافة المقطوعة",
+        "estimatedValue": "قيمة الاستبدال المقدّرة (كرونة)",
+        "hint": "يُخصم من السعر الإجمالي"
+      },
+      "accessoriesSection": "الملحقات — التسعير",
+      "accessoriesPlaceholder": "السعر (كرونة)",
+      "customerNote": "ملاحظة العميل:",
+      "offerSection": "تفاصيل العرض",
+      "regFee": "رسوم التسجيل (كرونة)",
+      "discount": "خصم (كرونة)",
+      "extWarranty": "ضمان ممتد",
+      "include": "تضمين",
+      "notIncluded": "غير مدرج",
+      "deliveryDate": "تاريخ التسليم",
+      "validity": "مدة صلاحية العرض (أيام)",
+      "sellerComment": "تعليق البائع",
+      "commentPlaceholder": "شروط أو معلومات إضافية للعميل...",
+      "priceSection": "ملخص السعر",
+      "price": {
+        "listPrice": "سعر القائمة",
+        "accessories": "الملحقات",
+        "regFee": "رسوم التسجيل",
+        "extWarranty": "ضمان ممتد",
+        "discount": "خصم",
+        "tradeInValue": "قيمة الاستبدال",
+        "total": "الإجمالي"
+      },
+      "financing": "تمويل عبر Santander — يتم التحقق من الائتمان بشكل منفصل.",
+      "sendButton": "إرسال العرض إلى {name}",
+      "sendNote": "سيُرسل العرض إلى {email} وهو صالح لمدة {days} يوم."
+    },
+    "sellerSignOff": {
+      "customerSignature": "توقيع العميل",
+      "signed": "✓ موقّع",
+      "viaBankId": "عبر BankID",
+      "sellerSignature": "توقيع البائع",
+      "sellerConfirm": "وقّع لتأكيد اكتمال رحلة الاختبار وفق الشروط.",
+      "waiting": "في انتظار BankID...",
+      "openApp": "افتح التطبيق وأقرّ التوقيع.",
+      "sellerLabel": "AVA MC — البائع",
+      "signButton": "توقيع الإتمام",
+      "completedTitle": "وثيقة مكتملة",
+      "vehicle": "المركبة",
+      "driver": "السائق",
+      "personalNumber": "رقم الهوية",
+      "date": "التاريخ",
+      "maxTime": "الحد الأقصى للوقت",
+      "maxTimeValue": "15 دقيقة",
+      "excess": "التحمّل",
+      "excessValue": "15 000 كرونة عند الضرر",
+      "customer": "العميل",
+      "seller": "البائع"
+    }
+  },
+  "settingsProfile": {
+    "breadcrumb": "الإعدادات",
+    "title": "ملف الوكالة",
+    "subtitle": "اسم الشركة، العنوان، رقم المنظمة، الشعار وبيانات الاتصال",
+    "saving": "جارٍ الحفظ…",
+    "save": "💾 حفظ التغييرات",
+    "backToSettings": "← العودة إلى الإعدادات",
+    "sections": {
+      "company": "Company information",
+      "address": "Address",
+      "contact": "Contact details",
+      "banking": "Banking details",
+      "sms": "SMS (Twilio)",
+      "notifEmails": "Notification Emails",
+      "cover": "Cover image — Dashboard background",
+      "logo": "Logo"
+    },
+    "fields": {
+      "companyName": "Company name",
+      "orgNr": "Organisation number",
+      "orgNrHint": "Format: 556123-4567",
+      "vat": "VAT number",
+      "vatHint": "Derived automatically from org. no.",
+      "fSkatt": "F-tax certificate registered",
+      "street": "Street address",
+      "postalCode": "Postal code",
+      "city": "City",
+      "county": "County",
+      "phone": "Phone",
+      "email": "Email",
+      "emailDomain": "Company email domain",
+      "emailDomainHint": "Used when inviting staff",
+      "website": "Website",
+      "bankName": "Bank",
+      "bankNameHint": "Bank name",
+      "bankgiro": "Bankgiro number",
+      "bankgiroHint": "Format: 1234-5678",
+      "swish": "Swish (business number)",
+      "swishHint": "10 digits",
+      "iban": "IBAN",
+      "ibanHint": "International bank account number",
+      "bic": "BIC / SWIFT",
+      "bicHint": "Bank identifier code",
+      "twilioSid": "Account SID",
+      "twilioSidHint": "Starts with AC…",
+      "twilioToken": "Auth Token",
+      "twilioTokenHint": "Secret — never share with customers",
+      "twilioFrom": "Sender number",
+      "twilioFromHint": "E.164 format, e.g. +46701234567",
+      "deliveryEmail": "Delivery Note Email",
+      "deliveryEmailHint": "Receives email when a delivery note arrives.",
+      "invoiceEmail": "Invoice Email",
+      "invoiceEmailHint": "Receives purchase invoices from suppliers.",
+      "coverTitle": "Upload cover image",
+      "coverDesc": "PNG, JPG or WebP · Max {maxKb} KB",
+      "logoTitle": "Upload logo",
+      "logoDesc": "PNG, JPG, SVG or WebP · Max {maxKb} KB"
+    },
+    "actions": {
+      "chooseImage": "📂 Choose image",
+      "chooseFile": "📂 Choose file",
+      "remove": "🗑 Remove",
+      "resizing": "Resizing…"
+    },
+    "messages": {
+      "saved": "Profile saved",
+      "saveError": "Could not save profile.",
+      "imageOnly": "Only image files allowed.",
+      "svgTooLarge": "SVG file is too large. Max {maxKb} KB.",
+      "svgNoCover": "SVG is not supported as cover image.",
+      "processError": "Could not process image.",
+      "resizing": "⏳ Resizing automatically…",
+      "compressed": "✓ Image compressed automatically",
+      "compressedTo": "✓ Image compressed to {maxKb} KB",
+      "coverUploaded": "✓ Cover image uploaded",
+      "logoUploaded": "✓ Logo uploaded"
+    },
+    "preview": "Preview — shown on agreements and invoices",
+    "noCoverImage": "No cover image",
+    "coverRatio": "16:9 recommended",
+    "noLogo": "No logo",
+    "coverDesc2": "Shown as background on dashboard."
+  },
+  "settingsTargets": {
+    "breadcrumb": "الإعدادات",
+    "nav": "أهداف المبيعات",
+    "title": "أهداف الأداء",
+    "subtitle": "Set and track targets per seller — leads and revenue",
+    "exportCSV": "تصدير CSV",
+    "newTarget": "هدف جديد",
+    "months": [
+      "كل العام",
+      "يناير",
+      "فبراير",
+      "مارس",
+      "أبريل",
+      "مايو",
+      "يونيو",
+      "يوليو",
+      "أغسطس",
+      "سبتمبر",
+      "أكتوبر",
+      "نوفمبر",
+      "ديسمبر"
+    ],
+    "table": {
+      "period": "Period",
+      "leadsTarget": "Leads target",
+      "leadsActual": "Leads actual",
+      "leadsPct": "Leads %",
+      "revenueTarget": "Revenue target",
+      "revenueActual": "Revenue actual",
+      "revenuePct": "Revenue %"
+    },
+    "staff": {
+      "totalActual": "Total actual:",
+      "leads": "leads",
+      "revenue": "Revenue:"
+    },
+    "empty": {
+      "title": "No targets set for {year}",
+      "subtitle": "Set targets for sellers to start tracking performance",
+      "button": "Set target"
+    },
+    "form": {
+      "title": "Set performance target",
+      "name": "Name *",
+      "email": "Email *",
+      "year": "Year",
+      "period": "Period",
+      "leadsTarget": "Leads target",
+      "revenueTarget": "Revenue target (SEK)",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save": "Save target"
+    },
+    "actions": {
+      "edit": "Edit",
+      "fullYear": "full year"
+    },
+    "toasts": {
+      "nameEmailRequired": "Name and email are required",
+      "saved": "Target saved",
+      "deleted": "Target deleted",
+      "csvExported": "CSV exported"
+    },
+    "deleteConfirm": "Delete target for {name} — {period}?"
+  },
+  "settingsBranches": {
+    "breadcrumb": "الإعدادات",
+    "nav": "الفروع",
+    "title": "الفروع والمواقع",
+    "subtitle": "Manage dealership locations and assign staff",
+    "newBranch": "فرع جديد",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "empty": {
+      "title": "No branches yet",
+      "subtitle": "Create your first branch to start assigning staff and leads",
+      "button": "Create branch"
+    },
+    "actions": {
+      "edit": "Edit",
+      "deactivate": "Deactivate",
+      "activate": "Activate"
+    },
+    "form": {
+      "titleNew": "New branch",
+      "titleEdit": "Edit branch",
+      "name": "Branch name *",
+      "namePlaceholder": "e.g. Stockholm North",
+      "address": "Address",
+      "addressPlaceholder": "Street 1",
+      "city": "City",
+      "phone": "Phone",
+      "manager": "Manager",
+      "active": "Branch is active",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save": "Save changes",
+      "create": "Create branch"
+    },
+    "toasts": {
+      "nameRequired": "Name is required",
+      "updated": "Branch updated",
+      "created": "Branch created",
+      "deleted": "Branch deleted"
+    },
+    "deleteConfirm": "Delete branch {name}? Leads and staff connected to it are not affected."
   }
 }

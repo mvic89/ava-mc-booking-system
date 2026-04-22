@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { useTranslations, useLocale } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
 import { getDealershipId } from '@/lib/tenant';
 
@@ -30,19 +31,8 @@ const STATUS_BADGE: Record<string, string> = {
   voided:   'bg-red-100 text-red-700',
 };
 
-const STATUS_LABEL: Record<string, string> = {
-  pending:  'Väntar',
-  approved: 'Godkänd',
-  paid:     'Utbetald',
-  voided:   'Ogiltig',
-};
-
 function fmtKr(n: number) {
   return n > 0 ? `${Math.round(n).toLocaleString('sv-SE')} kr` : '—';
-}
-
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('sv-SE', { year: '2-digit', month: '2-digit', day: '2-digit' });
 }
 
 // ─── New Commission Modal ──────────────────────────────────────────────────────
@@ -53,6 +43,7 @@ interface NewCommissionModalProps {
 }
 
 function NewCommissionModal({ dealershipId, onClose, onCreated }: NewCommissionModalProps) {
+  const t = useTranslations('commissions');
   const [form, setForm] = useState({
     salesperson: '', customerName: '', vehicleName: '',
     dealAmount: '', commissionRate: '3', leadId: '', notes: '',
@@ -71,11 +62,11 @@ function NewCommissionModal({ dealershipId, onClose, onCreated }: NewCommissionM
     setForm(f => ({ ...f, [field]: value }));
   }
 
-  const dealAmount  = parseFloat(form.dealAmount) || 0;
-  const rate        = parseFloat(form.commissionRate) || 0;
-  const commAmount  = Math.round(dealAmount * rate / 100);
+  const dealAmount = parseFloat(form.dealAmount) || 0;
+  const rate       = parseFloat(form.commissionRate) || 0;
+  const commAmount = Math.round(dealAmount * rate / 100);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.salesperson || !form.dealAmount) return;
     setSaving(true);
@@ -95,12 +86,12 @@ function NewCommissionModal({ dealershipId, onClose, onCreated }: NewCommissionM
       }),
     });
     if (res.ok) {
-      toast.success('Provision registrerad');
+      toast.success(t('toast.created'));
       onCreated();
       onClose();
     } else {
       const j = await res.json() as { error?: string };
-      toast.error(j.error ?? 'Misslyckades');
+      toast.error(j.error ?? t('toast.error'));
     }
     setSaving(false);
   }
@@ -110,54 +101,54 @@ function NewCommissionModal({ dealershipId, onClose, onCreated }: NewCommissionM
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-md p-6">
-        <h2 className="text-lg font-extrabold text-slate-900 mb-5">Registrera provision</h2>
+        <h2 className="text-lg font-extrabold text-slate-900 mb-5">{t('modal.title')}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Säljare *</label>
+            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{t('modal.seller')}</label>
             <input required className={inputCls} value={form.salesperson} onChange={e => set('salesperson', e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Kund</label>
+              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{t('modal.customer')}</label>
               <input className={inputCls} value={form.customerName} onChange={e => set('customerName', e.target.value)} />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Lead ID</label>
+              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{t('modal.leadId')}</label>
               <input type="number" className={inputCls} value={form.leadId} onChange={e => set('leadId', e.target.value)} />
             </div>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Fordon</label>
+            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{t('modal.vehicle')}</label>
             <input className={inputCls} value={form.vehicleName} onChange={e => set('vehicleName', e.target.value)} placeholder="Yamaha MT-07 2024" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Affärsvärde (kr) *</label>
+              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{t('modal.dealValue')}</label>
               <input required type="number" className={inputCls} value={form.dealAmount} onChange={e => set('dealAmount', e.target.value)} placeholder="89000" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Provision (%)</label>
+              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{t('modal.commissionRate')}</label>
               <input type="number" step="0.1" className={inputCls} value={form.commissionRate} onChange={e => set('commissionRate', e.target.value)} />
             </div>
           </div>
           {commAmount > 0 && (
             <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 flex items-center justify-between">
-              <span className="text-sm font-semibold text-emerald-700">Beräknad provision:</span>
+              <span className="text-sm font-semibold text-emerald-700">{t('modal.estimated')}</span>
               <span className="text-lg font-extrabold text-emerald-700">{fmtKr(commAmount)}</span>
             </div>
           )}
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Anteckningar</label>
+            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{t('modal.notes')}</label>
             <textarea className={inputCls + ' resize-none'} rows={2} value={form.notes} onChange={e => set('notes', e.target.value)} />
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={onClose}
               className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50">
-              Avbryt
+              {t('modal.cancel')}
             </button>
             <button type="submit" disabled={saving}
               className="px-6 py-2 rounded-xl bg-[#FF6B2C] text-white text-sm font-bold hover:bg-[#e55d22] disabled:opacity-40">
-              {saving ? 'Sparar...' : 'Spara'}
+              {saving ? t('modal.saving') : t('modal.save')}
             </button>
           </div>
         </form>
@@ -169,6 +160,8 @@ function NewCommissionModal({ dealershipId, onClose, onCreated }: NewCommissionM
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function CommissionsPage() {
   const router  = useRouter();
+  const t       = useTranslations('commissions');
+  const locale  = useLocale();
   const now     = new Date();
   const [commissions,  setCommissions]  = useState<Commission[]>([]);
   const [loading,      setLoading]      = useState(true);
@@ -217,7 +210,7 @@ export default function CommissionsPage() {
       body: JSON.stringify({ status, approvedBy: user?.name }),
     });
     if (res.ok) {
-      toast.success('Status uppdaterad');
+      toast.success(t('toast.updated'));
       load(dealershipId, statusFilter, year, month);
     }
   }
@@ -227,7 +220,6 @@ export default function CommissionsPage() {
   const pendingPay      = commissions.filter(c => c.status === 'approved').reduce((s, c) => s + c.commission_amount, 0);
   const totalDeals      = commissions.filter(c => c.status !== 'voided').reduce((s, c) => s + c.deal_amount, 0);
 
-  // Per-salesperson summary
   const byPerson = commissions
     .filter(c => c.status !== 'voided')
     .reduce<Record<string, { units: number; commission: number }>>((acc, c) => {
@@ -237,7 +229,29 @@ export default function CommissionsPage() {
       return acc;
     }, {});
 
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
+  const monthNames = Array.from({ length: 12 }, (_, i) =>
+    new Date(2024, i, 1).toLocaleDateString(locale, { month: 'short' })
+  );
+
+  function fmtDate(iso: string) {
+    return new Date(iso).toLocaleDateString(locale, { year: '2-digit', month: '2-digit', day: '2-digit' });
+  }
+
+  const statusKeys = ['all', 'pending', 'approved', 'paid', 'voided'] as const;
+  const statusLabels: Record<string, string> = {
+    all:      t('statuses.all'),
+    pending:  t('statuses.pending'),
+    approved: t('statuses.approved'),
+    paid:     t('statuses.paid'),
+    voided:   t('statuses.voided'),
+  };
+
+  const kpis = [
+    { label: t('kpi.total'),   value: fmtKr(totalCommission), icon: '💰', alert: false },
+    { label: t('kpi.deals'),   value: fmtKr(totalDeals),       icon: '📊', alert: false },
+    { label: t('kpi.pending'), value: fmtKr(pendingPay),       icon: '⏳', alert: pendingPay > 0 },
+    { label: t('kpi.count'),   value: commissions.filter(c => c.status !== 'voided').length, icon: '🤝', alert: false },
+  ];
 
   return (
     <div className="flex min-h-screen bg-[#f5f7fa]">
@@ -252,26 +266,25 @@ export default function CommissionsPage() {
         {/* Header */}
         <div className="px-6 md:px-8 py-6 bg-white border-b border-slate-100 flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900">Provisionsreskontra</h1>
-            <p className="text-sm text-slate-500 mt-0.5">Säljarprovisioner per affär</p>
+            <h1 className="text-2xl font-extrabold text-slate-900">{t('title')}</h1>
+            <p className="text-sm text-slate-500 mt-0.5">{t('subtitle')}</p>
           </div>
           <button
             onClick={() => setShowModal(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#FF6B2C] text-white text-sm font-bold hover:bg-[#e55d22] shadow transition-colors whitespace-nowrap">
-            + Provision
+            {t('addButton')}
           </button>
         </div>
 
         {/* Period selector + KPIs */}
         <div className="px-6 md:px-8 py-4 bg-white border-b border-slate-100">
-          {/* Month/year nav */}
           <div className="flex items-center gap-3 mb-4">
             <button onClick={() => {
               const d = new Date(year, month - 2, 1);
               setYear(d.getFullYear()); setMonth(d.getMonth() + 1);
             }} className="px-3 py-1.5 rounded-xl border border-slate-200 text-sm hover:bg-slate-50">←</button>
             <span className="font-bold text-slate-900 min-w-[120px] text-center">
-              {months[month - 1]} {year}
+              {monthNames[month - 1]} {year}
             </span>
             <button onClick={() => {
               const d = new Date(year, month, 1);
@@ -279,17 +292,12 @@ export default function CommissionsPage() {
             }} className="px-3 py-1.5 rounded-xl border border-slate-200 text-sm hover:bg-slate-50">→</button>
             <button onClick={() => { setYear(now.getFullYear()); setMonth(now.getMonth() + 1); }}
               className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-500 hover:bg-slate-50">
-              Idag
+              {t('statuses.all')}
             </button>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { label: 'Total provision', value: fmtKr(totalCommission), icon: '💰' },
-              { label: 'Affärsvärde', value: fmtKr(totalDeals), icon: '📊' },
-              { label: 'Godkänd, ej utbetald', value: fmtKr(pendingPay), icon: '⏳', alert: pendingPay > 0 },
-              { label: 'Antal affärer', value: commissions.filter(c => c.status !== 'voided').length, icon: '🤝' },
-            ].map(k => (
+            {kpis.map(k => (
               <div key={k.label} className={`rounded-2xl border p-4 ${k.alert ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-100'}`}>
                 <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">{k.icon} {k.label}</p>
                 <p className={`text-xl font-extrabold ${k.alert ? 'text-amber-700' : 'text-slate-900'}`}>{String(k.value)}</p>
@@ -301,7 +309,7 @@ export default function CommissionsPage() {
         {/* Per-salesperson summary */}
         {Object.keys(byPerson).length > 0 && (
           <div className="px-6 md:px-8 py-4 bg-white border-b border-slate-100">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Per säljare</p>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">{t('perSeller')}</p>
             <div className="flex flex-wrap gap-3">
               {Object.entries(byPerson).sort((a, b) => b[1].commission - a[1].commission).map(([name, data]) => (
                 <div key={name} className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-2.5 flex items-center gap-3">
@@ -310,7 +318,9 @@ export default function CommissionsPage() {
                   </div>
                   <div>
                     <p className="font-semibold text-slate-900 text-sm">{name}</p>
-                    <p className="text-xs text-slate-500">{data.units} affär{data.units !== 1 ? 'er' : ''} · {fmtKr(data.commission)}</p>
+                    <p className="text-xs text-slate-500">
+                      {data.units} {data.units !== 1 ? t('dealUnitPlural') : t('dealUnit')} · {fmtKr(data.commission)}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -321,10 +331,10 @@ export default function CommissionsPage() {
         {/* Filter */}
         <div className="px-6 md:px-8 py-3 bg-white border-b border-slate-100">
           <div className="flex bg-slate-100 rounded-xl p-1 gap-1 w-fit flex-wrap">
-            {(['all', 'pending', 'approved', 'paid', 'voided'] as const).map(s => (
+            {statusKeys.map(s => (
               <button key={s} onClick={() => setStatusFilter(s)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${statusFilter === s ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}>
-                {s === 'all' ? 'Alla' : STATUS_LABEL[s] ?? s}
+                {statusLabels[s]}
               </button>
             ))}
           </div>
@@ -339,16 +349,16 @@ export default function CommissionsPage() {
           ) : commissions.length === 0 ? (
             <div className="text-center py-20">
               <p className="text-5xl mb-3">💰</p>
-              <p className="font-bold text-slate-700 text-lg">Inga provisioner denna period</p>
-              <p className="text-sm text-slate-400 mt-1">Provisioner registreras automatiskt vid stängda affärer.</p>
+              <p className="font-bold text-slate-700 text-lg">{t('empty.title')}</p>
+              <p className="text-sm text-slate-400 mt-1">{t('empty.desc')}</p>
             </div>
           ) : (
             <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-100">
-                    {['Säljare', 'Kund / Fordon', 'Affärsvärde', 'Sats', 'Provision', 'Status', 'Datum', ''].map(h => (
-                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">{h}</th>
+                    {[t('table.seller'), t('table.customerVehicle'), t('table.dealValue'), t('table.rate'), t('table.commission'), t('table.status'), t('table.date'), ''].map((h, i) => (
+                      <th key={i} className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -365,7 +375,7 @@ export default function CommissionsPage() {
                       <td className="px-4 py-3 font-bold text-emerald-700">{fmtKr(c.commission_amount)}</td>
                       <td className="px-4 py-3">
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_BADGE[c.status] ?? 'bg-slate-100 text-slate-600'}`}>
-                          {STATUS_LABEL[c.status] ?? c.status}
+                          {statusLabels[c.status] ?? c.status}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-slate-400 text-xs whitespace-nowrap">{fmtDate(c.closed_at)}</td>
@@ -374,13 +384,13 @@ export default function CommissionsPage() {
                           {c.status === 'pending' && (
                             <button onClick={() => updateStatus(c.id, 'approved')}
                               className="text-xs text-blue-600 hover:underline font-medium whitespace-nowrap">
-                              Godkänn
+                              {t('actions.approve')}
                             </button>
                           )}
                           {c.status === 'approved' && (
                             <button onClick={() => updateStatus(c.id, 'paid')}
                               className="text-xs text-emerald-600 hover:underline font-medium whitespace-nowrap">
-                              Markera betald
+                              {t('actions.markPaid')}
                             </button>
                           )}
                           {c.lead_id && (

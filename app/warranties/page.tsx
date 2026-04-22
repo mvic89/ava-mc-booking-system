@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { useTranslations, useLocale } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
 import { getDealershipId } from '@/lib/tenant';
 
@@ -28,13 +29,6 @@ interface Warranty {
   created_at:      string;
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  standard:      'Standard',
-  extended:      'Utökad',
-  manufacturer:  'Tillverkare',
-  third_party:   'Tredje part',
-};
-
 const STATUS_BADGE: Record<string, string> = {
   active:    'bg-emerald-100 text-emerald-700',
   expired:   'bg-slate-100 text-slate-500',
@@ -43,20 +37,8 @@ const STATUS_BADGE: Record<string, string> = {
   voided:    'bg-red-100 text-red-700',
 };
 
-const STATUS_LABEL: Record<string, string> = {
-  active:    'Aktiv',
-  expired:   'Utgången',
-  claimed:   'Reklamation',
-  cancelled: 'Avslutad',
-  voided:    'Ogiltigförklarad',
-};
-
 function fmtKr(n: number) {
   return n > 0 ? `${Math.round(n).toLocaleString('sv-SE')} kr` : '—';
-}
-
-function fmtDate(d: string) {
-  return new Date(d).toLocaleDateString('sv-SE', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 function daysUntil(d: string) {
@@ -71,6 +53,7 @@ interface NewWarrantyModalProps {
 }
 
 function NewWarrantyModal({ dealershipId, onClose, onCreated }: NewWarrantyModalProps) {
+  const t = useTranslations('warranties');
   const [form, setForm] = useState({
     leadId: '', vehicleName: '', vin: '', registrationNr: '',
     type: 'standard', provider: '', policyNumber: '',
@@ -92,7 +75,7 @@ function NewWarrantyModal({ dealershipId, onClose, onCreated }: NewWarrantyModal
     }
   }, []);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.vehicleName || !form.endDate) return;
     setSaving(true);
@@ -116,85 +99,86 @@ function NewWarrantyModal({ dealershipId, onClose, onCreated }: NewWarrantyModal
       }),
     });
     if (res.ok) {
-      toast.success('Garanti registrerad');
+      toast.success(t('toast.created'));
       onCreated();
       onClose();
     } else {
       const j = await res.json() as { error?: string };
-      toast.error(j.error ?? 'Misslyckades');
+      toast.error(j.error ?? t('toast.error'));
     }
     setSaving(false);
   }
 
+  const typeKeys = ['standard', 'extended', 'manufacturer', 'third_party'] as const;
   const inputCls = 'w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF6B2C]';
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-lg my-8 p-6">
-        <h2 className="text-lg font-extrabold text-slate-900 mb-5">Registrera garanti</h2>
+        <h2 className="text-lg font-extrabold text-slate-900 mb-5">{t('modal.title')}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Fordon *</label>
+            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{t('modal.vehicle')}</label>
             <input required className={inputCls} value={form.vehicleName} onChange={e => set('vehicleName', e.target.value)} placeholder="Yamaha MT-07 2024" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">VIN</label>
+              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{t('modal.vin')}</label>
               <input className={inputCls} value={form.vin} onChange={e => set('vin', e.target.value)} />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Reg.nr</label>
+              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{t('modal.regNr')}</label>
               <input className={inputCls} value={form.registrationNr} onChange={e => set('registrationNr', e.target.value)} placeholder="ABC 123" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Typ</label>
+              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{t('modal.type')}</label>
               <select className={inputCls} value={form.type} onChange={e => set('type', e.target.value)}>
-                {Object.entries(TYPE_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                {typeKeys.map(v => <option key={v} value={v}>{t(`types.${v}`)}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Leverantör</label>
+              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{t('modal.provider')}</label>
               <input className={inputCls} value={form.provider} onChange={e => set('provider', e.target.value)} placeholder="Yamaha Motor SE" />
             </div>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Policynummer</label>
+            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{t('modal.policyNumber')}</label>
             <input className={inputCls} value={form.policyNumber} onChange={e => set('policyNumber', e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Startdatum *</label>
+              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{t('modal.startDate')}</label>
               <input type="date" required className={inputCls} value={form.startDate} onChange={e => set('startDate', e.target.value)} />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Slutdatum *</label>
+              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{t('modal.endDate')}</label>
               <input type="date" required className={inputCls} value={form.endDate} onChange={e => set('endDate', e.target.value)} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Max täckningsbelopp (kr)</label>
+              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{t('modal.maxCoverage')}</label>
               <input type="number" className={inputCls} value={form.coverageAmount} onChange={e => set('coverageAmount', e.target.value)} placeholder="50000" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Lead ID</label>
+              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{t('modal.leadId')}</label>
               <input type="number" className={inputCls} value={form.leadId} onChange={e => set('leadId', e.target.value)} />
             </div>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Anteckningar</label>
+            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{t('modal.notes')}</label>
             <textarea className={inputCls + ' resize-none'} rows={2} value={form.notes} onChange={e => set('notes', e.target.value)} />
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={onClose}
               className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50">
-              Avbryt
+              {t('modal.cancel')}
             </button>
             <button type="submit" disabled={saving}
               className="px-6 py-2 rounded-xl bg-[#FF6B2C] text-white text-sm font-bold hover:bg-[#e55d22] disabled:opacity-40">
-              {saving ? 'Sparar...' : 'Registrera'}
+              {saving ? t('modal.saving') : t('modal.save')}
             </button>
           </div>
         </form>
@@ -211,11 +195,12 @@ interface ClaimModalProps {
 }
 
 function ClaimModal({ warranty, onClose, onSaved }: ClaimModalProps) {
+  const t = useTranslations('warranties');
   const [claimAmount, setClaimAmount] = useState('');
   const [claimNotes,  setClaimNotes]  = useState('');
   const [saving,      setSaving]      = useState(false);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
     const res = await fetch(`/api/warranties/${warranty.id}`, {
@@ -229,11 +214,11 @@ function ClaimModal({ warranty, onClose, onSaved }: ClaimModalProps) {
       }),
     });
     if (res.ok) {
-      toast.success('Reklamation registrerad');
+      toast.success(t('toast.claim'));
       onSaved();
       onClose();
     } else {
-      toast.error('Misslyckades');
+      toast.error(t('toast.error'));
     }
     setSaving(false);
   }
@@ -243,25 +228,29 @@ function ClaimModal({ warranty, onClose, onSaved }: ClaimModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-md p-6">
-        <h2 className="text-lg font-extrabold text-slate-900 mb-1">Reklamation – {warranty.vehicle_name}</h2>
-        <p className="text-sm text-slate-500 mb-5">Policynr: {warranty.policy_number || '—'}</p>
+        <h2 className="text-lg font-extrabold text-slate-900 mb-1">
+          {t('claimModal.title', { vehicle: warranty.vehicle_name })}
+        </h2>
+        <p className="text-sm text-slate-500 mb-5">
+          {t('claimModal.policyNr', { nr: warranty.policy_number || '—' })}
+        </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Reklamationsbelopp (kr)</label>
+            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{t('claimModal.amount')}</label>
             <input type="number" className={inputCls} value={claimAmount} onChange={e => setClaimAmount(e.target.value)} placeholder="15000" />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Detaljer *</label>
-            <textarea required className={inputCls + ' resize-none'} rows={3} value={claimNotes} onChange={e => setClaimNotes(e.target.value)} placeholder="Beskriv felet..." />
+            <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">{t('claimModal.details')}</label>
+            <textarea required className={inputCls + ' resize-none'} rows={3} value={claimNotes} onChange={e => setClaimNotes(e.target.value)} placeholder={t('claimModal.detailsPlaceholder')} />
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={onClose}
               className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50">
-              Avbryt
+              {t('claimModal.cancel')}
             </button>
             <button type="submit" disabled={saving}
               className="px-6 py-2 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 disabled:opacity-40">
-              {saving ? 'Sparar...' : 'Registrera reklamation'}
+              {saving ? t('claimModal.saving') : t('claimModal.save')}
             </button>
           </div>
         </form>
@@ -273,6 +262,8 @@ function ClaimModal({ warranty, onClose, onSaved }: ClaimModalProps) {
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function WarrantiesPage() {
   const router  = useRouter();
+  const t       = useTranslations('warranties');
+  const locale  = useLocale();
   const [warranties,   setWarranties]   = useState<Warranty[]>([]);
   const [loading,      setLoading]      = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('active');
@@ -281,6 +272,26 @@ export default function WarrantiesPage() {
   const [user,         setUser]         = useState<{ dealershipId?: string } | null>(null);
 
   const dealershipId = user?.dealershipId ?? getDealershipId() ?? '';
+
+  const statusLabels: Record<string, string> = {
+    all:       t('statuses.all'),
+    active:    t('statuses.active'),
+    expired:   t('statuses.expired'),
+    claimed:   t('statuses.claimed'),
+    cancelled: t('statuses.cancelled'),
+    voided:    t('statuses.voided'),
+  };
+
+  const typeLabels: Record<string, string> = {
+    standard:     t('types.standard'),
+    extended:     t('types.extended'),
+    manufacturer: t('types.manufacturer'),
+    third_party:  t('types.third_party'),
+  };
+
+  function fmtDate(d: string) {
+    return new Date(d).toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' });
+  }
 
   const load = useCallback(async (did: string, sf: string) => {
     setLoading(true);
@@ -310,11 +321,17 @@ export default function WarrantiesPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter]);
 
-  // ── Stats ─────────────────────────────────────────────────────────────────
-  const active      = warranties.filter(w => w.status === 'active');
-  const expiring30  = active.filter(w => daysUntil(w.end_date) <= 30).length;
+  const active        = warranties.filter(w => w.status === 'active');
+  const expiring30    = active.filter(w => daysUntil(w.end_date) <= 30).length;
   const totalCoverage = active.reduce((s, w) => s + w.coverage_amount, 0);
-  const claimed     = warranties.filter(w => w.status === 'claimed').length;
+  const claimed       = warranties.filter(w => w.status === 'claimed').length;
+
+  const kpis = [
+    { label: t('kpi.active'),   value: active.length,   icon: '🛡️', alert: false },
+    { label: t('kpi.coverage'), value: fmtKr(totalCoverage), icon: '💰', alert: false },
+    { label: t('kpi.expiring'), value: expiring30,       icon: '⚠️', alert: expiring30 > 0 },
+    { label: t('kpi.claims'),   value: claimed,          icon: '📋', alert: claimed > 0 },
+  ];
 
   return (
     <div className="flex min-h-screen bg-[#f5f7fa]">
@@ -332,25 +349,20 @@ export default function WarrantiesPage() {
         {/* Header */}
         <div className="px-6 md:px-8 py-6 bg-white border-b border-slate-100 flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900">Garantihantering</h1>
-            <p className="text-sm text-slate-500 mt-0.5">Aktiva garantier och reklamationer</p>
+            <h1 className="text-2xl font-extrabold text-slate-900">{t('title')}</h1>
+            <p className="text-sm text-slate-500 mt-0.5">{t('subtitle')}</p>
           </div>
           <button
             onClick={() => setShowNew(true)}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#FF6B2C] text-white text-sm font-bold hover:bg-[#e55d22] shadow transition-colors whitespace-nowrap">
-            + Registrera garanti
+            {t('addButton')}
           </button>
         </div>
 
         {/* KPIs */}
         <div className="px-6 md:px-8 py-4 bg-white border-b border-slate-100">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { label: 'Aktiva garantier', value: active.length, icon: '🛡️' },
-              { label: 'Total täckning', value: fmtKr(totalCoverage), icon: '💰' },
-              { label: 'Utgår inom 30 dagar', value: expiring30, icon: '⚠️', alert: expiring30 > 0 },
-              { label: 'Öppna reklamationer', value: claimed, icon: '📋', alert: claimed > 0 },
-            ].map(k => (
+            {kpis.map(k => (
               <div key={k.label} className={`rounded-2xl border p-4 ${k.alert ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-100'}`}>
                 <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">{k.icon} {k.label}</p>
                 <p className={`text-xl font-extrabold ${k.alert ? 'text-amber-700' : 'text-slate-900'}`}>{String(k.value)}</p>
@@ -365,7 +377,7 @@ export default function WarrantiesPage() {
             {(['active', 'expired', 'claimed', 'all'] as const).map(s => (
               <button key={s} onClick={() => setStatusFilter(s)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${statusFilter === s ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}>
-                {s === 'all' ? 'Alla' : STATUS_LABEL[s] ?? s}
+                {statusLabels[s]}
               </button>
             ))}
           </div>
@@ -380,23 +392,23 @@ export default function WarrantiesPage() {
           ) : warranties.length === 0 ? (
             <div className="text-center py-20">
               <p className="text-5xl mb-3">🛡️</p>
-              <p className="font-bold text-slate-700 text-lg">Inga garantier</p>
-              <p className="text-sm text-slate-400 mt-1">Registrerade garantier visas här.</p>
+              <p className="font-bold text-slate-700 text-lg">{t('empty.title')}</p>
+              <p className="text-sm text-slate-400 mt-1">{t('empty.desc')}</p>
             </div>
           ) : (
             <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-100">
-                    {['Fordon', 'Typ', 'Leverantör', 'Period', 'Täckning', 'Status', ''].map(h => (
-                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">{h}</th>
+                    {[t('table.vehicle'), t('table.type'), t('table.provider'), t('table.period'), t('table.coverage'), t('table.status'), ''].map((h, i) => (
+                      <th key={i} className="px-4 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {warranties.map(w => {
-                    const days     = daysUntil(w.end_date);
-                    const nearExp  = w.status === 'active' && days <= 30 && days > 0;
+                    const days    = daysUntil(w.end_date);
+                    const nearExp = w.status === 'active' && days <= 30 && days > 0;
                     return (
                       <tr key={w.id} className={`border-b border-slate-50 transition-colors ${nearExp ? 'bg-amber-50/40' : 'hover:bg-slate-50/50'}`}>
                         <td className="px-4 py-3">
@@ -405,17 +417,17 @@ export default function WarrantiesPage() {
                             <p className="text-xs text-slate-400">{w.registration_nr || w.vin}</p>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-slate-600 text-xs">{TYPE_LABELS[w.type] ?? w.type}</td>
+                        <td className="px-4 py-3 text-slate-600 text-xs">{typeLabels[w.type] ?? w.type}</td>
                         <td className="px-4 py-3 text-slate-500 text-xs">{w.provider || '—'}</td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           <p className="text-xs text-slate-600">{fmtDate(w.start_date)} – {fmtDate(w.end_date)}</p>
-                          {nearExp && <p className="text-xs text-amber-600 font-medium">Utgår om {days} dagar</p>}
-                          {w.status === 'active' && days <= 0 && <p className="text-xs text-red-500 font-medium">Utgången</p>}
+                          {nearExp && <p className="text-xs text-amber-600 font-medium">{t('expiresIn', { days })}</p>}
+                          {w.status === 'active' && days <= 0 && <p className="text-xs text-red-500 font-medium">{t('expired')}</p>}
                         </td>
                         <td className="px-4 py-3 font-semibold text-slate-900">{fmtKr(w.coverage_amount)}</td>
                         <td className="px-4 py-3">
                           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_BADGE[w.status] ?? 'bg-slate-100 text-slate-600'}`}>
-                            {STATUS_LABEL[w.status] ?? w.status}
+                            {statusLabels[w.status] ?? w.status}
                           </span>
                           {w.claim_amount && w.claim_amount > 0 && (
                             <p className="text-xs text-blue-600 mt-0.5">{fmtKr(w.claim_amount)}</p>
@@ -426,7 +438,7 @@ export default function WarrantiesPage() {
                             {w.status === 'active' && (
                               <button onClick={() => setClaimTarget(w)}
                                 className="text-xs text-red-500 hover:underline font-medium">
-                                Reklamation
+                                {t('actions.claim')}
                               </button>
                             )}
                             {w.lead_id && (
