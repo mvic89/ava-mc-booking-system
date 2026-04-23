@@ -329,9 +329,9 @@ export default function Sidebar() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.dealershipId, user?.dealershipName]);
 
-  // Hide on auth and public pages
+  // Hide on auth, public pages, and landing page
   const AUTH_PATHS = ['/auth', '/privacy', '/terms'];
-  if (AUTH_PATHS.some(p => pathname?.startsWith(p))) return null;
+  if (pathname === '/' || AUTH_PATHS.some(p => pathname?.startsWith(p))) return null;
 
   const isActive = (href: string) =>
     pathname === href ||
