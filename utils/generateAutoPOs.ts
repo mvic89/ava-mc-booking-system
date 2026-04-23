@@ -1,15 +1,14 @@
 import { Motorcycle, SparePart, Accessory, PurchaseOrder, POLineItem, POStatus } from './types'
 
 /**
- * Generates a stable PO ID from a vendor name using a simple hash.
- * Same vendor always → same ID, so React state (expandedId, etc.) stays stable.
+ * Generates a stable auto-PO ID in the same format as manual POs.
+ * Uses vendor index (alphabetical) for the sequence number so the ID is
+ * stable as long as the vendor list doesn't change order.
  */
-function vendorToId(vendor: string): string {
-    let h = 0
-    for (const ch of vendor) {
-        h = Math.imul(31, h) + ch.charCodeAt(0) | 0
-    }
-    return `PO-AUTO-${Math.abs(h).toString(16).toUpperCase().padStart(6, '0').slice(0, 6)}`
+function vendorToId(tag: string, vendorIndex: number): string {
+    const year = new Date().getFullYear()
+    const seq  = String(vendorIndex + 1).padStart(3, '0')
+    return `PO-${tag}-${year}-${seq}`
 }
 
 /**
@@ -34,6 +33,7 @@ export function generateAutoPOs(
     motorcycles: Motorcycle[],
     spareParts: SparePart[],
     accessories: Accessory[],
+    tag = 'XXX',
 ): PurchaseOrder[] {
     const allItems = [...motorcycles, ...spareParts, ...accessories]
 
@@ -48,8 +48,10 @@ export function generateAutoPOs(
     }
 
     const autoPOs: PurchaseOrder[] = []
+    const sortedVendors = [...byVendor.keys()].sort((a, b) => a.localeCompare(b))
 
     for (const [vendor, items] of byVendor) {
+        const vendorIndex = sortedVendors.indexOf(vendor)
         const status: POStatus = 'Draft'
 
         const notes = 'Auto-generated — review quantities before sending to supplier.'
@@ -68,7 +70,7 @@ export function generateAutoPOs(
         const totalCost = lineItems.reduce((s, li) => s + li.lineTotal, 0)
 
         autoPOs.push({
-            id:        vendorToId(vendor),
+            id:        vendorToId(tag, vendorIndex),
             vendor,
             date:      new Date().toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' }),
             eta:       etaFor(status),

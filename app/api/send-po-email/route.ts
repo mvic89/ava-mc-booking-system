@@ -28,9 +28,17 @@ export async function POST(req: NextRequest) {
     const dealerEmail    = replyTo || fromEmail
     const inboundDomain  = process.env.POSTMARK_INBOUND_DOMAIN
     const inboundAddress = process.env.POSTMARK_INBOUND_ADDRESS
-    const replyToAddr = inboundDomain && dealershipId
+    const replyToAddr    = inboundDomain && dealershipId
         ? `delivery+${dealershipId}@${inboundDomain}`
         : inboundAddress ?? dealerEmail
+    // Plus-addressed invoice inbox — routes to correct dealer even without PO reference
+    const invoiceAddr         = inboundDomain && dealershipId
+        ? `invoice+${dealershipId}@${inboundDomain}`
+        : `invoice@${fromEmail.split('@')[1]}`
+    // Clean display address shown in the email body (reply-to keeps the plus-address for routing)
+    const displayDeliveryAddr = inboundDomain
+        ? `delivery@${inboundDomain}`
+        : replyToAddr
 
     const htmlBody = `
         <!DOCTYPE html>
@@ -56,17 +64,22 @@ export async function POST(req: NextRequest) {
                     <p style="margin:0 0 12px;color:#4b5563;font-size:14px;line-height:1.6;">
                       Kindly confirm receipt and advise on stock availability at your earliest convenience.
                     </p>
-                    <p style="margin:0 0 24px;color:#4b5563;font-size:14px;line-height:1.6;">
+                    <p style="margin:0 0 12px;color:#4b5563;font-size:14px;line-height:1.6;">
                       When dispatching, please send your delivery note PDF to:<br/>
-                      <strong style="color:#1e3a5f;">${replyToAddr}</strong><br/>
-                      <span style="color:#6b7280;font-size:13px;">You can reply to this email or send a new email with the PO number <strong>${poId}</strong> in the subject line.</span>
+                      <strong style="color:#1e3a5f;">${displayDeliveryAddr}</strong><br/>
+                      <span style="color:#6b7280;font-size:13px;">Or simply reply to this email with the delivery note attached and <strong>${poId}</strong> in the subject line.</span>
+                    </p>
+                    <p style="margin:0 0 24px;color:#4b5563;font-size:14px;line-height:1.6;">
+                      Please send your invoice to:<br/>
+                      <strong style="color:#1e3a5f;">${invoiceAddr}</strong><br/>
+                      <span style="color:#6b7280;font-size:13px;">Include the PO number <strong>${poId}</strong> in the subject line or invoice document.</span>
                     </p>
                     <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
                     <p style="margin:0;color:#6b7280;font-size:13px;line-height:1.8;">
                       <strong style="color:#1e3a5f;">${senderName}</strong><br/>
                       Procurement Department<br/>
                       ${dealerPhone ? `Tel: ${dealerPhone}<br/>` : ''}
-                      ${replyToAddr ? `Email: ${replyToAddr}` : ''}
+                      ${dealerEmail ? `Email: ${dealerEmail}` : ''}
                     </p>
                   </td>
                 </tr>
@@ -94,13 +107,14 @@ export async function POST(req: NextRequest) {
         '',
         `Please find attached Purchase Order ${poId} from ${senderName}.`,
         'Kindly confirm receipt and advise on stock availability at your earliest convenience.',
-        `When dispatching, please send your delivery note PDF to: ${replyToAddr}`,
-        `You can reply to this email or send a new email with ${poId} in the subject line.`,
+        `When dispatching, please send your delivery note PDF to: ${displayDeliveryAddr}`,
+        `Or simply reply to this email with the delivery note attached and ${poId} in the subject line.`,
+        `Please send your invoice to: ${invoiceAddr} — include ${poId} in the subject line or invoice document.`,
         '',
         senderName,
         'Procurement Department',
-        dealerPhone    ? `Tel: ${dealerPhone}` : '',
-        replyToAddr    ? `Email: ${replyToAddr}` : '',
+        dealerPhone ? `Tel: ${dealerPhone}` : '',
+        dealerEmail ? `Email: ${dealerEmail}` : '',
     ].filter(Boolean).join('\n')
 
     try {

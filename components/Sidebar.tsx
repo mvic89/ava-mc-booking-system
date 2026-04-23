@@ -179,7 +179,7 @@ export default function Sidebar() {
       items: [
         { icon: '📊', label: t('navigation.dashboard'),      href: '/dashboard',  roles: ['admin', 'sales', 'service'] },
         { icon: '🏷️', label: t('navigation.offer'),          href: '/offer', roles: ['admin', 'sales', 'service'] },
-        { icon: '🏍', label: t('navigation.inventory'),       href: '/inventory',  roles: ['admin', 'sales', 'service'] },
+        { icon: '🏍', label: t('navigation.inventory'),       href: '/inventory/motorcycles',  roles: ['admin', 'sales', 'service'] },
         { icon: '📦', label: t('navigation.purchaseOrders'), href: '/purchase',   roles: ['admin', 'sales', 'service'] },
           { icon: '🚚', label: t('navigation.goodsReceipts'), href: '/goods-receipts',  roles: ['admin', 'sales', 'service'] },
         { icon: '🏭', label: t('navigation.suppliers'),       href: '/suppliers',  roles: ['admin', 'sales', 'service'] },
@@ -334,7 +334,9 @@ export default function Sidebar() {
   if (AUTH_PATHS.some(p => pathname?.startsWith(p))) return null;
 
   const isActive = (href: string) =>
-    pathname === href || (href === '/sales/leads' && pathname?.startsWith('/sales'));
+    pathname === href ||
+    (href === '/sales/leads' && pathname?.startsWith('/sales')) ||
+    (href === '/inventory/motorcycles' && pathname?.startsWith('/inventory'));
 
   const handleSignOut = async () => {
     // Stop Supabase Realtime — prevents dealer A's events reaching dealer B

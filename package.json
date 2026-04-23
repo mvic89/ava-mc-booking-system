@@ -17,6 +17,7 @@
     "@supabase/supabase-js": "^2.99.0",
     "@types/mailparser": "^3.4.6",
     "@types/pdf-parse": "^1.1.5",
+    "cross-env": "^10.1.0",
     "crypto-js": "^4.2.0",
     "googleapis": "^171.4.0",
     "imapflow": "^1.2.16",

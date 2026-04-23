@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
+import { extractDeliveryNoteWithAI } from '@/lib/extractWithAI'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -264,20 +265,20 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'pdf_base64, pdf_text, or vendor is required' }, { status: 400 })
     }
 
-    // ── Extract text from PDF then parse ──────────────────────────────────────
+    // ── Extract delivery note data via Claude AI ──────────────────────────────
+    let parsed
     let rawText = pdf_text ?? ''
-
     if (pdf_base64) {
         try {
-            const extracted = await extractTextFromPDF(pdf_base64)
-            if (extracted?.trim()) rawText = extracted
-            // If empty (scanned/image PDF), fall through to pdf_text or proceed with empty
+            parsed = await extractDeliveryNoteWithAI(pdf_base64)
+            console.log('[goods-receipt] AI extracted:', parsed)
         } catch (err) {
-            console.warn('PDF text extraction failed (scanned PDF?), proceeding without text:', err)
+            console.warn('[goods-receipt] AI extraction failed, using regex fallback:', err)
+            parsed = parseDeliveryNoteText(rawText)
         }
+    } else {
+        parsed = parseDeliveryNoteText(rawText)
     }
-
-    const parsed = parseDeliveryNoteText(rawText)
 
     // ── Resolve dealership name for receipt tag ───────────────────────────────
     const { data: dealer } = await db
