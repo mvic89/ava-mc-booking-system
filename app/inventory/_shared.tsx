@@ -1,12 +1,144 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { useInventory } from '@/context/InventoryContext'
 import { Motorcycle, SparePart, Accessory, BaseInventoryItem, InventoryCategory } from '@/utils/types'
 import { AddItemModal } from '@/components/AddItemModal'
 import { ImportInventoryModal } from '@/components/ImportInventoryModal'
 import { EditItemModal } from '@/components/EditItemModal'
+
+// ─── Column resize + drag-to-reorder ─────────────────────────────────────────
+
+function useColumnState(defaultWidths: number[]) {
+    const [widths,      setWidths     ] = useState<number[]>(defaultWidths)
+    const [order,       setOrder      ] = useState<number[]>(() => defaultWidths.map((_, i) => i))
+    const [draggingPos, setDraggingPos] = useState<number | null>(null)
+    const [dragOverPos, setDragOverPos] = useState<number | null>(null)
+    const dragFrom  = useRef<number | null>(null)   // reliable source of truth during drag
+    const resizing  = useRef<{ pos: number; startX: number; startW: number } | null>(null)
+
+    // ── Resize ────────────────────────────────────────────────────────────────
+    const onResizeMouseDown = useCallback((pos: number, e: React.MouseEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        resizing.current = { pos, startX: e.clientX, startW: widths[pos] }
+        const onMove = (mv: MouseEvent) => {
+            if (!resizing.current) return
+            const delta = mv.clientX - resizing.current.startX
+            const newW  = Math.max(50, resizing.current.startW + delta)
+            setWidths(prev => prev.map((w, i) => i === resizing.current!.pos ? newW : w))
+        }
+        const onUp = () => {
+            resizing.current = null
+            window.removeEventListener('mousemove', onMove)
+            window.removeEventListener('mouseup', onUp)
+        }
+        window.addEventListener('mousemove', onMove)
+        window.addEventListener('mouseup', onUp)
+    }, [widths])
+
+    // ── Drag reorder ──────────────────────────────────────────────────────────
+    const onDragStart = useCallback((pos: number, e: React.DragEvent) => {
+        e.dataTransfer.effectAllowed = 'move'
+        dragFrom.current = pos
+        setDraggingPos(pos)
+    }, [])
+
+    const onDragOver = useCallback((pos: number, e: React.DragEvent) => {
+        e.preventDefault()
+        e.dataTransfer.dropEffect = 'move'
+        setDragOverPos(pos)
+    }, [])
+
+    const onDrop = useCallback((targetPos: number, e: React.DragEvent) => {
+        e.preventDefault()
+        const from = dragFrom.current
+        dragFrom.current = null
+        setDraggingPos(null)
+        setDragOverPos(null)
+        if (from === null || from === targetPos) return
+        setOrder(o => {
+            const next = [...o]
+            const [moved] = next.splice(from, 1)
+            next.splice(targetPos, 0, moved)
+            return next
+        })
+        setWidths(w => {
+            const next = [...w]
+            const [moved] = next.splice(from, 1)
+            next.splice(targetPos, 0, moved)
+            return next
+        })
+    }, [])
+
+    const onDragEnd = useCallback(() => {
+        dragFrom.current = null
+        setDraggingPos(null)
+        setDragOverPos(null)
+    }, [])
+
+    return { widths, order, draggingPos, dragOverPos, onResizeMouseDown, onDragStart, onDragOver, onDrop, onDragEnd }
+}
+
+// ─── Resizable + draggable column header ─────────────────────────────────────
+
+function ColTh({ pos, width, isDragging, isDragOver, isLast, onResizeMouseDown, onDragStart, onDragOver, onDrop, onDragEnd, children }: {
+    pos: number
+    width: number
+    isDragging: boolean
+    isDragOver: boolean
+    isLast: boolean
+    onResizeMouseDown: (pos: number, e: React.MouseEvent) => void
+    onDragStart: (pos: number, e: React.DragEvent) => void
+    onDragOver: (pos: number, e: React.DragEvent) => void
+    onDrop: (pos: number, e: React.DragEvent) => void
+    onDragEnd: () => void
+    children?: React.ReactNode
+}) {
+    return (
+        <th
+            draggable
+            onDragStart={e => onDragStart(pos, e)}
+            onDragOver={e => onDragOver(pos, e)}
+            onDrop={e => onDrop(pos, e)}
+            onDragEnd={onDragEnd}
+            style={{ width, minWidth: width, maxWidth: width }}
+            className={[
+                'relative px-3 py-3 text-left text-xs uppercase tracking-wider font-semibold select-none',
+                'border-r border-slate-200 transition-colors',
+                isLast ? 'border-r-0' : '',
+                isDragging  ? 'opacity-40 bg-slate-50' : 'text-slate-400',
+                isDragOver  ? 'bg-[#FF6B2C]/10 border-l-2 border-l-[#FF6B2C]' : '',
+            ].join(' ')}
+        >
+            <span className="flex items-center gap-1.5 cursor-grab whitespace-nowrap overflow-hidden">
+                <svg className="w-3 h-3 text-slate-300 shrink-0" viewBox="0 0 8 14" fill="currentColor">
+                    <circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/>
+                    <circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/>
+                    <circle cx="2" cy="12" r="1.2"/><circle cx="6" cy="12" r="1.2"/>
+                </svg>
+                <span className="truncate">{children}</span>
+            </span>
+            {/* Resize handle */}
+            <span
+                onMouseDown={e => onResizeMouseDown(pos, e)}
+                className="absolute right-0 top-0 h-full w-1.5 cursor-col-resize hover:bg-[#FF6B2C]/60 transition-colors z-10"
+            />
+        </th>
+    )
+}
+
+// ─── Column definition type ───────────────────────────────────────────────────
+
+type ColHelpers = { updateStock: (id: string, s: number) => void; onDelete: (id: string) => void }
+type ColDef<T> = {
+    label: string
+    defaultWidth: number
+    tdClass?: string
+    noClick?: boolean   // stops row click propagation on this td
+    cell: (item: T, h: ColHelpers) => React.ReactNode
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -46,6 +178,71 @@ function StockCell({ item, updateStock }: { item: BaseInventoryItem; updateStock
     )
 }
 
+// ─── Generic reorderable table ────────────────────────────────────────────────
+
+function ReorderableTable<T>({ cols, data, defaultWidths, onRowClick }: {
+    cols: ColDef<T>[]
+    data: T[]
+    defaultWidths: number[]
+    onRowClick: (item: T) => void
+}) {
+    const { widths, order, draggingPos, dragOverPos, onResizeMouseDown, onDragStart, onDragOver, onDrop, onDragEnd } = useColumnState(defaultWidths)
+    const helpers: ColHelpers = { updateStock: () => {}, onDelete: () => {} } // closed over in each col def
+    const totalW = widths.reduce((a, b) => a + b, 0)
+    return (
+        <table className="text-sm" style={{ tableLayout: 'fixed', width: '100%', minWidth: totalW }}>
+            <colgroup>{widths.map((w, i) => <col key={i} style={{ width: w }} />)}</colgroup>
+            <thead>
+                <tr className="border-b border-slate-200">
+                    {order.map((origIdx, pos) => (
+                        <ColTh
+                            key={origIdx}
+                            pos={pos}
+                            width={widths[pos]}
+                            isDragging={draggingPos === pos}
+                            isDragOver={dragOverPos === pos}
+                            isLast={pos === order.length - 1}
+                            onResizeMouseDown={onResizeMouseDown}
+                            onDragStart={onDragStart}
+                            onDragOver={onDragOver}
+                            onDrop={onDrop}
+                            onDragEnd={onDragEnd}
+                        >
+                            {cols[origIdx].label}
+                        </ColTh>
+                    ))}
+                </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+                {data.map((item, rowIdx) => (
+                    <tr
+                        key={rowIdx}
+                        onClick={() => onRowClick(item)}
+                        className="group hover:bg-[#FF6B2C]/5 transition-colors cursor-pointer"
+                    >
+                        {order.map((origIdx, pos) => {
+                            const col = cols[origIdx]
+                            return (
+                                <td
+                                    key={origIdx}
+                                    className={[
+                                        'px-3 py-3 border-r border-slate-100 overflow-hidden',
+                                        pos === order.length - 1 ? 'border-r-0' : '',
+                                        col.tdClass ?? '',
+                                    ].join(' ')}
+                                    onClick={col.noClick ? e => e.stopPropagation() : undefined}
+                                >
+                                    {col.cell(item, helpers)}
+                                </td>
+                            )
+                        })}
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    )
+}
+
 // ─── Tables ───────────────────────────────────────────────────────────────────
 
 function MotorcycleTable({ data, updateStock, onRowClick, onDelete }: {
@@ -54,72 +251,40 @@ function MotorcycleTable({ data, updateStock, onRowClick, onDelete }: {
     onRowClick: (item: Motorcycle) => void
     onDelete: (id: string) => void
 }) {
-    return (
-        <div>
-            <table className="w-full text-sm">
-                <thead>
-                    <tr className="border-b border-slate-100 text-left text-xs uppercase text-slate-400 tracking-wider font-semibold">
-                        <th className="px-4 py-3">ID</th>
-                        <th className="px-4 py-3">Name / Brand</th>
-                        <th className="px-4 py-3">Article No.</th>
-                        <th className="px-4 py-3">VIN</th>
-                        <th className="px-4 py-3">Year</th>
-                        <th className="px-4 py-3">Engine</th>
-                        <th className="px-4 py-3">Color</th>
-                        <th className="px-4 py-3">MC Type</th>
-                        <th className="px-4 py-3">Warehouse</th>
-                        <th className="px-4 py-3">Stock</th>
-                        <th className="px-4 py-3">Reorder Qty</th>
-                        <th className="px-4 py-3">Cost</th>
-                        <th className="px-4 py-3">Sell Price</th>
-                        <th className="px-4 py-3">Margin</th>
-                        <th className="px-4 py-3">Vendor</th>
-                        <th className="px-4 py-3" />
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                    {data.map((item) => {
-                        const margin = (((item.sellingPrice - item.cost) / item.sellingPrice) * 100).toFixed(1)
-                        return (
-                            <tr key={item.id} onClick={() => onRowClick(item)} className="group hover:bg-[#FF6B2C]/5 transition-colors cursor-pointer">
-                                <td className="px-4 py-3 font-mono text-xs text-slate-400">{item.id}</td>
-                                <td className="px-4 py-3">
-                                    <div className="font-semibold text-slate-800">{item.name}</div>
-                                    <div className="text-xs text-[#FF6B2C] font-medium">{item.brand}</div>
-                                    <div className="text-xs text-slate-400 mt-0.5 max-w-xs truncate" title={item.description}>{item.description}</div>
-                                </td>
-                                <td className="px-4 py-3 font-mono text-xs text-slate-500">{item.articleNumber}</td>
-                                <td className="px-4 py-3 font-mono text-xs text-blue-600">{item.vin}</td>
-                                <td className="px-4 py-3 text-slate-700">{item.year}</td>
-                                <td className="px-4 py-3 text-slate-700">{item.engineCC}cc</td>
-                                <td className="px-4 py-3">
-                                    <span className="inline-flex items-center gap-1.5 text-xs text-slate-700">
-                                        <span className="w-2.5 h-2.5 rounded-full border border-gray-300 shrink-0" style={{ background: item.color.toLowerCase().includes('black') ? '#1f2937' : item.color.toLowerCase().includes('white') ? '#f9fafb' : item.color.toLowerCase().includes('red') ? '#dc2626' : item.color.toLowerCase().includes('green') ? '#16a34a' : item.color.toLowerCase().includes('blue') ? '#2563eb' : item.color.toLowerCase().includes('yellow') || item.color.toLowerCase().includes('gold') ? '#ca8a04' : item.color.toLowerCase().includes('gray') || item.color.toLowerCase().includes('grey') ? '#6b7280' : item.color.toLowerCase().includes('orange') ? '#ea580c' : '#d1d5db' }} />
-                                        {item.color}
-                                    </span>
-                                </td>
-                                <td className="px-4 py-3">
-                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${item.mcType === 'New' ? 'bg-green-100 text-green-700' : item.mcType === 'Trade-In' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>{item.mcType}</span>
-                                </td>
-                                <td className="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">{item.warehouse}</td>
-                                <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-                                    <StockCell item={item} updateStock={updateStock} />
-                                </td>
-                                <td className="px-4 py-3 text-slate-500">{item.reorderQty}</td>
-                                <td className="px-4 py-3 text-slate-700">{formatSEK(item.cost)}</td>
-                                <td className="px-4 py-3 font-semibold text-slate-900">{formatSEK(item.sellingPrice)}</td>
-                                <td className="px-4 py-3"><span className="text-green-600 font-medium">{margin}%</span></td>
-                                <td className="px-4 py-3 text-xs text-slate-400 max-w-35 truncate" title={item.vendor}>{item.vendor}</td>
-                                <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-                                    <button onClick={() => onDelete(item.id)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all text-sm" title="Delete">🗑️</button>
-                                </td>
-                            </tr>
-                        )
-                    })}
-                </tbody>
-            </table>
-        </div>
-    )
+    const cols: ColDef<Motorcycle>[] = [
+        { label: 'ID',           defaultWidth: 120, tdClass: 'font-mono text-xs text-slate-400 truncate',  cell: m => m.id },
+        { label: 'Name / Brand', defaultWidth: 180, cell: m => (
+            <>
+                <div className="font-semibold text-slate-800 truncate">{m.name}</div>
+                <div className="text-xs text-[#FF6B2C] font-medium truncate">{m.brand}</div>
+                <div className="text-xs text-slate-400 mt-0.5 truncate" title={m.description}>{m.description}</div>
+            </>
+        )},
+        { label: 'Article No.',  defaultWidth: 110, tdClass: 'font-mono text-xs text-slate-500 truncate',  cell: m => m.articleNumber },
+        { label: 'VIN',          defaultWidth: 130, tdClass: 'font-mono text-xs text-blue-600 truncate',   cell: m => m.vin },
+        { label: 'Year',         defaultWidth: 60,  tdClass: 'text-slate-700 text-xs',                     cell: m => m.year },
+        { label: 'Engine',       defaultWidth: 75,  tdClass: 'text-slate-700 text-xs truncate',             cell: m => `${m.engineCC}cc` },
+        { label: 'Color',        defaultWidth: 90,  cell: m => (
+            <span className="inline-flex items-center gap-1.5 text-xs text-slate-700">
+                <span className="w-2.5 h-2.5 rounded-full border border-gray-300 shrink-0" style={{ background: m.color.toLowerCase().includes('black') ? '#1f2937' : m.color.toLowerCase().includes('white') ? '#f9fafb' : m.color.toLowerCase().includes('red') ? '#dc2626' : m.color.toLowerCase().includes('green') ? '#16a34a' : m.color.toLowerCase().includes('blue') ? '#2563eb' : m.color.toLowerCase().includes('yellow') || m.color.toLowerCase().includes('gold') ? '#ca8a04' : m.color.toLowerCase().includes('gray') || m.color.toLowerCase().includes('grey') ? '#6b7280' : m.color.toLowerCase().includes('orange') ? '#ea580c' : '#d1d5db' }} />
+                <span className="truncate">{m.color}</span>
+            </span>
+        )},
+        { label: 'MC Type',      defaultWidth: 85,  cell: m => (
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${m.mcType === 'New' ? 'bg-green-100 text-green-700' : m.mcType === 'Trade-In' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>{m.mcType}</span>
+        )},
+        { label: 'Warehouse',    defaultWidth: 110, tdClass: 'text-xs text-slate-500 truncate',            cell: m => m.warehouse },
+        { label: 'Stock',        defaultWidth: 120, noClick: true, cell: (m, h) => <StockCell item={m} updateStock={updateStock} /> },
+        { label: 'Reorder',      defaultWidth: 75,  tdClass: 'text-slate-500 text-xs',                     cell: m => m.reorderQty },
+        { label: 'Cost',         defaultWidth: 110, tdClass: 'text-slate-700 text-xs truncate',             cell: m => formatSEK(m.cost) },
+        { label: 'Sell Price',   defaultWidth: 110, tdClass: 'font-semibold text-slate-900 text-xs truncate', cell: m => formatSEK(m.sellingPrice) },
+        { label: 'Margin',       defaultWidth: 70,  cell: m => <span className="text-green-600 font-medium text-xs">{(((m.sellingPrice - m.cost) / m.sellingPrice) * 100).toFixed(1)}%</span> },
+        { label: 'Vendor',       defaultWidth: 130, tdClass: 'text-xs text-slate-400 truncate',             cell: m => <span title={m.vendor}>{m.vendor}</span> },
+        { label: '',             defaultWidth: 40,  noClick: true, cell: m => (
+            <button onClick={() => onDelete(m.id)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all text-sm" title="Delete">🗑️</button>
+        )},
+    ]
+    return <ReorderableTable cols={cols} data={data} defaultWidths={cols.map(c => c.defaultWidth)} onRowClick={onRowClick} />
 }
 
 function SparePartsTable({ data, updateStock, onRowClick, onDelete }: {
@@ -128,57 +293,28 @@ function SparePartsTable({ data, updateStock, onRowClick, onDelete }: {
     onRowClick: (item: SparePart) => void
     onDelete: (id: string) => void
 }) {
-    return (
-        <div>
-            <table className="w-full text-sm">
-                <thead>
-                    <tr className="border-b border-slate-100 text-left text-xs uppercase text-slate-400 tracking-wider font-semibold">
-                        <th className="px-4 py-3">ID</th>
-                        <th className="px-4 py-3">Name / Brand</th>
-                        <th className="px-4 py-3">Article No.</th>
-                        <th className="px-4 py-3">Category</th>
-                        <th className="px-4 py-3">Stock</th>
-                        <th className="px-4 py-3">Reorder Qty</th>
-                        <th className="px-4 py-3">Cost</th>
-                        <th className="px-4 py-3">Sell Price</th>
-                        <th className="px-4 py-3">Margin</th>
-                        <th className="px-4 py-3">Vendor</th>
-                        <th className="px-4 py-3" />
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                    {data.map((item) => {
-                        const margin = (((item.sellingPrice - item.cost) / item.sellingPrice) * 100).toFixed(1)
-                        return (
-                            <tr key={item.id} onClick={() => onRowClick(item)} className="group hover:bg-[#FF6B2C]/5 transition-colors cursor-pointer">
-                                <td className="px-4 py-3 font-mono text-xs text-slate-400">{item.id}</td>
-                                <td className="px-4 py-3">
-                                    <div className="font-semibold text-slate-800">{item.name}</div>
-                                    <div className="text-xs text-[#FF6B2C] font-medium">{item.brand}</div>
-                                    <div className="text-xs text-slate-400 mt-0.5 max-w-xs truncate" title={item.description}>{item.description}</div>
-                                </td>
-                                <td className="px-4 py-3 font-mono text-xs text-slate-500">{item.articleNumber}</td>
-                                <td className="px-4 py-3">
-                                    <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium">{item.category}</span>
-                                </td>
-                                <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-                                    <StockCell item={item} updateStock={updateStock} />
-                                </td>
-                                <td className="px-4 py-3 text-slate-500">{item.reorderQty}</td>
-                                <td className="px-4 py-3 text-slate-700">{formatCurrency(item.cost)}</td>
-                                <td className="px-4 py-3 font-semibold text-slate-900">{formatCurrency(item.sellingPrice)}</td>
-                                <td className="px-4 py-3"><span className="text-green-600 font-medium">{margin}%</span></td>
-                                <td className="px-4 py-3 text-xs text-slate-400 max-w-35 truncate" title={item.vendor}>{item.vendor}</td>
-                                <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-                                    <button onClick={() => onDelete(item.id)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all text-sm" title="Delete">🗑️</button>
-                                </td>
-                            </tr>
-                        )
-                    })}
-                </tbody>
-            </table>
-        </div>
-    )
+    const cols: ColDef<SparePart>[] = [
+        { label: 'ID',           defaultWidth: 120, tdClass: 'font-mono text-xs text-slate-400 truncate',     cell: s => s.id },
+        { label: 'Name / Brand', defaultWidth: 180, cell: s => (
+            <>
+                <div className="font-semibold text-slate-800 truncate">{s.name}</div>
+                <div className="text-xs text-[#FF6B2C] font-medium truncate">{s.brand}</div>
+                <div className="text-xs text-slate-400 mt-0.5 truncate" title={s.description}>{s.description}</div>
+            </>
+        )},
+        { label: 'Article No.',  defaultWidth: 110, tdClass: 'font-mono text-xs text-slate-500 truncate',     cell: s => s.articleNumber },
+        { label: 'Category',     defaultWidth: 100, cell: s => <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium">{s.category}</span> },
+        { label: 'Stock',        defaultWidth: 120, noClick: true, cell: (s, h) => <StockCell item={s} updateStock={updateStock} /> },
+        { label: 'Reorder',      defaultWidth: 75,  tdClass: 'text-slate-500 text-xs',                        cell: s => s.reorderQty },
+        { label: 'Cost',         defaultWidth: 110, tdClass: 'text-xs text-slate-700 truncate',               cell: s => formatCurrency(s.cost) },
+        { label: 'Sell Price',   defaultWidth: 110, tdClass: 'font-semibold text-slate-900 text-xs truncate', cell: s => formatCurrency(s.sellingPrice) },
+        { label: 'Margin',       defaultWidth: 70,  cell: s => <span className="text-green-600 font-medium text-xs">{(((s.sellingPrice - s.cost) / s.sellingPrice) * 100).toFixed(1)}%</span> },
+        { label: 'Vendor',       defaultWidth: 130, tdClass: 'text-xs text-slate-400 truncate',               cell: s => <span title={s.vendor}>{s.vendor}</span> },
+        { label: '',             defaultWidth: 40,  noClick: true, cell: s => (
+            <button onClick={() => onDelete(s.id)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all text-sm" title="Delete">🗑️</button>
+        )},
+    ]
+    return <ReorderableTable cols={cols} data={data} defaultWidths={cols.map(c => c.defaultWidth)} onRowClick={onRowClick} />
 }
 
 function AccessoriesTable({ data, updateStock, onRowClick, onDelete }: {
@@ -187,59 +323,29 @@ function AccessoriesTable({ data, updateStock, onRowClick, onDelete }: {
     onRowClick: (item: Accessory) => void
     onDelete: (id: string) => void
 }) {
-    return (
-        <div>
-            <table className="w-full text-sm">
-                <thead>
-                    <tr className="border-b border-slate-100 text-left text-xs uppercase text-slate-400 tracking-wider font-semibold">
-                        <th className="px-4 py-3">ID</th>
-                        <th className="px-4 py-3">Name / Brand</th>
-                        <th className="px-4 py-3">Article No.</th>
-                        <th className="px-4 py-3">Category</th>
-                        <th className="px-4 py-3">Size</th>
-                        <th className="px-4 py-3">Stock</th>
-                        <th className="px-4 py-3">Reorder Qty</th>
-                        <th className="px-4 py-3">Cost</th>
-                        <th className="px-4 py-3">Sell Price</th>
-                        <th className="px-4 py-3">Margin</th>
-                        <th className="px-4 py-3">Vendor</th>
-                        <th className="px-4 py-3" />
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                    {data.map((item) => {
-                        const margin = (((item.sellingPrice - item.cost) / item.sellingPrice) * 100).toFixed(1)
-                        return (
-                            <tr key={item.id} onClick={() => onRowClick(item)} className="group hover:bg-[#FF6B2C]/5 transition-colors cursor-pointer">
-                                <td className="px-4 py-3 font-mono text-xs text-slate-400">{item.id}</td>
-                                <td className="px-4 py-3">
-                                    <div className="font-semibold text-slate-800">{item.name}</div>
-                                    <div className="text-xs text-[#FF6B2C] font-medium">{item.brand}</div>
-                                    <div className="text-xs text-slate-400 mt-0.5 max-w-xs truncate" title={item.description}>{item.description}</div>
-                                </td>
-                                <td className="px-4 py-3 font-mono text-xs text-slate-500">{item.articleNumber}</td>
-                                <td className="px-4 py-3">
-                                    <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full font-medium">{item.category}</span>
-                                </td>
-                                <td className="px-4 py-3 text-slate-700 font-medium">{item.size ?? '—'}</td>
-                                <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-                                    <StockCell item={item} updateStock={updateStock} />
-                                </td>
-                                <td className="px-4 py-3 text-slate-500">{item.reorderQty}</td>
-                                <td className="px-4 py-3 text-slate-700">{formatCurrency(item.cost)}</td>
-                                <td className="px-4 py-3 font-semibold text-slate-900">{formatCurrency(item.sellingPrice)}</td>
-                                <td className="px-4 py-3"><span className="text-green-600 font-medium">{margin}%</span></td>
-                                <td className="px-4 py-3 text-xs text-slate-400 max-w-35 truncate" title={item.vendor}>{item.vendor}</td>
-                                <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-                                    <button onClick={() => onDelete(item.id)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all text-sm" title="Delete">🗑️</button>
-                                </td>
-                            </tr>
-                        )
-                    })}
-                </tbody>
-            </table>
-        </div>
-    )
+    const cols: ColDef<Accessory>[] = [
+        { label: 'ID',           defaultWidth: 120, tdClass: 'font-mono text-xs text-slate-400 truncate',     cell: a => a.id },
+        { label: 'Name / Brand', defaultWidth: 180, cell: a => (
+            <>
+                <div className="font-semibold text-slate-800 truncate">{a.name}</div>
+                <div className="text-xs text-[#FF6B2C] font-medium truncate">{a.brand}</div>
+                <div className="text-xs text-slate-400 mt-0.5 truncate" title={a.description}>{a.description}</div>
+            </>
+        )},
+        { label: 'Article No.',  defaultWidth: 110, tdClass: 'font-mono text-xs text-slate-500 truncate',     cell: a => a.articleNumber },
+        { label: 'Category',     defaultWidth: 100, cell: a => <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full font-medium">{a.category}</span> },
+        { label: 'Size',         defaultWidth: 70,  tdClass: 'text-slate-700 text-xs font-medium',            cell: a => a.size ?? '—' },
+        { label: 'Stock',        defaultWidth: 120, noClick: true, cell: (a, h) => <StockCell item={a} updateStock={updateStock} /> },
+        { label: 'Reorder',      defaultWidth: 75,  tdClass: 'text-slate-500 text-xs',                        cell: a => a.reorderQty },
+        { label: 'Cost',         defaultWidth: 110, tdClass: 'text-xs text-slate-700 truncate',               cell: a => formatCurrency(a.cost) },
+        { label: 'Sell Price',   defaultWidth: 110, tdClass: 'font-semibold text-slate-900 text-xs truncate', cell: a => formatCurrency(a.sellingPrice) },
+        { label: 'Margin',       defaultWidth: 70,  cell: a => <span className="text-green-600 font-medium text-xs">{(((a.sellingPrice - a.cost) / a.sellingPrice) * 100).toFixed(1)}%</span> },
+        { label: 'Vendor',       defaultWidth: 130, tdClass: 'text-xs text-slate-400 truncate',               cell: a => <span title={a.vendor}>{a.vendor}</span> },
+        { label: '',             defaultWidth: 40,  noClick: true, cell: a => (
+            <button onClick={() => onDelete(a.id)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all text-sm" title="Delete">🗑️</button>
+        )},
+    ]
+    return <ReorderableTable cols={cols} data={data} defaultWidths={cols.map(c => c.defaultWidth)} onRowClick={onRowClick} />
 }
 
 // ─── Summary Cards ────────────────────────────────────────────────────────────
@@ -518,7 +624,7 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
                 </div>
 
                 {/* Table */}
-                <div className="bg-white rounded-2xl border border-slate-100 overflow-auto flex-1 min-h-0">
+                <div className="table-scroll bg-white rounded-2xl border border-slate-200 overflow-auto flex-1 min-h-0">
                     {category === 'motorcycles' && (
                         (filtered as Motorcycle[]).length > 0
                             ? <MotorcycleTable data={filtered as Motorcycle[]} updateStock={updateStock} onRowClick={setSelectedItem} onDelete={handleDelete} />

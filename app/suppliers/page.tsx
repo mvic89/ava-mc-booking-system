@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState, useEffect } from 'react'
+import { ReorderableTable, type ColDef } from '@/components/ResizableTable'
 import { useInventory }  from '@/context/InventoryContext'
 import { historicalPOs } from '@/data/purchaseOrders'
 import { POModal, STATUS_STYLE, formatCurrency, qtyKey } from '@/components/POModal'
@@ -404,8 +405,102 @@ export default function SuppliersPage() {
         [poListSupplier, allPOs],
     )
 
+    const supplierCols = useMemo<ColDef<SupplierRow>[]>(() => [
+        {
+            label: 'Supplier No.',
+            defaultWidth: 140,
+            cell: s => (
+                <span className="font-mono text-xs font-semibold text-orange-600 bg-orange-50 border border-orange-100 px-2 py-0.5 rounded">
+                    {s.supplierNumber}
+                </span>
+            ),
+        },
+        {
+            label: 'Supplier Name',
+            defaultWidth: 200,
+            cell: s => {
+                const poCount = allPOs.filter(po => po.vendor === s.name).length
+                return (
+                    <div>
+                        <div className="font-semibold text-gray-800 text-sm">{s.name}</div>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                            {poCount > 0 ? (
+                                <span className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-semibold">
+                                    {poCount} PO{poCount !== 1 ? 's' : ''}
+                                </span>
+                            ) : (
+                                <span className="text-[10px] text-gray-400 italic">No POs</span>
+                            )}
+                            {s.isManual && (
+                                <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-100 px-1.5 py-0.5 rounded font-semibold">Manual</span>
+                            )}
+                        </div>
+                    </div>
+                )
+            },
+        },
+        {
+            label: 'Address',
+            defaultWidth: 200,
+            cell: s => <span title={s.address} className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{s.address}</span>,
+        },
+        {
+            label: 'Phone',
+            defaultWidth: 130,
+            cell: s => <span className="text-sm text-gray-600 whitespace-nowrap">{s.phone}</span>,
+        },
+        {
+            label: 'Org Number',
+            defaultWidth: 130,
+            cell: s => <span className="font-mono text-xs text-gray-500 whitespace-nowrap">{s.orgNumber}</span>,
+        },
+        {
+            label: 'SKUs',
+            defaultWidth: 80,
+            tdClass: 'text-center',
+            cell: s => (
+                <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-semibold">{s.itemCount}</span>
+            ),
+        },
+        {
+            label: 'Categories',
+            defaultWidth: 180,
+            cell: s => (
+                <div className="flex flex-wrap gap-1">
+                    {s.categories.map(cat => (
+                        <span key={cat} className={`text-xs px-2 py-0.5 rounded-full font-medium ${CATEGORY_STYLE[cat] ?? 'bg-gray-100 text-gray-600'}`}>
+                            {cat}
+                        </span>
+                    ))}
+                </div>
+            ),
+        },
+        {
+            label: 'Stock Status',
+            defaultWidth: 150,
+            cell: s => s.itemCount === 0 ? (
+                <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-400 text-xs px-2.5 py-1 rounded-full font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0" />
+                    No inventory
+                </span>
+            ) : s.lowStockCount > 0 ? (
+                <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                    {s.lowStockCount} low stock
+                </span>
+            ) : (
+                <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-xs px-2.5 py-1 rounded-full font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+                    All stocked
+                </span>
+            ),
+        },
+    ], [allPOs])
+
+    const supplierDefaultWidths = useMemo(() => supplierCols.map(c => c.defaultWidth), [supplierCols])
+
     return (
-        <div className="lg:ml-64 min-h-screen flex flex-col bg-white">
+        <div className="lg:ml-64 h-screen overflow-hidden flex flex-col bg-white">
             {/* Top bar */}
             <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 shrink-0">
                 <span className="text-sm text-gray-500 font-medium">Suppliers</span>
@@ -422,8 +517,8 @@ export default function SuppliersPage() {
             </div>
 
             {/* Page body */}
-            <div className="flex-1 overflow-auto p-6">
-                <div className="flex items-center justify-between mb-5">
+            <div className="flex-1 min-h-0 p-6 flex flex-col">
+                <div className="flex items-center justify-between mb-5 shrink-0">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Suppliers</h1>
                         <p className="text-sm text-gray-400 mt-0.5">
@@ -446,10 +541,10 @@ export default function SuppliersPage() {
                     </div>
                 </div>
 
-                <SummaryCards suppliers={suppliers} />
+                <div className="shrink-0"><SummaryCards suppliers={suppliers} /></div>
 
                 {/* Supplier table */}
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="table-scroll bg-white rounded-xl border border-gray-200 shadow-sm overflow-auto flex-1 min-h-0">
                     {filtered.length === 0 ? (
                         suppliers.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-64 gap-4">
@@ -472,88 +567,13 @@ export default function SuppliersPage() {
                             </div>
                         )
                     ) : (
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs uppercase text-gray-500 tracking-wider">
-                                    <th className="px-4 py-3">Supplier No.</th>
-                                    <th className="px-4 py-3">Supplier Name</th>
-                                    <th className="px-4 py-3">Address</th>
-                                    <th className="px-4 py-3">Phone</th>
-                                    <th className="px-4 py-3">Org Number</th>
-                                    <th className="px-4 py-3 text-center">SKUs</th>
-                                    <th className="px-4 py-3">Categories</th>
-                                    <th className="px-4 py-3">Stock Status</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {filtered.map((s) => {
-                                    const poCount = allPOs.filter((po) => po.vendor === s.name).length
-                                    return (
-                                        <tr
-                                            key={s.name}
-                                            onClick={() => setDetailSupplier(s)}
-                                            className="hover:bg-orange-50 transition-colors cursor-pointer"
-                                        >
-                                            <td className="px-4 py-3.5">
-                                                <span className="font-mono text-xs font-semibold text-orange-600 bg-orange-50 border border-orange-100 px-2 py-0.5 rounded">
-                                                    {s.supplierNumber}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3.5">
-                                                <div className="font-semibold text-gray-800 text-sm">{s.name}</div>
-                                                <div className="flex items-center gap-1.5 mt-0.5">
-                                                    {poCount > 0 ? (
-                                                        <span className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-semibold">
-                                                            {poCount} PO{poCount !== 1 ? 's' : ''}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-[10px] text-gray-400 italic">No POs</span>
-                                                    )}
-                                                    {s.isManual && (
-                                                        <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-100 px-1.5 py-0.5 rounded font-semibold">Manual</span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3.5 text-xs text-gray-500 max-w-56">
-                                                <span title={s.address} className="line-clamp-2 leading-relaxed">{s.address}</span>
-                                            </td>
-                                            <td className="px-4 py-3.5 text-sm text-gray-600 whitespace-nowrap">{s.phone}</td>
-                                            <td className="px-4 py-3.5 font-mono text-xs text-gray-500 whitespace-nowrap">{s.orgNumber}</td>
-                                            <td className="px-4 py-3.5 text-center">
-                                                <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-semibold">{s.itemCount}</span>
-                                            </td>
-                                            <td className="px-4 py-3.5">
-                                                <div className="flex flex-wrap gap-1">
-                                                    {s.categories.map((cat) => (
-                                                        <span key={cat} className={`text-xs px-2 py-0.5 rounded-full font-medium ${CATEGORY_STYLE[cat] ?? 'bg-gray-100 text-gray-600'}`}>
-                                                            {cat}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3.5">
-                                                {s.itemCount === 0 ? (
-                                                    <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-400 text-xs px-2.5 py-1 rounded-full font-medium">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0" />
-                                                        No inventory
-                                                    </span>
-                                                ) : s.lowStockCount > 0 ? (
-                                                    <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-medium">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-                                                        {s.lowStockCount} low stock
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-xs px-2.5 py-1 rounded-full font-medium">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-                                                        All stocked
-                                                    </span>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    )
-                                })}
-                            </tbody>
-                        </table>
+                        <ReorderableTable<SupplierRow>
+                            cols={supplierCols}
+                            data={filtered}
+                            defaultWidths={supplierDefaultWidths}
+                            onRowClick={s => setDetailSupplier(s)}
+                            rowKey={s => s.name}
+                        />
                     )}
                 </div>
             </div>

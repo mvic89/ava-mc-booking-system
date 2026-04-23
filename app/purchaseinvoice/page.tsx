@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useColumnState, ColTh } from '@/components/ResizableTable';
 import { PurchaseInvoice, PurchaseInvoiceStatus, CreditNote, CreditNoteStatus } from '@/utils/types';
 import { supabase } from '@/lib/supabase';
 import { getDealershipId, getDealershipProfile, tagFromName } from '@/lib/tenant';
@@ -573,6 +574,74 @@ export default function PurchaseInvoicePage() {
     },
   ].filter(Boolean) as { color: string; icon: string; title: string; body: string }[];
 
+  // ── Column state: credit notes (9 draggable cols) ─────────────────────────────
+  const CN_DEFAULT_WIDTHS = [150, 160, 160, 170, 120, 140, 140, 130, 160]
+  const CN_LABELS = ['System Ref #', 'Supplier Credit #', 'Vendor', 'Linked Invoice', 'Credit Date', 'Credit Amount', 'Remaining', 'Status', 'Reason']
+  const cnColState = useColumnState(CN_DEFAULT_WIDTHS)
+  const cnTotalW   = cnColState.widths.reduce((a, b) => a + b, 0)
+
+  const cnCell = (cn: CreditNote, origIdx: number): React.ReactNode => {
+    const statusStyle: Record<CreditNoteStatus, string> = {
+      'Unmatched':         'bg-red-100 text-red-700 border border-red-200',
+      'Pending':           'bg-amber-100 text-amber-700 border border-amber-200',
+      'Partially Applied': 'bg-blue-100 text-blue-700 border border-blue-200',
+      'Applied':           'bg-emerald-100 text-emerald-700 border border-emerald-200',
+    }
+    switch (origIdx) {
+      case 0: return <span className="font-mono text-xs font-bold text-emerald-600 whitespace-nowrap">{cn.id}</span>
+      case 1: return <span className="font-mono text-xs text-gray-600">{cn.supplierCreditNumber || '—'}</span>
+      case 2: return <span className="text-xs text-gray-800 font-medium truncate block">{cn.vendor}</span>
+      case 3: return cn.originalInvoiceId ? (
+        <span className="font-mono text-xs text-[#FF6B2C] font-bold">{cn.originalInvoiceId}</span>
+      ) : (
+        <select
+          defaultValue=""
+          onChange={e => e.target.value && handleMatchCreditNote(cn.id, e.target.value)}
+          onClick={e => e.stopPropagation()}
+          className="text-xs border border-red-200 rounded-lg px-2 py-1 bg-red-50 text-red-700 focus:outline-none focus:border-red-400"
+        >
+          <option value="">— Match to invoice —</option>
+          {invoices.filter(i => i.vendor === cn.vendor).map(i => <option key={i.id} value={i.id}>{i.id}</option>)}
+          {invoices.filter(i => i.vendor !== cn.vendor).length > 0 && (<>
+            <option disabled>── Other vendors ──</option>
+            {invoices.filter(i => i.vendor !== cn.vendor).map(i => <option key={i.id} value={i.id}>{i.id} — {i.vendor}</option>)}
+          </>)}
+        </select>
+      )
+      case 4: return <span className="text-xs text-gray-500 whitespace-nowrap">{cn.creditDate}</span>
+      case 5: return <span className="text-xs font-semibold text-gray-700 whitespace-nowrap">− {cn.amount.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}</span>
+      case 6: return <span className="text-xs font-bold text-emerald-700 whitespace-nowrap">{cn.remainingAmount > 0 ? `− ${cn.remainingAmount.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}` : '—'}</span>
+      case 7: return <span className={`px-2 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap ${statusStyle[cn.status]}`}>{cn.status}</span>
+      case 8: return <span className="text-xs text-gray-500 truncate block">{cn.reason || '—'}</span>
+      default: return null
+    }
+  }
+
+  // ── Column state: invoices (8 draggable cols; checkbox + actions are fixed) ────
+  const INV_DEFAULT_WIDTHS = [150, 160, 110, 160, 120, 110, 140, 130]
+  const INV_LABELS = ['System Ref #', 'Supplier Invoice #', 'PO #', 'Vendor', 'Invoice Date', 'Due Date', 'Amount', 'Status']
+  const invColState = useColumnState(INV_DEFAULT_WIDTHS)
+  const invTotalW   = 40 + invColState.widths.reduce((a, b) => a + b, 0) + 80 // checkbox + cols + actions
+
+  const invCell = (inv: PurchaseInvoice, origIdx: number): React.ReactNode => {
+    switch (origIdx) {
+      case 0: return <span className="font-mono text-xs font-bold text-[#FF6B2C] whitespace-nowrap">{inv.id}</span>
+      case 1: return <span className="font-mono text-xs text-gray-600 whitespace-nowrap">{inv.supplierInvoiceNumber || '—'}</span>
+      case 2: return <span className="text-xs text-gray-500 whitespace-nowrap">{inv.poId || '—'}</span>
+      case 3: return <span className="text-xs text-gray-800 font-medium truncate block">{inv.vendor}</span>
+      case 4: return <span className="text-xs text-gray-500 whitespace-nowrap">{inv.invoiceDate}</span>
+      case 5: return <span className={`text-xs whitespace-nowrap ${inv.status === 'Overdue' ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>{inv.dueDate}</span>
+      case 6: return (inv.creditedAmount ?? 0) > 0 ? (
+        <div>
+          <p className="text-gray-400 line-through text-[10px]">{inv.amount.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}</p>
+          <p className="text-emerald-700 font-bold text-xs">{(inv.amount - (inv.creditedAmount ?? 0)).toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}</p>
+        </div>
+      ) : <span className="text-gray-900 font-semibold text-xs whitespace-nowrap">{inv.amount.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}</span>
+      case 7: return <span className={`px-2 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap ${STATUS_STYLES[inv.status].badge}`}>{inv.status}</span>
+      default: return null
+    }
+  }
+
   return (
     <div className="lg:ml-64 min-h-screen flex flex-col bg-white">
 
@@ -793,87 +862,40 @@ export default function PurchaseInvoicePage() {
               <p className="text-gray-400 text-xs">Credit notes arrive automatically when suppliers send them by email</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <div className="table-scroll overflow-x-auto">
+              <table className="text-sm" style={{ tableLayout: 'fixed', width: '100%', minWidth: cnTotalW }}>
+                <colgroup>{cnColState.widths.map((w, i) => <col key={i} style={{ width: w }} />)}</colgroup>
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">System Ref #</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Supplier Credit #</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Vendor</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Linked Invoice</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Credit Date</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Credit Amount</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-emerald-600 uppercase tracking-wider">Remaining</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Reason</th>
+                  <tr className="border-b border-slate-200">
+                    {cnColState.order.map((origIdx, pos) => (
+                      <ColTh key={origIdx} pos={pos} width={cnColState.widths[pos]}
+                        isDragging={cnColState.draggingPos === pos} isDragOver={cnColState.dragOverPos === pos}
+                        isLast={pos === cnColState.order.length - 1}
+                        onResizeMouseDown={cnColState.onResizeMouseDown} onDragStart={cnColState.onDragStart}
+                        onDragOver={cnColState.onDragOver} onDrop={cnColState.onDrop} onDragEnd={cnColState.onDragEnd}
+                      >{CN_LABELS[origIdx]}</ColTh>
+                    ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {creditNotes.map(cn => {
-                    const statusStyle: Record<CreditNoteStatus, string> = {
-                      'Unmatched':         'bg-red-100 text-red-700 border border-red-200',
-                      'Pending':           'bg-amber-100 text-amber-700 border border-amber-200',
-                      'Partially Applied': 'bg-blue-100 text-blue-700 border border-blue-200',
-                      'Applied':           'bg-emerald-100 text-emerald-700 border border-emerald-200',
-                    };
-                    return (
-                      <tr key={cn.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-mono text-xs font-bold text-emerald-600 whitespace-nowrap">{cn.id}</td>
-                        <td className="px-4 py-3 font-mono text-xs text-gray-600">{cn.supplierCreditNumber || '—'}</td>
-                        <td className="px-4 py-3 text-xs text-gray-800 font-medium max-w-40 truncate">{cn.vendor}</td>
-                        <td className="px-4 py-3">
-                          {cn.originalInvoiceId ? (
-                            <span className="font-mono text-xs text-[#FF6B2C] font-bold">{cn.originalInvoiceId}</span>
-                          ) : (
-                            <select
-                              defaultValue=""
-                              onChange={e => e.target.value && handleMatchCreditNote(cn.id, e.target.value)}
-                              onClick={e => e.stopPropagation()}
-                              className="text-xs border border-red-200 rounded-lg px-2 py-1 bg-red-50 text-red-700 focus:outline-none focus:border-red-400"
-                            >
-                              <option value="">— Match to invoice —</option>
-                              {invoices.filter(i => i.vendor === cn.vendor).map(i => (
-                                <option key={i.id} value={i.id}>{i.id}</option>
-                              ))}
-                              {invoices.filter(i => i.vendor !== cn.vendor).length > 0 && (
-                                <>
-                                  <option disabled>── Other vendors ──</option>
-                                  {invoices.filter(i => i.vendor !== cn.vendor).map(i => (
-                                    <option key={i.id} value={i.id}>{i.id} — {i.vendor}</option>
-                                  ))}
-                                </>
-                              )}
-                            </select>
-                          )}
+                <tbody className="divide-y divide-slate-100">
+                  {creditNotes.map(cn => (
+                    <tr key={cn.id} className="hover:bg-gray-50 transition-colors">
+                      {cnColState.order.map((origIdx, pos) => (
+                        <td key={origIdx} className={`px-3 py-3 border-r border-slate-100 overflow-hidden ${pos === cnColState.order.length - 1 ? 'border-r-0' : ''}`}>
+                          {cnCell(cn, origIdx)}
                         </td>
-                        <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{cn.creditDate}</td>
-                        <td className="px-4 py-3 text-xs text-right font-semibold text-gray-700">
-                          − {cn.amount.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}
-                        </td>
-                        <td className="px-4 py-3 text-xs text-right font-bold text-emerald-700">
-                          {cn.remainingAmount > 0
-                            ? `− ${cn.remainingAmount.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}`
-                            : '—'}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={`px-2 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap ${statusStyle[cn.status]}`}>
-                            {cn.status}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-xs text-gray-500 max-w-48 truncate">{cn.reason || '—'}</td>
-                      </tr>
-                    );
-                  })}
+                      ))}
+                    </tr>
+                  ))}
                 </tbody>
                 <tfoot>
                   <tr className="bg-gray-50 border-t border-gray-200">
-                    <td colSpan={6} className="px-4 py-3 text-xs text-gray-500 font-semibold">
+                    <td colSpan={CN_LABELS.length - 1} className="px-4 py-3 text-xs text-gray-500 font-semibold">
                       Total credit available
                     </td>
                     <td className="px-4 py-3 text-right font-bold text-emerald-700 text-sm">
                       − {creditNotes.filter(c => c.status !== 'Applied').reduce((s, c) => s + c.remainingAmount, 0).toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}
                     </td>
-                    <td colSpan={2} />
                   </tr>
                 </tfoot>
               </table>
@@ -1008,70 +1030,53 @@ export default function PurchaseInvoicePage() {
             </div>
           )
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="table-scroll overflow-x-auto">
+            <table className="text-sm" style={{ tableLayout: 'fixed', width: '100%', minWidth: invTotalW }}>
+              <colgroup>
+                <col style={{ width: 40 }} />
+                {invColState.widths.map((w, i) => <col key={i} style={{ width: w }} />)}
+                <col style={{ width: 80 }} />
+              </colgroup>
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="px-3 py-3 w-8" onClick={e => { e.stopPropagation(); toggleSelectAll(); }}>
+                <tr className="border-b border-slate-200">
+                  {/* Fixed checkbox column */}
+                  <th className="relative px-3 py-3 w-10 border-r border-slate-200 bg-slate-50">
                     <input type="checkbox" readOnly
                       checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                      onClick={e => { e.stopPropagation(); toggleSelectAll(); }}
                       className="rounded border-gray-300 text-orange-500 cursor-pointer"
                     />
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">System Ref #</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Supplier Invoice #</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">PO #</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Vendor</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Invoice Date</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Due Date</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-4 py-3" />
+                  {/* Draggable columns */}
+                  {invColState.order.map((origIdx, pos) => (
+                    <ColTh key={origIdx} pos={pos} width={invColState.widths[pos]}
+                      isDragging={invColState.draggingPos === pos} isDragOver={invColState.dragOverPos === pos}
+                      isLast={false}
+                      onResizeMouseDown={invColState.onResizeMouseDown} onDragStart={invColState.onDragStart}
+                      onDragOver={invColState.onDragOver} onDrop={invColState.onDrop} onDragEnd={invColState.onDragEnd}
+                    >{INV_LABELS[origIdx]}</ColTh>
+                  ))}
+                  {/* Fixed actions column */}
+                  <th className="relative px-3 py-3 text-xs uppercase tracking-wider font-semibold text-slate-400 border-l border-slate-200 w-20" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-slate-100">
                 {filtered.map(inv => (
                   <tr
                     key={inv.id}
                     onClick={() => openDetail(inv)}
                     className={`hover:bg-orange-50/40 transition-colors cursor-pointer ${STATUS_STYLES[inv.status].row} ${selectedIds.has(inv.id) ? 'bg-orange-50/60' : ''}`}
                   >
-                    <td className="px-3 py-3 w-8" onClick={e => { e.stopPropagation(); toggleSelect(inv.id); }}>
+                    <td className="px-3 py-3 border-r border-slate-100" onClick={e => { e.stopPropagation(); toggleSelect(inv.id); }}>
                       <input type="checkbox" readOnly checked={selectedIds.has(inv.id)}
                         className="rounded border-gray-300 text-orange-500 cursor-pointer" />
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs font-bold text-[#FF6B2C] whitespace-nowrap">{inv.id}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-gray-600 whitespace-nowrap">{inv.supplierInvoiceNumber || '—'}</td>
-                    <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{inv.poId || '—'}</td>
-                    <td className="px-4 py-3 text-xs text-gray-800 font-medium max-w-45 truncate">{inv.vendor}</td>
-                    <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{inv.invoiceDate}</td>
-                    <td className="px-4 py-3 text-xs whitespace-nowrap">
-                      <span className={inv.status === 'Overdue' ? 'text-red-600 font-semibold' : 'text-gray-500'}>
-                        {inv.dueDate}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-xs whitespace-nowrap">
-                      {(inv.creditedAmount ?? 0) > 0 ? (
-                        <div>
-                          <p className="text-gray-400 line-through text-[10px]">
-                            {inv.amount.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}
-                          </p>
-                          <p className="text-emerald-700 font-bold">
-                            {(inv.amount - (inv.creditedAmount ?? 0)).toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}
-                          </p>
-                        </div>
-                      ) : (
-                        <p className="text-gray-900 font-semibold">
-                          {inv.amount.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}
-                        </p>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap ${STATUS_STYLES[inv.status].badge}`}>
-                        {inv.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                    {invColState.order.map((origIdx, pos) => (
+                      <td key={origIdx} className={`px-3 py-3 border-r border-slate-100 overflow-hidden ${pos === invColState.order.length - 1 ? '' : ''}`}>
+                        {invCell(inv, origIdx)}
+                      </td>
+                    ))}
+                    <td className="px-3 py-3 border-l border-slate-100" onClick={e => e.stopPropagation()}>
                       <div className="flex items-center gap-2">
                         <button onClick={() => openEdit(inv)} title="Edit" className="text-gray-400 hover:text-[#FF6B2C] transition-colors text-xs">✏️</button>
                         <button onClick={() => handleDelete(inv.id)} title="Delete" className="text-gray-400 hover:text-red-500 transition-colors text-xs">🗑️</button>
@@ -1082,13 +1087,12 @@ export default function PurchaseInvoicePage() {
               </tbody>
               <tfoot>
                 <tr className="bg-gray-50 border-t border-gray-200">
-                  <td colSpan={6} className="px-4 py-3 text-xs text-gray-500 font-semibold">
+                  <td colSpan={1 + INV_LABELS.length} className="px-4 py-3 text-xs text-gray-500 font-semibold">
                     Total ({filtered.length} invoice{filtered.length !== 1 ? 's' : ''})
                   </td>
-                  <td className="px-4 py-3 text-gray-900 font-bold text-sm whitespace-nowrap">
+                  <td className="px-4 py-3 text-gray-900 font-bold text-sm whitespace-nowrap text-right">
                     {totalAmount.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}
                   </td>
-                  <td colSpan={2} />
                 </tr>
               </tfoot>
             </table>

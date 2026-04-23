@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
 import { supabase } from '@/lib/supabase'
 import { getDealershipId, getDealershipTag } from '@/lib/tenant'
+import { ReorderableTable, type ColDef } from '@/components/ResizableTable'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -69,6 +70,23 @@ function StatusBadge({ status }: { status: GoodsReceipt['status'] }) {
         return <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-600">✕ Rejected</span>
     return <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">⏳ Pending Approval</span>
 }
+
+const GR_COLS: ColDef<GoodsReceipt>[] = [
+    { label: 'Receipt ID',    defaultWidth: 160, cell: r => <span className="font-mono text-xs font-bold text-orange-500 whitespace-nowrap">{r.id}</span> },
+    { label: 'Vendor',        defaultWidth: 160, cell: r => <span className="text-xs text-gray-800 font-medium truncate block">{r.vendor}</span> },
+    { label: 'PO #',          defaultWidth: 130, cell: r => <span className="text-xs text-gray-500 font-mono">{r.po_id || '—'}</span> },
+    { label: 'Delivery Note', defaultWidth: 140, cell: r => <span className="text-xs text-gray-500 font-mono">{r.delivery_note_number || '—'}</span> },
+    { label: 'Received Date', defaultWidth: 140, cell: r => <span className="text-xs text-gray-500 whitespace-nowrap">{r.received_date}</span> },
+    { label: 'Lines',         defaultWidth: 80,  tdClass: 'text-center', cell: r => <span className="text-xs text-gray-700 font-semibold">{r.items?.length ?? 0}</span> },
+    { label: 'Units',         defaultWidth: 80,  tdClass: 'text-center', cell: r => {
+        const units = r.items?.reduce((s, i) => s + i.received_qty, 0) ?? 0
+        return <span className="text-xs font-bold text-gray-900">{units}</span>
+    }},
+    { label: 'Source', defaultWidth: 120, cell: r => <SourceBadge source={r.source} /> },
+    { label: 'Status', defaultWidth: 120, cell: r => <StatusBadge status={r.status ?? 'approved'} /> },
+]
+
+const GR_DEFAULT_WIDTHS = GR_COLS.map(c => c.defaultWidth)
 
 function DetailModal({ receipt, onClose, onStatusChange, onPoRelinked }: {
     receipt: GoodsReceipt
@@ -593,15 +611,15 @@ function GoodsReceiptsContent() {
 
     // ── Render ───────────────────────────────────────────────────────────────
     return (
-        <div className="flex min-h-screen bg-[#f5f7fa]">
+        <div className="flex h-screen overflow-hidden bg-[#f5f7fa]">
             <Sidebar />
-            <div className="lg:ml-64 flex-1 flex flex-col">
-                <div className="brand-top-bar" />
+            <div className="lg:ml-64 flex-1 flex flex-col min-h-0">
+                <div className="brand-top-bar shrink-0" />
 
-                <div className="p-6 flex-1 flex flex-col max-w-6xl w-full">
+                <div className="p-6 flex-1 min-h-0 flex flex-col w-full">
 
                     {/* Header */}
-                    <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center justify-between mb-6 shrink-0">
                         <div>
                             <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Purchasing</p>
                             <h1 className="text-2xl font-black text-gray-900">Goods Receipts</h1>
@@ -628,7 +646,7 @@ function GoodsReceiptsContent() {
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-3 gap-4 mb-6">
+                    <div className="grid grid-cols-3 gap-4 mb-6 shrink-0">
                         {[
                             { label: 'Total Receipts',    value: receipts.length, icon: '📦', color: 'border-l-orange-400' },
                             { label: 'Units Received',    value: totalUnits,      icon: '📊', color: 'border-l-blue-400' },
@@ -645,7 +663,7 @@ function GoodsReceiptsContent() {
                     </div>
 
                     {/* Table */}
-                    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm flex-1">
+                    <div className="table-scroll bg-white border border-gray-200 rounded-2xl overflow-auto shadow-sm flex-1 min-h-0">
                         {loading ? (
                             <div className="flex items-center justify-center h-48">
                                 <div className="w-6 h-6 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
@@ -673,45 +691,13 @@ function GoodsReceiptsContent() {
                                 )}
                             </div>
                         ) : (
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <thead>
-                                        <tr className="bg-gray-50 border-b border-gray-200">
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Receipt ID</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Vendor</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">PO #</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Delivery Note</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Received Date</th>
-                                            <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Lines</th>
-                                            <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Units</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Source</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100">
-                                        {filtered.map(r => {
-                                            const units = r.items?.reduce((s, i) => s + i.received_qty, 0) ?? 0
-                                            return (
-                                                <tr
-                                                    key={r.id}
-                                                    onClick={() => setSelected(r)}
-                                                    className="hover:bg-orange-50/40 transition-colors cursor-pointer group"
-                                                >
-                                                    <td className="px-4 py-3 font-mono text-xs font-bold text-orange-500 whitespace-nowrap">{r.id}</td>
-                                                    <td className="px-4 py-3 text-xs text-gray-800 font-medium max-w-45 truncate">{r.vendor}</td>
-                                                    <td className="px-4 py-3 text-xs text-gray-500 font-mono">{r.po_id || '—'}</td>
-                                                    <td className="px-4 py-3 text-xs text-gray-500 font-mono">{r.delivery_note_number || '—'}</td>
-                                                    <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{r.received_date}</td>
-                                                    <td className="px-4 py-3 text-xs text-center text-gray-700 font-semibold">{r.items?.length ?? 0}</td>
-                                                    <td className="px-4 py-3 text-xs text-center font-bold text-gray-900">{units}</td>
-                                                    <td className="px-4 py-3"><SourceBadge source={r.source} /></td>
-                                                    <td className="px-4 py-3"><StatusBadge status={r.status ?? 'approved'} /></td>
-                                                </tr>
-                                            )
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
+                            <ReorderableTable<GoodsReceipt>
+                                cols={GR_COLS}
+                                data={filtered}
+                                defaultWidths={GR_DEFAULT_WIDTHS}
+                                onRowClick={r => setSelected(r)}
+                                rowKey={r => r.id}
+                            />
                         )}
                     </div>
                 </div>
