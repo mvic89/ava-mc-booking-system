@@ -41,27 +41,32 @@ async function resolveCustomer(
   dealershipId: string,
   totalAmount:  number,
 ): Promise<{ customerId: number | null; customerName: string }> {
-  const { data: lead } = await sb()
+  const { data: leadRows } = await sb()
     .from('leads')
     .select('*')
     .eq('id', leadId)
     .eq('dealership_id', dealershipId)
-    .maybeSingle();
+    .limit(1);
+  const lead = leadRows?.[0] ?? null;
   if (!lead) return { customerId: null, customerName: '' };
 
   const fallbackName = String(lead.name ?? '');
 
-  // Check for existing customer by personnummer, then email
+  // Check for existing customer by personnummer, email, then phone.
+  // Use .limit(1) instead of .maybeSingle() so that existing duplicates in the
+  // DB don't cause the lookup to error and fall through to create yet another row.
   let existingId: number | null = null;
   if (lead.personnummer) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: r } = await sb().from('customers').select('id').eq('personnummer', lead.personnummer).eq('dealership_id', dealershipId).maybeSingle();
-    if (r) existingId = (r as { id: number }).id;
+    const { data: rows } = await sb().from('customers').select('id').eq('personnummer', lead.personnummer).eq('dealership_id', dealershipId).limit(1);
+    if (rows?.[0]) existingId = (rows[0] as { id: number }).id;
   }
   if (!existingId && lead.email) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: r } = await sb().from('customers').select('id').eq('email', lead.email).eq('dealership_id', dealershipId).maybeSingle();
-    if (r) existingId = (r as { id: number }).id;
+    const { data: rows } = await sb().from('customers').select('id').eq('email', lead.email).eq('dealership_id', dealershipId).limit(1);
+    if (rows?.[0]) existingId = (rows[0] as { id: number }).id;
+  }
+  if (!existingId && lead.phone) {
+    const { data: rows } = await sb().from('customers').select('id').eq('phone', lead.phone).eq('dealership_id', dealershipId).limit(1);
+    if (rows?.[0]) existingId = (rows[0] as { id: number }).id;
   }
 
   if (existingId) {
@@ -122,16 +127,22 @@ async function resolveCustomer(
   // Race-condition duplicate key — look up the row that beat us
   if (insertErr?.code === '23505') {
     if (lead.personnummer) {
+      const { data: rows } = await sb().from('customers').select('id, first_name, last_name').eq('personnummer', lead.personnummer).eq('dealership_id', dealershipId).limit(1);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: r } = await sb().from('customers').select('id, first_name, last_name').eq('personnummer', lead.personnummer).eq('dealership_id', dealershipId).maybeSingle();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if (r) return { customerId: (r as any).id, customerName: `${(r as any).first_name} ${(r as any).last_name}`.trim() };
+      const r = rows?.[0] as any;
+      if (r) return { customerId: r.id, customerName: `${r.first_name} ${r.last_name}`.trim() };
     }
     if (lead.email) {
+      const { data: rows } = await sb().from('customers').select('id, first_name, last_name').eq('email', lead.email).eq('dealership_id', dealershipId).limit(1);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: r } = await sb().from('customers').select('id, first_name, last_name').eq('email', lead.email).eq('dealership_id', dealershipId).maybeSingle();
+      const r = rows?.[0] as any;
+      if (r) return { customerId: r.id, customerName: `${r.first_name} ${r.last_name}`.trim() };
+    }
+    if (lead.phone) {
+      const { data: rows } = await sb().from('customers').select('id, first_name, last_name').eq('phone', lead.phone).eq('dealership_id', dealershipId).limit(1);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if (r) return { customerId: (r as any).id, customerName: `${(r as any).first_name} ${(r as any).last_name}`.trim() };
+      const r = rows?.[0] as any;
+      if (r) return { customerId: r.id, customerName: `${r.first_name} ${r.last_name}`.trim() };
     }
   }
 

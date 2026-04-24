@@ -63,7 +63,6 @@ function ValuationPanel({ dealershipId, onCreated }: ValuationPanelProps) {
   const [leadId,    setLeadId]    = useState('');
   const [notes,     setNotes]     = useState('');
   const [saving,    setSaving]    = useState(false);
-
   const conditionKeys = ['excellent', 'good', 'fair', 'poor'] as const;
   const conditionPct  = CONDITION_PCTS[condition] ?? 0.72;
   const baseMarket    = parseFloat(marketVal) || 0;
