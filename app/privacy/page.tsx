@@ -11,7 +11,7 @@ const SECTIONS = [
   'S6', 'S7', 'S8', 'S9', 'S10',
 ] as const;
 
-const EMPTY_DEALER: DealerInfo = { name: '', orgNr: '', city: '', email: '', phone: '', website: '', address: '', postalCode: '', bankgiro: '', swish: '', iban: '', bic: '' };
+const EMPTY_DEALER: DealerInfo = { name: '', orgNr: '', city: '', email: '', phone: '', website: '', address: '', postalCode: '', bankgiro: '', swish: '', iban: '', bic: '', bankName: '' };
 
 export default function PrivacyPage() {
   const t = useTranslations('privacy');
