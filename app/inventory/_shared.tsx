@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { useInventory } from '@/context/InventoryContext'
-import { Motorcycle, SparePart, Accessory, BaseInventoryItem, InventoryCategory } from '@/utils/types'
+import { Motorcycle, SparePart, Accessory, BaseInventoryItem, InventoryCategory, accessoryGroup } from '@/utils/types'
 import { AddItemModal } from '@/components/AddItemModal'
 import { ImportInventoryModal } from '@/components/ImportInventoryModal'
 import { EditItemModal } from '@/components/EditItemModal'
@@ -333,7 +333,34 @@ function AccessoriesTable({ data, updateStock, onRowClick, onDelete }: {
             </>
         )},
         { label: 'Article No.',  defaultWidth: 110, tdClass: 'font-mono text-xs text-slate-500 truncate',     cell: a => a.articleNumber },
-        { label: 'Category',     defaultWidth: 100, cell: a => <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full font-medium">{a.category}</span> },
+        { label: 'Group',        defaultWidth: 130, cell: a => {
+            const grp = accessoryGroup(a.category)
+            const grpStyle: Record<string, string> = {
+                'Helmets':     'bg-indigo-100 text-indigo-700',
+                'Clothing':    'bg-rose-100 text-rose-700',
+                'Seat Covers': 'bg-amber-100 text-amber-700',
+                'Luggage':     'bg-cyan-100 text-cyan-700',
+                'Protection':  'bg-orange-100 text-orange-700',
+                'Other':       'bg-slate-100 text-slate-600',
+            }
+            const subStyle: Record<string, string> = {
+                'Men':        'bg-blue-50 text-blue-600',
+                'Women':      'bg-pink-50 text-pink-600',
+                'Unisex':     'bg-gray-100 text-gray-500',
+                'Open Face':  'bg-green-50 text-green-700',
+                'Full Face':  'bg-indigo-50 text-indigo-700',
+                'Modular':    'bg-purple-50 text-purple-700',
+                'Off-Road':   'bg-amber-50 text-amber-700',
+                'Half Shell': 'bg-teal-50 text-teal-700',
+            }
+            return (
+                <div className="flex flex-col gap-0.5">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap ${grpStyle[grp] ?? 'bg-slate-100 text-slate-600'}`}>{grp}</span>
+                    {a.subGroup && <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap ${subStyle[a.subGroup] ?? 'bg-gray-100 text-gray-500'}`}>{a.subGroup}</span>}
+                </div>
+            )
+        }},
+        { label: 'Category',     defaultWidth: 110, cell: a => <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full font-medium">{a.category}</span> },
         { label: 'Size',         defaultWidth: 70,  tdClass: 'text-slate-700 text-xs font-medium',            cell: a => a.size ?? '—' },
         { label: 'Stock',        defaultWidth: 120, noClick: true, cell: (a, h) => <StockCell item={a} updateStock={updateStock} /> },
         { label: 'Reorder',      defaultWidth: 75,  tdClass: 'text-slate-500 text-xs',                        cell: a => a.reorderQty },

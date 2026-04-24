@@ -10,7 +10,10 @@ import {
 const MC_TYPES:    MCType[]    = ['New', 'Trade-In', 'Commission']
 const WAREHOUSES:  Warehouse[] = ['Warehouse A', 'Warehouse B', 'Warehouse C', 'Warehouse D']
 const SP_CATS = ['Engine', 'Brakes', 'Electrical', 'Transmission', 'Suspension', 'Fuel System', 'Tyres & Wheels', 'Exhaust', 'Body & Frame']
-const ACC_CATS = ['Helmet', 'Gloves', 'Jacket', 'Boots', 'Pants', 'Protection', 'Luggage', 'Handlebars & Grips', 'Cap', 'Neck & Face']
+const ACC_CATS = ['Helmet', 'Gloves', 'Jacket', 'T-Shirt', 'Boots', 'Pants', 'Protection', 'Luggage', 'Seat Cover', 'Handlebars & Grips', 'Cap', 'Neck & Face']
+const CLOTHING_CATS = ['Gloves', 'Jacket', 'T-Shirt', 'Boots', 'Pants', 'Cap', 'Neck & Face']
+const HELMET_TYPES  = ['Open Face', 'Full Face', 'Modular', 'Off-Road', 'Half Shell']
+const GENDERS       = ['Men', 'Women', 'Unisex']
 
 function formatSEK(v: number) {
     return new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', minimumFractionDigits: 0 }).format(v)
@@ -45,7 +48,8 @@ export function EditItemModal({ item, category, onClose }: Props) {
         warehouse: (item as Motorcycle).warehouse ?? 'Warehouse A',
         // spare-part / accessory category
         category:  (item as SparePart | Accessory).category ?? '',
-        // accessory size
+        // accessory sub-group and size
+        subGroup:  (item as Accessory).subGroup ?? '',
         size:      (item as Accessory).size ?? '',
     })
 
@@ -93,6 +97,7 @@ export function EditItemModal({ item, category, onClose }: Props) {
                 await updateItem('accessories', {
                     ...base,
                     category: form.category,
+                    subGroup: form.subGroup.trim() || undefined,
                     size:     form.size.trim() || undefined,
                 } as Accessory)
             }
@@ -203,13 +208,47 @@ export function EditItemModal({ item, category, onClose }: Props) {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-semibold text-gray-600 mb-1.5">Category</label>
-                                <select value={form.category} onChange={e => set('category', e.target.value)}
+                                <select value={form.category}
+                                    onChange={e => { set('category', e.target.value); set('subGroup', '') }}
                                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
-                                    {(category === 'spareParts' ? SP_CATS : ACC_CATS).map(c => <option key={c}>{c}</option>)}
+                                    {category === 'spareParts'
+                                        ? SP_CATS.map(c => <option key={c}>{c}</option>)
+                                        : (
+                                            <>
+                                                <optgroup label="Helmets"><option>Helmet</option></optgroup>
+                                                <optgroup label="Clothing">
+                                                    {['Jacket', 'Gloves', 'T-Shirt', 'Pants', 'Boots', 'Cap', 'Neck & Face'].map(c => <option key={c}>{c}</option>)}
+                                                </optgroup>
+                                                <optgroup label="Other">
+                                                    {['Seat Cover', 'Protection', 'Luggage', 'Handlebars & Grips'].map(c => <option key={c}>{c}</option>)}
+                                                </optgroup>
+                                            </>
+                                        )
+                                    }
                                 </select>
                             </div>
                             {category === 'accessories' && (
                                 <Field label="Size (optional)" value={form.size} onChange={v => set('size', v)} placeholder="e.g. M, L, XL" />
+                            )}
+                            {category === 'accessories' && form.category === 'Helmet' && (
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">Helmet Type</label>
+                                    <select value={form.subGroup} onChange={e => set('subGroup', e.target.value)}
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
+                                        <option value="">— Select type —</option>
+                                        {HELMET_TYPES.map(t => <option key={t}>{t}</option>)}
+                                    </select>
+                                </div>
+                            )}
+                            {category === 'accessories' && CLOTHING_CATS.includes(form.category) && (
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">Gender</label>
+                                    <select value={form.subGroup} onChange={e => set('subGroup', e.target.value)}
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
+                                        <option value="">— Select —</option>
+                                        {GENDERS.map(g => <option key={g}>{g}</option>)}
+                                    </select>
+                                </div>
                             )}
                         </div>
                     )}

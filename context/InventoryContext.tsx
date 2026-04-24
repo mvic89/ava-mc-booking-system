@@ -65,6 +65,7 @@ function dbToAccessory(r: any): Accessory {
         articleNumber: r.article_number,
         brand:        r.brand,
         category:     r.category,
+        subGroup:     r.sub_group ?? undefined,
         size:         r.size ?? undefined,
         stock:        r.stock,
         reorderQty:   r.reorder_qty,
@@ -218,6 +219,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 brand:         acc.brand,
                 description:   acc.description,
                 category:      acc.category,
+                sub_group:     acc.subGroup ?? null,
                 size:          acc.size ?? null,
                 stock:         acc.stock,
                 reorder_qty:   acc.reorderQty,
@@ -259,6 +261,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
             await supabase.from('accessories').update({
                 name: acc.name, brand: acc.brand, description: acc.description,
                 article_number: acc.articleNumber, category: acc.category,
+                sub_group: acc.subGroup ?? null,
                 size: acc.size ?? null, stock: acc.stock, reorder_qty: acc.reorderQty,
                 cost: acc.cost, selling_price: acc.sellingPrice, vendor: acc.vendor,
             }).eq('id', acc.id).eq('dealership_id', dealershipId)

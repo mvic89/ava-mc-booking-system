@@ -35,8 +35,21 @@ export interface SparePart extends BaseInventoryItem {
     category: 'Engine' | 'Brakes' | 'Electrical' | 'Transmission' | 'Suspension' | 'Fuel System' | 'Tyres & Wheels' | 'Exhaust' | 'Body & Frame';
 }
 
+export type AccessoryGroup = 'Helmets' | 'Clothing' | 'Seat Covers' | 'Luggage' | 'Protection' | 'Other'
+
+const CLOTHING_CATS = ['Gloves', 'Jacket', 'T-Shirt', 'Boots', 'Pants', 'Cap', 'Neck & Face']
+export function accessoryGroup(category: string): AccessoryGroup {
+    if (category === 'Helmet') return 'Helmets'
+    if (CLOTHING_CATS.includes(category)) return 'Clothing'
+    if (category === 'Seat Cover') return 'Seat Covers'
+    if (category === 'Luggage') return 'Luggage'
+    if (category === 'Protection') return 'Protection'
+    return 'Other'
+}
+
 export interface Accessory extends BaseInventoryItem {
-    category: 'Helmet' | 'Gloves' | 'Jacket' | 'Boots' | 'Pants' | 'Protection' | 'Luggage' | 'Handlebars & Grips' | 'Cap' | 'Neck & Face';
+    category: 'Helmet' | 'Gloves' | 'Jacket' | 'T-Shirt' | 'Boots' | 'Pants' | 'Protection' | 'Luggage' | 'Handlebars & Grips' | 'Cap' | 'Neck & Face' | 'Seat Cover';
+    subGroup?: string;  // helmet type (Open Face, Full Face, …) or gender (Men, Women, Unisex)
     size?: string;
 }
 
@@ -67,12 +80,23 @@ export interface PurchaseInvoice {
     vendor: string
     invoiceDate: string           // ISO date string
     dueDate: string
-    amount: number
+    amount: number                // gross total incl. VAT (what you pay the supplier)
+    vatRate: number               // 0, 12, or 25 (Swedish VAT %)
     creditedAmount?: number       // total credit applied against this invoice
     status: PurchaseInvoiceStatus
     notes?: string
     pdfUrl?: string               // URL to the stored supplier invoice PDF
     poFullyReceived?: boolean     // true if the linked PO has been fully received
+}
+
+/** Net amount excl. VAT, derived from gross + vatRate */
+export function invoiceNet(inv: PurchaseInvoice): number {
+    return inv.amount / (1 + inv.vatRate / 100)
+}
+
+/** VAT amount derived from gross + vatRate */
+export function invoiceVAT(inv: PurchaseInvoice): number {
+    return inv.amount - invoiceNet(inv)
 }
 
 // ─── Credit Note Types ─────────────────────────────────────────────────────────

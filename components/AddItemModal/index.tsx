@@ -151,7 +151,12 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
 
     // Accessory-specific
     const [accCategory, setAccCategory] = useState('')
+    const [accSubGroup, setAccSubGroup] = useState('')
     const [size, setSize]               = useState('')
+
+    const CLOTHING_CATS = ['Gloves', 'Jacket', 'T-Shirt', 'Boots', 'Pants', 'Cap', 'Neck & Face']
+    const isHelmet   = accCategory === 'Helmet'
+    const isClothing = CLOTHING_CATS.includes(accCategory)
 
     // Auto-generate item ID when type is chosen (includes dealership UUID fingerprint)
     const autoId = useMemo(() => {
@@ -313,6 +318,7 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                     vendor: vendor.trim(),
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     category: accCategory as any,
+                    subGroup: accSubGroup.trim() || undefined,
                     size: size.trim() || undefined,
                 })
             }
@@ -780,23 +786,53 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                                         <Section title="Accessory Details" />
                                         <div className="grid grid-cols-2 gap-4">
                                             <Field label="Category" required>
-                                                <select className={selectCls} value={accCategory} onChange={(e) => setAccCategory(e.target.value)}>
+                                                <select className={selectCls} value={accCategory} onChange={(e) => { setAccCategory(e.target.value); setAccSubGroup('') }}>
                                                     <option value="">— Select category —</option>
-                                                    <option>Helmet</option>
-                                                    <option>Gloves</option>
-                                                    <option>Jacket</option>
-                                                    <option>Boots</option>
-                                                    <option>Pants</option>
-                                                    <option>Protection</option>
-                                                    <option>Luggage</option>
-                                                    <option>Handlebars &amp; Grips</option>
-                                                    <option>Cap</option>
-                                                    <option>Neck &amp; Face</option>
+                                                    <optgroup label="Helmets">
+                                                        <option>Helmet</option>
+                                                    </optgroup>
+                                                    <optgroup label="Clothing">
+                                                        <option>Jacket</option>
+                                                        <option>Gloves</option>
+                                                        <option>T-Shirt</option>
+                                                        <option>Pants</option>
+                                                        <option>Boots</option>
+                                                        <option>Cap</option>
+                                                        <option>Neck &amp; Face</option>
+                                                    </optgroup>
+                                                    <optgroup label="Other">
+                                                        <option>Seat Cover</option>
+                                                        <option>Protection</option>
+                                                        <option>Luggage</option>
+                                                        <option>Handlebars &amp; Grips</option>
+                                                    </optgroup>
                                                 </select>
                                             </Field>
                                             <Field label="Size" required>
                                                 <input className={inputCls} placeholder="e.g. M, L, XL or 42" value={size} onChange={(e) => setSize(e.target.value)} />
                                             </Field>
+                                            {isHelmet && (
+                                                <Field label="Helmet Type">
+                                                    <select className={selectCls} value={accSubGroup} onChange={(e) => setAccSubGroup(e.target.value)}>
+                                                        <option value="">— Select type —</option>
+                                                        <option>Open Face</option>
+                                                        <option>Full Face</option>
+                                                        <option>Modular</option>
+                                                        <option>Off-Road</option>
+                                                        <option>Half Shell</option>
+                                                    </select>
+                                                </Field>
+                                            )}
+                                            {isClothing && (
+                                                <Field label="Gender">
+                                                    <select className={selectCls} value={accSubGroup} onChange={(e) => setAccSubGroup(e.target.value)}>
+                                                        <option value="">— Select —</option>
+                                                        <option>Men</option>
+                                                        <option>Women</option>
+                                                        <option>Unisex</option>
+                                                    </select>
+                                                </Field>
+                                            )}
                                         </div>
                                     </>
                                 )}

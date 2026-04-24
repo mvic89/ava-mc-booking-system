@@ -82,6 +82,7 @@ export function PurchaseInvoiceModal({ invoice, poIds, onClose, onSave, onDelete
             invoiceDate,
             dueDate,
             amount,
+            vatRate:               invoice?.vatRate ?? 25,
             status,
             notes: notes.trim() || undefined,
         })

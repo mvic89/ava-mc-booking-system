@@ -11,17 +11,23 @@ import { ImportInvoiceModal } from '@/components/ImportInvoiceModal';
 
 function downloadInvoiceExcel(invoices: PurchaseInvoice[]) {
   import('xlsx').then((XLSX) => {
-    const rows = invoices.map(inv => ({
-      'System Ref #':        inv.id,
-      'Supplier Invoice #':  inv.supplierInvoiceNumber || '',
-      'PO #':                inv.poId || '',
-      Vendor:                inv.vendor,
-      'Invoice Date':        inv.invoiceDate,
-      'Due Date':            inv.dueDate,
-      'Amount (SEK)':        inv.amount,
-      Status:                inv.status,
-      Notes:                 inv.notes || '',
-    }));
+    const rows = invoices.map(inv => {
+      const net = inv.amount / (1 + inv.vatRate / 100)
+      return {
+        'System Ref #':        inv.id,
+        'Supplier Invoice #':  inv.supplierInvoiceNumber || '',
+        'PO #':                inv.poId || '',
+        Vendor:                inv.vendor,
+        'Invoice Date':        inv.invoiceDate,
+        'Due Date':            inv.dueDate,
+        'Net Amount (SEK)':    Math.round(net),
+        'VAT Rate %':          inv.vatRate,
+        'VAT Amount (SEK)':    Math.round(inv.amount - net),
+        'Gross Amount (SEK)':  inv.amount,
+        Status:                inv.status,
+        Notes:                 inv.notes || '',
+      }
+    });
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Invoices');
@@ -60,32 +66,41 @@ async function downloadInvoicePDF(invoices: PurchaseInvoice[]) {
     Disputed:            [109, 40, 217],
   };
 
+  const pdfGross = invoices.reduce((s, i) => s + i.amount, 0)
+  const pdfNet   = invoices.reduce((s, i) => s + i.amount / (1 + i.vatRate / 100), 0)
+  const pdfVAT   = pdfGross - pdfNet
+
   autoTable(doc, {
     startY: 28,
-    head: [['System Ref #', 'Supplier Inv #', 'PO #', 'Vendor', 'Invoice Date', 'Due Date', 'Amount (SEK)', 'Status', 'Notes']],
-    body: invoices.map(inv => [
-      inv.id,
-      inv.supplierInvoiceNumber || '—',
-      inv.poId || '—',
-      inv.vendor,
-      inv.invoiceDate,
-      inv.dueDate,
-      inv.amount.toLocaleString('sv-SE'),
-      inv.status,
-      inv.notes || '',
-    ]),
-    foot: [[
-      '', '', '', '', '', 'Total',
-      invoices.reduce((s, i) => s + i.amount, 0).toLocaleString('sv-SE'),
-      '', '',
-    ]],
+    head: [['System Ref #', 'Supplier Inv #', 'PO #', 'Vendor', 'Invoice Date', 'Due Date', 'Net (SEK)', 'VAT%', 'Gross (SEK)', 'Status', 'Notes']],
+    body: invoices.map(inv => {
+      const net = inv.amount / (1 + inv.vatRate / 100)
+      return [
+        inv.id,
+        inv.supplierInvoiceNumber || '—',
+        inv.poId || '—',
+        inv.vendor,
+        inv.invoiceDate,
+        inv.dueDate,
+        Math.round(net).toLocaleString('sv-SE'),
+        `${inv.vatRate}%`,
+        inv.amount.toLocaleString('sv-SE'),
+        inv.status,
+        inv.notes || '',
+      ]
+    }),
+    foot: [
+      ['', '', '', '', '', 'Net Total',  Math.round(pdfNet).toLocaleString('sv-SE'), '', '', '', ''],
+      ['', '', '', '', '', 'VAT Total',  Math.round(pdfVAT).toLocaleString('sv-SE'), '', '', '', ''],
+      ['', '', '', '', '', 'Gross Total', pdfGross.toLocaleString('sv-SE'),           '', '', '', ''],
+    ],
     headStyles:  { fillColor: navy, fontSize: 7, fontStyle: 'bold' },
     bodyStyles:  { fontSize: 7 },
     footStyles:  { fillColor: [240, 244, 250], textColor: navy, fontStyle: 'bold', fontSize: 7.5 },
     alternateRowStyles: { fillColor: [248, 250, 252] },
-    columnStyles: { 3: { cellWidth: 40 }, 7: { cellWidth: 18 }, 8: { cellWidth: 35 } },
+    columnStyles: { 3: { cellWidth: 38 }, 9: { cellWidth: 18 }, 10: { cellWidth: 30 } },
     didDrawCell(data) {
-      if (data.section === 'body' && data.column.index === 7 && data.cell.raw) {
+      if (data.section === 'body' && data.column.index === 9 && data.cell.raw) {
         const status = data.cell.raw as PurchaseInvoiceStatus;
         const color  = STATUS_COLORS[status];
         if (color) {
@@ -127,6 +142,7 @@ const EMPTY_FORM = {
   invoiceDate: new Date().toISOString().split('T')[0],
   dueDate: '',
   amount: '',
+  vatRate: 25,
   status: 'Pending' as PurchaseInvoiceStatus,
   notes: '',
 };
@@ -215,6 +231,7 @@ export default function PurchaseInvoicePage() {
             invoiceDate:            r.invoice_date,
             dueDate:                r.due_date,
             amount:                 Number(r.amount),
+            vatRate:                Number(r.vat_rate ?? 25),
             creditedAmount:         Number(r.credited_amount ?? 0),
             status,
             notes:                  r.notes ?? undefined,
@@ -279,6 +296,7 @@ export default function PurchaseInvoicePage() {
       invoiceDate: inv.invoiceDate,
       dueDate: inv.dueDate,
       amount: String(inv.amount),
+      vatRate: inv.vatRate,
       status: inv.status,
       notes: inv.notes ?? '',
     });
@@ -304,6 +322,7 @@ export default function PurchaseInvoicePage() {
         invoice_date: form.invoiceDate,
         due_date:     form.dueDate,
         amount:       parseFloat(form.amount),
+        vat_rate:     form.vatRate,
         status:       resolvedStatus,
         notes:        form.notes || null,
       }).eq('id', editId);
@@ -316,6 +335,7 @@ export default function PurchaseInvoicePage() {
         invoiceDate:           form.invoiceDate,
         dueDate:               form.dueDate,
         amount:                parseFloat(form.amount),
+        vatRate:               form.vatRate,
         status:                form.status,
         notes:                 form.notes || undefined,
       };
@@ -329,6 +349,7 @@ export default function PurchaseInvoicePage() {
         invoice_date:            newInvoice.invoiceDate,
         due_date:                newInvoice.dueDate,
         amount:                  newInvoice.amount,
+        vat_rate:                newInvoice.vatRate,
         status:                  newInvoice.status,
         notes:                   newInvoice.notes ?? null,
       });
@@ -526,6 +547,8 @@ export default function PurchaseInvoicePage() {
   });
   const hasActiveFilters = filterVendor || filterDateFrom || filterDateTo;
   const totalAmount = filtered.reduce((s, i) => s + i.amount, 0);
+  const totalNet    = filtered.reduce((s, i) => s + i.amount / (1 + i.vatRate / 100), 0);
+  const totalVAT    = totalAmount - totalNet;
 
   // ── Aging buckets (overdue only) ──────────────────────────────────────────────
   const today = new Date();
@@ -631,12 +654,31 @@ export default function PurchaseInvoicePage() {
       case 3: return <span className="text-xs text-gray-800 font-medium truncate block">{inv.vendor}</span>
       case 4: return <span className="text-xs text-gray-500 whitespace-nowrap">{inv.invoiceDate}</span>
       case 5: return <span className={`text-xs whitespace-nowrap ${inv.status === 'Overdue' ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>{inv.dueDate}</span>
-      case 6: return (inv.creditedAmount ?? 0) > 0 ? (
-        <div>
-          <p className="text-gray-400 line-through text-[10px]">{inv.amount.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}</p>
-          <p className="text-emerald-700 font-bold text-xs">{(inv.amount - (inv.creditedAmount ?? 0)).toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}</p>
-        </div>
-      ) : <span className="text-gray-900 font-semibold text-xs whitespace-nowrap">{inv.amount.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}</span>
+      case 6: {
+        const net = inv.amount / (1 + inv.vatRate / 100)
+        const vat = inv.amount - net
+        const hasCredited = (inv.creditedAmount ?? 0) > 0
+        return (
+          <div>
+            {hasCredited ? (
+              <>
+                <p className="text-gray-400 line-through text-[10px]">{inv.amount.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}</p>
+                <p className="text-emerald-700 font-bold text-xs">{(inv.amount - (inv.creditedAmount ?? 0)).toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}</p>
+              </>
+            ) : (
+              <p className="text-gray-900 font-semibold text-xs whitespace-nowrap">{inv.amount.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}</p>
+            )}
+            {inv.vatRate > 0 && (
+              <p className="text-[10px] text-gray-400 whitespace-nowrap">
+                Net {Math.round(net).toLocaleString('sv-SE')} · VAT {inv.vatRate}%: {Math.round(vat).toLocaleString('sv-SE')}
+              </p>
+            )}
+            {inv.vatRate === 0 && (
+              <p className="text-[10px] text-blue-400 whitespace-nowrap">0% — Reverse charge</p>
+            )}
+          </div>
+        )
+      }
       case 7: return <span className={`px-2 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap ${STATUS_STYLES[inv.status].badge}`}>{inv.status}</span>
       default: return null
     }
@@ -1087,8 +1129,24 @@ export default function PurchaseInvoicePage() {
               </tbody>
               <tfoot>
                 <tr className="bg-gray-50 border-t border-gray-200">
-                  <td colSpan={1 + INV_LABELS.length} className="px-4 py-3 text-xs text-gray-500 font-semibold">
-                    Total ({filtered.length} invoice{filtered.length !== 1 ? 's' : ''})
+                  <td colSpan={1 + INV_LABELS.length} className="px-4 py-2 text-[10px] text-gray-400 font-semibold text-right uppercase tracking-wide">
+                    Net Total (ex-VAT)
+                  </td>
+                  <td className="px-4 py-2 text-gray-600 font-semibold text-xs whitespace-nowrap text-right">
+                    {totalNet.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 })}
+                  </td>
+                </tr>
+                <tr className="bg-gray-50">
+                  <td colSpan={1 + INV_LABELS.length} className="px-4 py-2 text-[10px] text-gray-400 font-semibold text-right uppercase tracking-wide">
+                    VAT Total
+                  </td>
+                  <td className="px-4 py-2 text-gray-500 font-semibold text-xs whitespace-nowrap text-right">
+                    {totalVAT.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 })}
+                  </td>
+                </tr>
+                <tr className="bg-gray-50 border-t border-gray-300">
+                  <td colSpan={1 + INV_LABELS.length} className="px-4 py-3 text-xs text-gray-600 font-bold text-right uppercase tracking-wide">
+                    Gross Total ({filtered.length} invoice{filtered.length !== 1 ? 's' : ''})
                   </td>
                   <td className="px-4 py-3 text-gray-900 font-bold text-sm whitespace-nowrap text-right">
                     {totalAmount.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}
@@ -1175,12 +1233,21 @@ export default function PurchaseInvoicePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Amount (SEK) <span className="text-red-500">*</span></label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Gross Amount (SEK) <span className="text-red-500">*</span></label>
                   <input type="number" min="0" step="0.01" placeholder="0.00" value={form.amount}
                     onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#FF6B2C]" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">VAT Rate</label>
+                  <select value={form.vatRate} onChange={e => setForm(f => ({ ...f, vatRate: Number(e.target.value) }))}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#FF6B2C]">
+                    <option value={25}>25% — Standard</option>
+                    <option value={12}>12% — Reduced</option>
+                    <option value={0}>0% — Reverse Charge</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1.5">Status</label>
@@ -1190,6 +1257,30 @@ export default function PurchaseInvoicePage() {
                   </select>
                 </div>
               </div>
+
+              {/* VAT breakdown preview */}
+              {form.amount && parseFloat(form.amount) > 0 && (
+                <div className="grid grid-cols-3 gap-2 bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-center">
+                  <div>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold">Net (ex-VAT)</p>
+                    <p className="text-sm font-bold text-gray-800 mt-0.5">
+                      {(parseFloat(form.amount) / (1 + form.vatRate / 100)).toLocaleString('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 })}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold">VAT {form.vatRate}%</p>
+                    <p className="text-sm font-bold text-gray-600 mt-0.5">
+                      {(parseFloat(form.amount) * form.vatRate / (100 + form.vatRate)).toLocaleString('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 })}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold">Gross Total</p>
+                    <p className="text-sm font-bold text-[#FF6B2C] mt-0.5">
+                      {parseFloat(form.amount).toLocaleString('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 })}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1.5">Notes</label>
