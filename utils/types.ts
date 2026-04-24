@@ -17,6 +17,7 @@ export interface BaseInventoryItem {
     sellingPrice: number;
     vendor: string;
     description: string;
+    location?: string;  // shelf / bin position, e.g. "B3-12"
 }
 
 export type MCType = 'New' | 'Trade-In' | 'Commission';
@@ -49,8 +50,9 @@ export function accessoryGroup(category: string): AccessoryGroup {
 
 export interface Accessory extends BaseInventoryItem {
     category: 'Helmet' | 'Gloves' | 'Jacket' | 'T-Shirt' | 'Boots' | 'Pants' | 'Protection' | 'Luggage' | 'Handlebars & Grips' | 'Cap' | 'Neck & Face' | 'Seat Cover';
-    subGroup?: string;  // helmet type (Open Face, Full Face, …) or gender (Men, Women, Unisex)
+    subGroup?: string;  // style variant, e.g. Modular, Full Gauntlet, Leather Racing
     size?: string;
+    color?: string;     // product colour, e.g. Black, Midnight Blue
 }
 
 export type InventoryCategory = 'motorcycles' | 'spareParts' | 'accessories';

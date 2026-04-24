@@ -136,6 +136,7 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
     const [cost, setCost]                   = useState('')
     const [sellingPrice, setSellingPrice]   = useState('')
     const [vendor, setVendor]               = useState('')
+    const [location, setLocation]           = useState('')
 
     // Motorcycle-specific
     const VIN_REGEX = /^[A-HJ-NPR-Z0-9]{17}$/  // exactly 17 chars, no I/O/Q
@@ -153,10 +154,71 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
     const [accCategory, setAccCategory] = useState('')
     const [accSubGroup, setAccSubGroup] = useState('')
     const [size, setSize]               = useState('')
+    const [accColor, setAccColor]       = useState('')
 
-    const CLOTHING_CATS = ['Gloves', 'Jacket', 'T-Shirt', 'Boots', 'Pants', 'Cap', 'Neck & Face']
-    const isHelmet   = accCategory === 'Helmet'
-    const isClothing = CLOTHING_CATS.includes(accCategory)
+    const ACC_STYLES: Record<string, string[]> = {
+        'Helmet': [
+            'Open Face', 'Full Face', 'Modular / Flip-Up', 'Off-Road / Motocross',
+            'Half Shell', 'Dual Sport', 'Enduro', 'Trial',
+        ],
+        'Gloves': [
+            'Fingerless / Mitts', 'Short Cuff Summer', 'Full Finger Mid-Season',
+            'Full Gauntlet Winter', 'Hard Knuckle', 'Racing / Track Day',
+            'Touring', 'Off-Road / Motocross', 'Urban / Street',
+            'Heated', 'Waterproof', 'Adventure / ADV',
+        ],
+        'Jacket': [
+            'Leather Racing', 'Leather Touring', 'Leather Urban',
+            'Textile Sport', 'Textile Touring', 'Textile Adventure',
+            'Mesh / Summer', 'Softshell', 'Waterproof / Rain',
+            'Winter / Insulated', 'Urban / Casual', 'High-Vis',
+        ],
+        'Boots': [
+            'Racing / Track', 'Sports Touring', 'Touring',
+            'Adventure / ADV', 'Off-Road / Motocross', 'Urban / Street',
+            'Short / Ankle', 'Waterproof Touring', 'Cruiser',
+        ],
+        'Pants': [
+            'Leather Racing', 'Leather Touring',
+            'Textile Sport', 'Textile Touring', 'Textile Adventure',
+            'Mesh / Summer', 'Waterproof / Rain', 'Denim / Jeans',
+            'Overpants', 'Off-Road',
+        ],
+        'T-Shirt': [
+            'Men Crew Neck', 'Women Fitted', 'Unisex',
+            'Polo', 'Long Sleeve', 'Compression Base Layer',
+        ],
+        'Cap': [
+            'Baseball Cap Men', 'Baseball Cap Women', 'Snapback',
+            'Beanie', 'Bucket Hat', 'Flat Cap', 'Trucker Cap',
+        ],
+        'Neck & Face': [
+            'Full Balaclava', 'Open Face Balaclava', 'Lightweight Balaclava',
+            'Neck Tube / Buff', 'Face Mask / Gaiter', 'Windproof Mask', 'Scarf',
+        ],
+        'Seat Cover': [
+            'OEM Replacement', 'Custom Fit', 'Gel Padded',
+            'Memory Foam', 'Heated', 'Anti-Slip / Grippy',
+            'Sheepskin', 'Waterproof',
+        ],
+        'Protection': [
+            'Back Protector Level 1', 'Back Protector Level 2',
+            'Chest Protector', 'Knee Guard Soft', 'Knee Guard Hard Shell',
+            'Elbow Guard', 'Hip Guard', 'Shoulder Pad',
+            'Spine Protector', 'Neck Brace', 'Airbag Vest', 'Full Body Armor',
+        ],
+        'Luggage': [
+            'Tank Bag Magnetic', 'Tank Bag Strap-On', 'Tail Bag / Seat Bag',
+            'Hard Pannier', 'Soft Saddlebag', 'Backpack',
+            'Dry Bag', 'Top Case Liner', 'Handlebar Bag',
+            'Roll Bag', 'Cargo Net',
+        ],
+        'Handlebars & Grips': [
+            'Standard Grip', 'Ergonomic Grip', 'Heated Grip', 'Lock-On Grip',
+            'Bar End Weight', 'Riser / Adapter', 'Clip-On / Clubman',
+            'Fatbar', 'Crossbar Pad', 'Throttle Assist',
+        ],
+    }
 
     // Auto-generate item ID when type is chosen (includes dealership UUID fingerprint)
     const autoId = useMemo(() => {
@@ -286,6 +348,7 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                     cost: parseFloat(cost) || 0,
                     sellingPrice: parseFloat(sellingPrice) || 0,
                     vendor: vendor.trim(),
+                    location: location.trim() || undefined,
                     vin: vin.trim().toUpperCase(),
                     engineCC: parseInt(engineCC) || 0,
                     color: color.trim(),
@@ -303,6 +366,7 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                     cost: parseFloat(cost) || 0,
                     sellingPrice: parseFloat(sellingPrice) || 0,
                     vendor: vendor.trim(),
+                    location: location.trim() || undefined,
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     category: spCategory as any,
                 })
@@ -316,10 +380,12 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                     cost: parseFloat(cost) || 0,
                     sellingPrice: parseFloat(sellingPrice) || 0,
                     vendor: vendor.trim(),
+                    location: location.trim() || undefined,
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     category: accCategory as any,
                     subGroup: accSubGroup.trim() || undefined,
                     size: size.trim() || undefined,
+                    color: accColor.trim() || undefined,
                 })
             }
             onClose()
@@ -605,6 +671,9 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                                     <Field label="Article Number" required>
                                         <input className={inputCls} placeholder="e.g. ART-00123" value={articleNumber} onChange={(e) => setArticleNumber(e.target.value)} />
                                     </Field>
+                                    <Field label="Location">
+                                        <input className={inputCls} placeholder="e.g. B3-12" value={location} onChange={(e) => setLocation(e.target.value)} />
+                                    </Field>
                                 </div>
                                 <Field label="Description">
                                     <textarea
@@ -785,7 +854,7 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                                     <>
                                         <Section title="Accessory Details" />
                                         <div className="grid grid-cols-2 gap-4">
-                                            <Field label="Category" required>
+                                            <Field label="Type" required>
                                                 <select className={selectCls} value={accCategory} onChange={(e) => { setAccCategory(e.target.value); setAccSubGroup('') }}>
                                                     <option value="">— Select category —</option>
                                                     <optgroup label="Helmets">
@@ -811,25 +880,14 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                                             <Field label="Size" required>
                                                 <input className={inputCls} placeholder="e.g. M, L, XL or 42" value={size} onChange={(e) => setSize(e.target.value)} />
                                             </Field>
-                                            {isHelmet && (
-                                                <Field label="Helmet Type">
+                                            <Field label="Colour">
+                                                <input className={inputCls} placeholder="e.g. Black, Midnight Blue" value={accColor} onChange={(e) => setAccColor(e.target.value)} />
+                                            </Field>
+                                            {ACC_STYLES[accCategory] && (
+                                                <Field label="Style">
                                                     <select className={selectCls} value={accSubGroup} onChange={(e) => setAccSubGroup(e.target.value)}>
-                                                        <option value="">— Select type —</option>
-                                                        <option>Open Face</option>
-                                                        <option>Full Face</option>
-                                                        <option>Modular</option>
-                                                        <option>Off-Road</option>
-                                                        <option>Half Shell</option>
-                                                    </select>
-                                                </Field>
-                                            )}
-                                            {isClothing && (
-                                                <Field label="Gender">
-                                                    <select className={selectCls} value={accSubGroup} onChange={(e) => setAccSubGroup(e.target.value)}>
-                                                        <option value="">— Select —</option>
-                                                        <option>Men</option>
-                                                        <option>Women</option>
-                                                        <option>Unisex</option>
+                                                        <option value="">— Select style —</option>
+                                                        {ACC_STYLES[accCategory].map(s => <option key={s}>{s}</option>)}
                                                     </select>
                                                 </Field>
                                             )}

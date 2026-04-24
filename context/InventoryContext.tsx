@@ -37,6 +37,7 @@ function dbToMotorcycle(r: any): Motorcycle {
         sellingPrice: Number(r.selling_price),
         vendor:       r.vendor,
         description:  r.description,
+        location:     r.location ?? undefined,
     }
 }
 
@@ -54,6 +55,7 @@ function dbToSparePart(r: any): SparePart {
         sellingPrice: Number(r.selling_price),
         vendor:       r.vendor,
         description:  r.description,
+        location:     r.location ?? undefined,
     }
 }
 
@@ -67,12 +69,14 @@ function dbToAccessory(r: any): Accessory {
         category:     r.category,
         subGroup:     r.sub_group ?? undefined,
         size:         r.size ?? undefined,
+        color:        r.color ?? undefined,
         stock:        r.stock,
         reorderQty:   r.reorder_qty,
         cost:         Number(r.cost),
         sellingPrice: Number(r.selling_price),
         vendor:       r.vendor,
         description:  r.description,
+        location:     r.location ?? undefined,
     }
 }
 
@@ -188,6 +192,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 cost:          mc.cost,
                 selling_price: mc.sellingPrice,
                 vendor:        mc.vendor,
+                location:      mc.location ?? null,
             })
             if (error) throw new Error(error.message)
             setMotorcycles((prev) => [mc, ...prev])
@@ -206,6 +211,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 cost:          sp.cost,
                 selling_price: sp.sellingPrice,
                 vendor:        sp.vendor,
+                location:      sp.location ?? null,
             })
             if (error) throw new Error(error.message)
             setSpareParts((prev) => [sp, ...prev])
@@ -221,11 +227,13 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 category:      acc.category,
                 sub_group:     acc.subGroup ?? null,
                 size:          acc.size ?? null,
+                color:         acc.color ?? null,
                 stock:         acc.stock,
                 reorder_qty:   acc.reorderQty,
                 cost:          acc.cost,
                 selling_price: acc.sellingPrice,
                 vendor:        acc.vendor,
+                location:      acc.location ?? null,
             })
             if (error) throw new Error(error.message)
             setAccessories((prev) => [acc, ...prev])
@@ -245,6 +253,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 engine_cc: mc.engineCC, color: mc.color, mc_type: mc.mcType,
                 warehouse: mc.warehouse, stock: mc.stock, reorder_qty: mc.reorderQty,
                 cost: mc.cost, selling_price: mc.sellingPrice, vendor: mc.vendor,
+                location: mc.location ?? null,
             }).eq('id', mc.id).eq('dealership_id', dealershipId)
             setMotorcycles(prev => prev.map(m => m.id === mc.id ? mc : m))
         } else if (category === 'spareParts') {
@@ -254,6 +263,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 article_number: sp.articleNumber, category: sp.category,
                 stock: sp.stock, reorder_qty: sp.reorderQty,
                 cost: sp.cost, selling_price: sp.sellingPrice, vendor: sp.vendor,
+                location: sp.location ?? null,
             }).eq('id', sp.id).eq('dealership_id', dealershipId)
             setSpareParts(prev => prev.map(s => s.id === sp.id ? sp : s))
         } else {
@@ -262,8 +272,10 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 name: acc.name, brand: acc.brand, description: acc.description,
                 article_number: acc.articleNumber, category: acc.category,
                 sub_group: acc.subGroup ?? null,
-                size: acc.size ?? null, stock: acc.stock, reorder_qty: acc.reorderQty,
+                size: acc.size ?? null, color: acc.color ?? null,
+                stock: acc.stock, reorder_qty: acc.reorderQty,
                 cost: acc.cost, selling_price: acc.sellingPrice, vendor: acc.vendor,
+                location: acc.location ?? null,
             }).eq('id', acc.id).eq('dealership_id', dealershipId)
             setAccessories(prev => prev.map(a => a.id === acc.id ? acc : a))
         }

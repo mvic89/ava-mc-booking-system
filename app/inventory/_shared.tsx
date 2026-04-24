@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { useInventory } from '@/context/InventoryContext'
-import { Motorcycle, SparePart, Accessory, BaseInventoryItem, InventoryCategory, accessoryGroup } from '@/utils/types'
+import { Motorcycle, SparePart, Accessory, BaseInventoryItem, InventoryCategory } from '@/utils/types'
 import { AddItemModal } from '@/components/AddItemModal'
 import { ImportInventoryModal } from '@/components/ImportInventoryModal'
 import { EditItemModal } from '@/components/EditItemModal'
@@ -274,6 +274,10 @@ function MotorcycleTable({ data, updateStock, onRowClick, onDelete }: {
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${m.mcType === 'New' ? 'bg-green-100 text-green-700' : m.mcType === 'Trade-In' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>{m.mcType}</span>
         )},
         { label: 'Warehouse',    defaultWidth: 110, tdClass: 'text-xs text-slate-500 truncate',            cell: m => m.warehouse },
+        { label: 'Location',     defaultWidth: 90,  cell: m => m.location
+            ? <span className="font-mono text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded">{m.location}</span>
+            : <span className="text-slate-300 text-xs">—</span>
+        },
         { label: 'Stock',        defaultWidth: 120, noClick: true, cell: (m, h) => <StockCell item={m} updateStock={updateStock} /> },
         { label: 'Reorder',      defaultWidth: 75,  tdClass: 'text-slate-500 text-xs',                     cell: m => m.reorderQty },
         { label: 'Cost',         defaultWidth: 110, tdClass: 'text-slate-700 text-xs truncate',             cell: m => formatSEK(m.cost) },
@@ -304,6 +308,10 @@ function SparePartsTable({ data, updateStock, onRowClick, onDelete }: {
         )},
         { label: 'Article No.',  defaultWidth: 110, tdClass: 'font-mono text-xs text-slate-500 truncate',     cell: s => s.articleNumber },
         { label: 'Category',     defaultWidth: 100, cell: s => <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium">{s.category}</span> },
+        { label: 'Location',     defaultWidth: 90,  cell: s => s.location
+            ? <span className="font-mono text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded">{s.location}</span>
+            : <span className="text-slate-300 text-xs">—</span>
+        },
         { label: 'Stock',        defaultWidth: 120, noClick: true, cell: (s, h) => <StockCell item={s} updateStock={updateStock} /> },
         { label: 'Reorder',      defaultWidth: 75,  tdClass: 'text-slate-500 text-xs',                        cell: s => s.reorderQty },
         { label: 'Cost',         defaultWidth: 110, tdClass: 'text-xs text-slate-700 truncate',               cell: s => formatCurrency(s.cost) },
@@ -333,35 +341,50 @@ function AccessoriesTable({ data, updateStock, onRowClick, onDelete }: {
             </>
         )},
         { label: 'Article No.',  defaultWidth: 110, tdClass: 'font-mono text-xs text-slate-500 truncate',     cell: a => a.articleNumber },
-        { label: 'Group',        defaultWidth: 130, cell: a => {
-            const grp = accessoryGroup(a.category)
-            const grpStyle: Record<string, string> = {
-                'Helmets':     'bg-indigo-100 text-indigo-700',
-                'Clothing':    'bg-rose-100 text-rose-700',
-                'Seat Covers': 'bg-amber-100 text-amber-700',
-                'Luggage':     'bg-cyan-100 text-cyan-700',
-                'Protection':  'bg-orange-100 text-orange-700',
-                'Other':       'bg-slate-100 text-slate-600',
+        { label: 'Type',         defaultWidth: 120, cell: a => <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap">{a.category}</span> },
+        { label: 'Style',        defaultWidth: 130, cell: a => {
+            const typeColor: Record<string, string> = {
+                'Helmet':             'bg-indigo-50 text-indigo-700 border border-indigo-100',
+                'Gloves':             'bg-orange-50 text-orange-700 border border-orange-100',
+                'Jacket':             'bg-amber-50 text-amber-800 border border-amber-100',
+                'Boots':              'bg-stone-100 text-stone-700',
+                'Pants':              'bg-slate-100 text-slate-700',
+                'T-Shirt':            'bg-blue-50 text-blue-600 border border-blue-100',
+                'Cap':                'bg-purple-50 text-purple-700 border border-purple-100',
+                'Neck & Face':        'bg-gray-200 text-gray-700',
+                'Seat Cover':         'bg-emerald-50 text-emerald-700 border border-emerald-100',
+                'Protection':         'bg-red-50 text-red-700 border border-red-100',
+                'Luggage':            'bg-sky-50 text-sky-700 border border-sky-100',
+                'Handlebars & Grips': 'bg-zinc-100 text-zinc-700',
             }
-            const subStyle: Record<string, string> = {
-                'Men':        'bg-blue-50 text-blue-600',
-                'Women':      'bg-pink-50 text-pink-600',
-                'Unisex':     'bg-gray-100 text-gray-500',
-                'Open Face':  'bg-green-50 text-green-700',
-                'Full Face':  'bg-indigo-50 text-indigo-700',
-                'Modular':    'bg-purple-50 text-purple-700',
-                'Off-Road':   'bg-amber-50 text-amber-700',
-                'Half Shell': 'bg-teal-50 text-teal-700',
-            }
-            return (
-                <div className="flex flex-col gap-0.5">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap ${grpStyle[grp] ?? 'bg-slate-100 text-slate-600'}`}>{grp}</span>
-                    {a.subGroup && <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap ${subStyle[a.subGroup] ?? 'bg-gray-100 text-gray-500'}`}>{a.subGroup}</span>}
-                </div>
-            )
+            return a.subGroup
+                ? <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap ${typeColor[a.category] ?? 'bg-gray-100 text-gray-500'}`}>{a.subGroup}</span>
+                : <span className="text-slate-300 text-xs">—</span>
         }},
-        { label: 'Category',     defaultWidth: 110, cell: a => <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full font-medium">{a.category}</span> },
+        { label: 'Colour',       defaultWidth: 110, cell: a => a.color ? (
+            <span className="inline-flex items-center gap-1.5 text-xs text-slate-700">
+                <span className="w-2.5 h-2.5 rounded-full border border-gray-300 shrink-0" style={{ background:
+                    a.color.toLowerCase().includes('black')  ? '#1f2937' :
+                    a.color.toLowerCase().includes('white')  ? '#f9fafb' :
+                    a.color.toLowerCase().includes('red')    ? '#dc2626' :
+                    a.color.toLowerCase().includes('green')  ? '#16a34a' :
+                    a.color.toLowerCase().includes('blue')   ? '#2563eb' :
+                    a.color.toLowerCase().includes('yellow') || a.color.toLowerCase().includes('gold') ? '#ca8a04' :
+                    a.color.toLowerCase().includes('gray')   || a.color.toLowerCase().includes('grey') ? '#6b7280' :
+                    a.color.toLowerCase().includes('orange') ? '#ea580c' :
+                    a.color.toLowerCase().includes('brown')  ? '#92400e' :
+                    a.color.toLowerCase().includes('pink')   ? '#db2777' :
+                    a.color.toLowerCase().includes('purple') ? '#7c3aed' :
+                    a.color.toLowerCase().includes('silver') ? '#9ca3af' : '#d1d5db'
+                }} />
+                <span className="truncate">{a.color}</span>
+            </span>
+        ) : <span className="text-slate-300 text-xs">—</span> },
         { label: 'Size',         defaultWidth: 70,  tdClass: 'text-slate-700 text-xs font-medium',            cell: a => a.size ?? '—' },
+        { label: 'Location',     defaultWidth: 90,  cell: a => a.location
+            ? <span className="font-mono text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded">{a.location}</span>
+            : <span className="text-slate-300 text-xs">—</span>
+        },
         { label: 'Stock',        defaultWidth: 120, noClick: true, cell: (a, h) => <StockCell item={a} updateStock={updateStock} /> },
         { label: 'Reorder',      defaultWidth: 75,  tdClass: 'text-slate-500 text-xs',                        cell: a => a.reorderQty },
         { label: 'Cost',         defaultWidth: 110, tdClass: 'text-xs text-slate-700 truncate',               cell: a => formatCurrency(a.cost) },

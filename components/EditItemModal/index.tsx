@@ -11,9 +11,70 @@ const MC_TYPES:    MCType[]    = ['New', 'Trade-In', 'Commission']
 const WAREHOUSES:  Warehouse[] = ['Warehouse A', 'Warehouse B', 'Warehouse C', 'Warehouse D']
 const SP_CATS = ['Engine', 'Brakes', 'Electrical', 'Transmission', 'Suspension', 'Fuel System', 'Tyres & Wheels', 'Exhaust', 'Body & Frame']
 const ACC_CATS = ['Helmet', 'Gloves', 'Jacket', 'T-Shirt', 'Boots', 'Pants', 'Protection', 'Luggage', 'Seat Cover', 'Handlebars & Grips', 'Cap', 'Neck & Face']
-const CLOTHING_CATS = ['Gloves', 'Jacket', 'T-Shirt', 'Boots', 'Pants', 'Cap', 'Neck & Face']
-const HELMET_TYPES  = ['Open Face', 'Full Face', 'Modular', 'Off-Road', 'Half Shell']
-const GENDERS       = ['Men', 'Women', 'Unisex']
+
+const ACC_STYLES: Record<string, string[]> = {
+    'Helmet': [
+        'Open Face', 'Full Face', 'Modular / Flip-Up', 'Off-Road / Motocross',
+        'Half Shell', 'Dual Sport', 'Enduro', 'Trial',
+    ],
+    'Gloves': [
+        'Fingerless / Mitts', 'Short Cuff Summer', 'Full Finger Mid-Season',
+        'Full Gauntlet Winter', 'Hard Knuckle', 'Racing / Track Day',
+        'Touring', 'Off-Road / Motocross', 'Urban / Street',
+        'Heated', 'Waterproof', 'Adventure / ADV',
+    ],
+    'Jacket': [
+        'Leather Racing', 'Leather Touring', 'Leather Urban',
+        'Textile Sport', 'Textile Touring', 'Textile Adventure',
+        'Mesh / Summer', 'Softshell', 'Waterproof / Rain',
+        'Winter / Insulated', 'Urban / Casual', 'High-Vis',
+    ],
+    'Boots': [
+        'Racing / Track', 'Sports Touring', 'Touring',
+        'Adventure / ADV', 'Off-Road / Motocross', 'Urban / Street',
+        'Short / Ankle', 'Waterproof Touring', 'Cruiser',
+    ],
+    'Pants': [
+        'Leather Racing', 'Leather Touring',
+        'Textile Sport', 'Textile Touring', 'Textile Adventure',
+        'Mesh / Summer', 'Waterproof / Rain', 'Denim / Jeans',
+        'Overpants', 'Off-Road',
+    ],
+    'T-Shirt': [
+        'Men Crew Neck', 'Women Fitted', 'Unisex',
+        'Polo', 'Long Sleeve', 'Compression Base Layer',
+    ],
+    'Cap': [
+        'Baseball Cap Men', 'Baseball Cap Women', 'Snapback',
+        'Beanie', 'Bucket Hat', 'Flat Cap', 'Trucker Cap',
+    ],
+    'Neck & Face': [
+        'Full Balaclava', 'Open Face Balaclava', 'Lightweight Balaclava',
+        'Neck Tube / Buff', 'Face Mask / Gaiter', 'Windproof Mask', 'Scarf',
+    ],
+    'Seat Cover': [
+        'OEM Replacement', 'Custom Fit', 'Gel Padded',
+        'Memory Foam', 'Heated', 'Anti-Slip / Grippy',
+        'Sheepskin', 'Waterproof',
+    ],
+    'Protection': [
+        'Back Protector Level 1', 'Back Protector Level 2',
+        'Chest Protector', 'Knee Guard Soft', 'Knee Guard Hard Shell',
+        'Elbow Guard', 'Hip Guard', 'Shoulder Pad',
+        'Spine Protector', 'Neck Brace', 'Airbag Vest', 'Full Body Armor',
+    ],
+    'Luggage': [
+        'Tank Bag Magnetic', 'Tank Bag Strap-On', 'Tail Bag / Seat Bag',
+        'Hard Pannier', 'Soft Saddlebag', 'Backpack',
+        'Dry Bag', 'Top Case Liner', 'Handlebar Bag',
+        'Roll Bag', 'Cargo Net',
+    ],
+    'Handlebars & Grips': [
+        'Standard Grip', 'Ergonomic Grip', 'Heated Grip', 'Lock-On Grip',
+        'Bar End Weight', 'Riser / Adapter', 'Clip-On / Clubman',
+        'Fatbar', 'Crossbar Pad', 'Throttle Assist',
+    ],
+}
 
 function formatSEK(v: number) {
     return new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', minimumFractionDigits: 0 }).format(v)
@@ -48,9 +109,12 @@ export function EditItemModal({ item, category, onClose }: Props) {
         warehouse: (item as Motorcycle).warehouse ?? 'Warehouse A',
         // spare-part / accessory category
         category:  (item as SparePart | Accessory).category ?? '',
-        // accessory sub-group and size
+        // accessory sub-group, size, and colour
         subGroup:  (item as Accessory).subGroup ?? '',
         size:      (item as Accessory).size ?? '',
+        accColor:  (item as Accessory).color ?? '',
+        // shared optional
+        location:  item.location ?? '',
     })
 
     const [saving,  setSaving]  = useState(false)
@@ -79,6 +143,7 @@ export function EditItemModal({ item, category, onClose }: Props) {
                 cost:          parseFloat(form.cost)        || 0,
                 sellingPrice:  parseFloat(form.sellingPrice)|| 0,
                 vendor:        form.vendor.trim(),
+                location:      form.location.trim() || undefined,
             }
 
             if (category === 'motorcycles') {
@@ -99,6 +164,7 @@ export function EditItemModal({ item, category, onClose }: Props) {
                     category: form.category,
                     subGroup: form.subGroup.trim() || undefined,
                     size:     form.size.trim() || undefined,
+                    color:    form.accColor.trim() || undefined,
                 } as Accessory)
             }
             setSaved(true)
@@ -168,6 +234,7 @@ export function EditItemModal({ item, category, onClose }: Props) {
                         <Field label="Brand *" value={form.brand} onChange={v => set('brand', v)} />
                         <Field label="Article Number" value={form.articleNumber} onChange={v => set('articleNumber', v)} mono />
                         <Field label="Vendor / Supplier" value={form.vendor} onChange={v => set('vendor', v)} />
+                        <Field label="Location" value={form.location} onChange={v => set('location', v)} placeholder="e.g. B3-12" />
                     </div>
                     <Field label="Description" value={form.description} onChange={v => set('description', v)} multiline />
 
@@ -207,7 +274,7 @@ export function EditItemModal({ item, category, onClose }: Props) {
                     {(category === 'spareParts' || category === 'accessories') && (
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Category</label>
+                                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Type</label>
                                 <select value={form.category}
                                     onChange={e => { set('category', e.target.value); set('subGroup', '') }}
                                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
@@ -230,23 +297,16 @@ export function EditItemModal({ item, category, onClose }: Props) {
                             {category === 'accessories' && (
                                 <Field label="Size (optional)" value={form.size} onChange={v => set('size', v)} placeholder="e.g. M, L, XL" />
                             )}
-                            {category === 'accessories' && form.category === 'Helmet' && (
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">Helmet Type</label>
-                                    <select value={form.subGroup} onChange={e => set('subGroup', e.target.value)}
-                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
-                                        <option value="">— Select type —</option>
-                                        {HELMET_TYPES.map(t => <option key={t}>{t}</option>)}
-                                    </select>
-                                </div>
+                            {category === 'accessories' && (
+                                <Field label="Colour" value={form.accColor} onChange={v => set('accColor', v)} placeholder="e.g. Black, Midnight Blue" />
                             )}
-                            {category === 'accessories' && CLOTHING_CATS.includes(form.category) && (
+                            {category === 'accessories' && ACC_STYLES[form.category] && (
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">Gender</label>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">Style</label>
                                     <select value={form.subGroup} onChange={e => set('subGroup', e.target.value)}
                                         className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
-                                        <option value="">— Select —</option>
-                                        {GENDERS.map(g => <option key={g}>{g}</option>)}
+                                        <option value="">— Select style —</option>
+                                        {ACC_STYLES[form.category].map(s => <option key={s}>{s}</option>)}
                                     </select>
                                 </div>
                             )}
