@@ -2562,5 +2562,193 @@
       "deleted": "Filial borttagen"
     },
     "deleteConfirm": "Ta bort filial {name}? Leads och personal kopplade till den påverkas inte."
+  },
+  "leadDetail": {
+    "notFound": "Lead hittades inte.",
+    "back": "← Tillbaka",
+    "overdue": "{days}d försenad",
+    "lostBadge": "Förlorad",
+    "reminderLabel": "Påminnelse:",
+    "overdueMsg": "Denna lead har legat i {stage} i {days} dagar — dags att följa upp!",
+    "by": "av",
+    "info": {
+      "title": "Leadinformation",
+      "vehicle": "Fordon",
+      "source": "Källa",
+      "seller": "Säljare",
+      "personnummer": "Personnummer",
+      "created": "Skapad",
+      "email": "E-post",
+      "phone": "Telefon",
+      "notes": "Anteckningar"
+    },
+    "value": {
+      "title": "Affärsvärde",
+      "salePrice": "Försäljningspris",
+      "costPrice": "Inköpspris",
+      "grossProfit": "Bruttovinst",
+      "margin": "Marginal"
+    },
+    "score": {
+      "title": "Lead Score",
+      "hot": "Varm lead 🔥",
+      "warm": "Medelmåttig 🌡",
+      "cold": "Kall lead ❄️",
+      "bankid": "BankID verifierad",
+      "emailPhone": "E-post & telefon",
+      "tradeIn": "Trade-in intresse",
+      "financing": "Finansieringsintresse",
+      "agreementOpened": "Avtal öppnat",
+      "stageProgress": "Fasveckling",
+      "costPriceSet": "Kostnadspris satt"
+    },
+    "directPurchase": {
+      "title": "Direktköp",
+      "badge": "Tillbehör / Reservdelar",
+      "desc": "Detta är ett direktköp — inga provkörningar eller offerter krävs.",
+      "goToPayment": "Gå till betalning →",
+      "cancel": "Avbryt köp",
+      "cancelled": "Avbrutet:",
+      "completed": "✓ Köp genomfört"
+    },
+    "pipeline": {
+      "title": "Pipeline-fas",
+      "goToPayment": "Gå till betalning →",
+      "openAgreement": "Öppna avtal →",
+      "viewOffer": "Visa offert →",
+      "viewTestDrive": "Visa provkörning →",
+      "createOffer": "Skapa offert →",
+      "bookTestDrive": "Boka provkörning →",
+      "markLost": "Förlora",
+      "cancelDeal": "Annullera affär",
+      "lostReason": "Anledning till förlust:",
+      "reactivate": "↩ Återaktivera lead",
+      "viewClosed": "Visa avslutad affär →"
+    },
+    "tasks": {
+      "title": "Uppgifter",
+      "open": "{n} öppna",
+      "placeholder": "Lägg till uppgift...",
+      "priorityHigh": "🔴 Hög",
+      "priorityMedium": "🟡 Medel",
+      "priorityLow": "⚪ Låg",
+      "empty": "Inga uppgifter ännu",
+      "viewAll": "Visa alla {n} uppgifter →"
+    },
+    "comms": {
+      "title": "Kundkommunikation",
+      "contact": "✉️ Kontakta kund",
+      "emailBtn": "✉️ E-post",
+      "smsBtn": "💬 SMS",
+      "subjectPlaceholder": "Ämne...",
+      "emailBodyPlaceholder": "Skriv ditt meddelande...",
+      "smsBodyPlaceholder": "SMS till {phone}...",
+      "cancel": "Avbryt",
+      "send": "Skicka",
+      "empty": "Ingen kommunikation loggad ännu",
+      "failed": "MISSLYCKADES",
+      "inbound": "SVAR",
+      "you": "Du",
+      "customer": "Kund"
+    },
+    "activity": {
+      "title": "Logga aktivitet",
+      "save": "Spara",
+      "placeholderCall": "Vad pratades det om? Nästa steg?",
+      "placeholderEmail": "Ämne och sammanfattning...",
+      "placeholderMeeting": "Vad bestämdes på mötet?",
+      "placeholderNote": "Lägg till en anteckning..."
+    },
+    "timeline": {
+      "title": "Aktivitetslogg",
+      "events": "{n} händelser",
+      "empty": "Inga aktiviteter än",
+      "emptyDesc": "Logga samtal, e-post och möten ovan för att bygga upp en historik.",
+      "created": "Lead skapad — {bike} ({value} kr)"
+    },
+    "lostModal": {
+      "title": "Stäng som förlorad affär",
+      "subtitle": "Välj en anledning för att hjälpa oss förstå var affärer förloras.",
+      "otherPlaceholder": "Beskriv anledningen...",
+      "cancel": "Avbryt",
+      "confirm": "Bekräfta förlust"
+    },
+    "cancelModal": {
+      "title": "Annullera affär",
+      "subtitle": "Registrera avbeställning och eventuell kreditåterbetalning.",
+      "reasonLabel": "Anledning *",
+      "reasons": {
+        "changed_mind": "Ångrat sig",
+        "financial": "Ekonomiska skäl",
+        "found_elsewhere": "Hittade annat",
+        "financing_denied": "Finansiering nekad",
+        "other": "Annan anledning"
+      },
+      "detailsPlaceholder": "Detaljer (valfritt)...",
+      "refundLabel": "Kreditåterbetalning",
+      "amountLabel": "Belopp (SEK)",
+      "bankLabel": "Bank",
+      "clearingLabel": "Clearingnr",
+      "accountLabel": "Kontonummer",
+      "referenceLabel": "Referens",
+      "bankPlaceholder": "t.ex. Handelsbanken",
+      "returnToStock": "Återlägg fordon i lager",
+      "notesPlaceholder": "Interna anteckningar (valfritt)...",
+      "cancel": "Avbryt",
+      "confirm": "Bekräfta annullering"
+    },
+    "stages": {
+      "new": "Ny",
+      "contacted": "Kontaktad",
+      "testride": "Provkörning",
+      "offer": "Offert",
+      "negotiating": "Förhandling",
+      "pending_payment": "Betalning pågår",
+      "closed": "Avslutad"
+    },
+    "taskTypes": {
+      "call": "Ring",
+      "email": "E-post",
+      "meeting": "Möte",
+      "follow_up": "Uppföljning",
+      "other": "Övrigt"
+    },
+    "activityTypes": {
+      "note": "Anteckning",
+      "call": "Samtal",
+      "email": "E-post",
+      "meeting": "Möte",
+      "stage_change": "Statusändring",
+      "score_update": "Poänguppdatering",
+      "reminder": "Påminnelse",
+      "lost": "Förlorad affär"
+    },
+    "lostReasons": [
+      "Pris — för dyrt",
+      "Konkurrent — valde annat märke",
+      "Konkurrent — valde annan återförsäljare",
+      "Inte längre intresserad",
+      "Budget — inte råd just nu",
+      "Tog tid — kan återkomma",
+      "Köpte begagnat istället",
+      "Annan anledning"
+    ],
+    "toasts": {
+      "taskCreated": "Uppgift skapad",
+      "taskError": "Kunde inte skapa uppgift",
+      "emailSent": "E-post skickad",
+      "smsSent": "SMS skickat",
+      "sendError": "Kunde inte skicka",
+      "activityAdded": "Aktivitet tillagd",
+      "activityError": "Kunde inte spara aktivitet",
+      "stageChanged": "Fas ändrad till {stage}",
+      "stageError": "Kunde inte uppdatera fas",
+      "dealCancelled": "Affären annullerades och registrerades",
+      "cancelError": "Kunde inte annullera affären",
+      "reactivated": "Lead återaktiverat — återfinns i Pipeline",
+      "reactivateError": "Kunde inte återaktivera lead",
+      "closedLost": "Lead stängt som förlorat",
+      "closeError": "Kunde inte stänga lead"
+    }
   }
 }

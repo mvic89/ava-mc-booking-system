@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
 import { useRoleGuard } from '@/lib/useRoleGuard';
 import {
@@ -16,6 +17,7 @@ const EMPTY = { name: '', address: '', city: '', phone: '', managerName: '', act
 export default function BranchesPage() {
   useRoleGuard('branches');
   const router = useRouter();
+  const t = useTranslations('settingsBranches');
 
   const [branches,  setBranches]  = useState<Branch[]>([]);
   const [loading,   setLoading]   = useState(true);
@@ -59,17 +61,17 @@ export default function BranchesPage() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.name.trim()) { toast.error('Namn krävs'); return; }
+    if (!form.name.trim()) { toast.error(t('toasts.nameRequired')); return; }
     setSaving(true);
     try {
       if (editing) {
         const updated = await updateBranch(editing.id, form);
         setBranches(bs => bs.map(b => b.id === editing.id ? updated : b));
-        toast.success('Filial uppdaterad');
+        toast.success(t('toasts.updated'));
       } else {
         const created = await createBranch(form);
         setBranches(bs => [...bs, created]);
-        toast.success('Filial skapad');
+        toast.success(t('toasts.created'));
       }
       setShowForm(false);
     } catch (err: any) {
@@ -80,12 +82,12 @@ export default function BranchesPage() {
   }
 
   async function handleDelete(b: Branch) {
-    if (!confirm(`Ta bort filial "${b.name}"? Leads och personal kopplade till den påverkas inte.`)) return;
+    if (!confirm(t('deleteConfirm', { name: b.name }))) return;
     setDeleting(b.id);
     try {
       await deleteBranch(b.id);
       setBranches(bs => bs.filter(x => x.id !== b.id));
-      toast.success('Filial borttagen');
+      toast.success(t('toasts.deleted'));
     } catch (err: any) {
       toast.error(err.message);
     } finally {
@@ -114,12 +116,12 @@ export default function BranchesPage() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-slate-400 mb-2">
-                <Link href="/settings" className="hover:text-[#FF6B2C] transition-colors">Inställningar</Link>
+                <Link href="/settings" className="hover:text-[#FF6B2C] transition-colors">{t('breadcrumb')}</Link>
                 <span>→</span>
-                <span className="text-slate-600 font-medium">Filialer</span>
+                <span className="text-slate-600 font-medium">{t('nav')}</span>
               </nav>
-              <h1 className="text-2xl font-bold text-slate-900">Filialer & platser</h1>
-              <p className="text-sm text-slate-400 mt-0.5">Hantera återförsäljarens lokationer och tilldela personal</p>
+              <h1 className="text-2xl font-bold text-slate-900">{t('title')}</h1>
+              <p className="text-sm text-slate-400 mt-0.5">{t('subtitle')}</p>
             </div>
             <button
               onClick={openNew}
@@ -128,7 +130,7 @@ export default function BranchesPage() {
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
-              Ny filial
+              {t('newBranch')}
             </button>
           </div>
         </div>
@@ -142,10 +144,10 @@ export default function BranchesPage() {
           ) : branches.length === 0 ? (
             <div className="bg-white rounded-2xl border border-slate-100 py-20 text-center">
               <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl">🏢</div>
-              <p className="text-slate-700 font-semibold">Inga filialer ännu</p>
-              <p className="text-sm text-slate-400 mt-1 mb-4">Skapa din första filial för att börja tilldela personal och leads</p>
+              <p className="text-slate-700 font-semibold">{t('empty.title')}</p>
+              <p className="text-sm text-slate-400 mt-1 mb-4">{t('empty.subtitle')}</p>
               <button onClick={openNew} className="px-4 py-2 rounded-xl bg-[#FF6B2C] text-white text-sm font-semibold">
-                Skapa filial
+                {t('empty.button')}
               </button>
             </div>
           ) : (
@@ -165,7 +167,7 @@ export default function BranchesPage() {
                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                         : 'bg-slate-100 text-slate-400 border-slate-200'
                     }`}>
-                      {b.active ? 'Aktiv' : 'Inaktiv'}
+                      {b.active ? t('status.active') : t('status.inactive')}
                     </span>
                   </div>
 
@@ -192,13 +194,13 @@ export default function BranchesPage() {
                       onClick={() => openEdit(b)}
                       className="flex-1 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
                     >
-                      Redigera
+                      {t('actions.edit')}
                     </button>
                     <button
                       onClick={() => toggleActive(b)}
                       className="flex-1 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
                     >
-                      {b.active ? 'Inaktivera' : 'Aktivera'}
+                      {b.active ? t('actions.deactivate') : t('actions.activate')}
                     </button>
                     <button
                       onClick={() => handleDelete(b)}
@@ -226,18 +228,18 @@ export default function BranchesPage() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <h2 className="font-bold text-slate-900">{editing ? 'Redigera filial' : 'Ny filial'}</h2>
+              <h2 className="font-bold text-slate-900">{editing ? t('form.titleEdit') : t('form.titleNew')}</h2>
               <button onClick={() => setShowForm(false)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 text-slate-400 text-xl">×</button>
             </div>
 
             <form onSubmit={handleSave} className="px-6 py-5 space-y-4">
               {/* Name */}
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Filialnamn *</label>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">{t('form.name')}</label>
                 <input
                   value={form.name}
                   onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                  placeholder="t.ex. Stockholm Nord"
+                  placeholder={t('form.namePlaceholder')}
                   required
                   className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#FF6B2C] focus:ring-2 focus:ring-[#FF6B2C]/20 transition-all"
                 />
@@ -246,16 +248,16 @@ export default function BranchesPage() {
               {/* Address + City */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Adress</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">{t('form.address')}</label>
                   <input
                     value={form.address}
                     onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
-                    placeholder="Gatugatan 1"
+                    placeholder={t('form.addressPlaceholder')}
                     className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#FF6B2C] transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Stad</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">{t('form.city')}</label>
                   <input
                     value={form.city}
                     onChange={e => setForm(f => ({ ...f, city: e.target.value }))}
@@ -268,7 +270,7 @@ export default function BranchesPage() {
               {/* Phone + Manager */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Telefon</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">{t('form.phone')}</label>
                   <input
                     value={form.phone}
                     onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
@@ -277,7 +279,7 @@ export default function BranchesPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Ansvarig</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">{t('form.manager')}</label>
                   <input
                     value={form.managerName}
                     onChange={e => setForm(f => ({ ...f, managerName: e.target.value }))}
@@ -295,15 +297,15 @@ export default function BranchesPage() {
                   onChange={e => setForm(f => ({ ...f, active: e.target.checked }))}
                   className="w-4 h-4 rounded accent-[#FF6B2C]"
                 />
-                <span className="text-sm text-slate-600">Filial är aktiv</span>
+                <span className="text-sm text-slate-600">{t('form.active')}</span>
               </label>
 
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
-                  Avbryt
+                  {t('form.cancel')}
                 </button>
                 <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-xl bg-[#FF6B2C] hover:bg-[#e55a20] text-white text-sm font-semibold transition-colors disabled:opacity-50">
-                  {saving ? 'Sparar…' : editing ? 'Spara ändringar' : 'Skapa filial'}
+                  {saving ? t('form.saving') : editing ? t('form.save') : t('form.create')}
                 </button>
               </div>
             </form>

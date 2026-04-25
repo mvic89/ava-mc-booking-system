@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
 import { useRoleGuard } from '@/lib/useRoleGuard';
 import { getTargets, upsertTarget, deleteTarget, type StaffTarget } from '@/lib/targets';
@@ -11,21 +12,6 @@ import { getLeads } from '@/lib/leads';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = [CURRENT_YEAR - 1, CURRENT_YEAR, CURRENT_YEAR + 1];
-const MONTHS = [
-  { value: 0,  label: 'Hela året' },
-  { value: 1,  label: 'Januari' },
-  { value: 2,  label: 'Februari' },
-  { value: 3,  label: 'Mars' },
-  { value: 4,  label: 'April' },
-  { value: 5,  label: 'Maj' },
-  { value: 6,  label: 'Juni' },
-  { value: 7,  label: 'Juli' },
-  { value: 8,  label: 'Augusti' },
-  { value: 9,  label: 'September' },
-  { value: 10, label: 'Oktober' },
-  { value: 11, label: 'November' },
-  { value: 12, label: 'December' },
-];
 
 interface FormState {
   staffEmail:    string;
@@ -50,6 +36,9 @@ function kr(n: number) { return `${Math.round(n).toLocaleString('sv-SE')} kr`; }
 export default function TargetsPage() {
   useRoleGuard('performance');
   const router = useRouter();
+  const t = useTranslations('settingsTargets');
+
+  const MONTHS = (t.raw('months') as string[]).map((label, i) => ({ value: i, label }));
 
   const [targets,     setTargets]     = useState<StaffTarget[]>([]);
   const [loading,     setLoading]     = useState(true);
@@ -111,7 +100,7 @@ export default function TargetsPage() {
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (!form.staffEmail.trim() || !form.staffName.trim()) {
-      toast.error('Namn och e-post krävs');
+      toast.error(t('toasts.nameEmailRequired'));
       return;
     }
     setSaving(true);
@@ -137,7 +126,7 @@ export default function TargetsPage() {
         }
         return [...prev, saved];
       });
-      toast.success('Mål sparat');
+      toast.success(t('toasts.saved'));
       setShowForm(false);
     } catch (err: any) {
       toast.error(err.message);
@@ -146,16 +135,16 @@ export default function TargetsPage() {
     }
   }
 
-  async function handleDelete(t: StaffTarget) {
-    const period = t.periodMonth === 0
-      ? `${t.periodYear} (helår)`
-      : `${MONTHS[t.periodMonth]?.label} ${t.periodYear}`;
-    if (!confirm(`Ta bort mål för ${t.staffName} — ${period}?`)) return;
-    setDeleting(t.id);
+  async function handleDelete(target: StaffTarget) {
+    const period = target.periodMonth === 0
+      ? `${target.periodYear} (${t('actions.fullYear')})`
+      : `${MONTHS[target.periodMonth]?.label} ${target.periodYear}`;
+    if (!confirm(t('deleteConfirm', { name: target.staffName, period }))) return;
+    setDeleting(target.id);
     try {
-      await deleteTarget(t.id);
-      setTargets(prev => prev.filter(x => x.id !== t.id));
-      toast.success('Mål borttaget');
+      await deleteTarget(target.id);
+      setTargets(prev => prev.filter(x => x.id !== target.id));
+      toast.success(t('toasts.deleted'));
     } catch (err: any) {
       toast.error(err.message);
     } finally {
@@ -165,13 +154,13 @@ export default function TargetsPage() {
 
   function exportCSV() {
     const rows = [
-      ['Säljare', 'E-post', 'Period', 'Leads mål', 'Leads utfall', 'Leads %', 'Intäkt mål', 'Intäkt utfall', 'Intäkt %'],
-      ...targets.map(t => {
-        const act = actuals[t.staffName] ?? { leads: 0, revenue: 0 };
-        const period = t.periodMonth === 0 ? `${t.periodYear} (helår)` : `${MONTHS[t.periodMonth]?.label} ${t.periodYear}`;
-        const leadsPct  = t.leadsTarget   > 0 ? Math.round((act.leads   / t.leadsTarget)   * 100) : 0;
-        const revPct    = t.revenueTarget > 0 ? Math.round((act.revenue / t.revenueTarget) * 100) : 0;
-        return [t.staffName, t.staffEmail, period, t.leadsTarget, act.leads, `${leadsPct}%`, t.revenueTarget, act.revenue, `${revPct}%`];
+      [t('table.period'), 'E-post', t('table.period'), t('table.leadsTarget'), t('table.leadsActual'), t('table.leadsPct'), t('table.revenueTarget'), t('table.revenueActual'), t('table.revenuePct')],
+      ...targets.map(tgt => {
+        const act = actuals[tgt.staffName] ?? { leads: 0, revenue: 0 };
+        const period = tgt.periodMonth === 0 ? `${tgt.periodYear} (${t('actions.fullYear')})` : `${MONTHS[tgt.periodMonth]?.label} ${tgt.periodYear}`;
+        const leadsPct  = tgt.leadsTarget   > 0 ? Math.round((act.leads   / tgt.leadsTarget)   * 100) : 0;
+        const revPct    = tgt.revenueTarget > 0 ? Math.round((act.revenue / tgt.revenueTarget) * 100) : 0;
+        return [tgt.staffName, tgt.staffEmail, period, tgt.leadsTarget, act.leads, `${leadsPct}%`, tgt.revenueTarget, act.revenue, `${revPct}%`];
       }),
     ];
     const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
@@ -179,18 +168,18 @@ export default function TargetsPage() {
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
     a.href     = url;
-    a.download = `mål_${yearFilter}.csv`;
+    a.download = `targets_${yearFilter}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success('CSV exporterad');
+    toast.success(t('toasts.csvExported'));
   }
 
   // Group targets by staff member
   const grouped = useMemo(() => {
     const map: Record<string, StaffTarget[]> = {};
-    targets.forEach(t => {
-      if (!map[t.staffEmail]) map[t.staffEmail] = [];
-      map[t.staffEmail].push(t);
+    targets.forEach(tgt => {
+      if (!map[tgt.staffEmail]) map[tgt.staffEmail] = [];
+      map[tgt.staffEmail].push(tgt);
     });
     return Object.entries(map).map(([email, rows]) => ({
       email,
@@ -211,12 +200,12 @@ export default function TargetsPage() {
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-slate-400 mb-2">
-                <Link href="/settings" className="hover:text-[#FF6B2C] transition-colors">Inställningar</Link>
+                <Link href="/settings" className="hover:text-[#FF6B2C] transition-colors">{t('breadcrumb')}</Link>
                 <span>→</span>
-                <span className="text-slate-600 font-medium">Säljarens mål</span>
+                <span className="text-slate-600 font-medium">{t('nav')}</span>
               </nav>
-              <h1 className="text-2xl font-bold text-slate-900">Prestationsmål</h1>
-              <p className="text-sm text-slate-400 mt-0.5">Sätt och följ upp mål per säljare — leads och intäkt</p>
+              <h1 className="text-2xl font-bold text-slate-900">{t('title')}</h1>
+              <p className="text-sm text-slate-400 mt-0.5">{t('subtitle')}</p>
             </div>
             <div className="flex items-center gap-3">
               {/* Year filter */}
@@ -234,7 +223,7 @@ export default function TargetsPage() {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
                 </svg>
-                Exportera CSV
+                {t('exportCSV')}
               </button>
               <button
                 onClick={openNew}
@@ -243,7 +232,7 @@ export default function TargetsPage() {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
-                Nytt mål
+                {t('newTarget')}
               </button>
             </div>
           </div>
@@ -258,10 +247,10 @@ export default function TargetsPage() {
           ) : grouped.length === 0 ? (
             <div className="bg-white rounded-2xl border border-slate-100 py-20 text-center">
               <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl">🎯</div>
-              <p className="text-slate-700 font-semibold">Inga mål satta för {yearFilter}</p>
-              <p className="text-sm text-slate-400 mt-1 mb-4">Sätt mål för säljarna för att börja följa upp prestationer</p>
+              <p className="text-slate-700 font-semibold">{t('empty.title', { year: yearFilter })}</p>
+              <p className="text-sm text-slate-400 mt-1 mb-4">{t('empty.subtitle')}</p>
               <button onClick={openNew} className="px-4 py-2 rounded-xl bg-[#FF6B2C] text-white text-sm font-semibold">
-                Sätt mål
+                {t('empty.button')}
               </button>
             </div>
           ) : (
@@ -282,8 +271,8 @@ export default function TargetsPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-4 text-xs text-slate-500">
-                        <span>Total utfall: <strong className="text-slate-900">{act.leads} leads</strong></span>
-                        <span>Intäkt: <strong className="text-slate-900">{kr(act.revenue)}</strong></span>
+                        <span>{t('staff.totalActual')} <strong className="text-slate-900">{act.leads} {t('staff.leads')}</strong></span>
+                        <span>{t('staff.revenue')} <strong className="text-slate-900">{kr(act.revenue)}</strong></span>
                       </div>
                     </div>
 
@@ -292,27 +281,27 @@ export default function TargetsPage() {
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="border-b border-slate-50 bg-slate-50">
-                            <th className="text-left px-6 py-3 text-xs text-slate-400 font-semibold uppercase tracking-wide">Period</th>
-                            <th className="text-right px-4 py-3 text-xs text-slate-400 font-semibold uppercase tracking-wide">Leads mål</th>
-                            <th className="text-right px-4 py-3 text-xs text-slate-400 font-semibold uppercase tracking-wide">Leads utfall</th>
-                            <th className="text-right px-4 py-3 text-xs text-slate-400 font-semibold uppercase tracking-wide">Leads %</th>
-                            <th className="text-right px-4 py-3 text-xs text-slate-400 font-semibold uppercase tracking-wide">Intäkt mål</th>
-                            <th className="text-right px-4 py-3 text-xs text-slate-400 font-semibold uppercase tracking-wide">Intäkt utfall</th>
-                            <th className="text-right px-4 py-3 text-xs text-slate-400 font-semibold uppercase tracking-wide">Intäkt %</th>
+                            <th className="text-left px-6 py-3 text-xs text-slate-400 font-semibold uppercase tracking-wide">{t('table.period')}</th>
+                            <th className="text-right px-4 py-3 text-xs text-slate-400 font-semibold uppercase tracking-wide">{t('table.leadsTarget')}</th>
+                            <th className="text-right px-4 py-3 text-xs text-slate-400 font-semibold uppercase tracking-wide">{t('table.leadsActual')}</th>
+                            <th className="text-right px-4 py-3 text-xs text-slate-400 font-semibold uppercase tracking-wide">{t('table.leadsPct')}</th>
+                            <th className="text-right px-4 py-3 text-xs text-slate-400 font-semibold uppercase tracking-wide">{t('table.revenueTarget')}</th>
+                            <th className="text-right px-4 py-3 text-xs text-slate-400 font-semibold uppercase tracking-wide">{t('table.revenueActual')}</th>
+                            <th className="text-right px-4 py-3 text-xs text-slate-400 font-semibold uppercase tracking-wide">{t('table.revenuePct')}</th>
                             <th className="px-6 py-3" />
                           </tr>
                         </thead>
                         <tbody>
-                          {rows.map(t => {
-                            const leadsPct  = t.leadsTarget   > 0 ? Math.round((act.leads   / t.leadsTarget)   * 100) : null;
-                            const revPct    = t.revenueTarget > 0 ? Math.round((act.revenue / t.revenueTarget) * 100) : null;
-                            const period    = t.periodMonth === 0
-                              ? `${t.periodYear} (helår)`
-                              : `${MONTHS[t.periodMonth]?.label} ${t.periodYear}`;
+                          {rows.map(row => {
+                            const leadsPct  = row.leadsTarget   > 0 ? Math.round((act.leads   / row.leadsTarget)   * 100) : null;
+                            const revPct    = row.revenueTarget > 0 ? Math.round((act.revenue / row.revenueTarget) * 100) : null;
+                            const period    = row.periodMonth === 0
+                              ? `${row.periodYear} (${t('actions.fullYear')})`
+                              : `${MONTHS[row.periodMonth]?.label} ${row.periodYear}`;
                             return (
-                              <tr key={t.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                              <tr key={row.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
                                 <td className="px-6 py-3 font-medium text-slate-700">{period}</td>
-                                <td className="px-4 py-3 text-right text-slate-600">{t.leadsTarget}</td>
+                                <td className="px-4 py-3 text-right text-slate-600">{row.leadsTarget}</td>
                                 <td className="px-4 py-3 text-right font-semibold text-slate-900">{act.leads}</td>
                                 <td className="px-4 py-3 text-right">
                                   {leadsPct !== null ? (
@@ -321,7 +310,7 @@ export default function TargetsPage() {
                                     </span>
                                   ) : <span className="text-slate-300">—</span>}
                                 </td>
-                                <td className="px-4 py-3 text-right text-slate-600">{kr(t.revenueTarget)}</td>
+                                <td className="px-4 py-3 text-right text-slate-600">{kr(row.revenueTarget)}</td>
                                 <td className="px-4 py-3 text-right font-semibold text-slate-900">{kr(act.revenue)}</td>
                                 <td className="px-4 py-3 text-right">
                                   {revPct !== null ? (
@@ -333,17 +322,17 @@ export default function TargetsPage() {
                                 <td className="px-6 py-3">
                                   <div className="flex items-center justify-end gap-1">
                                     <button
-                                      onClick={() => openEdit(t)}
+                                      onClick={() => openEdit(row)}
                                       className="px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
                                     >
-                                      Redigera
+                                      {t('actions.edit')}
                                     </button>
                                     <button
-                                      onClick={() => handleDelete(t)}
-                                      disabled={deleting === t.id}
+                                      onClick={() => handleDelete(row)}
+                                      disabled={deleting === row.id}
                                       className="w-7 h-7 rounded-lg flex items-center justify-center border border-slate-200 text-slate-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors disabled:opacity-50"
                                     >
-                                      {deleting === t.id ? (
+                                      {deleting === row.id ? (
                                         <div className="w-3 h-3 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
                                       ) : (
                                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -372,7 +361,7 @@ export default function TargetsPage() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <h2 className="font-bold text-slate-900">Sätt prestationsmål</h2>
+              <h2 className="font-bold text-slate-900">{t('form.title')}</h2>
               <button onClick={() => setShowForm(false)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 text-slate-400 text-xl">×</button>
             </div>
 
@@ -380,7 +369,7 @@ export default function TargetsPage() {
               {/* Staff */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Namn *</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">{t('form.name')}</label>
                   <input
                     value={form.staffName}
                     onChange={e => setForm(f => ({ ...f, staffName: e.target.value }))}
@@ -390,7 +379,7 @@ export default function TargetsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">E-post *</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">{t('form.email')}</label>
                   <input
                     type="email"
                     value={form.staffEmail}
@@ -405,7 +394,7 @@ export default function TargetsPage() {
               {/* Period */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">År</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">{t('form.year')}</label>
                   <select
                     value={form.periodYear}
                     onChange={e => setForm(f => ({ ...f, periodYear: Number(e.target.value) }))}
@@ -415,7 +404,7 @@ export default function TargetsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Period</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">{t('form.period')}</label>
                   <select
                     value={form.periodMonth}
                     onChange={e => setForm(f => ({ ...f, periodMonth: Number(e.target.value) }))}
@@ -429,7 +418,7 @@ export default function TargetsPage() {
               {/* Targets */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Leads mål</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">{t('form.leadsTarget')}</label>
                   <input
                     type="number"
                     min="0"
@@ -440,7 +429,7 @@ export default function TargetsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Intäktsmål (kr)</label>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">{t('form.revenueTarget')}</label>
                   <input
                     type="number"
                     min="0"
@@ -454,10 +443,10 @@ export default function TargetsPage() {
 
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
-                  Avbryt
+                  {t('form.cancel')}
                 </button>
                 <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-xl bg-[#FF6B2C] hover:bg-[#e55a20] text-white text-sm font-semibold transition-colors disabled:opacity-50">
-                  {saving ? 'Sparar…' : 'Spara mål'}
+                  {saving ? t('form.saving') : t('form.save')}
                 </button>
               </div>
             </form>

@@ -2561,5 +2561,193 @@
       "deleted": "Branch deleted"
     },
     "deleteConfirm": "Delete branch {name}? Leads and staff connected to it are not affected."
+  },
+  "leadDetail": {
+    "notFound": "Lead nicht gefunden.",
+    "back": "← Zurück",
+    "overdue": "{days}T überfällig",
+    "lostBadge": "Verloren",
+    "reminderLabel": "Erinnerung:",
+    "overdueMsg": "Dieser Lead ist seit {days} Tagen in {stage} — Zeit für eine Nachverfolgung!",
+    "by": "von",
+    "info": {
+      "title": "Lead-Informationen",
+      "vehicle": "Fahrzeug",
+      "source": "Quelle",
+      "seller": "Verkäufer",
+      "personnummer": "Ausweisnummer",
+      "created": "Erstellt",
+      "email": "E-Mail",
+      "phone": "Telefon",
+      "notes": "Notizen"
+    },
+    "value": {
+      "title": "Deal-Wert",
+      "salePrice": "Verkaufspreis",
+      "costPrice": "Einkaufspreis",
+      "grossProfit": "Bruttogewinn",
+      "margin": "Marge"
+    },
+    "score": {
+      "title": "Lead Score",
+      "hot": "Heißer Lead 🔥",
+      "warm": "Mittelmäßiger Lead 🌡",
+      "cold": "Kalter Lead ❄️",
+      "bankid": "BankID verifiziert",
+      "emailPhone": "E-Mail & Telefon",
+      "tradeIn": "Inzahlungnahme-Interesse",
+      "financing": "Finanzierungsinteresse",
+      "agreementOpened": "Vertrag geöffnet",
+      "stageProgress": "Stufenfortschritt",
+      "costPriceSet": "Einkaufspreis gesetzt"
+    },
+    "directPurchase": {
+      "title": "Direktkauf",
+      "badge": "Zubehör / Ersatzteile",
+      "desc": "Dies ist ein Direktkauf — keine Probefahrten oder Angebote erforderlich.",
+      "goToPayment": "Zur Zahlung →",
+      "cancel": "Kauf abbrechen",
+      "cancelled": "Abgebrochen:",
+      "completed": "✓ Kauf abgeschlossen"
+    },
+    "pipeline": {
+      "title": "Pipeline-Phase",
+      "goToPayment": "Zur Zahlung →",
+      "openAgreement": "Vertrag öffnen →",
+      "viewOffer": "Angebot anzeigen →",
+      "viewTestDrive": "Probefahrt anzeigen →",
+      "createOffer": "Angebot erstellen →",
+      "bookTestDrive": "Probefahrt buchen →",
+      "markLost": "Verloren",
+      "cancelDeal": "Deal stornieren",
+      "lostReason": "Verlustgrund:",
+      "reactivate": "↩ Lead reaktivieren",
+      "viewClosed": "Abgeschlossenen Deal anzeigen →"
+    },
+    "tasks": {
+      "title": "Aufgaben",
+      "open": "{n} offen",
+      "placeholder": "Aufgabe hinzufügen...",
+      "priorityHigh": "🔴 Hoch",
+      "priorityMedium": "🟡 Mittel",
+      "priorityLow": "⚪ Niedrig",
+      "empty": "Noch keine Aufgaben",
+      "viewAll": "Alle {n} Aufgaben anzeigen →"
+    },
+    "comms": {
+      "title": "Kundenkommunikation",
+      "contact": "✉️ Kunde kontaktieren",
+      "emailBtn": "✉️ E-Mail",
+      "smsBtn": "💬 SMS",
+      "subjectPlaceholder": "Betreff...",
+      "emailBodyPlaceholder": "Schreiben Sie Ihre Nachricht...",
+      "smsBodyPlaceholder": "SMS an {phone}...",
+      "cancel": "Abbrechen",
+      "send": "Senden",
+      "empty": "Noch keine Kommunikation erfasst",
+      "failed": "FEHLGESCHLAGEN",
+      "inbound": "ANTWORT",
+      "you": "Sie",
+      "customer": "Kunde"
+    },
+    "activity": {
+      "title": "Aktivität erfassen",
+      "save": "Speichern",
+      "placeholderCall": "Was wurde besprochen? Nächste Schritte?",
+      "placeholderEmail": "Betreff und Zusammenfassung...",
+      "placeholderMeeting": "Was wurde im Meeting entschieden?",
+      "placeholderNote": "Notiz hinzufügen..."
+    },
+    "timeline": {
+      "title": "Aktivitätsprotokoll",
+      "events": "{n} Ereignisse",
+      "empty": "Noch keine Aktivitäten",
+      "emptyDesc": "Erfassen Sie Anrufe, E-Mails und Meetings oben, um eine Historie aufzubauen.",
+      "created": "Lead erstellt — {bike} ({value} kr)"
+    },
+    "lostModal": {
+      "title": "Als verlorenen Deal schließen",
+      "subtitle": "Wählen Sie einen Grund, um uns zu helfen, zu verstehen, wo Deals verloren gehen.",
+      "otherPlaceholder": "Beschreiben Sie den Grund...",
+      "cancel": "Abbrechen",
+      "confirm": "Verlust bestätigen"
+    },
+    "cancelModal": {
+      "title": "Deal stornieren",
+      "subtitle": "Stornierung und ggf. Kreditrückerstattung erfassen.",
+      "reasonLabel": "Grund *",
+      "reasons": {
+        "changed_mind": "Meinung geändert",
+        "financial": "Finanzielle Gründe",
+        "found_elsewhere": "Anderswo gefunden",
+        "financing_denied": "Finanzierung abgelehnt",
+        "other": "Anderer Grund"
+      },
+      "detailsPlaceholder": "Details (optional)...",
+      "refundLabel": "Kreditrückerstattung",
+      "amountLabel": "Betrag (EUR)",
+      "bankLabel": "Bank",
+      "clearingLabel": "Bankleitzahl",
+      "accountLabel": "Kontonummer",
+      "referenceLabel": "Referenz",
+      "bankPlaceholder": "z.B. Deutsche Bank",
+      "returnToStock": "Fahrzeug ins Lager zurückstellen",
+      "notesPlaceholder": "Interne Notizen (optional)...",
+      "cancel": "Abbrechen",
+      "confirm": "Stornierung bestätigen"
+    },
+    "stages": {
+      "new": "Neu",
+      "contacted": "Kontaktiert",
+      "testride": "Probefahrt",
+      "offer": "Angebot",
+      "negotiating": "Verhandlung",
+      "pending_payment": "Zahlung ausstehend",
+      "closed": "Abgeschlossen"
+    },
+    "taskTypes": {
+      "call": "Anruf",
+      "email": "E-Mail",
+      "meeting": "Meeting",
+      "follow_up": "Nachverfolgung",
+      "other": "Sonstiges"
+    },
+    "activityTypes": {
+      "note": "Notiz",
+      "call": "Anruf",
+      "email": "E-Mail",
+      "meeting": "Meeting",
+      "stage_change": "Stufenänderung",
+      "score_update": "Punkteaktualisierung",
+      "reminder": "Erinnerung",
+      "lost": "Verlorener Deal"
+    },
+    "lostReasons": [
+      "Preis — zu teuer",
+      "Konkurrent — andere Marke gewählt",
+      "Konkurrent — anderen Händler gewählt",
+      "Kein Interesse mehr",
+      "Budget — kann es sich nicht leisten",
+      "Zeit genommen — kann zurückkommen",
+      "Gebraucht gekauft",
+      "Anderer Grund"
+    ],
+    "toasts": {
+      "taskCreated": "Aufgabe erstellt",
+      "taskError": "Aufgabe konnte nicht erstellt werden",
+      "emailSent": "E-Mail gesendet",
+      "smsSent": "SMS gesendet",
+      "sendError": "Konnte nicht gesendet werden",
+      "activityAdded": "Aktivität hinzugefügt",
+      "activityError": "Aktivität konnte nicht gespeichert werden",
+      "stageChanged": "Phase geändert zu {stage}",
+      "stageError": "Phase konnte nicht aktualisiert werden",
+      "dealCancelled": "Deal storniert und erfasst",
+      "cancelError": "Deal konnte nicht storniert werden",
+      "reactivated": "Lead reaktiviert — zurück in Pipeline",
+      "reactivateError": "Lead konnte nicht reaktiviert werden",
+      "closedLost": "Lead als verloren geschlossen",
+      "closeError": "Lead konnte nicht geschlossen werden"
+    }
   }
 }

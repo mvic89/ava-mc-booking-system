@@ -2561,5 +2561,193 @@
       "deleted": "Branch deleted"
     },
     "deleteConfirm": "Delete branch {name}? Leads and staff connected to it are not affected."
+  },
+  "leadDetail": {
+    "notFound": "Lead ikke funnet.",
+    "back": "← Tilbake",
+    "overdue": "{days}d forsinket",
+    "lostBadge": "Tapt",
+    "reminderLabel": "Påminnelse:",
+    "overdueMsg": "Denne lead har ligget i {stage} i {days} dager — tid for oppfølging!",
+    "by": "av",
+    "info": {
+      "title": "Lead-informasjon",
+      "vehicle": "Kjøretøy",
+      "source": "Kilde",
+      "seller": "Selger",
+      "personnummer": "Personnummer",
+      "created": "Opprettet",
+      "email": "E-post",
+      "phone": "Telefon",
+      "notes": "Notater"
+    },
+    "value": {
+      "title": "Forretningsverdi",
+      "salePrice": "Salgspris",
+      "costPrice": "Kostpris",
+      "grossProfit": "Bruttofortjeneste",
+      "margin": "Margin"
+    },
+    "score": {
+      "title": "Lead Score",
+      "hot": "Varm lead 🔥",
+      "warm": "Middels 🌡",
+      "cold": "Kald lead ❄️",
+      "bankid": "BankID verifisert",
+      "emailPhone": "E-post & telefon",
+      "tradeIn": "Innbytte-interesse",
+      "financing": "Finansieringsinteresse",
+      "agreementOpened": "Avtale åpnet",
+      "stageProgress": "Faseutvikling",
+      "costPriceSet": "Kostpris satt"
+    },
+    "directPurchase": {
+      "title": "Direktkjøp",
+      "badge": "Tilbehør / Reservedeler",
+      "desc": "Dette er et direktekjøp — ingen prøvekjøringer eller tilbud nødvendig.",
+      "goToPayment": "Gå til betaling →",
+      "cancel": "Avbryt kjøp",
+      "cancelled": "Avbrutt:",
+      "completed": "✓ Kjøp gjennomført"
+    },
+    "pipeline": {
+      "title": "Pipeline-fase",
+      "goToPayment": "Gå til betaling →",
+      "openAgreement": "Åpne avtale →",
+      "viewOffer": "Vis tilbud →",
+      "viewTestDrive": "Vis prøvekjøring →",
+      "createOffer": "Opprett tilbud →",
+      "bookTestDrive": "Book prøvekjøring →",
+      "markLost": "Tap",
+      "cancelDeal": "Annuller avtale",
+      "lostReason": "Årsak til tap:",
+      "reactivate": "↩ Reaktiver lead",
+      "viewClosed": "Vis avsluttet avtale →"
+    },
+    "tasks": {
+      "title": "Oppgaver",
+      "open": "{n} åpne",
+      "placeholder": "Legg til oppgave...",
+      "priorityHigh": "🔴 Høy",
+      "priorityMedium": "🟡 Middels",
+      "priorityLow": "⚪ Lav",
+      "empty": "Ingen oppgaver ennå",
+      "viewAll": "Vis alle {n} oppgaver →"
+    },
+    "comms": {
+      "title": "Kundekommunikasjon",
+      "contact": "✉️ Kontakt kunde",
+      "emailBtn": "✉️ E-post",
+      "smsBtn": "💬 SMS",
+      "subjectPlaceholder": "Emne...",
+      "emailBodyPlaceholder": "Skriv meldingen din...",
+      "smsBodyPlaceholder": "SMS til {phone}...",
+      "cancel": "Avbryt",
+      "send": "Send",
+      "empty": "Ingen kommunikasjon logget ennå",
+      "failed": "MISLYKTES",
+      "inbound": "SVAR",
+      "you": "Du",
+      "customer": "Kunde"
+    },
+    "activity": {
+      "title": "Logg aktivitet",
+      "save": "Lagre",
+      "placeholderCall": "Hva ble diskutert? Neste steg?",
+      "placeholderEmail": "Emne og sammendrag...",
+      "placeholderMeeting": "Hva ble bestemt på møtet?",
+      "placeholderNote": "Legg til en merknad..."
+    },
+    "timeline": {
+      "title": "Aktivitetslogg",
+      "events": "{n} hendelser",
+      "empty": "Ingen aktiviteter ennå",
+      "emptyDesc": "Logg samtaler, e-poster og møter ovenfor for å bygge en historikk.",
+      "created": "Lead opprettet — {bike} ({value} kr)"
+    },
+    "lostModal": {
+      "title": "Lukk som tapt avtale",
+      "subtitle": "Velg en årsak for å hjelpe oss forstå hvor avtaler tapes.",
+      "otherPlaceholder": "Beskriv årsaken...",
+      "cancel": "Avbryt",
+      "confirm": "Bekreft tap"
+    },
+    "cancelModal": {
+      "title": "Annuller avtale",
+      "subtitle": "Registrer kansellering og eventuell kreditttilbakebetaling.",
+      "reasonLabel": "Årsak *",
+      "reasons": {
+        "changed_mind": "Ombestemt",
+        "financial": "Økonomiske grunner",
+        "found_elsewhere": "Fant annet",
+        "financing_denied": "Finansiering nektet",
+        "other": "Annen årsak"
+      },
+      "detailsPlaceholder": "Detaljer (valgfritt)...",
+      "refundLabel": "Kreditttilbakebetaling",
+      "amountLabel": "Beløp (NOK)",
+      "bankLabel": "Bank",
+      "clearingLabel": "Clearingsnr",
+      "accountLabel": "Kontonummer",
+      "referenceLabel": "Referanse",
+      "bankPlaceholder": "f.eks. DNB",
+      "returnToStock": "Returner kjøretøy til lager",
+      "notesPlaceholder": "Interne notater (valgfritt)...",
+      "cancel": "Avbryt",
+      "confirm": "Bekreft annullering"
+    },
+    "stages": {
+      "new": "Ny",
+      "contacted": "Kontaktet",
+      "testride": "Prøvekjøring",
+      "offer": "Tilbud",
+      "negotiating": "Forhandling",
+      "pending_payment": "Betaling pågår",
+      "closed": "Avsluttet"
+    },
+    "taskTypes": {
+      "call": "Ring",
+      "email": "E-post",
+      "meeting": "Møte",
+      "follow_up": "Oppfølging",
+      "other": "Annet"
+    },
+    "activityTypes": {
+      "note": "Merknad",
+      "call": "Samtale",
+      "email": "E-post",
+      "meeting": "Møte",
+      "stage_change": "Statusendring",
+      "score_update": "Poengoppdatering",
+      "reminder": "Påminnelse",
+      "lost": "Tapt avtale"
+    },
+    "lostReasons": [
+      "Pris — for dyrt",
+      "Konkurrent — valgte annet merke",
+      "Konkurrent — valgte annen forhandler",
+      "Ikke lenger interessert",
+      "Budsjett — råd ikke til det nå",
+      "Tok tid — kan komme tilbake",
+      "Kjøpte brukt i stedet",
+      "Annen årsak"
+    ],
+    "toasts": {
+      "taskCreated": "Oppgave opprettet",
+      "taskError": "Kunne ikke opprette oppgave",
+      "emailSent": "E-post sendt",
+      "smsSent": "SMS sendt",
+      "sendError": "Kunne ikke sende",
+      "activityAdded": "Aktivitet lagt til",
+      "activityError": "Kunne ikke lagre aktivitet",
+      "stageChanged": "Fase endret til {stage}",
+      "stageError": "Kunne ikke oppdatere fase",
+      "dealCancelled": "Avtale annullert og registrert",
+      "cancelError": "Kunne ikke annullere avtale",
+      "reactivated": "Lead reaktivert — tilbake i Pipeline",
+      "reactivateError": "Kunne ikke reaktivere lead",
+      "closedLost": "Lead lukket som tapt",
+      "closeError": "Kunne ikke lukke lead"
+    }
   }
 }

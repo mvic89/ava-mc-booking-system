@@ -2561,5 +2561,193 @@
       "deleted": "Branch deleted"
     },
     "deleteConfirm": "Delete branch {name}? Leads and staff connected to it are not affected."
+  },
+  "leadDetail": {
+    "notFound": "Lead ikke fundet.",
+    "back": "← Tilbage",
+    "overdue": "{days}d forsinket",
+    "lostBadge": "Tabt",
+    "reminderLabel": "Påmindelse:",
+    "overdueMsg": "Dette lead har ligget i {stage} i {days} dage — tid til opfølgning!",
+    "by": "af",
+    "info": {
+      "title": "Lead-oplysninger",
+      "vehicle": "Køretøj",
+      "source": "Kilde",
+      "seller": "Sælger",
+      "personnummer": "CPR-nummer",
+      "created": "Oprettet",
+      "email": "E-mail",
+      "phone": "Telefon",
+      "notes": "Notater"
+    },
+    "value": {
+      "title": "Forretningsværdi",
+      "salePrice": "Salgspris",
+      "costPrice": "Kostpris",
+      "grossProfit": "Bruttofortjeneste",
+      "margin": "Margin"
+    },
+    "score": {
+      "title": "Lead Score",
+      "hot": "Varm lead 🔥",
+      "warm": "Middelværdi 🌡",
+      "cold": "Kold lead ❄️",
+      "bankid": "BankID verificeret",
+      "emailPhone": "E-mail & telefon",
+      "tradeIn": "Indbyttingsinteresse",
+      "financing": "Finansieringsinteresse",
+      "agreementOpened": "Aftale åbnet",
+      "stageProgress": "Faseudvikling",
+      "costPriceSet": "Kostpris sat"
+    },
+    "directPurchase": {
+      "title": "Direktkøb",
+      "badge": "Tilbehør / Reservedele",
+      "desc": "Dette er et direktkøb — ingen prøvekørsler eller tilbud kræves.",
+      "goToPayment": "Gå til betaling →",
+      "cancel": "Annuller køb",
+      "cancelled": "Annulleret:",
+      "completed": "✓ Køb gennemført"
+    },
+    "pipeline": {
+      "title": "Pipeline-fase",
+      "goToPayment": "Gå til betaling →",
+      "openAgreement": "Åbn aftale →",
+      "viewOffer": "Vis tilbud →",
+      "viewTestDrive": "Vis prøvekørsel →",
+      "createOffer": "Opret tilbud →",
+      "bookTestDrive": "Book prøvekørsel →",
+      "markLost": "Tab",
+      "cancelDeal": "Annuller aftale",
+      "lostReason": "Årsag til tab:",
+      "reactivate": "↩ Genaktiver lead",
+      "viewClosed": "Vis afsluttet aftale →"
+    },
+    "tasks": {
+      "title": "Opgaver",
+      "open": "{n} åbne",
+      "placeholder": "Tilføj opgave...",
+      "priorityHigh": "🔴 Høj",
+      "priorityMedium": "🟡 Middel",
+      "priorityLow": "⚪ Lav",
+      "empty": "Ingen opgaver endnu",
+      "viewAll": "Vis alle {n} opgaver →"
+    },
+    "comms": {
+      "title": "Kundekommunikation",
+      "contact": "✉️ Kontakt kunde",
+      "emailBtn": "✉️ E-mail",
+      "smsBtn": "💬 SMS",
+      "subjectPlaceholder": "Emne...",
+      "emailBodyPlaceholder": "Skriv din besked...",
+      "smsBodyPlaceholder": "SMS til {phone}...",
+      "cancel": "Annuller",
+      "send": "Send",
+      "empty": "Ingen kommunikation logget endnu",
+      "failed": "MISLYKKEDES",
+      "inbound": "SVAR",
+      "you": "Dig",
+      "customer": "Kunde"
+    },
+    "activity": {
+      "title": "Log aktivitet",
+      "save": "Gem",
+      "placeholderCall": "Hvad blev diskuteret? Næste trin?",
+      "placeholderEmail": "Emne og sammenfatning...",
+      "placeholderMeeting": "Hvad blev besluttet på mødet?",
+      "placeholderNote": "Tilføj en note..."
+    },
+    "timeline": {
+      "title": "Aktivitetslog",
+      "events": "{n} hændelser",
+      "empty": "Ingen aktiviteter endnu",
+      "emptyDesc": "Log opkald, e-mails og møder ovenfor for at opbygge en historik.",
+      "created": "Lead oprettet — {bike} ({value} kr)"
+    },
+    "lostModal": {
+      "title": "Luk som tabt aftale",
+      "subtitle": "Vælg en årsag for at hjælpe os forstå, hvor aftaler tabes.",
+      "otherPlaceholder": "Beskriv årsagen...",
+      "cancel": "Annuller",
+      "confirm": "Bekræft tab"
+    },
+    "cancelModal": {
+      "title": "Annuller aftale",
+      "subtitle": "Registrer annullering og eventuel kreditrefusion.",
+      "reasonLabel": "Årsag *",
+      "reasons": {
+        "changed_mind": "Fortrød",
+        "financial": "Økonomiske årsager",
+        "found_elsewhere": "Fandt andet",
+        "financing_denied": "Finansiering nægtet",
+        "other": "Anden årsag"
+      },
+      "detailsPlaceholder": "Detaljer (valgfrit)...",
+      "refundLabel": "Kreditrefusion",
+      "amountLabel": "Beløb (DKK)",
+      "bankLabel": "Bank",
+      "clearingLabel": "Reg.nr",
+      "accountLabel": "Kontonummer",
+      "referenceLabel": "Reference",
+      "bankPlaceholder": "f.eks. Danske Bank",
+      "returnToStock": "Returner køretøj til lager",
+      "notesPlaceholder": "Interne noter (valgfrit)...",
+      "cancel": "Annuller",
+      "confirm": "Bekræft annullering"
+    },
+    "stages": {
+      "new": "Ny",
+      "contacted": "Kontaktet",
+      "testride": "Prøvekørsel",
+      "offer": "Tilbud",
+      "negotiating": "Forhandling",
+      "pending_payment": "Betaling i gang",
+      "closed": "Afsluttet"
+    },
+    "taskTypes": {
+      "call": "Ring",
+      "email": "E-mail",
+      "meeting": "Møde",
+      "follow_up": "Opfølgning",
+      "other": "Andet"
+    },
+    "activityTypes": {
+      "note": "Note",
+      "call": "Opkald",
+      "email": "E-mail",
+      "meeting": "Møde",
+      "stage_change": "Statusændring",
+      "score_update": "Pointopdatering",
+      "reminder": "Påmindelse",
+      "lost": "Tabt aftale"
+    },
+    "lostReasons": [
+      "Pris — for dyrt",
+      "Konkurrent — valgte andet mærke",
+      "Konkurrent — valgte anden forhandler",
+      "Ikke længere interesseret",
+      "Budget — råd ikke til det nu",
+      "Tog tid — kan vende tilbage",
+      "Købte brugt i stedet",
+      "Anden årsag"
+    ],
+    "toasts": {
+      "taskCreated": "Opgave oprettet",
+      "taskError": "Kunne ikke oprette opgave",
+      "emailSent": "E-mail sendt",
+      "smsSent": "SMS sendt",
+      "sendError": "Kunne ikke sende",
+      "activityAdded": "Aktivitet tilføjet",
+      "activityError": "Kunne ikke gemme aktivitet",
+      "stageChanged": "Fase ændret til {stage}",
+      "stageError": "Kunne ikke opdatere fase",
+      "dealCancelled": "Aftale annulleret og registreret",
+      "cancelError": "Kunne ikke annullere aftale",
+      "reactivated": "Lead genaktiveret — tilbage i Pipeline",
+      "reactivateError": "Kunne ikke genaktivere lead",
+      "closedLost": "Lead lukket som tabt",
+      "closeError": "Kunne ikke lukke lead"
+    }
   }
 }

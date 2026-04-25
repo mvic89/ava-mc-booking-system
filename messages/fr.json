@@ -2561,5 +2561,193 @@
       "deleted": "Branch deleted"
     },
     "deleteConfirm": "Delete branch {name}? Leads and staff connected to it are not affected."
+  },
+  "leadDetail": {
+    "notFound": "Lead introuvable.",
+    "back": "← Retour",
+    "overdue": "{days}j en retard",
+    "lostBadge": "Perdu",
+    "reminderLabel": "Rappel :",
+    "overdueMsg": "Ce lead est en {stage} depuis {days} jours — il est temps de faire un suivi !",
+    "by": "par",
+    "info": {
+      "title": "Informations lead",
+      "vehicle": "Véhicule",
+      "source": "Source",
+      "seller": "Vendeur",
+      "personnummer": "Numéro d'identité",
+      "created": "Créé le",
+      "email": "Email",
+      "phone": "Téléphone",
+      "notes": "Notes"
+    },
+    "value": {
+      "title": "Valeur de l'affaire",
+      "salePrice": "Prix de vente",
+      "costPrice": "Prix de revient",
+      "grossProfit": "Bénéfice brut",
+      "margin": "Marge"
+    },
+    "score": {
+      "title": "Score lead",
+      "hot": "Lead chaud 🔥",
+      "warm": "Lead tiède 🌡",
+      "cold": "Lead froid ❄️",
+      "bankid": "BankID vérifié",
+      "emailPhone": "Email & téléphone",
+      "tradeIn": "Intérêt reprise",
+      "financing": "Intérêt financement",
+      "agreementOpened": "Contrat ouvert",
+      "stageProgress": "Progression étape",
+      "costPriceSet": "Prix de revient défini"
+    },
+    "directPurchase": {
+      "title": "Achat direct",
+      "badge": "Accessoires / Pièces",
+      "desc": "Il s'agit d'un achat direct — aucun essai ni devis requis.",
+      "goToPayment": "Aller au paiement →",
+      "cancel": "Annuler l'achat",
+      "cancelled": "Annulé :",
+      "completed": "✓ Achat effectué"
+    },
+    "pipeline": {
+      "title": "Phase pipeline",
+      "goToPayment": "Aller au paiement →",
+      "openAgreement": "Ouvrir contrat →",
+      "viewOffer": "Voir devis →",
+      "viewTestDrive": "Voir essai →",
+      "createOffer": "Créer devis →",
+      "bookTestDrive": "Réserver essai →",
+      "markLost": "Perdu",
+      "cancelDeal": "Annuler l'affaire",
+      "lostReason": "Raison de la perte :",
+      "reactivate": "↩ Réactiver le lead",
+      "viewClosed": "Voir l'affaire clôturée →"
+    },
+    "tasks": {
+      "title": "Tâches",
+      "open": "{n} ouvertes",
+      "placeholder": "Ajouter une tâche...",
+      "priorityHigh": "🔴 Haute",
+      "priorityMedium": "🟡 Moyenne",
+      "priorityLow": "⚪ Basse",
+      "empty": "Aucune tâche pour l'instant",
+      "viewAll": "Voir toutes les {n} tâches →"
+    },
+    "comms": {
+      "title": "Communication client",
+      "contact": "✉️ Contacter le client",
+      "emailBtn": "✉️ Email",
+      "smsBtn": "💬 SMS",
+      "subjectPlaceholder": "Objet...",
+      "emailBodyPlaceholder": "Rédigez votre message...",
+      "smsBodyPlaceholder": "SMS à {phone}...",
+      "cancel": "Annuler",
+      "send": "Envoyer",
+      "empty": "Aucune communication enregistrée",
+      "failed": "ÉCHEC",
+      "inbound": "RÉPONSE",
+      "you": "Vous",
+      "customer": "Client"
+    },
+    "activity": {
+      "title": "Enregistrer une activité",
+      "save": "Enregistrer",
+      "placeholderCall": "De quoi avez-vous discuté ? Prochaines étapes ?",
+      "placeholderEmail": "Objet et résumé...",
+      "placeholderMeeting": "Qu'a-t-on décidé lors de la réunion ?",
+      "placeholderNote": "Ajouter une note..."
+    },
+    "timeline": {
+      "title": "Journal d'activité",
+      "events": "{n} événements",
+      "empty": "Aucune activité pour l'instant",
+      "emptyDesc": "Enregistrez des appels, emails et réunions ci-dessus pour construire un historique.",
+      "created": "Lead créé — {bike} ({value} kr)"
+    },
+    "lostModal": {
+      "title": "Clore comme affaire perdue",
+      "subtitle": "Choisissez une raison pour nous aider à comprendre où les affaires sont perdues.",
+      "otherPlaceholder": "Décrivez la raison...",
+      "cancel": "Annuler",
+      "confirm": "Confirmer la perte"
+    },
+    "cancelModal": {
+      "title": "Annuler l'affaire",
+      "subtitle": "Enregistrer l'annulation et tout remboursement de crédit.",
+      "reasonLabel": "Raison *",
+      "reasons": {
+        "changed_mind": "A changé d'avis",
+        "financial": "Raisons financières",
+        "found_elsewhere": "A trouvé ailleurs",
+        "financing_denied": "Financement refusé",
+        "other": "Autre raison"
+      },
+      "detailsPlaceholder": "Détails (facultatif)...",
+      "refundLabel": "Remboursement de crédit",
+      "amountLabel": "Montant (EUR)",
+      "bankLabel": "Banque",
+      "clearingLabel": "Code banque",
+      "accountLabel": "Numéro de compte",
+      "referenceLabel": "Référence",
+      "bankPlaceholder": "ex. Crédit Agricole",
+      "returnToStock": "Remettre le véhicule en stock",
+      "notesPlaceholder": "Notes internes (facultatif)...",
+      "cancel": "Annuler",
+      "confirm": "Confirmer l'annulation"
+    },
+    "stages": {
+      "new": "Nouveau",
+      "contacted": "Contacté",
+      "testride": "Essai",
+      "offer": "Devis",
+      "negotiating": "Négociation",
+      "pending_payment": "Paiement en attente",
+      "closed": "Clôturé"
+    },
+    "taskTypes": {
+      "call": "Appel",
+      "email": "Email",
+      "meeting": "Réunion",
+      "follow_up": "Suivi",
+      "other": "Autre"
+    },
+    "activityTypes": {
+      "note": "Note",
+      "call": "Appel",
+      "email": "Email",
+      "meeting": "Réunion",
+      "stage_change": "Changement d'étape",
+      "score_update": "Mise à jour score",
+      "reminder": "Rappel",
+      "lost": "Affaire perdue"
+    },
+    "lostReasons": [
+      "Prix — trop cher",
+      "Concurrent — a choisi une autre marque",
+      "Concurrent — a choisi un autre revendeur",
+      "Plus intéressé",
+      "Budget — ne peut pas se le permettre",
+      "A pris du temps — peut revenir",
+      "A acheté d'occasion",
+      "Autre raison"
+    ],
+    "toasts": {
+      "taskCreated": "Tâche créée",
+      "taskError": "Impossible de créer la tâche",
+      "emailSent": "Email envoyé",
+      "smsSent": "SMS envoyé",
+      "sendError": "Impossible d'envoyer",
+      "activityAdded": "Activité ajoutée",
+      "activityError": "Impossible d'enregistrer l'activité",
+      "stageChanged": "Phase changée en {stage}",
+      "stageError": "Impossible de mettre à jour la phase",
+      "dealCancelled": "Affaire annulée et enregistrée",
+      "cancelError": "Impossible d'annuler l'affaire",
+      "reactivated": "Lead réactivé — retour dans Pipeline",
+      "reactivateError": "Impossible de réactiver le lead",
+      "closedLost": "Lead clôturé comme perdu",
+      "closeError": "Impossible de clôturer le lead"
+    }
   }
 }

@@ -2561,5 +2561,193 @@
       "deleted": "Branch deleted"
     },
     "deleteConfirm": "Delete branch {name}? Leads and staff connected to it are not affected."
+  },
+  "leadDetail": {
+    "notFound": "Lead no encontrado.",
+    "back": "← Atrás",
+    "overdue": "{days}d atrasado",
+    "lostBadge": "Perdido",
+    "reminderLabel": "Recordatorio:",
+    "overdueMsg": "Este lead lleva {days} días en {stage} — ¡es hora de hacer seguimiento!",
+    "by": "por",
+    "info": {
+      "title": "Información del lead",
+      "vehicle": "Vehículo",
+      "source": "Fuente",
+      "seller": "Vendedor",
+      "personnummer": "Número de identificación",
+      "created": "Creado",
+      "email": "Email",
+      "phone": "Teléfono",
+      "notes": "Notas"
+    },
+    "value": {
+      "title": "Valor del trato",
+      "salePrice": "Precio de venta",
+      "costPrice": "Precio de costo",
+      "grossProfit": "Beneficio bruto",
+      "margin": "Margen"
+    },
+    "score": {
+      "title": "Puntuación lead",
+      "hot": "Lead caliente 🔥",
+      "warm": "Lead tibio 🌡",
+      "cold": "Lead frío ❄️",
+      "bankid": "BankID verificado",
+      "emailPhone": "Email & teléfono",
+      "tradeIn": "Interés en canje",
+      "financing": "Interés en financiación",
+      "agreementOpened": "Acuerdo abierto",
+      "stageProgress": "Progreso de etapa",
+      "costPriceSet": "Precio de costo establecido"
+    },
+    "directPurchase": {
+      "title": "Compra directa",
+      "badge": "Accesorios / Repuestos",
+      "desc": "Esta es una compra directa — no se requieren pruebas ni presupuestos.",
+      "goToPayment": "Ir al pago →",
+      "cancel": "Cancelar compra",
+      "cancelled": "Cancelado:",
+      "completed": "✓ Compra realizada"
+    },
+    "pipeline": {
+      "title": "Etapa del pipeline",
+      "goToPayment": "Ir al pago →",
+      "openAgreement": "Abrir acuerdo →",
+      "viewOffer": "Ver presupuesto →",
+      "viewTestDrive": "Ver prueba →",
+      "createOffer": "Crear presupuesto →",
+      "bookTestDrive": "Reservar prueba →",
+      "markLost": "Perdido",
+      "cancelDeal": "Cancelar trato",
+      "lostReason": "Motivo de pérdida:",
+      "reactivate": "↩ Reactivar lead",
+      "viewClosed": "Ver trato cerrado →"
+    },
+    "tasks": {
+      "title": "Tareas",
+      "open": "{n} abiertas",
+      "placeholder": "Agregar tarea...",
+      "priorityHigh": "🔴 Alta",
+      "priorityMedium": "🟡 Media",
+      "priorityLow": "⚪ Baja",
+      "empty": "Aún no hay tareas",
+      "viewAll": "Ver todas las {n} tareas →"
+    },
+    "comms": {
+      "title": "Comunicación con el cliente",
+      "contact": "✉️ Contactar cliente",
+      "emailBtn": "✉️ Email",
+      "smsBtn": "💬 SMS",
+      "subjectPlaceholder": "Asunto...",
+      "emailBodyPlaceholder": "Escribe tu mensaje...",
+      "smsBodyPlaceholder": "SMS a {phone}...",
+      "cancel": "Cancelar",
+      "send": "Enviar",
+      "empty": "No se ha registrado ninguna comunicación",
+      "failed": "FALLIDO",
+      "inbound": "RESPUESTA",
+      "you": "Tú",
+      "customer": "Cliente"
+    },
+    "activity": {
+      "title": "Registrar actividad",
+      "save": "Guardar",
+      "placeholderCall": "¿Qué se discutió? ¿Próximos pasos?",
+      "placeholderEmail": "Asunto y resumen...",
+      "placeholderMeeting": "¿Qué se decidió en la reunión?",
+      "placeholderNote": "Agregar una nota..."
+    },
+    "timeline": {
+      "title": "Registro de actividad",
+      "events": "{n} eventos",
+      "empty": "Aún no hay actividades",
+      "emptyDesc": "Registra llamadas, emails y reuniones arriba para construir un historial.",
+      "created": "Lead creado — {bike} ({value} kr)"
+    },
+    "lostModal": {
+      "title": "Cerrar como trato perdido",
+      "subtitle": "Selecciona un motivo para ayudarnos a entender dónde se pierden los tratos.",
+      "otherPlaceholder": "Describe el motivo...",
+      "cancel": "Cancelar",
+      "confirm": "Confirmar pérdida"
+    },
+    "cancelModal": {
+      "title": "Cancelar trato",
+      "subtitle": "Registrar cancelación y posible reembolso de crédito.",
+      "reasonLabel": "Motivo *",
+      "reasons": {
+        "changed_mind": "Cambió de opinión",
+        "financial": "Razones financieras",
+        "found_elsewhere": "Encontró otra opción",
+        "financing_denied": "Financiación denegada",
+        "other": "Otro motivo"
+      },
+      "detailsPlaceholder": "Detalles (opcional)...",
+      "refundLabel": "Reembolso de crédito",
+      "amountLabel": "Cantidad (EUR)",
+      "bankLabel": "Banco",
+      "clearingLabel": "Código banco",
+      "accountLabel": "Número de cuenta",
+      "referenceLabel": "Referencia",
+      "bankPlaceholder": "ej. Santander",
+      "returnToStock": "Devolver vehículo al inventario",
+      "notesPlaceholder": "Notas internas (opcional)...",
+      "cancel": "Cancelar",
+      "confirm": "Confirmar cancelación"
+    },
+    "stages": {
+      "new": "Nuevo",
+      "contacted": "Contactado",
+      "testride": "Prueba",
+      "offer": "Presupuesto",
+      "negotiating": "Negociación",
+      "pending_payment": "Pago pendiente",
+      "closed": "Cerrado"
+    },
+    "taskTypes": {
+      "call": "Llamada",
+      "email": "Email",
+      "meeting": "Reunión",
+      "follow_up": "Seguimiento",
+      "other": "Otro"
+    },
+    "activityTypes": {
+      "note": "Nota",
+      "call": "Llamada",
+      "email": "Email",
+      "meeting": "Reunión",
+      "stage_change": "Cambio de etapa",
+      "score_update": "Actualización de puntos",
+      "reminder": "Recordatorio",
+      "lost": "Trato perdido"
+    },
+    "lostReasons": [
+      "Precio — demasiado caro",
+      "Competidor — eligió otra marca",
+      "Competidor — eligió otro concesionario",
+      "Ya no está interesado",
+      "Presupuesto — no puede permitírselo ahora",
+      "Se tomó tiempo — puede volver",
+      "Compró de segunda mano",
+      "Otro motivo"
+    ],
+    "toasts": {
+      "taskCreated": "Tarea creada",
+      "taskError": "No se pudo crear la tarea",
+      "emailSent": "Email enviado",
+      "smsSent": "SMS enviado",
+      "sendError": "No se pudo enviar",
+      "activityAdded": "Actividad añadida",
+      "activityError": "No se pudo guardar la actividad",
+      "stageChanged": "Etapa cambiada a {stage}",
+      "stageError": "No se pudo actualizar la etapa",
+      "dealCancelled": "Trato cancelado y registrado",
+      "cancelError": "No se pudo cancelar el trato",
+      "reactivated": "Lead reactivado — de vuelta en Pipeline",
+      "reactivateError": "No se pudo reactivar el lead",
+      "closedLost": "Lead cerrado como perdido",
+      "closeError": "No se pudo cerrar el lead"
+    }
   }
 }

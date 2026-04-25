@@ -2561,5 +2561,193 @@
       "deleted": "Branch deleted"
     },
     "deleteConfirm": "Delete branch {name}? Leads and staff connected to it are not affected."
+  },
+  "leadDetail": {
+    "notFound": "لم يتم العثور على العميل المحتمل.",
+    "back": "← رجوع",
+    "overdue": "{days} يوم متأخر",
+    "lostBadge": "مفقود",
+    "reminderLabel": "تذكير:",
+    "overdueMsg": "هذا العميل في مرحلة {stage} منذ {days} أيام — حان وقت المتابعة!",
+    "by": "بواسطة",
+    "info": {
+      "title": "معلومات العميل",
+      "vehicle": "المركبة",
+      "source": "المصدر",
+      "seller": "البائع",
+      "personnummer": "رقم الهوية",
+      "created": "تاريخ الإنشاء",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "notes": "ملاحظات"
+    },
+    "value": {
+      "title": "قيمة الصفقة",
+      "salePrice": "سعر البيع",
+      "costPrice": "سعر التكلفة",
+      "grossProfit": "إجمالي الربح",
+      "margin": "الهامش"
+    },
+    "score": {
+      "title": "نقاط العميل",
+      "hot": "عميل ساخن 🔥",
+      "warm": "عميل متوسط 🌡",
+      "cold": "عميل بارد ❄️",
+      "bankid": "تم التحقق بـ BankID",
+      "emailPhone": "البريد والهاتف",
+      "tradeIn": "اهتمام بالمقايضة",
+      "financing": "اهتمام بالتمويل",
+      "agreementOpened": "تم فتح العقد",
+      "stageProgress": "تقدم المرحلة",
+      "costPriceSet": "تم تحديد سعر التكلفة"
+    },
+    "directPurchase": {
+      "title": "شراء مباشر",
+      "badge": "ملحقات / قطع غيار",
+      "desc": "هذا شراء مباشر — لا حاجة لتجارب القيادة أو العروض.",
+      "goToPayment": "الذهاب إلى الدفع →",
+      "cancel": "إلغاء الشراء",
+      "cancelled": "تم الإلغاء:",
+      "completed": "✓ تم إتمام الشراء"
+    },
+    "pipeline": {
+      "title": "مرحلة المسار",
+      "goToPayment": "الذهاب إلى الدفع →",
+      "openAgreement": "فتح العقد →",
+      "viewOffer": "عرض العرض →",
+      "viewTestDrive": "عرض تجربة القيادة →",
+      "createOffer": "إنشاء عرض →",
+      "bookTestDrive": "حجز تجربة قيادة →",
+      "markLost": "مفقود",
+      "cancelDeal": "إلغاء الصفقة",
+      "lostReason": "سبب الخسارة:",
+      "reactivate": "↩ إعادة تفعيل العميل",
+      "viewClosed": "عرض الصفقة المغلقة →"
+    },
+    "tasks": {
+      "title": "المهام",
+      "open": "{n} مفتوح",
+      "placeholder": "إضافة مهمة...",
+      "priorityHigh": "🔴 عالي",
+      "priorityMedium": "🟡 متوسط",
+      "priorityLow": "⚪ منخفض",
+      "empty": "لا توجد مهام بعد",
+      "viewAll": "عرض جميع المهام {n} →"
+    },
+    "comms": {
+      "title": "التواصل مع العميل",
+      "contact": "✉️ التواصل مع العميل",
+      "emailBtn": "✉️ بريد إلكتروني",
+      "smsBtn": "💬 رسالة نصية",
+      "subjectPlaceholder": "الموضوع...",
+      "emailBodyPlaceholder": "اكتب رسالتك...",
+      "smsBodyPlaceholder": "رسالة نصية إلى {phone}...",
+      "cancel": "إلغاء",
+      "send": "إرسال",
+      "empty": "لم يتم تسجيل أي تواصل بعد",
+      "failed": "فشل",
+      "inbound": "رد",
+      "you": "أنت",
+      "customer": "العميل"
+    },
+    "activity": {
+      "title": "تسجيل نشاط",
+      "save": "حفظ",
+      "placeholderCall": "ما الذي تمت مناقشته؟ الخطوات التالية؟",
+      "placeholderEmail": "الموضوع والملخص...",
+      "placeholderMeeting": "ما الذي تم تحديده في الاجتماع؟",
+      "placeholderNote": "إضافة ملاحظة..."
+    },
+    "timeline": {
+      "title": "سجل النشاط",
+      "events": "{n} أحداث",
+      "empty": "لا توجد أنشطة بعد",
+      "emptyDesc": "سجّل المكالمات والبريد والاجتماعات أعلاه لبناء سجل تاريخي.",
+      "created": "تم إنشاء العميل — {bike} ({value} ك.ر)"
+    },
+    "lostModal": {
+      "title": "إغلاق كصفقة خاسرة",
+      "subtitle": "اختر سبباً لمساعدتنا على فهم أين تُفقد الصفقات.",
+      "otherPlaceholder": "صف السبب...",
+      "cancel": "إلغاء",
+      "confirm": "تأكيد الخسارة"
+    },
+    "cancelModal": {
+      "title": "إلغاء الصفقة",
+      "subtitle": "تسجيل الإلغاء وأي استرداد للائتمان.",
+      "reasonLabel": "السبب *",
+      "reasons": {
+        "changed_mind": "غيّر رأيه",
+        "financial": "أسباب مالية",
+        "found_elsewhere": "وجد بديلاً",
+        "financing_denied": "تم رفض التمويل",
+        "other": "سبب آخر"
+      },
+      "detailsPlaceholder": "تفاصيل (اختياري)...",
+      "refundLabel": "استرداد الائتمان",
+      "amountLabel": "المبلغ",
+      "bankLabel": "البنك",
+      "clearingLabel": "رقم التصفية",
+      "accountLabel": "رقم الحساب",
+      "referenceLabel": "المرجع",
+      "bankPlaceholder": "مثال: بنك الخليج",
+      "returnToStock": "إعادة المركبة إلى المخزون",
+      "notesPlaceholder": "ملاحظات داخلية (اختياري)...",
+      "cancel": "إلغاء",
+      "confirm": "تأكيد الإلغاء"
+    },
+    "stages": {
+      "new": "جديد",
+      "contacted": "تم التواصل",
+      "testride": "تجربة قيادة",
+      "offer": "عرض",
+      "negotiating": "تفاوض",
+      "pending_payment": "قيد الدفع",
+      "closed": "مغلق"
+    },
+    "taskTypes": {
+      "call": "اتصال",
+      "email": "بريد إلكتروني",
+      "meeting": "اجتماع",
+      "follow_up": "متابعة",
+      "other": "أخرى"
+    },
+    "activityTypes": {
+      "note": "ملاحظة",
+      "call": "مكالمة",
+      "email": "بريد إلكتروني",
+      "meeting": "اجتماع",
+      "stage_change": "تغيير المرحلة",
+      "score_update": "تحديث النقاط",
+      "reminder": "تذكير",
+      "lost": "صفقة خاسرة"
+    },
+    "lostReasons": [
+      "السعر — غالٍ جداً",
+      "منافس — اختار علامة أخرى",
+      "منافس — اختار تاجراً آخر",
+      "لم يعد مهتماً",
+      "الميزانية — لا يستطيع تحمل التكلفة الآن",
+      "أخذ وقتاً — قد يعود",
+      "اشترى مستعملاً",
+      "سبب آخر"
+    ],
+    "toasts": {
+      "taskCreated": "تم إنشاء المهمة",
+      "taskError": "تعذر إنشاء المهمة",
+      "emailSent": "تم إرسال البريد الإلكتروني",
+      "smsSent": "تم إرسال الرسالة النصية",
+      "sendError": "تعذر الإرسال",
+      "activityAdded": "تمت إضافة النشاط",
+      "activityError": "تعذر حفظ النشاط",
+      "stageChanged": "تم تغيير المرحلة إلى {stage}",
+      "stageError": "تعذر تحديث المرحلة",
+      "dealCancelled": "تم إلغاء الصفقة وتسجيلها",
+      "cancelError": "تعذر إلغاء الصفقة",
+      "reactivated": "تم إعادة تفعيل العميل — العودة إلى Pipeline",
+      "reactivateError": "تعذر إعادة التفعيل",
+      "closedLost": "تم إغلاق العميل كخسارة",
+      "closeError": "تعذر إغلاق العميل"
+    }
   }
 }

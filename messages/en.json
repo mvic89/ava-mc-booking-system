@@ -2562,5 +2562,193 @@
       "deleted": "Branch deleted"
     },
     "deleteConfirm": "Delete branch {name}? Leads and staff connected to it are not affected."
+  },
+  "leadDetail": {
+    "notFound": "Lead not found.",
+    "back": "← Back",
+    "overdue": "{days}d overdue",
+    "lostBadge": "Lost",
+    "reminderLabel": "Reminder:",
+    "overdueMsg": "This lead has been in {stage} for {days} days — time to follow up!",
+    "by": "by",
+    "info": {
+      "title": "Lead information",
+      "vehicle": "Vehicle",
+      "source": "Source",
+      "seller": "Seller",
+      "personnummer": "ID number",
+      "created": "Created",
+      "email": "Email",
+      "phone": "Phone",
+      "notes": "Notes"
+    },
+    "value": {
+      "title": "Deal value",
+      "salePrice": "Sale price",
+      "costPrice": "Cost price",
+      "grossProfit": "Gross profit",
+      "margin": "Margin"
+    },
+    "score": {
+      "title": "Lead Score",
+      "hot": "Hot lead 🔥",
+      "warm": "Warm lead 🌡",
+      "cold": "Cold lead ❄️",
+      "bankid": "BankID verified",
+      "emailPhone": "Email & phone",
+      "tradeIn": "Trade-in interest",
+      "financing": "Financing interest",
+      "agreementOpened": "Agreement opened",
+      "stageProgress": "Stage progress",
+      "costPriceSet": "Cost price set"
+    },
+    "directPurchase": {
+      "title": "Direct purchase",
+      "badge": "Accessories / Spare parts",
+      "desc": "This is a direct purchase — no test rides or quotes required.",
+      "goToPayment": "Go to payment →",
+      "cancel": "Cancel purchase",
+      "cancelled": "Cancelled:",
+      "completed": "✓ Purchase completed"
+    },
+    "pipeline": {
+      "title": "Pipeline stage",
+      "goToPayment": "Go to payment →",
+      "openAgreement": "Open agreement →",
+      "viewOffer": "View quote →",
+      "viewTestDrive": "View test ride →",
+      "createOffer": "Create quote →",
+      "bookTestDrive": "Book test ride →",
+      "markLost": "Lost",
+      "cancelDeal": "Cancel deal",
+      "lostReason": "Reason for loss:",
+      "reactivate": "↩ Reactivate lead",
+      "viewClosed": "View closed deal →"
+    },
+    "tasks": {
+      "title": "Tasks",
+      "open": "{n} open",
+      "placeholder": "Add task...",
+      "priorityHigh": "🔴 High",
+      "priorityMedium": "🟡 Medium",
+      "priorityLow": "⚪ Low",
+      "empty": "No tasks yet",
+      "viewAll": "View all {n} tasks →"
+    },
+    "comms": {
+      "title": "Customer communication",
+      "contact": "✉️ Contact customer",
+      "emailBtn": "✉️ Email",
+      "smsBtn": "💬 SMS",
+      "subjectPlaceholder": "Subject...",
+      "emailBodyPlaceholder": "Write your message...",
+      "smsBodyPlaceholder": "SMS to {phone}...",
+      "cancel": "Cancel",
+      "send": "Send",
+      "empty": "No communications logged yet",
+      "failed": "FAILED",
+      "inbound": "REPLY",
+      "you": "You",
+      "customer": "Customer"
+    },
+    "activity": {
+      "title": "Log activity",
+      "save": "Save",
+      "placeholderCall": "What was discussed? Next steps?",
+      "placeholderEmail": "Subject and summary...",
+      "placeholderMeeting": "What was decided at the meeting?",
+      "placeholderNote": "Add a note..."
+    },
+    "timeline": {
+      "title": "Activity log",
+      "events": "{n} events",
+      "empty": "No activities yet",
+      "emptyDesc": "Log calls, emails and meetings above to build a history.",
+      "created": "Lead created — {bike} ({value} kr)"
+    },
+    "lostModal": {
+      "title": "Close as lost deal",
+      "subtitle": "Select a reason to help us understand where deals are lost.",
+      "otherPlaceholder": "Describe the reason...",
+      "cancel": "Cancel",
+      "confirm": "Confirm loss"
+    },
+    "cancelModal": {
+      "title": "Cancel deal",
+      "subtitle": "Register cancellation and any credit refund.",
+      "reasonLabel": "Reason *",
+      "reasons": {
+        "changed_mind": "Changed mind",
+        "financial": "Financial reasons",
+        "found_elsewhere": "Found elsewhere",
+        "financing_denied": "Financing denied",
+        "other": "Other reason"
+      },
+      "detailsPlaceholder": "Details (optional)...",
+      "refundLabel": "Credit refund",
+      "amountLabel": "Amount (SEK)",
+      "bankLabel": "Bank",
+      "clearingLabel": "Clearing no.",
+      "accountLabel": "Account number",
+      "referenceLabel": "Reference",
+      "bankPlaceholder": "e.g. Handelsbanken",
+      "returnToStock": "Return vehicle to stock",
+      "notesPlaceholder": "Internal notes (optional)...",
+      "cancel": "Cancel",
+      "confirm": "Confirm cancellation"
+    },
+    "stages": {
+      "new": "New",
+      "contacted": "Contacted",
+      "testride": "Test ride",
+      "offer": "Quote",
+      "negotiating": "Negotiating",
+      "pending_payment": "Payment pending",
+      "closed": "Closed"
+    },
+    "taskTypes": {
+      "call": "Call",
+      "email": "Email",
+      "meeting": "Meeting",
+      "follow_up": "Follow-up",
+      "other": "Other"
+    },
+    "activityTypes": {
+      "note": "Note",
+      "call": "Call",
+      "email": "Email",
+      "meeting": "Meeting",
+      "stage_change": "Stage change",
+      "score_update": "Score update",
+      "reminder": "Reminder",
+      "lost": "Lost deal"
+    },
+    "lostReasons": [
+      "Price — too expensive",
+      "Competitor — chose another brand",
+      "Competitor — chose another dealer",
+      "No longer interested",
+      "Budget — can't afford right now",
+      "Took time — may return",
+      "Bought used instead",
+      "Other reason"
+    ],
+    "toasts": {
+      "taskCreated": "Task created",
+      "taskError": "Could not create task",
+      "emailSent": "Email sent",
+      "smsSent": "SMS sent",
+      "sendError": "Could not send",
+      "activityAdded": "Activity added",
+      "activityError": "Could not save activity",
+      "stageChanged": "Stage changed to {stage}",
+      "stageError": "Could not update stage",
+      "dealCancelled": "Deal cancelled and registered",
+      "cancelError": "Could not cancel deal",
+      "reactivated": "Lead reactivated — back in Pipeline",
+      "reactivateError": "Could not reactivate lead",
+      "closedLost": "Lead closed as lost",
+      "closeError": "Could not close lead"
+    }
   }
 }

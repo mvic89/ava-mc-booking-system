@@ -2561,5 +2561,193 @@
       "deleted": "Branch deleted"
     },
     "deleteConfirm": "Delete branch {name}? Leads and staff connected to it are not affected."
+  },
+  "leadDetail": {
+    "notFound": "Lead niet gevonden.",
+    "back": "← Terug",
+    "overdue": "{days}d achterstallig",
+    "lostBadge": "Verloren",
+    "reminderLabel": "Herinnering:",
+    "overdueMsg": "Deze lead zit al {days} dagen in {stage} — tijd voor opvolging!",
+    "by": "door",
+    "info": {
+      "title": "Lead-informatie",
+      "vehicle": "Voertuig",
+      "source": "Bron",
+      "seller": "Verkoper",
+      "personnummer": "ID-nummer",
+      "created": "Aangemaakt",
+      "email": "E-mail",
+      "phone": "Telefoon",
+      "notes": "Notities"
+    },
+    "value": {
+      "title": "Dealwaarde",
+      "salePrice": "Verkoopprijs",
+      "costPrice": "Inkoopprijs",
+      "grossProfit": "Brutowinst",
+      "margin": "Marge"
+    },
+    "score": {
+      "title": "Lead Score",
+      "hot": "Hete lead 🔥",
+      "warm": "Gemiddelde lead 🌡",
+      "cold": "Koude lead ❄️",
+      "bankid": "BankID geverifieerd",
+      "emailPhone": "E-mail & telefoon",
+      "tradeIn": "Inruil-interesse",
+      "financing": "Financieringsinteresse",
+      "agreementOpened": "Overeenkomst geopend",
+      "stageProgress": "Fasevoortgang",
+      "costPriceSet": "Inkoopprijs ingesteld"
+    },
+    "directPurchase": {
+      "title": "Directe aankoop",
+      "badge": "Accessoires / Onderdelen",
+      "desc": "Dit is een directe aankoop — geen proefritten of offertes vereist.",
+      "goToPayment": "Naar betaling →",
+      "cancel": "Aankoop annuleren",
+      "cancelled": "Geannuleerd:",
+      "completed": "✓ Aankoop voltooid"
+    },
+    "pipeline": {
+      "title": "Pipeline-fase",
+      "goToPayment": "Naar betaling →",
+      "openAgreement": "Overeenkomst openen →",
+      "viewOffer": "Offerte bekijken →",
+      "viewTestDrive": "Proefrit bekijken →",
+      "createOffer": "Offerte maken →",
+      "bookTestDrive": "Proefrit boeken →",
+      "markLost": "Verloren",
+      "cancelDeal": "Deal annuleren",
+      "lostReason": "Reden van verlies:",
+      "reactivate": "↩ Lead reactiveren",
+      "viewClosed": "Gesloten deal bekijken →"
+    },
+    "tasks": {
+      "title": "Taken",
+      "open": "{n} open",
+      "placeholder": "Taak toevoegen...",
+      "priorityHigh": "🔴 Hoog",
+      "priorityMedium": "🟡 Gemiddeld",
+      "priorityLow": "⚪ Laag",
+      "empty": "Nog geen taken",
+      "viewAll": "Alle {n} taken bekijken →"
+    },
+    "comms": {
+      "title": "Klantcommunicatie",
+      "contact": "✉️ Klant contacteren",
+      "emailBtn": "✉️ E-mail",
+      "smsBtn": "💬 SMS",
+      "subjectPlaceholder": "Onderwerp...",
+      "emailBodyPlaceholder": "Schrijf uw bericht...",
+      "smsBodyPlaceholder": "SMS aan {phone}...",
+      "cancel": "Annuleren",
+      "send": "Verzenden",
+      "empty": "Nog geen communicatie geregistreerd",
+      "failed": "MISLUKT",
+      "inbound": "ANTWOORD",
+      "you": "U",
+      "customer": "Klant"
+    },
+    "activity": {
+      "title": "Activiteit loggen",
+      "save": "Opslaan",
+      "placeholderCall": "Wat is besproken? Volgende stappen?",
+      "placeholderEmail": "Onderwerp en samenvatting...",
+      "placeholderMeeting": "Wat is besloten op de vergadering?",
+      "placeholderNote": "Notitie toevoegen..."
+    },
+    "timeline": {
+      "title": "Activiteitslog",
+      "events": "{n} gebeurtenissen",
+      "empty": "Nog geen activiteiten",
+      "emptyDesc": "Log gesprekken, e-mails en vergaderingen hierboven om een geschiedenis op te bouwen.",
+      "created": "Lead aangemaakt — {bike} ({value} kr)"
+    },
+    "lostModal": {
+      "title": "Sluiten als verloren deal",
+      "subtitle": "Selecteer een reden om ons te helpen begrijpen waar deals worden verloren.",
+      "otherPlaceholder": "Beschrijf de reden...",
+      "cancel": "Annuleren",
+      "confirm": "Verlies bevestigen"
+    },
+    "cancelModal": {
+      "title": "Deal annuleren",
+      "subtitle": "Annulering en eventuele kredietterugbetaling registreren.",
+      "reasonLabel": "Reden *",
+      "reasons": {
+        "changed_mind": "Van gedachten veranderd",
+        "financial": "Financiële redenen",
+        "found_elsewhere": "Elders gevonden",
+        "financing_denied": "Financiering geweigerd",
+        "other": "Andere reden"
+      },
+      "detailsPlaceholder": "Details (optioneel)...",
+      "refundLabel": "Kredietterugbetaling",
+      "amountLabel": "Bedrag (EUR)",
+      "bankLabel": "Bank",
+      "clearingLabel": "Bankcode",
+      "accountLabel": "Rekeningnummer",
+      "referenceLabel": "Referentie",
+      "bankPlaceholder": "bijv. ING",
+      "returnToStock": "Voertuig terug in voorraad",
+      "notesPlaceholder": "Interne notities (optioneel)...",
+      "cancel": "Annuleren",
+      "confirm": "Annulering bevestigen"
+    },
+    "stages": {
+      "new": "Nieuw",
+      "contacted": "Gecontacteerd",
+      "testride": "Proefrit",
+      "offer": "Offerte",
+      "negotiating": "Onderhandeling",
+      "pending_payment": "Betaling in behandeling",
+      "closed": "Gesloten"
+    },
+    "taskTypes": {
+      "call": "Bellen",
+      "email": "E-mail",
+      "meeting": "Vergadering",
+      "follow_up": "Opvolging",
+      "other": "Overige"
+    },
+    "activityTypes": {
+      "note": "Notitie",
+      "call": "Gesprek",
+      "email": "E-mail",
+      "meeting": "Vergadering",
+      "stage_change": "Fasewijziging",
+      "score_update": "Scoreupdate",
+      "reminder": "Herinnering",
+      "lost": "Verloren deal"
+    },
+    "lostReasons": [
+      "Prijs — te duur",
+      "Concurrent — koos ander merk",
+      "Concurrent — koos andere dealer",
+      "Niet meer geïnteresseerd",
+      "Budget — kan het nu niet betalen",
+      "Duurde lang — kan terugkomen",
+      "Tweedehands gekocht",
+      "Andere reden"
+    ],
+    "toasts": {
+      "taskCreated": "Taak aangemaakt",
+      "taskError": "Taak kon niet worden aangemaakt",
+      "emailSent": "E-mail verzonden",
+      "smsSent": "SMS verzonden",
+      "sendError": "Kon niet verzenden",
+      "activityAdded": "Activiteit toegevoegd",
+      "activityError": "Activiteit kon niet worden opgeslagen",
+      "stageChanged": "Fase gewijzigd naar {stage}",
+      "stageError": "Fase kon niet worden bijgewerkt",
+      "dealCancelled": "Deal geannuleerd en geregistreerd",
+      "cancelError": "Deal kon niet worden geannuleerd",
+      "reactivated": "Lead gereactiveerd — terug in Pipeline",
+      "reactivateError": "Lead kon niet worden gereactiveerd",
+      "closedLost": "Lead gesloten als verloren",
+      "closeError": "Lead kon niet worden gesloten"
+    }
   }
 }
