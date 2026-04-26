@@ -45,10 +45,12 @@ export default function NotificationBell() {
 
   const load = () => setNotifs(getNotifications());
 
-  // Fetch unread server notifications on mount and merge into localStorage
+  // Fetch server-side notifications from Supabase on mount and subscribe for live updates
   useEffect(() => {
-    const dealershipId = getDealershipId();
-    if (!dealershipId) return;
+    const dealershipId = getDealershipId()
+    if (!dealershipId) return
+
+    // Initial load — merge unread Supabase rows into localStorage
     supabase
       .from('notifications')
       .select('*')
@@ -64,11 +66,11 @@ export default function NotificationBell() {
           if (existingIds.has(row.id)) return;
           addNotification({
             id:        row.id,
+            createdAt: row.created_at,
             type:      row.type as AppNotification['type'],
             title:     row.title,
             message:   row.message,
             href:      row.href ?? undefined,
-            createdAt: row.created_at,
           });
         });
       });
@@ -78,30 +80,30 @@ export default function NotificationBell() {
   useEffect(() => {
     const dealershipId = getDealershipId();
     if (!dealershipId) return;
+    // Realtime subscription — new notification rows appear instantly
     const channel = supabase
       .channel(`notifications-live-${dealershipId}`)
-      .on(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        'postgres_changes' as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .on('postgres_changes' as any,
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `dealership_id=eq.${dealershipId}` },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (payload: any) => {
-          const row = payload.new;
-          const existing = getNotifications();
-          if (existing.some(n => n.id === row.id)) return; // dedup
+          const row = payload.new
+          const existing = getNotifications()
+          if (existing.some(n => n.id === row.id)) return
           addNotification({
             id:        row.id,
+            createdAt: row.created_at,
             type:      row.type as AppNotification['type'],
             title:     row.title,
             message:   row.message,
             href:      row.href ?? undefined,
-            createdAt: row.created_at,
-          });
-        },
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, []);
+          })
+        })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [])
 
   useEffect(() => {
     load();
@@ -212,7 +214,8 @@ export default function NotificationBell() {
                     key={n.id}
                     onClick={() => {
                       markRead(n.id);
-                      // Also mark read in Supabase (best-effort)
+
+                      // Sync read status to Supabase (fire-and-forget)
                       supabase.from('notifications').update({ read: true }).eq('id', n.id).then(() => {});
                       if (n.href) {
                         setOpen(false);

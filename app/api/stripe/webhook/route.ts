@@ -34,6 +34,8 @@ export async function POST(req: NextRequest) {
   // Persist to Supabase so Realtime can push updates to the browser
   await insertWebhookEvent('stripe', event.type, event.data.object as object);
 
+  const obj = event.data.object as Record<string, any>;
+
   switch (event.type) {
     case 'payment_intent.succeeded': {
       const intent = event.data.object;
@@ -83,7 +85,7 @@ export async function POST(req: NextRequest) {
       // TODO: mark order as refunded
       break;
     case 'charge.dispute.created':
-      console.warn(`[Stripe] Dispute created — ${event.data.object.id}`);
+      console.warn(`[Stripe] Dispute created — ${obj.id}`);
       break;
   }
 

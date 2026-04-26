@@ -16,10 +16,10 @@ export async function POST(req: NextRequest) {
 
     const result = await createPaymentIntent({
       amount,
-      currency:   currency ?? 'sek',
+      currency:    currency ?? 'sek',
       customer,
       description,
-      metadata,   // pass through — should include leadId + dealershipId from payment page
+      metadata,
     });
 
     console.log(`[Stripe] PaymentIntent created: ${result.id}`);
