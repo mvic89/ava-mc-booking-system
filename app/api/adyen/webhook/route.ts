@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { insertWebhookEvent } from '@/lib/webhookStore';
+import { notify } from '@/lib/notify';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 /**
  * POST /api/adyen/webhook — Adyen event notifications
@@ -20,27 +22,80 @@ export async function POST(req: NextRequest) {
       // Persist to Supabase so Realtime can push updates to the browser
       await insertWebhookEvent('adyen', eventCode, n);
 
+      // Look up lead for notification routing
+      let dealershipId: string | null = null;
+      let customerName = 'Kund';
+      let vehicleName  = 'Fordon';
+      if (merchantReference) {
+        const sb = getSupabaseAdmin();
+        const { data: lead } = await sb
+          .from('custom_leads')
+          .select('dealership_id, first_name, last_name, vehicle')
+          .eq('id', merchantReference)
+          .single();
+        if (lead) {
+          dealershipId = lead.dealership_id;
+          customerName = [lead.first_name, lead.last_name].filter(Boolean).join(' ') || 'Kund';
+          vehicleName  = lead.vehicle || 'Fordon';
+        }
+      }
+
       switch (eventCode) {
         case 'AUTHORISATION':
-          if (success === 'true') {
-            // TODO: mark order as authorised in DB
+          if (success === 'true' && dealershipId) {
+            await notify({
+              dealershipId,
+              type:    'payment',
+              title:   'Adyen-betalning auktoriserad ✓',
+              message: `${customerName} · ${vehicleName} · Auktorisering godkänd`,
+              href:    merchantReference ? `/sales/leads/${merchantReference}` : undefined,
+            });
           }
           break;
         case 'CAPTURE':
-          if (success === 'true') {
-            // TODO: mark order as captured/paid
+          if (success === 'true' && dealershipId) {
+            await notify({
+              dealershipId,
+              type:    'payment',
+              title:   'Adyen-betalning mottagen ✓',
+              message: `${customerName} · ${vehicleName} · Betalning genomförd`,
+              href:    merchantReference ? `/sales/leads/${merchantReference}` : undefined,
+            });
           }
           break;
         case 'REFUND':
-          if (success === 'true') {
-            // TODO: mark order as refunded
+          if (success === 'true' && dealershipId) {
+            await notify({
+              dealershipId,
+              type:    'payment',
+              title:   'Adyen-återbetalning genomförd',
+              message: `${customerName} · ${vehicleName} · Återbetalning klar`,
+              href:    merchantReference ? `/sales/leads/${merchantReference}` : undefined,
+            });
           }
           break;
         case 'CANCELLATION':
-          // TODO: handle cancellation
+          if (dealershipId) {
+            await notify({
+              dealershipId,
+              type:    'payment',
+              title:   'Adyen-betalning avbruten',
+              message: `${customerName} · ${vehicleName} · Betalning avbruten`,
+              href:    merchantReference ? `/sales/leads/${merchantReference}` : undefined,
+            });
+          }
           break;
         case 'CHARGEBACK':
           console.warn(`[Adyen] Chargeback received — ${pspReference}`);
+          if (dealershipId) {
+            await notify({
+              dealershipId,
+              type:    'payment',
+              title:   'Adyen-chargeback inkommen',
+              message: `${customerName} · ${vehicleName} · Ref: ${pspReference}`,
+              href:    merchantReference ? `/sales/leads/${merchantReference}` : undefined,
+            });
+          }
           break;
       }
     }

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { insertWebhookEvent } from '@/lib/webhookStore';
+import { notify } from '@/lib/notify';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 /**
  * POST /api/swish/callback
@@ -18,10 +20,41 @@ export async function POST(req: NextRequest) {
 
     if (status === 'PAID') {
       console.log(`[Swish] Payment ${id} succeeded — ref: ${paymentReference}`);
-      // TODO: update order status in DB
+      // Look up the lead to get dealership_id for notification routing
+      const sb = getSupabaseAdmin();
+      const { data: lead } = await sb
+        .from('custom_leads')
+        .select('dealership_id, first_name, last_name, vehicle')
+        .eq('id', paymentReference)
+        .single();
+      if (lead?.dealership_id) {
+        const customerName = [lead.first_name, lead.last_name].filter(Boolean).join(' ') || 'Kund';
+        await notify({
+          dealershipId: lead.dealership_id,
+          type:         'payment',
+          title:        'Swish-betalning mottagen ✓',
+          message:      `${customerName} · ${lead.vehicle ?? 'Fordon'} · Betalning genomförd`,
+          href:         `/sales/leads/${paymentReference}`,
+        });
+      }
     } else if (status === 'DECLINED' || status === 'ERROR') {
       console.warn(`[Swish] Payment ${id} failed — ${errorCode}: ${errorMessage}`);
-      // TODO: handle failure
+      const sb = getSupabaseAdmin();
+      const { data: lead } = await sb
+        .from('custom_leads')
+        .select('dealership_id, first_name, last_name')
+        .eq('id', paymentReference)
+        .single();
+      if (lead?.dealership_id) {
+        const customerName = [lead.first_name, lead.last_name].filter(Boolean).join(' ') || 'Kund';
+        await notify({
+          dealershipId: lead.dealership_id,
+          type:         'payment',
+          title:        'Swish-betalning misslyckades',
+          message:      `${customerName} · ${errorCode ?? status}: ${errorMessage ?? ''}`,
+          href:         `/sales/leads/${paymentReference}`,
+        });
+      }
     }
 
     // Swish expects HTTP 200 (no body required)
