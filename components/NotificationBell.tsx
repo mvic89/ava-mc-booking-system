@@ -45,33 +45,63 @@ export default function NotificationBell() {
 
   const load = () => setNotifs(getNotifications());
 
-  // Fetch server-side notifications (delivery notes, etc.) from Supabase
-  // and merge into localStorage so the bell shows them
+  // Fetch unread server notifications on mount and merge into localStorage
   useEffect(() => {
-    const dealershipId = getDealershipId()
-    if (!dealershipId) return
+    const dealershipId = getDealershipId();
+    if (!dealershipId) return;
     supabase
       .from('notifications')
       .select('*')
       .eq('dealership_id', dealershipId)
       .eq('read', false)
       .order('created_at', { ascending: false })
-      .limit(20)
+      .limit(50)
       .then(({ data }) => {
-        if (!data?.length) return
-        const existing = getNotifications()
-        const existingIds = new Set(existing.map(n => n.id))
+        if (!data?.length) return;
+        const existing    = getNotifications();
+        const existingIds = new Set(existing.map(n => n.id));
         data.forEach(row => {
-          if (existingIds.has(row.id)) return
+          if (existingIds.has(row.id)) return;
           addNotification({
-            type:    row.type as AppNotification['type'],
-            title:   row.title,
-            message: row.message,
-            href:    row.href ?? undefined,
-          })
-        })
-      })
-  }, [])
+            id:        row.id,
+            type:      row.type as AppNotification['type'],
+            title:     row.title,
+            message:   row.message,
+            href:      row.href ?? undefined,
+            createdAt: row.created_at,
+          });
+        });
+      });
+  }, []);
+
+  // Live Supabase Realtime — new notifications appear instantly without refresh
+  useEffect(() => {
+    const dealershipId = getDealershipId();
+    if (!dealershipId) return;
+    const channel = supabase
+      .channel(`notifications-live-${dealershipId}`)
+      .on(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        'postgres_changes' as any,
+        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `dealership_id=eq.${dealershipId}` },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (payload: any) => {
+          const row = payload.new;
+          const existing = getNotifications();
+          if (existing.some(n => n.id === row.id)) return; // dedup
+          addNotification({
+            id:        row.id,
+            type:      row.type as AppNotification['type'],
+            title:     row.title,
+            message:   row.message,
+            href:      row.href ?? undefined,
+            createdAt: row.created_at,
+          });
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   useEffect(() => {
     load();
@@ -182,6 +212,8 @@ export default function NotificationBell() {
                     key={n.id}
                     onClick={() => {
                       markRead(n.id);
+                      // Also mark read in Supabase (best-effort)
+                      supabase.from('notifications').update({ read: true }).eq('id', n.id).then(() => {});
                       if (n.href) {
                         setOpen(false);
                         router.push(n.href);
@@ -231,7 +263,14 @@ export default function NotificationBell() {
                 </p>
                 {unread > 0 && (
                   <button
-                    onClick={markAllRead}
+                    onClick={() => {
+                      markAllRead();
+                      const dealershipId = getDealershipId();
+                      if (dealershipId) {
+                        supabase.from('notifications').update({ read: true })
+                          .eq('dealership_id', dealershipId).eq('read', false).then(() => {});
+                      }
+                    }}
                     className="text-[10px] text-[#FF6B2C] hover:underline"
                   >
                     Markera alla som lästa

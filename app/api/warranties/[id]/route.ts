@@ -3,6 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { notify } from '@/lib/notify';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function sb() { return getSupabaseAdmin() as any; }
@@ -36,6 +37,20 @@ export async function PUT(
       .single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    // Notify when a warranty claim is filed
+    if (body.status === 'claimed' && data) {
+      const dealershipId = (data as Record<string, unknown>).dealership_id as string | undefined;
+      if (dealershipId) {
+        notify({
+          dealershipId,
+          type:    'system',
+          title:   'Garantiärende inkommit',
+          message: `${(data as Record<string, unknown>).vehicle_name ?? 'Fordon'} · ${body.claimNotes ?? 'Nytt garantiärende'}`,
+        });
+      }
+    }
+
     return NextResponse.json({ warranty: data });
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 });

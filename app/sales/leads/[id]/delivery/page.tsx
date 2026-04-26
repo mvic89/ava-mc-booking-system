@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Sidebar from '@/components/Sidebar';
-import { getDealerInfo } from '@/lib/dealer';
+import { getDealerInfo, type DealerInfo } from '@/lib/dealer';
+import { getLeadById } from '@/lib/leads';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 
@@ -137,7 +138,10 @@ export default function DeliveryPage() {
   const router  = useRouter();
   const params  = useParams();
   const leadId  = (params?.id as string) || '';
-  const dealer  = getDealerInfo();
+  const [dealer, setDealer] = useState<DealerInfo>({ name: '', orgNr: '', city: '', email: '', phone: '', website: '', address: '', postalCode: '', bankName: '', bankgiro: '', swish: '', iban: '', bic: '' });
+  const [dealershipId, setDealershipId] = useState('');
+  const [loaded, setLoaded] = useState(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [state, setState] = useState<DeliveryState>({
     step:        'checklist',
@@ -154,17 +158,93 @@ export default function DeliveryPage() {
     dealerSigned:   false,
   });
 
+  // ── Save to Supabase ────────────────────────────────────────────────────────
+
+  const saveToSupabase = useCallback((s: DeliveryState, dId: string) => {
+    if (!dId || !leadId) return;
+    fetch(`/api/deliveries/${leadId}`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        dealershipId:   dId,
+        step:           s.step,
+        inspection:     s.inspection,
+        documents:      s.documents,
+        walkthrough:    s.walkthrough,
+        odometer:       s.odometer,
+        fuelLevel:      s.fuelLevel,
+        damageNotes:    s.damageNotes,
+        customerName:   s.customerName,
+        salesperson:    s.salesperson,
+        deliveryTime:   s.deliveryTime,
+        customerSigned: s.customerSigned,
+        dealerSigned:   s.dealerSigned,
+      }),
+    }).catch(err => console.error('[delivery] save error:', err));
+  }, [leadId]);
+
+  // Debounced auto-save: fires 1.5 s after the last state change
+  const debouncedSave = useCallback((s: DeliveryState, dId: string) => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => saveToSupabase(s, dId), 1500);
+  }, [saveToSupabase]);
+
+  // ── Bootstrap: load user, dealer, existing DB record, lead name ─────────────
+
   useEffect(() => {
+    setDealer(getDealerInfo());
+
     const stored = localStorage.getItem('user');
     if (!stored) { router.replace('/auth/login'); return; }
+
+    let dId = '';
     try {
       const u = JSON.parse(stored);
-      setState(s => ({
-        ...s,
-        salesperson: u.name ?? u.givenName ?? '',
-      }));
+      dId = u.dealershipId ?? '';
+      setDealershipId(dId);
+      setState(s => ({ ...s, salesperson: u.name ?? u.givenName ?? '' }));
     } catch { /* ignore */ }
-  }, [router]);
+
+    if (!leadId || !dId) return;
+
+    // Load existing delivery record first, then fall back to lead name
+    Promise.all([
+      fetch(`/api/deliveries/${leadId}?dealershipId=${dId}`).then(r => r.json()),
+      getLeadById(Number(leadId)),
+    ]).then(([{ delivery }, lead]) => {
+      if (delivery) {
+        // Restore full saved state
+        setState({
+          step:           delivery.step           ?? 'checklist',
+          inspection:     delivery.inspection?.length ? delivery.inspection     : initItems(INSPECTION_ITEMS),
+          documents:      delivery.documents?.length  ? delivery.documents      : initItems(DOCUMENT_ITEMS),
+          walkthrough:    delivery.walkthrough?.length ? delivery.walkthrough   : initItems(WALKTHROUGH_ITEMS),
+          odometer:       delivery.odometer       ?? '',
+          fuelLevel:      delivery.fuel_level     ?? '',
+          damageNotes:    delivery.damage_notes   ?? '',
+          customerName:   delivery.customer_name  || lead?.name || '',
+          salesperson:    delivery.salesperson    || '',
+          deliveryTime:   delivery.delivery_time
+                            ? new Date(delivery.delivery_time).toISOString().slice(0, 16)
+                            : new Date().toISOString().slice(0, 16),
+          customerSigned: delivery.customer_signed ?? false,
+          dealerSigned:   delivery.dealer_signed   ?? false,
+        });
+      } else if (lead) {
+        // New delivery — pre-fill customer name from lead
+        setState(s => ({ ...s, customerName: s.customerName || lead.name }));
+      }
+      setLoaded(true);
+    }).catch(() => setLoaded(true));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leadId]);
+
+  // Auto-save whenever state changes (after initial load)
+  useEffect(() => {
+    if (!loaded) return;
+    debouncedSave(state, dealershipId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, loaded]);
 
   function toggle(section: 'inspection' | 'documents' | 'walkthrough', id: string) {
     setState(s => ({
@@ -350,6 +430,11 @@ export default function DeliveryPage() {
   }
 
   function handleComplete() {
+    const completedState = { ...state, step: 'complete' as const };
+    // Cancel any pending debounced save and do an immediate final save
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveToSupabase(completedState, dealershipId);
+    setState(completedState);
     downloadCertificate();
     toast.success('Leverans slutförd! Intyg nedladdat.');
     setTimeout(() => router.push(`/sales/leads/${leadId}`), 1500);

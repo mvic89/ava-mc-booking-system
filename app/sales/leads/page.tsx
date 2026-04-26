@@ -299,7 +299,7 @@ export default function PipelinePage() {
       l.bike.toLowerCase().includes(search.toLowerCase())
     ), [leads, search]);
 
-  const totalValue    = leads.reduce((s, l) => s + l.rawValue, 0);
+  const totalValue    = leads.filter(l => l.stage !== 'closed').reduce((s, l) => s + l.rawValue, 0);
   const closedValue   = leads.filter(l => l.stage === 'closed').reduce((s, l) => s + l.rawValue, 0);
   const closedCount   = leads.filter(l => l.stage === 'closed').length;
   const forecastValue = leads.filter(l => l.stage !== 'closed').reduce((s, l) => s + l.rawValue * STAGE_WEIGHT[l.stage], 0);

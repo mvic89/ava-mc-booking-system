@@ -28,8 +28,9 @@ const PUBLIC_PREFIXES = [
   '/api/auth/session',
   '/api/webhooks/',     // Postmark inbound webhook — no session needed
   '/api/cron/',         // Vercel cron jobs — protected by CRON_SECRET header
-  '/api/goods-receipt',       // Called internally by webhooks — protected by x-webhook-secret
-  '/api/notifications/add',   // Called internally by webhooks — protected by x-webhook-secret
+  '/api/goods-receipt',             // Called internally by webhooks — protected by x-webhook-secret
+  '/api/notifications/add',         // Called internally by webhooks — protected by x-webhook-secret
+  '/api/purchase-invoice/process',  // Called internally by webhooks — protected by x-webhook-secret
   '/api/auth/forgot-password',
   '/api/auth/reset-password',
   '/api/auth/login',

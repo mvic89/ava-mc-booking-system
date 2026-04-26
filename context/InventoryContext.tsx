@@ -10,7 +10,7 @@ import React, {
 } from 'react'
 
 import { supabase }         from '@/lib/supabase'
-import { getDealershipId, getDealershipProfile }  from '@/lib/tenant'
+import { getDealershipId, getDealershipProfile, getDealershipTag, setDealershipTagCache, tagFromName }  from '@/lib/tenant'
 import { generateAutoPOs }  from '@/utils/generateAutoPOs'
 import { emit, useAutoRefresh } from '@/lib/realtime'
 
@@ -148,14 +148,16 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
             }),
         }).catch((err) => console.error('[dealerships] ensure fetch error:', err))
 
-        const [mcs, sps, accs] = await Promise.all([
+        const [mcs, sps, accs, dealerRes] = await Promise.all([
             supabase.from('motorcycles').select('*').eq('dealership_id', dealershipId).order('id'),
             supabase.from('spare_parts').select('*').eq('dealership_id', dealershipId).order('id'),
             supabase.from('accessories').select('*').eq('dealership_id', dealershipId).order('id'),
+            supabase.from('dealerships').select('name').eq('id', dealershipId).single(),
         ])
         if (mcs.data)  setMotorcycles(mcs.data.map(dbToMotorcycle))
         if (sps.data)  setSpareParts(sps.data.map(dbToSparePart))
         if (accs.data) setAccessories(accs.data.map(dbToAccessory))
+        if (dealerRes.data?.name) setDealershipTagCache(tagFromName(dealerRes.data.name))
         setLoading(false)
     }, [])
 
@@ -342,7 +344,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
      * They are NOT stored in Supabase — generated client-side only.
      */
     const autoPOs = useMemo(
-        () => generateAutoPOs(motorcycles, spareParts, accessories),
+        () => generateAutoPOs(motorcycles, spareParts, accessories, getDealershipTag()),
         [motorcycles, spareParts, accessories]
     )
 

@@ -7,6 +7,10 @@
     {
       "path": "/api/reports/weekly",
       "schedule": "0 8 * * 1"
+    },
+    {
+      "path": "/api/purchase-invoice/remind",
+      "schedule": "0 8 * * *"
     }
   ]
 }

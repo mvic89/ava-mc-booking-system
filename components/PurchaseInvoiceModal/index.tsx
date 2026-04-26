@@ -8,10 +8,11 @@ import { formatCurrency } from '@/components/POModal'
 // ─── Status styles ────────────────────────────────────────────────────────────
 
 export const PINV_STATUS_STYLE: Record<PurchaseInvoiceStatus, { dot: string; badge: string }> = {
-    'Pending':  { dot: 'bg-amber-500',  badge: 'bg-amber-50 text-amber-700 border border-amber-200' },
-    'Paid':     { dot: 'bg-green-500',  badge: 'bg-green-50 text-green-700' },
-    'Overdue':  { dot: 'bg-red-500',    badge: 'bg-red-50 text-red-700 border border-red-200' },
-    'Disputed': { dot: 'bg-purple-500', badge: 'bg-purple-50 text-purple-700' },
+    'Pending':            { dot: 'bg-amber-500',  badge: 'bg-amber-50 text-amber-700 border border-amber-200' },
+    'Awaiting Approval':  { dot: 'bg-blue-500',   badge: 'bg-blue-50 text-blue-700 border border-blue-200' },
+    'Paid':               { dot: 'bg-green-500',  badge: 'bg-green-50 text-green-700' },
+    'Overdue':            { dot: 'bg-red-500',    badge: 'bg-red-50 text-red-700 border border-red-200' },
+    'Disputed':           { dot: 'bg-purple-500', badge: 'bg-purple-50 text-purple-700' },
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────

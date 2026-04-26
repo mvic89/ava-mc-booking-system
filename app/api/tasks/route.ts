@@ -3,6 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { notify } from '@/lib/notify';
 
 export async function GET(req: NextRequest) {
   const sp           = req.nextUrl.searchParams;
@@ -68,5 +69,19 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Notify team about new task (fire-and-forget)
+  const dueDateStr = body.dueDate
+    ? ` · Förfaller ${new Date(body.dueDate).toLocaleDateString('sv-SE')}`
+    : '';
+  const assignedStr = body.assignedTo ? ` — ${body.assignedTo}` : '';
+  notify({
+    dealershipId: body.dealershipId,
+    type:         'system',
+    title:        'Ny uppgift skapad',
+    message:      `${body.title}${assignedStr}${dueDateStr}`,
+    href:         body.leadId ? `/sales/leads/${body.leadId}` : undefined,
+  });
+
   return NextResponse.json({ task: data }, { status: 201 });
 }

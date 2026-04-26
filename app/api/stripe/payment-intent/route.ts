@@ -8,7 +8,7 @@ import { createPaymentIntent } from '@/lib/stripe/client';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { amount, currency, customer, description } = body;
+    const { amount, currency, customer, description, metadata } = body;
 
     if (!amount) {
       return NextResponse.json({ error: 'amount is required' }, { status: 400 });
@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
       currency:   currency ?? 'sek',
       customer,
       description,
+      metadata,   // pass through — should include leadId + dealershipId from payment page
     });
 
     console.log(`[Stripe] PaymentIntent created: ${result.id}`);

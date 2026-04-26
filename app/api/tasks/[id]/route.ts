@@ -3,6 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { notify } from '@/lib/notify';
 
 export async function PUT(
   req: NextRequest,
@@ -50,6 +51,18 @@ export async function PUT(
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Notify on task completed
+  if (body.status === 'done' && data) {
+    notify({
+      dealershipId: body.dealershipId,
+      type:         'system',
+      title:        'Uppgift slutförd ✓',
+      message:      data.title ?? 'Uppgift markerad som klar',
+      href:         data.lead_id ? `/sales/leads/${data.lead_id}` : undefined,
+    });
+  }
+
   return NextResponse.json({ task: data });
 }
 

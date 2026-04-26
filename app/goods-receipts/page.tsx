@@ -38,7 +38,7 @@ interface GoodsReceipt {
 
 // ── Manual entry form state ───────────────────────────────────────────────────
 
-const EMPTY_ITEM = { article_number: '', name: '', ordered_qty: '', received_qty: '', unit_cost: '' }
+const EMPTY_ITEM = { article_number: '', name: '', ordered_qty: '', received_qty: '', unit_cost: '', backorder_qty: '' }
 const EMPTY_FORM = {
     vendor:               '',
     po_id:                '',
@@ -396,6 +396,8 @@ function GoodsReceiptsContent() {
     const [form, setForm]           = useState(EMPTY_FORM)
     const [saving, setSaving]       = useState(false)
     const [saveError, setSaveError] = useState('')
+    const [vendors,   setVendors]   = useState<{ id: number; name: string }[]>([])
+    const [openPos,   setOpenPos]   = useState<{ id: string; vendor: string; status: string }[]>([])
 
     const load = useCallback(async () => {
         const dealershipId = getDealershipId()
@@ -465,6 +467,50 @@ function GoodsReceiptsContent() {
         setForm(f => ({ ...f, items: f.items.filter((_, i) => i !== idx) }))
     }
 
+    async function loadVendors() {
+        const dealershipId = getDealershipId()
+        const { data } = await supabase
+            .from('vendors')
+            .select('id, name')
+            .eq('dealership_id', dealershipId)
+            .order('name', { ascending: true })
+        setVendors(data ?? [])
+    }
+
+    async function loadPosForVendor(vendorName: string) {
+        if (!vendorName) { setOpenPos([]); return }
+        const dealershipId = getDealershipId()
+        const { data } = await supabase
+            .from('purchase_orders')
+            .select('id, vendor, status')
+            .eq('dealership_id', dealershipId)
+            .ilike('vendor', `%${vendorName}%`)
+            .in('status', ['Sent', 'Partial', 'Approved', 'Draft'])
+            .order('date', { ascending: false })
+            .limit(30)
+        setOpenPos(data ?? [])
+    }
+
+    async function fillItemsFromPo(poId: string) {
+        if (!poId) return
+        const { data } = await supabase
+            .from('po_line_items')
+            .select('article_number, name, order_qty, unit_cost')
+            .eq('po_id', poId)
+        if (!data || data.length === 0) return
+        setForm(f => ({
+            ...f,
+            items: data.map(li => ({
+                article_number: li.article_number ?? '',
+                name:           li.name ?? '',
+                ordered_qty:    String(li.order_qty ?? ''),
+                received_qty:   String(li.order_qty ?? ''),
+                unit_cost:      String(li.unit_cost ?? ''),
+                backorder_qty:  '0',
+            })),
+        }))
+    }
+
     async function handleSave() {
         if (!form.vendor || !form.received_date) return
         setSaving(true)
@@ -498,7 +544,9 @@ function GoodsReceiptsContent() {
             for (const item of form.items) {
                 if (!item.name || !item.received_qty) continue
 
-                const receivedQty = parseInt(item.received_qty) || 0
+                const receivedQty  = parseInt(item.received_qty)  || 0
+                const orderedQty   = parseInt(item.ordered_qty)   || 0
+                const backorderQty = orderedQty > 0 && receivedQty < orderedQty ? orderedQty - receivedQty : 0
 
                 // Try to match by article number or name
                 let inventoryId: string | null = null
@@ -527,8 +575,9 @@ function GoodsReceiptsContent() {
                     inventory_id:   inventoryId,
                     article_number: item.article_number || null,
                     name:           item.name.trim(),
-                    ordered_qty:    item.ordered_qty ? parseInt(item.ordered_qty) : null,
+                    ordered_qty:    orderedQty || null,
                     received_qty:   receivedQty,
+                    backorder_qty:  backorderQty,
                     unit_cost:      item.unit_cost ? parseFloat(item.unit_cost) : null,
                     matched,
                 })
@@ -572,7 +621,7 @@ function GoodsReceiptsContent() {
                                 />
                             </div>
                             <button
-                                onClick={() => { setForm(EMPTY_FORM); setSaveError(''); setShowCreate(true) }}
+                                onClick={() => { setForm(EMPTY_FORM); setSaveError(''); setOpenPos([]); loadVendors(); setShowCreate(true) }}
                                 className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
                             >
                                 + {t('newReceipt')}
@@ -618,7 +667,7 @@ function GoodsReceiptsContent() {
                                 </div>
                                 {receipts.length === 0 && (
                                     <button
-                                        onClick={() => { setForm(EMPTY_FORM); setShowCreate(true) }}
+                                        onClick={() => { setForm(EMPTY_FORM); setSaveError(''); setOpenPos([]); loadVendors(); setShowCreate(true) }}
                                         className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
                                     >
                                         + Create First Receipt
@@ -710,9 +759,20 @@ function GoodsReceiptsContent() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-semibold text-gray-600 mb-1.5">Vendor <span className="text-red-500">*</span></label>
-                                    <input type="text" placeholder="Supplier name" value={form.vendor}
-                                        onChange={e => setForm(f => ({ ...f, vendor: e.target.value }))}
-                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-orange-400" />
+                                    <select
+                                        value={form.vendor}
+                                        onChange={e => {
+                                            const v = e.target.value
+                                            setForm(f => ({ ...f, vendor: v, po_id: '', items: [{ ...EMPTY_ITEM }] }))
+                                            loadPosForVendor(v)
+                                        }}
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400"
+                                    >
+                                        <option value="">— Select supplier —</option>
+                                        {vendors.map(v => (
+                                            <option key={v.id} value={v.name}>{v.name}</option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-semibold text-gray-600 mb-1.5">Received Date <span className="text-red-500">*</span></label>
@@ -721,10 +781,25 @@ function GoodsReceiptsContent() {
                                         className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">Link to PO # (optional)</label>
-                                    <input type="text" placeholder="e.g. PO-AVA-2026-001" value={form.po_id}
-                                        onChange={e => setForm(f => ({ ...f, po_id: e.target.value }))}
-                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm font-mono text-gray-800 placeholder-gray-400 focus:outline-none focus:border-orange-400" />
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                                        Link to PO #
+                                        {form.vendor && openPos.length === 0 && <span className="text-gray-400 font-normal ml-1">(no open POs for this vendor)</span>}
+                                    </label>
+                                    <select
+                                        value={form.po_id}
+                                        onChange={e => {
+                                            const poId = e.target.value
+                                            setForm(f => ({ ...f, po_id: poId }))
+                                            if (poId) fillItemsFromPo(poId)
+                                        }}
+                                        disabled={openPos.length === 0}
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm font-mono text-gray-800 focus:outline-none focus:border-orange-400 disabled:opacity-50"
+                                    >
+                                        <option value="">— Select PO —</option>
+                                        {openPos.map(po => (
+                                            <option key={po.id} value={po.id}>{po.id} · {po.status}</option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-semibold text-gray-600 mb-1.5">Delivery Note # (optional)</label>
@@ -762,45 +837,59 @@ function GoodsReceiptsContent() {
                                                 <th className="px-3 py-2 text-left font-semibold text-gray-500">Art #</th>
                                                 <th className="px-3 py-2 text-center font-semibold text-gray-500">Ordered</th>
                                                 <th className="px-3 py-2 text-center font-semibold text-gray-500">Received *</th>
+                                                <th className="px-3 py-2 text-center font-semibold text-orange-500">Backorder</th>
                                                 <th className="px-3 py-2 text-left font-semibold text-gray-500">Unit Cost</th>
                                                 <th className="px-3 py-2" />
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-100">
-                                            {form.items.map((item, idx) => (
-                                                <tr key={idx}>
+                                            {form.items.map((item, idx) => {
+                                                const ordered  = parseInt(item.ordered_qty)  || 0
+                                                const received = parseInt(item.received_qty) || 0
+                                                const backorder = ordered > 0 && received < ordered ? ordered - received : 0
+                                                return (
+                                                <tr key={idx} className={backorder > 0 ? 'bg-orange-50/50' : ''}>
                                                     <td className="px-2 py-1.5">
                                                         <input type="text" placeholder="e.g. Brake Pads" value={item.name}
                                                             onChange={e => setItem(idx, 'name', e.target.value)}
-                                                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-800 focus:outline-none focus:border-orange-400" />
+                                                            className="w-full bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-800 focus:outline-none focus:border-orange-400" />
                                                     </td>
                                                     <td className="px-2 py-1.5">
                                                         <input type="text" placeholder="SP-001" value={item.article_number}
                                                             onChange={e => setItem(idx, 'article_number', e.target.value)}
-                                                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-xs font-mono text-gray-800 focus:outline-none focus:border-orange-400" />
+                                                            className="w-full bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs font-mono text-gray-800 focus:outline-none focus:border-orange-400" />
                                                     </td>
                                                     <td className="px-2 py-1.5">
                                                         <input type="number" min="0" placeholder="10" value={item.ordered_qty}
                                                             onChange={e => setItem(idx, 'ordered_qty', e.target.value)}
-                                                            className="w-16 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-xs text-center text-gray-800 focus:outline-none focus:border-orange-400" />
+                                                            className="w-16 bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs text-center text-gray-800 focus:outline-none focus:border-orange-400" />
                                                     </td>
                                                     <td className="px-2 py-1.5">
                                                         <input type="number" min="0" placeholder="5" value={item.received_qty}
                                                             onChange={e => setItem(idx, 'received_qty', e.target.value)}
-                                                            className="w-16 bg-gray-50 border border-orange-200 rounded-lg px-2 py-1 text-xs text-center font-bold text-gray-800 focus:outline-none focus:border-orange-400" />
+                                                            className="w-16 bg-white border border-orange-200 rounded-lg px-2 py-1 text-xs text-center font-bold text-gray-800 focus:outline-none focus:border-orange-400" />
+                                                    </td>
+                                                    <td className="px-2 py-1.5 text-center">
+                                                        {backorder > 0
+                                                            ? <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">{backorder} pending</span>
+                                                            : <span className="text-gray-300 text-xs">—</span>
+                                                        }
                                                     </td>
                                                     <td className="px-2 py-1.5">
                                                         <input type="number" min="0" step="0.01" placeholder="0.00" value={item.unit_cost}
                                                             onChange={e => setItem(idx, 'unit_cost', e.target.value)}
-                                                            className="w-24 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-800 focus:outline-none focus:border-orange-400" />
+                                                            className="w-20 bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-800 focus:outline-none focus:border-orange-400" />
                                                     </td>
                                                     <td className="px-2 py-1.5 text-center">
-                                                        {form.items.length > 1 && (
-                                                            <button onClick={() => removeItemRow(idx)} className="text-gray-300 hover:text-red-500 transition-colors text-base leading-none">×</button>
-                                                        )}
+                                                        <button
+                                                            onClick={() => removeItemRow(idx)}
+                                                            disabled={form.items.length === 1}
+                                                            className="w-5 h-5 rounded-full flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-20 disabled:cursor-not-allowed text-sm font-bold"
+                                                        >×</button>
                                                     </td>
                                                 </tr>
-                                            ))}
+                                                )
+                                            })}
                                         </tbody>
                                     </table>
                                 </div>
