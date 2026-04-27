@@ -151,6 +151,9 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
     const [spCategory,    setSpCategory]    = useState('')
     const [spSubCategory, setSpSubCategory] = useState('')
 
+    // Website listing
+    const [listedOnWebsite, setListedOnWebsite] = useState(false)
+
     // Accessory-specific
     const [accCategory, setAccCategory] = useState('')
     const [accSubGroup, setAccSubGroup] = useState('')
@@ -435,6 +438,7 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                     sellingPrice: parseFloat(sellingPrice) || 0,
                     vendor: vendor.trim(),
                     location: location.trim() || undefined,
+                    listedOnWebsite,
                     vin: vin.trim().toUpperCase(),
                     engineCC: parseInt(engineCC) || 0,
                     color: color.trim(),
@@ -453,6 +457,7 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                     sellingPrice: parseFloat(sellingPrice) || 0,
                     vendor: vendor.trim(),
                     location: location.trim() || undefined,
+                    listedOnWebsite,
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     category: spCategory as any,
                     subCategory: spSubCategory.trim() || undefined,
@@ -468,6 +473,7 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                     sellingPrice: parseFloat(sellingPrice) || 0,
                     vendor: vendor.trim(),
                     location: location.trim() || undefined,
+                    listedOnWebsite,
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     category: accCategory as any,
                     subGroup: accSubGroup.trim() || undefined,
@@ -1005,6 +1011,31 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                                     </>
                                 )}
                             </>
+                        )}
+
+                        {/* ── Website listing toggle ── */}
+                        {type && (
+                            <div
+                                onClick={() => setListedOnWebsite(v => !v)}
+                                className={`flex items-center justify-between px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
+                                    listedOnWebsite
+                                        ? 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100'
+                                        : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                                }`}
+                            >
+                                <div className="flex items-center gap-2.5">
+                                    <span className="text-base">🌐</span>
+                                    <div>
+                                        <p className={`text-sm font-semibold ${listedOnWebsite ? 'text-emerald-700' : 'text-gray-600'}`}>
+                                            {listedOnWebsite ? 'List on website' : 'Not listed on website'}
+                                        </p>
+                                        <p className="text-xs text-gray-400 mt-0.5">Toggle to show this product on the dealer website</p>
+                                    </div>
+                                </div>
+                                <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${listedOnWebsite ? 'bg-emerald-500' : 'bg-gray-300'}`}>
+                                    <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${listedOnWebsite ? 'left-5' : 'left-0.5'}`} />
+                                </div>
+                            </div>
                         )}
 
                         {error && (

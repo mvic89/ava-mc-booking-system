@@ -200,7 +200,8 @@ export function EditItemModal({ item, category, onClose }: Props) {
         size:      (item as Accessory).size ?? '',
         accColor:  (item as Accessory).color ?? '',
         // shared optional
-        location:  item.location ?? '',
+        location:        item.location ?? '',
+        listedOnWebsite: item.listedOnWebsite ?? false,
     })
 
     const [saving,  setSaving]  = useState(false)
@@ -208,7 +209,7 @@ export function EditItemModal({ item, category, onClose }: Props) {
     const [saved,   setSaved]   = useState(false)
     const [error,   setError]   = useState('')
 
-    function set(field: string, value: string) {
+    function set(field: string, value: string | boolean) {
         setForm(f => ({ ...f, [field]: value }))
         setSaved(false)
         setError('')
@@ -219,17 +220,18 @@ export function EditItemModal({ item, category, onClose }: Props) {
         setError('')
         try {
             const base: BaseInventoryItem = {
-                id:            item.id,
-                name:          form.name.trim(),
-                brand:         form.brand.trim(),
-                articleNumber: form.articleNumber.trim(),
-                description:   form.description.trim(),
-                stock:         parseInt(form.stock)         || 0,
-                reorderQty:    parseInt(form.reorderQty)    || 0,
-                cost:          parseFloat(form.cost)        || 0,
-                sellingPrice:  parseFloat(form.sellingPrice)|| 0,
-                vendor:        form.vendor.trim(),
-                location:      form.location.trim() || undefined,
+                id:              item.id,
+                name:            form.name.trim(),
+                brand:           form.brand.trim(),
+                articleNumber:   form.articleNumber.trim(),
+                description:     form.description.trim(),
+                stock:           parseInt(form.stock)         || 0,
+                reorderQty:      parseInt(form.reorderQty)    || 0,
+                cost:            parseFloat(form.cost)        || 0,
+                sellingPrice:    parseFloat(form.sellingPrice)|| 0,
+                vendor:          form.vendor.trim(),
+                location:        form.location.trim() || undefined,
+                listedOnWebsite: form.listedOnWebsite,
             }
 
             if (category === 'motorcycles') {
@@ -422,6 +424,31 @@ export function EditItemModal({ item, category, onClose }: Props) {
                             )}
                         </div>
                     )}
+
+                    {/* Website listing toggle */}
+                    <div
+                        onClick={() => set('listedOnWebsite', !form.listedOnWebsite)}
+                        className={`flex items-center justify-between px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
+                            form.listedOnWebsite
+                                ? 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100'
+                                : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                        }`}
+                    >
+                        <div className="flex items-center gap-2.5">
+                            <span className="text-base">🌐</span>
+                            <div>
+                                <p className={`text-sm font-semibold ${form.listedOnWebsite ? 'text-emerald-700' : 'text-gray-600'}`}>
+                                    {form.listedOnWebsite ? 'Listed on website' : 'Not listed on website'}
+                                </p>
+                                <p className="text-xs text-gray-400 mt-0.5">
+                                    {form.listedOnWebsite ? 'This product is visible to customers online' : 'Click to make this product visible on your website'}
+                                </p>
+                            </div>
+                        </div>
+                        <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${form.listedOnWebsite ? 'bg-emerald-500' : 'bg-gray-300'}`}>
+                            <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${form.listedOnWebsite ? 'left-5' : 'left-0.5'}`} />
+                        </div>
+                    </div>
 
                     {/* Error */}
                     {error && (

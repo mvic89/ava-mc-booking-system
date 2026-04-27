@@ -160,6 +160,24 @@ function StockBadge({ stock, reorderQty }: { stock: number; reorderQty: number }
     )
 }
 
+function ListingToggle({ item, toggleListing }: { item: BaseInventoryItem; toggleListing: (id: string, listed: boolean) => void }) {
+    const listed = item.listedOnWebsite ?? false
+    return (
+        <button
+            onClick={e => { e.stopPropagation(); toggleListing(item.id, !listed) }}
+            title={listed ? 'Click to unlist from website' : 'Click to list on website'}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all border ${
+                listed
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                    : 'bg-gray-50 text-gray-400 border-gray-200 hover:bg-gray-100 hover:text-gray-600'
+            }`}
+        >
+            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${listed ? 'bg-emerald-500' : 'bg-gray-300'}`} />
+            {listed ? 'Listed' : 'Unlisted'}
+        </button>
+    )
+}
+
 function StockCell({ item, updateStock }: { item: BaseInventoryItem; updateStock: (id: string, stock: number) => void }) {
     return (
         <div className="flex items-center gap-1">
@@ -245,9 +263,10 @@ function ReorderableTable<T>({ cols, data, defaultWidths, onRowClick }: {
 
 // ─── Tables ───────────────────────────────────────────────────────────────────
 
-function MotorcycleTable({ data, updateStock, onRowClick, onDelete }: {
+function MotorcycleTable({ data, updateStock, toggleListing, onRowClick, onDelete }: {
     data: Motorcycle[]
     updateStock: (id: string, stock: number) => void
+    toggleListing: (id: string, listed: boolean) => void
     onRowClick: (item: Motorcycle) => void
     onDelete: (id: string) => void
 }) {
@@ -284,6 +303,7 @@ function MotorcycleTable({ data, updateStock, onRowClick, onDelete }: {
         { label: 'Sell Price',   defaultWidth: 110, tdClass: 'font-semibold text-slate-900 text-xs truncate', cell: m => formatSEK(m.sellingPrice) },
         { label: 'Margin',       defaultWidth: 70,  cell: m => <span className="text-green-600 font-medium text-xs">{(((m.sellingPrice - m.cost) / m.sellingPrice) * 100).toFixed(1)}%</span> },
         { label: 'Vendor',       defaultWidth: 130, tdClass: 'text-xs text-slate-400 truncate',             cell: m => <span title={m.vendor}>{m.vendor}</span> },
+        { label: 'Website',      defaultWidth: 95,  noClick: true, cell: m => <ListingToggle item={m} toggleListing={toggleListing} /> },
         { label: '',             defaultWidth: 40,  noClick: true, cell: m => (
             <button onClick={() => onDelete(m.id)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all text-sm" title="Delete">🗑️</button>
         )},
@@ -291,9 +311,10 @@ function MotorcycleTable({ data, updateStock, onRowClick, onDelete }: {
     return <ReorderableTable cols={cols} data={data} defaultWidths={cols.map(c => c.defaultWidth)} onRowClick={onRowClick} />
 }
 
-function SparePartsTable({ data, updateStock, onRowClick, onDelete }: {
+function SparePartsTable({ data, updateStock, toggleListing, onRowClick, onDelete }: {
     data: SparePart[]
     updateStock: (id: string, stock: number) => void
+    toggleListing: (id: string, listed: boolean) => void
     onRowClick: (item: SparePart) => void
     onDelete: (id: string) => void
 }) {
@@ -339,6 +360,7 @@ function SparePartsTable({ data, updateStock, onRowClick, onDelete }: {
         { label: 'Sell Price',   defaultWidth: 110, tdClass: 'font-semibold text-slate-900 text-xs truncate', cell: s => formatCurrency(s.sellingPrice) },
         { label: 'Margin',       defaultWidth: 70,  cell: s => <span className="text-green-600 font-medium text-xs">{(((s.sellingPrice - s.cost) / s.sellingPrice) * 100).toFixed(1)}%</span> },
         { label: 'Vendor',       defaultWidth: 130, tdClass: 'text-xs text-slate-400 truncate',               cell: s => <span title={s.vendor}>{s.vendor}</span> },
+        { label: 'Website',      defaultWidth: 95,  noClick: true, cell: s => <ListingToggle item={s} toggleListing={toggleListing} /> },
         { label: '',             defaultWidth: 40,  noClick: true, cell: s => (
             <button onClick={() => onDelete(s.id)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all text-sm" title="Delete">🗑️</button>
         )},
@@ -346,9 +368,10 @@ function SparePartsTable({ data, updateStock, onRowClick, onDelete }: {
     return <ReorderableTable cols={cols} data={data} defaultWidths={cols.map(c => c.defaultWidth)} onRowClick={onRowClick} />
 }
 
-function AccessoriesTable({ data, updateStock, onRowClick, onDelete }: {
+function AccessoriesTable({ data, updateStock, toggleListing, onRowClick, onDelete }: {
     data: Accessory[]
     updateStock: (id: string, stock: number) => void
+    toggleListing: (id: string, listed: boolean) => void
     onRowClick: (item: Accessory) => void
     onDelete: (id: string) => void
 }) {
@@ -412,6 +435,7 @@ function AccessoriesTable({ data, updateStock, onRowClick, onDelete }: {
         { label: 'Sell Price',   defaultWidth: 110, tdClass: 'font-semibold text-slate-900 text-xs truncate', cell: a => formatCurrency(a.sellingPrice) },
         { label: 'Margin',       defaultWidth: 70,  cell: a => <span className="text-green-600 font-medium text-xs">{(((a.sellingPrice - a.cost) / a.sellingPrice) * 100).toFixed(1)}%</span> },
         { label: 'Vendor',       defaultWidth: 130, tdClass: 'text-xs text-slate-400 truncate',               cell: a => <span title={a.vendor}>{a.vendor}</span> },
+        { label: 'Website',      defaultWidth: 95,  noClick: true, cell: a => <ListingToggle item={a} toggleListing={toggleListing} /> },
         { label: '',             defaultWidth: 40,  noClick: true, cell: a => (
             <button onClick={() => onDelete(a.id)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all text-sm" title="Delete">🗑️</button>
         )},
@@ -543,14 +567,67 @@ const TABS: { id: InventoryCategory; label: string; icon: string; href: string }
 
 // ─── Main shared page component ───────────────────────────────────────────────
 
+// ─── Filter types ─────────────────────────────────────────────────────────────
+
+interface Filters {
+    websiteStatus: 'all' | 'listed' | 'unlisted'
+    brand:         string
+    stockStatus:   'all' | 'instock' | 'lowstock' | 'outofstock'
+    priceMin:      string
+    priceMax:      string
+    // motorcycle-specific
+    mcType:        string
+    warehouse:     string
+    mcColour:      string
+    // spare-part-specific
+    spCategory:    string
+    // accessory-specific
+    accType:       string
+    accSize:       string
+    accColour:     string
+}
+
+const EMPTY_FILTERS: Filters = {
+    websiteStatus: 'all', brand: '', stockStatus: 'all', priceMin: '', priceMax: '',
+    mcType: '', warehouse: '', mcColour: '', spCategory: '', accType: '', accSize: '', accColour: '',
+}
+
+// ─── Small filter control ─────────────────────────────────────────────────────
+
+function FLabel({ children }: { children: React.ReactNode }) {
+    return <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1">{children}</p>
+}
+
+const fSel = 'w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#FF6B2C]/40 focus:border-[#FF6B2C]/50'
+const fIn  = fSel
+
+// ─── Main shared page component ───────────────────────────────────────────────
+
 export function InventoryPageContent({ category }: { category: InventoryCategory }) {
-    const { motorcycles, spareParts, accessories, updateStock, deleteItem, autoPOs } = useInventory()
+    const { motorcycles, spareParts, accessories, updateStock, toggleListing, deleteItem, autoPOs } = useInventory()
 
     const [search,          setSearch         ] = useState('')
     const [showAddModal,    setShowAddModal    ] = useState(false)
     const [showImportModal, setShowImportModal ] = useState(false)
     const [showDownload,    setShowDownload    ] = useState(false)
+    const [showFilters,     setShowFilters     ] = useState(false)
+    const [filters,         setFilters         ] = useState<Filters>(EMPTY_FILTERS)
     const [selectedItem,    setSelectedItem    ] = useState<Motorcycle | SparePart | Accessory | null>(null)
+
+    function setF<K extends keyof Filters>(key: K, val: Filters[K]) {
+        setFilters(f => ({ ...f, [key]: val }))
+    }
+    function clearFilters() { setFilters(EMPTY_FILTERS) }
+
+    const activeFilterCount = [
+        filters.websiteStatus !== 'all',
+        filters.brand !== '',
+        filters.stockStatus !== 'all',
+        filters.priceMin !== '' || filters.priceMax !== '',
+        filters.mcType !== '', filters.warehouse !== '', filters.mcColour !== '',
+        filters.spCategory !== '',
+        filters.accType !== '', filters.accSize !== '', filters.accColour !== '',
+    ].filter(Boolean).length
 
     async function handleDelete(id: string) {
         if (!confirm('Delete this item permanently? This cannot be undone.')) return
@@ -559,15 +636,71 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
 
     const q = search.toLowerCase()
 
-    const filtered =
-        category === 'motorcycles'
-            ? motorcycles.filter(m => [m.name, m.brand, m.articleNumber, m.vin, m.vendor].some(f => f.toLowerCase().includes(q)))
-            : category === 'spareParts'
-            ? spareParts.filter(s => [s.name, s.brand, s.articleNumber, s.category, s.vendor].some(f => f.toLowerCase().includes(q)))
-            : accessories.filter(a => [a.name, a.brand, a.articleNumber, a.category, a.vendor, a.size ?? ''].some(f => f.toLowerCase().includes(q)))
+    // ── Apply search + all filters ────────────────────────────────────────────
+    const filtered = (() => {
+        // Base pool for this tab
+        let items: BaseInventoryItem[] =
+            category === 'motorcycles' ? motorcycles :
+            category === 'spareParts'  ? spareParts  : accessories
+
+        // Text search
+        if (q) {
+            items = category === 'motorcycles'
+                ? (items as Motorcycle[]).filter(m => [m.name, m.brand, m.articleNumber, m.vin, m.vendor].some(f => f.toLowerCase().includes(q)))
+                : category === 'spareParts'
+                ? (items as SparePart[]).filter(s => [s.name, s.brand, s.articleNumber, s.category, s.vendor].some(f => f.toLowerCase().includes(q)))
+                : (items as Accessory[]).filter(a => [a.name, a.brand, a.articleNumber, a.category, a.vendor, a.size ?? ''].some(f => f.toLowerCase().includes(q)))
+        }
+
+        // Website status
+        if (filters.websiteStatus === 'listed')   items = items.filter(i => i.listedOnWebsite)
+        if (filters.websiteStatus === 'unlisted') items = items.filter(i => !i.listedOnWebsite)
+
+        // Brand
+        if (filters.brand) items = items.filter(i => i.brand === filters.brand)
+
+        // Stock status
+        if (filters.stockStatus === 'instock')    items = items.filter(i => i.stock > i.reorderQty)
+        if (filters.stockStatus === 'lowstock')   items = items.filter(i => i.stock > 0 && i.stock <= i.reorderQty)
+        if (filters.stockStatus === 'outofstock') items = items.filter(i => i.stock === 0)
+
+        // Price range
+        if (filters.priceMin !== '') items = items.filter(i => i.sellingPrice >= parseFloat(filters.priceMin))
+        if (filters.priceMax !== '') items = items.filter(i => i.sellingPrice <= parseFloat(filters.priceMax))
+
+        // Motorcycle-specific
+        if (category === 'motorcycles') {
+            const mcs = items as Motorcycle[]
+            if (filters.mcType)    items = mcs.filter(m => m.mcType    === filters.mcType)
+            if (filters.warehouse) items = (items as Motorcycle[]).filter(m => m.warehouse === filters.warehouse)
+            if (filters.mcColour)  items = (items as Motorcycle[]).filter(m => m.color?.toLowerCase().includes(filters.mcColour.toLowerCase()))
+        }
+
+        // Spare-part-specific
+        if (category === 'spareParts' && filters.spCategory) {
+            items = (items as SparePart[]).filter(s => s.category === filters.spCategory)
+        }
+
+        // Accessory-specific
+        if (category === 'accessories') {
+            if (filters.accType)   items = (items as Accessory[]).filter(a => a.category === filters.accType)
+            if (filters.accSize)   items = (items as Accessory[]).filter(a => a.size === filters.accSize)
+            if (filters.accColour) items = (items as Accessory[]).filter(a => a.color?.toLowerCase().includes(filters.accColour.toLowerCase()))
+        }
+
+        return items
+    })()
 
     const allData: BaseInventoryItem[] =
         category === 'motorcycles' ? motorcycles : category === 'spareParts' ? spareParts : accessories
+
+    // Unique brands for the brand dropdown (from the full tab data, not filtered)
+    const uniqueBrands = [...new Set(allData.map(i => i.brand).filter(Boolean))].sort()
+
+    // Unique sizes for accessories
+    const uniqueSizes = category === 'accessories'
+        ? [...new Set((accessories as Accessory[]).map(a => a.size).filter(Boolean) as string[])].sort()
+        : []
 
     const pendingPOs  = autoPOs.filter(p => p.status === 'Draft').length
     const tabLabel    = TABS.find(t => t.id === category)?.label ?? ''
@@ -654,8 +787,8 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
                 {/* Summary Cards */}
                 <SummaryCards data={allData} />
 
-                {/* Sub-nav tabs + Search — single compact row */}
-                <div className="flex items-center gap-3">
+                {/* Sub-nav tabs + Search + Filter toggle */}
+                <div className="flex items-center gap-2 flex-wrap">
                     <div className="flex gap-0.5 bg-slate-100 p-0.5 rounded-lg w-fit">
                         {TABS.map((tab) => {
                             const count = tab.id === 'motorcycles' ? motorcycles.length : tab.id === 'spareParts' ? spareParts.length : accessories.length
@@ -668,15 +801,46 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
                                 >
                                     <span>{tab.icon}</span>
                                     <span>{tab.label}</span>
-                                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${isActive ? 'bg-[#FF6B2C]/10 text-[#FF6B2C]' : 'bg-slate-200 text-slate-500'}`}>
-                                        {count}
-                                    </span>
+                                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${isActive ? 'bg-[#FF6B2C]/10 text-[#FF6B2C]' : 'bg-slate-200 text-slate-500'}`}>{count}</span>
                                 </Link>
                             )
                         })}
                     </div>
 
-                    <div className="ml-auto">
+                    {/* Filter toggle button */}
+                    <button
+                        onClick={() => setShowFilters(v => !v)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                            showFilters || activeFilterCount > 0
+                                ? 'bg-[#FF6B2C]/10 border-[#FF6B2C]/30 text-[#FF6B2C]'
+                                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                        }`}
+                    >
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h18M7 12h10M11 20h2" />
+                        </svg>
+                        Filters
+                        {activeFilterCount > 0 && (
+                            <span className="bg-[#FF6B2C] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                                {activeFilterCount}
+                            </span>
+                        )}
+                    </button>
+
+                    {/* Result count */}
+                    <span className="text-xs text-slate-400">
+                        {filtered.length !== allData.length
+                            ? <><span className="font-semibold text-slate-600">{filtered.length}</span> of {allData.length}</>
+                            : <><span className="font-semibold text-slate-600">{allData.length}</span> items</>
+                        }
+                    </span>
+
+                    <div className="ml-auto flex items-center gap-2">
+                        {activeFilterCount > 0 && (
+                            <button onClick={clearFilters} className="text-xs text-slate-400 hover:text-red-500 transition-colors">
+                                Clear all
+                            </button>
+                        )}
                         <div className="relative">
                             <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
@@ -692,22 +856,144 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
                     </div>
                 </div>
 
+                {/* Filter panel */}
+                {showFilters && (
+                    <div className="bg-white rounded-xl border border-slate-200 p-3 shrink-0">
+                        {/* Row 1 — universal filters */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
+                            <div>
+                                <FLabel>Website</FLabel>
+                                <select className={fSel} value={filters.websiteStatus} onChange={e => setF('websiteStatus', e.target.value as Filters['websiteStatus'])}>
+                                    <option value="all">All products</option>
+                                    <option value="listed">🌐 Listed only</option>
+                                    <option value="unlisted">· Unlisted only</option>
+                                </select>
+                            </div>
+                            <div>
+                                <FLabel>Brand</FLabel>
+                                <select className={fSel} value={filters.brand} onChange={e => setF('brand', e.target.value)}>
+                                    <option value="">All brands</option>
+                                    {uniqueBrands.map(b => <option key={b}>{b}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <FLabel>Stock Status</FLabel>
+                                <select className={fSel} value={filters.stockStatus} onChange={e => setF('stockStatus', e.target.value as Filters['stockStatus'])}>
+                                    <option value="all">All</option>
+                                    <option value="instock">In stock</option>
+                                    <option value="lowstock">Low stock</option>
+                                    <option value="outofstock">Out of stock</option>
+                                </select>
+                            </div>
+                            <div>
+                                <FLabel>Price min (SEK)</FLabel>
+                                <input type="number" className={fIn} placeholder="0" value={filters.priceMin} onChange={e => setF('priceMin', e.target.value)} />
+                            </div>
+                            <div>
+                                <FLabel>Price max (SEK)</FLabel>
+                                <input type="number" className={fIn} placeholder="∞" value={filters.priceMax} onChange={e => setF('priceMax', e.target.value)} />
+                            </div>
+                        </div>
+
+                        {/* Row 2 — category-specific */}
+                        {category === 'motorcycles' && (
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2.5 pt-2.5 border-t border-slate-100">
+                                <div>
+                                    <FLabel>MC Type</FLabel>
+                                    <select className={fSel} value={filters.mcType} onChange={e => setF('mcType', e.target.value)}>
+                                        <option value="">All types</option>
+                                        <option>New</option>
+                                        <option>Trade-In</option>
+                                        <option>Commission</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <FLabel>Warehouse</FLabel>
+                                    <select className={fSel} value={filters.warehouse} onChange={e => setF('warehouse', e.target.value)}>
+                                        <option value="">All warehouses</option>
+                                        <option>Warehouse A</option>
+                                        <option>Warehouse B</option>
+                                        <option>Warehouse C</option>
+                                        <option>Warehouse D</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <FLabel>Colour</FLabel>
+                                    <input type="text" className={fIn} placeholder="e.g. Black, Red…" value={filters.mcColour} onChange={e => setF('mcColour', e.target.value)} />
+                                </div>
+                            </div>
+                        )}
+
+                        {category === 'spareParts' && (
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2.5 pt-2.5 border-t border-slate-100">
+                                <div>
+                                    <FLabel>Category</FLabel>
+                                    <select className={fSel} value={filters.spCategory} onChange={e => setF('spCategory', e.target.value)}>
+                                        <option value="">All categories</option>
+                                        <optgroup label="Powertrain">
+                                            {['Engine','Transmission','Fuel System','Exhaust'].map(c => <option key={c}>{c}</option>)}
+                                        </optgroup>
+                                        <optgroup label="Chassis & Safety">
+                                            {['Suspension','Brakes','Tyres & Wheels','Controls & Cables'].map(c => <option key={c}>{c}</option>)}
+                                        </optgroup>
+                                        <optgroup label="Electrical & Instruments">
+                                            {['Electrical','Lighting','Instruments'].map(c => <option key={c}>{c}</option>)}
+                                        </optgroup>
+                                        <optgroup label="Body & Ancillaries">
+                                            {['Body & Frame','Cooling System','Filters & Fluids'].map(c => <option key={c}>{c}</option>)}
+                                        </optgroup>
+                                    </select>
+                                </div>
+                            </div>
+                        )}
+
+                        {category === 'accessories' && (
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2.5 pt-2.5 border-t border-slate-100">
+                                <div>
+                                    <FLabel>Type</FLabel>
+                                    <select className={fSel} value={filters.accType} onChange={e => setF('accType', e.target.value)}>
+                                        <option value="">All types</option>
+                                        <optgroup label="Helmets"><option>Helmet</option></optgroup>
+                                        <optgroup label="Clothing">
+                                            {['Jacket','Gloves','T-Shirt','Pants','Boots','Cap','Neck & Face'].map(c => <option key={c}>{c}</option>)}
+                                        </optgroup>
+                                        <optgroup label="Other">
+                                            {['Seat Cover','Protection','Luggage','Handlebars & Grips'].map(c => <option key={c}>{c}</option>)}
+                                        </optgroup>
+                                    </select>
+                                </div>
+                                <div>
+                                    <FLabel>Size</FLabel>
+                                    <select className={fSel} value={filters.accSize} onChange={e => setF('accSize', e.target.value)}>
+                                        <option value="">All sizes</option>
+                                        {uniqueSizes.map(s => <option key={s}>{s}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <FLabel>Colour</FLabel>
+                                    <input type="text" className={fIn} placeholder="e.g. Black, Blue…" value={filters.accColour} onChange={e => setF('accColour', e.target.value)} />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* Table */}
                 <div className="table-scroll bg-white rounded-2xl border border-slate-200 overflow-auto flex-1 min-h-0">
                     {category === 'motorcycles' && (
                         (filtered as Motorcycle[]).length > 0
-                            ? <MotorcycleTable data={filtered as Motorcycle[]} updateStock={updateStock} onRowClick={setSelectedItem} onDelete={handleDelete} />
-                            : <EmptyState onImport={() => setShowImportModal(true)} isFiltered={search !== ''} />
+                            ? <MotorcycleTable data={filtered as Motorcycle[]} updateStock={updateStock} toggleListing={toggleListing} onRowClick={setSelectedItem} onDelete={handleDelete} />
+                            : <EmptyState onImport={() => setShowImportModal(true)} isFiltered={search !== '' || activeFilterCount > 0} />
                     )}
                     {category === 'spareParts' && (
                         (filtered as SparePart[]).length > 0
-                            ? <SparePartsTable data={filtered as SparePart[]} updateStock={updateStock} onRowClick={setSelectedItem} onDelete={handleDelete} />
-                            : <EmptyState onImport={() => setShowImportModal(true)} isFiltered={search !== ''} />
+                            ? <SparePartsTable data={filtered as SparePart[]} updateStock={updateStock} toggleListing={toggleListing} onRowClick={setSelectedItem} onDelete={handleDelete} />
+                            : <EmptyState onImport={() => setShowImportModal(true)} isFiltered={search !== '' || activeFilterCount > 0} />
                     )}
                     {category === 'accessories' && (
                         (filtered as Accessory[]).length > 0
-                            ? <AccessoriesTable data={filtered as Accessory[]} updateStock={updateStock} onRowClick={setSelectedItem} onDelete={handleDelete} />
-                            : <EmptyState onImport={() => setShowImportModal(true)} isFiltered={search !== ''} />
+                            ? <AccessoriesTable data={filtered as Accessory[]} updateStock={updateStock} toggleListing={toggleListing} onRowClick={setSelectedItem} onDelete={handleDelete} />
+                            : <EmptyState onImport={() => setShowImportModal(true)} isFiltered={search !== '' || activeFilterCount > 0} />
                     )}
                 </div>
 
