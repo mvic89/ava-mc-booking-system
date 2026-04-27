@@ -330,7 +330,7 @@ export default function Sidebar() {
   }, [user?.dealershipId, user?.dealershipName]);
 
   // Hide on auth, public pages, and landing page
-  const AUTH_PATHS = ['/auth', '/privacy', '/terms'];
+  const AUTH_PATHS = ['/auth', '/privacy', '/terms', '/shop'];
   if (pathname === '/' || AUTH_PATHS.some(p => pathname?.startsWith(p))) return null;
 
   const isActive = (href: string) =>

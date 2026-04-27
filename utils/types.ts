@@ -17,8 +17,9 @@ export interface BaseInventoryItem {
     sellingPrice: number;
     vendor: string;
     description: string;
-    location?: string;      // shelf / bin position, e.g. "B3-12"
+    location?: string;         // shelf / bin position, e.g. "B3-12"
     listedOnWebsite?: boolean; // true = this variant is visible on the dealer website
+    images?: string[];         // public URLs from Supabase Storage (inventory-images bucket)
 }
 
 export type MCType = 'New' | 'Trade-In' | 'Commission';

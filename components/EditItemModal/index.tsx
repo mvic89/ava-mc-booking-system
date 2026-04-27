@@ -1,7 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useInventory } from '@/context/InventoryContext'
+import { getSupabaseBrowser } from '@/lib/supabase'
+import { getDealershipId } from '@/lib/tenant'
+
 import {
     Motorcycle, SparePart, Accessory, BaseInventoryItem,
     InventoryCategory, MCType, Warehouse,
@@ -171,7 +174,7 @@ interface Props {
 }
 
 export function EditItemModal({ item, category, onClose }: Props) {
-    const { updateItem, deleteItem } = useInventory()
+    const { updateItem, deleteItem, updateImages, websiteUrl } = useInventory()
 
     // initialise form from item
     const [form, setForm] = useState({
@@ -202,12 +205,15 @@ export function EditItemModal({ item, category, onClose }: Props) {
         // shared optional
         location:        item.location ?? '',
         listedOnWebsite: item.listedOnWebsite ?? false,
+        images:          item.images ?? [] as string[],
     })
 
-    const [saving,  setSaving]  = useState(false)
-    const [deleting, setDeleting] = useState(false)
-    const [saved,   setSaved]   = useState(false)
-    const [error,   setError]   = useState('')
+    const [saving,    setSaving]    = useState(false)
+    const [deleting,  setDeleting]  = useState(false)
+    const [saved,     setSaved]     = useState(false)
+    const [error,     setError]     = useState('')
+    const [uploading, setUploading] = useState(false)
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     function set(field: string, value: string | boolean) {
         setForm(f => ({ ...f, [field]: value }))
@@ -232,6 +238,7 @@ export function EditItemModal({ item, category, onClose }: Props) {
                 vendor:          form.vendor.trim(),
                 location:        form.location.trim() || undefined,
                 listedOnWebsite: form.listedOnWebsite,
+                images:          form.images,
             }
 
             if (category === 'motorcycles') {
@@ -270,9 +277,60 @@ export function EditItemModal({ item, category, onClose }: Props) {
         onClose()
     }
 
+    async function handleUpload(files: FileList | null) {
+        if (!files || files.length === 0) return
+        const dealershipId = getDealershipId()
+        if (!dealershipId) { setError('Not logged in — cannot upload'); return }
+        setUploading(true)
+        setError('')
+        try {
+            const newUrls: string[] = []
+            for (const file of Array.from(files)) {
+                const body = new FormData()
+                body.append('file',         file)
+                body.append('dealershipId', dealershipId)
+                body.append('itemId',       item.id)
+                const res  = await fetch('/api/inventory/upload-image', { method: 'POST', body })
+                const json = await res.json()
+                if (!res.ok) throw new Error(json.error ?? 'Upload failed')
+                newUrls.push(json.url as string)
+            }
+            const updated = [...form.images, ...newUrls]
+            setForm(f => ({ ...f, images: updated }))
+            await updateImages(item.id, updated)
+        } catch (err) {
+            console.error('[upload]', err)
+            setError(err instanceof Error ? err.message : 'Upload failed')
+        } finally {
+            setUploading(false)
+            if (fileInputRef.current) fileInputRef.current.value = ''
+        }
+    }
+
+    async function handleRemoveImage(url: string) {
+        const updated = form.images.filter(u => u !== url)
+        setForm(f => ({ ...f, images: updated }))
+        await updateImages(item.id, updated)
+        // Best-effort: remove the file from Storage via server route (bypasses RLS)
+        try {
+            const urlPath   = new URL(url).pathname
+            const bucketIdx = urlPath.indexOf('/inventory-images/')
+            if (bucketIdx !== -1) {
+                const storagePath = urlPath.slice(bucketIdx + '/inventory-images/'.length)
+                await fetch('/api/inventory/delete-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: storagePath }),
+                })
+            }
+        } catch { /* non-critical */ }
+    }
+
     const margin = form.sellingPrice && form.cost
         ? (((parseFloat(form.sellingPrice) - parseFloat(form.cost)) / parseFloat(form.sellingPrice)) * 100).toFixed(1)
         : '0.0'
+
+    const [activeImg, setActiveImg] = useState(0)
 
     return (
         <div
@@ -280,11 +338,11 @@ export function EditItemModal({ item, category, onClose }: Props) {
             onClick={onClose}
         >
             <div
-                className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden"
+                className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-gray-100 shrink-0">
+                <div className="flex items-start justify-between px-6 pt-4 pb-3 border-b border-gray-100 shrink-0">
                     <div>
                         <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-0.5">
                             {category === 'motorcycles' ? '🏍️ Motorcycle' : category === 'spareParts' ? '🔧 Spare Part' : '🪖 Accessory'}
@@ -299,161 +357,253 @@ export function EditItemModal({ item, category, onClose }: Props) {
                     >✕</button>
                 </div>
 
-                {/* Body */}
-                <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+                {/* Two-column body */}
+                <div className="flex flex-1 overflow-hidden">
 
-                    {/* Pricing summary strip */}
-                    <div className="grid grid-cols-3 gap-3">
-                        {[
-                            { label: 'Cost',       value: formatSEK(parseFloat(form.cost) || 0),         color: 'bg-gray-50' },
-                            { label: 'Sell Price', value: formatSEK(parseFloat(form.sellingPrice) || 0), color: 'bg-orange-50' },
-                            { label: 'Margin',     value: `${margin}%`,                                  color: 'bg-green-50' },
-                        ].map(c => (
-                            <div key={c.label} className={`${c.color} rounded-xl p-3 text-center`}>
-                                <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">{c.label}</p>
-                                <p className="text-base font-bold text-gray-800 mt-0.5">{c.value}</p>
-                            </div>
-                        ))}
-                    </div>
+                    {/* ── LEFT: form fields ────────────────────────────────── */}
+                    <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5 border-r border-gray-100">
 
-                    {/* Core fields */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <Field label="Name *" value={form.name} onChange={v => set('name', v)} />
-                        <Field label="Brand *" value={form.brand} onChange={v => set('brand', v)} />
-                        <Field label="Article Number" value={form.articleNumber} onChange={v => set('articleNumber', v)} mono />
-                        <Field label="Vendor / Supplier" value={form.vendor} onChange={v => set('vendor', v)} />
-                        <Field label="Location" value={form.location} onChange={v => set('location', v)} placeholder="e.g. B3-12" />
-                    </div>
-                    <Field label="Description" value={form.description} onChange={v => set('description', v)} multiline />
+                        {/* Pricing strip */}
+                        <div className="grid grid-cols-3 gap-3">
+                            {[
+                                { label: 'Cost',       value: formatSEK(parseFloat(form.cost) || 0),         color: 'bg-gray-50' },
+                                { label: 'Sell Price', value: formatSEK(parseFloat(form.sellingPrice) || 0), color: 'bg-orange-50' },
+                                { label: 'Margin',     value: `${margin}%`,                                  color: 'bg-green-50' },
+                            ].map(c => (
+                                <div key={c.label} className={`${c.color} rounded-xl p-3 text-center`}>
+                                    <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">{c.label}</p>
+                                    <p className="text-base font-bold text-gray-800 mt-0.5">{c.value}</p>
+                                </div>
+                            ))}
+                        </div>
 
-                    {/* Stock */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <Field label="Stock" value={form.stock} onChange={v => set('stock', v)} type="number" />
-                        <Field label="Reorder Qty" value={form.reorderQty} onChange={v => set('reorderQty', v)} type="number" />
-                        <Field label="Cost (SEK)" value={form.cost} onChange={v => set('cost', v)} type="number" />
-                        <Field label="Sell Price (SEK)" value={form.sellingPrice} onChange={v => set('sellingPrice', v)} type="number" />
-                    </div>
-
-                    {/* Motorcycle-specific */}
-                    {category === 'motorcycles' && (
+                        {/* Core fields */}
                         <div className="grid grid-cols-2 gap-4">
-                            <Field label="VIN" value={form.vin} onChange={v => set('vin', v)} mono />
-                            <Field label="Year" value={form.year} onChange={v => set('year', v)} type="number" />
-                            <Field label="Engine CC" value={form.engineCC} onChange={v => set('engineCC', v)} type="number" />
-                            <Field label="Color" value={form.color} onChange={v => set('color', v)} />
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-600 mb-1.5">MC Type</label>
-                                <select value={form.mcType} onChange={e => set('mcType', e.target.value)}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
-                                    {MC_TYPES.map(t => <option key={t}>{t}</option>)}
-                                </select>
+                            <Field label="Name *" value={form.name} onChange={v => set('name', v)} />
+                            <Field label="Brand *" value={form.brand} onChange={v => set('brand', v)} />
+                            <Field label="Article Number" value={form.articleNumber} onChange={v => set('articleNumber', v)} mono />
+                            <Field label="Vendor / Supplier" value={form.vendor} onChange={v => set('vendor', v)} />
+                            <Field label="Location" value={form.location} onChange={v => set('location', v)} placeholder="e.g. B3-12" />
+                        </div>
+                        <Field label="Description" value={form.description} onChange={v => set('description', v)} multiline />
+
+                        {/* Stock & pricing */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <Field label="Stock" value={form.stock} onChange={v => set('stock', v)} type="number" />
+                            <Field label="Reorder Qty" value={form.reorderQty} onChange={v => set('reorderQty', v)} type="number" />
+                            <Field label="Cost (SEK)" value={form.cost} onChange={v => set('cost', v)} type="number" />
+                            <Field label="Sell Price (SEK)" value={form.sellingPrice} onChange={v => set('sellingPrice', v)} type="number" />
+                        </div>
+
+                        {/* Motorcycle-specific */}
+                        {category === 'motorcycles' && (
+                            <div className="grid grid-cols-2 gap-4">
+                                <Field label="VIN" value={form.vin} onChange={v => set('vin', v)} mono />
+                                <Field label="Year" value={form.year} onChange={v => set('year', v)} type="number" />
+                                <Field label="Engine CC" value={form.engineCC} onChange={v => set('engineCC', v)} type="number" />
+                                <Field label="Color" value={form.color} onChange={v => set('color', v)} />
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">MC Type</label>
+                                    <select value={form.mcType} onChange={e => set('mcType', e.target.value)}
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
+                                        {MC_TYPES.map(t => <option key={t}>{t}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">Warehouse</label>
+                                    <select value={form.warehouse} onChange={e => set('warehouse', e.target.value)}
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
+                                        {WAREHOUSES.map(w => <option key={w}>{w}</option>)}
+                                    </select>
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Warehouse</label>
-                                <select value={form.warehouse} onChange={e => set('warehouse', e.target.value)}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
-                                    {WAREHOUSES.map(w => <option key={w}>{w}</option>)}
-                                </select>
+                        )}
+
+                        {/* Spare-part category + sub-type */}
+                        {category === 'spareParts' && (
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">Category</label>
+                                    <select value={form.category}
+                                        onChange={e => { set('category', e.target.value); set('spSubCat', '') }}
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
+                                        <optgroup label="Powertrain">
+                                            {['Engine', 'Transmission', 'Fuel System', 'Exhaust'].map(c => <option key={c}>{c}</option>)}
+                                        </optgroup>
+                                        <optgroup label="Chassis & Safety">
+                                            {['Suspension', 'Brakes', 'Tyres & Wheels', 'Controls & Cables'].map(c => <option key={c}>{c}</option>)}
+                                        </optgroup>
+                                        <optgroup label="Electrical & Instruments">
+                                            {['Electrical', 'Lighting', 'Instruments'].map(c => <option key={c}>{c}</option>)}
+                                        </optgroup>
+                                        <optgroup label="Body & Ancillaries">
+                                            {['Body & Frame', 'Cooling System', 'Filters & Fluids'].map(c => <option key={c}>{c}</option>)}
+                                        </optgroup>
+                                    </select>
+                                </div>
+                                {SP_STYLES[form.category] && (
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-600 mb-1.5">Sub-type</label>
+                                        <select value={form.spSubCat} onChange={e => set('spSubCat', e.target.value)}
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
+                                            <option value="">— Select sub-type —</option>
+                                            {SP_STYLES[form.category].map(s => <option key={s}>{s}</option>)}
+                                        </select>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Accessory category + style */}
+                        {category === 'accessories' && (
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">Type</label>
+                                    <select value={form.category}
+                                        onChange={e => { set('category', e.target.value); set('subGroup', '') }}
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
+                                        <optgroup label="Helmets"><option>Helmet</option></optgroup>
+                                        <optgroup label="Clothing">
+                                            {['Jacket', 'Gloves', 'T-Shirt', 'Pants', 'Boots', 'Cap', 'Neck & Face'].map(c => <option key={c}>{c}</option>)}
+                                        </optgroup>
+                                        <optgroup label="Other">
+                                            {['Seat Cover', 'Protection', 'Luggage', 'Handlebars & Grips'].map(c => <option key={c}>{c}</option>)}
+                                        </optgroup>
+                                    </select>
+                                </div>
+                                <Field label="Size (optional)" value={form.size} onChange={v => set('size', v)} placeholder="e.g. M, L, XL" />
+                                <Field label="Colour" value={form.accColor} onChange={v => set('accColor', v)} placeholder="e.g. Black, Midnight Blue" />
+                                {ACC_STYLES[form.category] && (
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-600 mb-1.5">Style</label>
+                                        <select value={form.subGroup} onChange={e => set('subGroup', e.target.value)}
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
+                                            <option value="">— Select style —</option>
+                                            {ACC_STYLES[form.category].map(s => <option key={s}>{s}</option>)}
+                                        </select>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Website listing toggle */}
+                        <div
+                            onClick={() => set('listedOnWebsite', !form.listedOnWebsite)}
+                            className={`flex items-center justify-between px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
+                                form.listedOnWebsite
+                                    ? 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100'
+                                    : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                            }`}
+                        >
+                            <div className="flex items-center gap-2.5">
+                                <span className="text-base">🌐</span>
+                                <div>
+                                    <p className={`text-sm font-semibold ${form.listedOnWebsite ? 'text-emerald-700' : 'text-gray-600'}`}>
+                                        {form.listedOnWebsite ? 'Listed on website' : 'Not listed on website'}
+                                    </p>
+                                    <p className="text-xs text-gray-400 mt-0.5">
+                                        {form.listedOnWebsite ? 'Visible to customers online' : 'Click to publish on your website'}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${form.listedOnWebsite ? 'bg-emerald-500' : 'bg-gray-300'}`}>
+                                <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${form.listedOnWebsite ? 'left-5' : 'left-0.5'}`} />
                             </div>
                         </div>
-                    )}
 
-                    {/* Spare-part category + sub-type */}
-                    {category === 'spareParts' && (
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Category</label>
-                                <select value={form.category}
-                                    onChange={e => { set('category', e.target.value); set('spSubCat', '') }}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
-                                    <optgroup label="Powertrain">
-                                        {['Engine', 'Transmission', 'Fuel System', 'Exhaust'].map(c => <option key={c}>{c}</option>)}
-                                    </optgroup>
-                                    <optgroup label="Chassis & Safety">
-                                        {['Suspension', 'Brakes', 'Tyres & Wheels', 'Controls & Cables'].map(c => <option key={c}>{c}</option>)}
-                                    </optgroup>
-                                    <optgroup label="Electrical & Instruments">
-                                        {['Electrical', 'Lighting', 'Instruments'].map(c => <option key={c}>{c}</option>)}
-                                    </optgroup>
-                                    <optgroup label="Body & Ancillaries">
-                                        {['Body & Frame', 'Cooling System', 'Filters & Fluids'].map(c => <option key={c}>{c}</option>)}
-                                    </optgroup>
-                                </select>
-                            </div>
-                            {SP_STYLES[form.category] && (
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">Sub-type</label>
-                                    <select value={form.spSubCat} onChange={e => set('spSubCat', e.target.value)}
-                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
-                                        <option value="">— Select sub-type —</option>
-                                        {SP_STYLES[form.category].map(s => <option key={s}>{s}</option>)}
-                                    </select>
+                        {error && (
+                            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">{error}</div>
+                        )}
+                    </div>
+
+                    {/* ── RIGHT: photo panel ───────────────────────────────── */}
+                    <div className="w-72 shrink-0 flex flex-col bg-gray-50/60 overflow-y-auto">
+
+                        {/* Panel header */}
+                        <div className="flex items-center justify-between px-4 pt-4 pb-3 shrink-0">
+                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Photos</p>
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={uploading}
+                                className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white rounded-lg transition-colors"
+                            >
+                                {uploading
+                                    ? <><span className="inline-block w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />Uploading…</>
+                                    : '+ Upload'}
+                            </button>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                className="hidden"
+                                onChange={e => { handleUpload(e.target.files); setActiveImg(form.images.length) }}
+                            />
+                        </div>
+
+                        {/* Main preview */}
+                        <div className="mx-4 mb-3 shrink-0">
+                            {form.images.length > 0 ? (
+                                <div className="relative rounded-xl overflow-hidden bg-gray-200 aspect-square">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                        src={form.images[Math.min(activeImg, form.images.length - 1)]}
+                                        alt="Preview"
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveImage(form.images[Math.min(activeImg, form.images.length - 1)])}
+                                        className="absolute top-2 right-2 w-7 h-7 bg-black/60 hover:bg-red-600 text-white rounded-full text-xs font-bold flex items-center justify-center transition-colors"
+                                        title="Remove this photo"
+                                    >✕</button>
+                                    {form.images.length > 1 && (
+                                        <span className="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                                            {Math.min(activeImg, form.images.length - 1) + 1} / {form.images.length}
+                                        </span>
+                                    )}
+                                </div>
+                            ) : (
+                                <div
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="rounded-xl border-2 border-dashed border-gray-300 aspect-square flex flex-col items-center justify-center cursor-pointer hover:border-orange-400 hover:bg-orange-50/40 transition-colors"
+                                >
+                                    <span className="text-3xl mb-2">📷</span>
+                                    <p className="text-xs text-gray-400 font-medium">Click to upload</p>
+                                    <p className="text-[10px] text-gray-300 mt-0.5">JPG, PNG, WEBP</p>
                                 </div>
                             )}
                         </div>
-                    )}
 
-                    {/* Accessory category + style */}
-                    {category === 'accessories' && (
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Type</label>
-                                <select value={form.category}
-                                    onChange={e => { set('category', e.target.value); set('subGroup', '') }}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
-                                    <optgroup label="Helmets"><option>Helmet</option></optgroup>
-                                    <optgroup label="Clothing">
-                                        {['Jacket', 'Gloves', 'T-Shirt', 'Pants', 'Boots', 'Cap', 'Neck & Face'].map(c => <option key={c}>{c}</option>)}
-                                    </optgroup>
-                                    <optgroup label="Other">
-                                        {['Seat Cover', 'Protection', 'Luggage', 'Handlebars & Grips'].map(c => <option key={c}>{c}</option>)}
-                                    </optgroup>
-                                </select>
+                        {/* Thumbnail strip */}
+                        {form.images.length > 1 && (
+                            <div className="px-4 mb-3 grid grid-cols-4 gap-1.5 shrink-0">
+                                {form.images.map((url, i) => (
+                                    <button
+                                        key={url}
+                                        type="button"
+                                        onClick={() => setActiveImg(i)}
+                                        className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                                            i === Math.min(activeImg, form.images.length - 1)
+                                                ? 'border-orange-500 scale-105'
+                                                : 'border-transparent hover:border-gray-300'
+                                        }`}
+                                    >
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src={url} alt="" className="w-full h-full object-cover" />
+                                    </button>
+                                ))}
                             </div>
-                            <Field label="Size (optional)" value={form.size} onChange={v => set('size', v)} placeholder="e.g. M, L, XL" />
-                            <Field label="Colour" value={form.accColor} onChange={v => set('accColor', v)} placeholder="e.g. Black, Midnight Blue" />
-                            {ACC_STYLES[form.category] && (
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">Style</label>
-                                    <select value={form.subGroup} onChange={e => set('subGroup', e.target.value)}
-                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
-                                        <option value="">— Select style —</option>
-                                        {ACC_STYLES[form.category].map(s => <option key={s}>{s}</option>)}
-                                    </select>
-                                </div>
-                            )}
-                        </div>
-                    )}
+                        )}
 
-                    {/* Website listing toggle */}
-                    <div
-                        onClick={() => set('listedOnWebsite', !form.listedOnWebsite)}
-                        className={`flex items-center justify-between px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
-                            form.listedOnWebsite
-                                ? 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100'
-                                : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
-                        }`}
-                    >
-                        <div className="flex items-center gap-2.5">
-                            <span className="text-base">🌐</span>
-                            <div>
-                                <p className={`text-sm font-semibold ${form.listedOnWebsite ? 'text-emerald-700' : 'text-gray-600'}`}>
-                                    {form.listedOnWebsite ? 'Listed on website' : 'Not listed on website'}
-                                </p>
-                                <p className="text-xs text-gray-400 mt-0.5">
-                                    {form.listedOnWebsite ? 'This product is visible to customers online' : 'Click to make this product visible on your website'}
-                                </p>
-                            </div>
-                        </div>
-                        <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${form.listedOnWebsite ? 'bg-emerald-500' : 'bg-gray-300'}`}>
-                            <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${form.listedOnWebsite ? 'left-5' : 'left-0.5'}`} />
-                        </div>
+                        {/* Website hint */}
+                        {websiteUrl && form.listedOnWebsite && (
+                            <p className="mx-4 mb-3 text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2 leading-relaxed shrink-0">
+                                Visible at <span className="font-mono font-semibold">{websiteUrl}</span>
+                            </p>
+                        )}
                     </div>
-
-                    {/* Error */}
-                    {error && (
-                        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">{error}</div>
-                    )}
                 </div>
 
                 {/* Footer */}

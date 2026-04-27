@@ -273,11 +273,17 @@ function MotorcycleTable({ data, updateStock, toggleListing, onRowClick, onDelet
     const cols: ColDef<Motorcycle>[] = [
         { label: 'ID',           defaultWidth: 120, tdClass: 'font-mono text-xs text-slate-400 truncate',  cell: m => m.id },
         { label: 'Name / Brand', defaultWidth: 180, cell: m => (
-            <>
-                <div className="font-semibold text-slate-800 truncate">{m.name}</div>
-                <div className="text-xs text-[#FF6B2C] font-medium truncate">{m.brand}</div>
-                <div className="text-xs text-slate-400 mt-0.5 truncate" title={m.description}>{m.description}</div>
-            </>
+            <div className="flex items-start gap-2">
+                {m.images && m.images.length > 0
+                    ? <img src={m.images[0]} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0 border border-gray-200" />
+                    : <div className="w-9 h-9 rounded-lg bg-gray-100 shrink-0 flex items-center justify-center text-base">🏍️</div>
+                }
+                <div className="min-w-0">
+                    <div className="font-semibold text-slate-800 truncate">{m.name}</div>
+                    <div className="text-xs text-[#FF6B2C] font-medium truncate">{m.brand}</div>
+                    <div className="text-xs text-slate-400 mt-0.5 truncate" title={m.description}>{m.description}</div>
+                </div>
+            </div>
         )},
         { label: 'Article No.',  defaultWidth: 110, tdClass: 'font-mono text-xs text-slate-500 truncate',  cell: m => m.articleNumber },
         { label: 'VIN',          defaultWidth: 130, tdClass: 'font-mono text-xs text-blue-600 truncate',   cell: m => m.vin },
@@ -321,11 +327,17 @@ function SparePartsTable({ data, updateStock, toggleListing, onRowClick, onDelet
     const cols: ColDef<SparePart>[] = [
         { label: 'ID',           defaultWidth: 120, tdClass: 'font-mono text-xs text-slate-400 truncate',     cell: s => s.id },
         { label: 'Name / Brand', defaultWidth: 180, cell: s => (
-            <>
-                <div className="font-semibold text-slate-800 truncate">{s.name}</div>
-                <div className="text-xs text-[#FF6B2C] font-medium truncate">{s.brand}</div>
-                <div className="text-xs text-slate-400 mt-0.5 truncate" title={s.description}>{s.description}</div>
-            </>
+            <div className="flex items-start gap-2">
+                {s.images && s.images.length > 0
+                    ? <img src={s.images[0]} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0 border border-gray-200" />
+                    : <div className="w-9 h-9 rounded-lg bg-gray-100 shrink-0 flex items-center justify-center text-base">🔧</div>
+                }
+                <div className="min-w-0">
+                    <div className="font-semibold text-slate-800 truncate">{s.name}</div>
+                    <div className="text-xs text-[#FF6B2C] font-medium truncate">{s.brand}</div>
+                    <div className="text-xs text-slate-400 mt-0.5 truncate" title={s.description}>{s.description}</div>
+                </div>
+            </div>
         )},
         { label: 'Article No.',  defaultWidth: 110, tdClass: 'font-mono text-xs text-slate-500 truncate',     cell: s => s.articleNumber },
         { label: 'Category',     defaultWidth: 110, cell: s => <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap">{s.category}</span> },
@@ -378,11 +390,17 @@ function AccessoriesTable({ data, updateStock, toggleListing, onRowClick, onDele
     const cols: ColDef<Accessory>[] = [
         { label: 'ID',           defaultWidth: 120, tdClass: 'font-mono text-xs text-slate-400 truncate',     cell: a => a.id },
         { label: 'Name / Brand', defaultWidth: 180, cell: a => (
-            <>
-                <div className="font-semibold text-slate-800 truncate">{a.name}</div>
-                <div className="text-xs text-[#FF6B2C] font-medium truncate">{a.brand}</div>
-                <div className="text-xs text-slate-400 mt-0.5 truncate" title={a.description}>{a.description}</div>
-            </>
+            <div className="flex items-start gap-2">
+                {a.images && a.images.length > 0
+                    ? <img src={a.images[0]} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0 border border-gray-200" />
+                    : <div className="w-9 h-9 rounded-lg bg-gray-100 shrink-0 flex items-center justify-center text-base">🪖</div>
+                }
+                <div className="min-w-0">
+                    <div className="font-semibold text-slate-800 truncate">{a.name}</div>
+                    <div className="text-xs text-[#FF6B2C] font-medium truncate">{a.brand}</div>
+                    <div className="text-xs text-slate-400 mt-0.5 truncate" title={a.description}>{a.description}</div>
+                </div>
+            </div>
         )},
         { label: 'Article No.',  defaultWidth: 110, tdClass: 'font-mono text-xs text-slate-500 truncate',     cell: a => a.articleNumber },
         { label: 'Type',         defaultWidth: 120, cell: a => <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap">{a.category}</span> },
