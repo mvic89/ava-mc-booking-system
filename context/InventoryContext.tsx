@@ -49,6 +49,7 @@ function dbToSparePart(r: any): SparePart {
         articleNumber: r.article_number,
         brand:        r.brand,
         category:     r.category,
+        subCategory:  r.sub_category ?? undefined,
         stock:        r.stock,
         reorderQty:   r.reorder_qty,
         cost:         Number(r.cost),
@@ -206,6 +207,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 brand:         sp.brand,
                 description:   sp.description,
                 category:      sp.category,
+                sub_category:  sp.subCategory ?? null,
                 stock:         sp.stock,
                 reorder_qty:   sp.reorderQty,
                 cost:          sp.cost,
@@ -261,6 +263,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
             await supabase.from('spare_parts').update({
                 name: sp.name, brand: sp.brand, description: sp.description,
                 article_number: sp.articleNumber, category: sp.category,
+                sub_category: sp.subCategory ?? null,
                 stock: sp.stock, reorder_qty: sp.reorderQty,
                 cost: sp.cost, selling_price: sp.sellingPrice, vendor: sp.vendor,
                 location: sp.location ?? null,

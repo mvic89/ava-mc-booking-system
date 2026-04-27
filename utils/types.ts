@@ -33,7 +33,8 @@ export interface Motorcycle extends BaseInventoryItem {
 }
 
 export interface SparePart extends BaseInventoryItem {
-    category: 'Engine' | 'Brakes' | 'Electrical' | 'Transmission' | 'Suspension' | 'Fuel System' | 'Tyres & Wheels' | 'Exhaust' | 'Body & Frame';
+    category: 'Engine' | 'Brakes' | 'Electrical' | 'Transmission' | 'Suspension' | 'Fuel System' | 'Tyres & Wheels' | 'Exhaust' | 'Body & Frame' | 'Cooling System' | 'Filters & Fluids' | 'Controls & Cables' | 'Lighting' | 'Instruments';
+    subCategory?: string;
 }
 
 export type AccessoryGroup = 'Helmets' | 'Clothing' | 'Seat Covers' | 'Luggage' | 'Protection' | 'Other'

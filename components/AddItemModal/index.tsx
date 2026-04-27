@@ -148,7 +148,8 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
     const [warehouse, setWarehouse] = useState<Warehouse>('Warehouse A')
 
     // Spare part-specific
-    const [spCategory, setSpCategory] = useState('')
+    const [spCategory,    setSpCategory]    = useState('')
+    const [spSubCategory, setSpSubCategory] = useState('')
 
     // Accessory-specific
     const [accCategory, setAccCategory] = useState('')
@@ -217,6 +218,91 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
             'Standard Grip', 'Ergonomic Grip', 'Heated Grip', 'Lock-On Grip',
             'Bar End Weight', 'Riser / Adapter', 'Clip-On / Clubman',
             'Fatbar', 'Crossbar Pad', 'Throttle Assist',
+        ],
+    }
+
+    const SP_STYLES: Record<string, string[]> = {
+        'Engine': [
+            'Piston & Rings', 'Cylinder Barrel', 'Cylinder Head',
+            'Camshaft & Rocker Arms', 'Valves & Valve Springs',
+            'Crankshaft & Conrod', 'Crank Bearings & Seals',
+            'Clutch Pack & Springs', 'Oil Pump',
+            'Engine Gasket Set', 'Timing Chain & Tensioner',
+            'Engine Cover / Casing', 'Starter Motor',
+        ],
+        'Brakes': [
+            'Brake Pads (Disc)', 'Brake Shoes (Drum)', 'Brake Disc / Rotor',
+            'Caliper Assembly', 'Caliper Rebuild Kit', 'Brake Master Cylinder',
+            'Brake Line & Banjo Bolt', 'Brake Lever', 'ABS Sensor', 'ABS Modulator',
+        ],
+        'Electrical': [
+            'Battery', 'Spark Plug', 'Ignition Coil', 'CDI / ECU Module',
+            'Stator Coil', 'Rotor / Flywheel', 'Rectifier-Regulator',
+            'Wiring Harness', 'Switch Assembly', 'Relay & Fuse',
+            'Throttle Position Sensor', 'Crankshaft Position Sensor', 'Starter Relay',
+        ],
+        'Transmission': [
+            'Drive Chain', 'Front Sprocket', 'Rear Sprocket', 'Chain & Sprocket Kit',
+            'Gearshift Fork', 'Selector Drum', 'Gearbox Shaft',
+            'Clutch Cable', 'Belt Drive Kit', 'Shaft Drive Seal',
+            'Chain Tensioner / Slider', 'Chain Guard',
+        ],
+        'Suspension': [
+            'Fork Spring', 'Fork Oil Seal & Dust Seal', 'Fork Bushing / Slider',
+            'Fork Tube / Stanchion', 'Rear Shock Absorber', 'Rear Spring',
+            'Linkage / Rocker Arm Bearing', 'Steering Head Bearing & Race',
+            'Swingarm Bearing & Seal', 'Fork Brace',
+        ],
+        'Fuel System': [
+            'Carburettor Body', 'Main Jet & Needle Jet', 'Float & Float Valve',
+            'Fuel Injector', 'Fuel Pump', 'Fuel Filter',
+            'Fuel Tap / Petcock', 'Throttle Body', 'Intake Boot / Manifold',
+            'Air Box', 'Choke Assembly', 'Fuel Tank Cap & Seal',
+        ],
+        'Tyres & Wheels': [
+            'Front Tyre', 'Rear Tyre', 'Inner Tube (Front)', 'Inner Tube (Rear)',
+            'Rim Assembly (Front)', 'Rim Assembly (Rear)', 'Wheel Bearing',
+            'Wheel Seal', 'Rim Tape', 'Tyre Valve Stem', 'Rim Lock', 'Spoke Set',
+        ],
+        'Exhaust': [
+            'Header Pipe / Downpipe', 'Mid-Pipe / Link Pipe', 'Silencer / Muffler',
+            'Full Exhaust System', 'Exhaust Gasket', 'Exhaust Clamp',
+            'Exhaust Bracket & Mount', 'Heat Shield', 'DB Killer',
+        ],
+        'Body & Frame': [
+            'Upper Front Fairing', 'Side Fairing Panel', 'Lower Belly Pan',
+            'Windscreen / Windshield', 'Rear Seat Cowl', 'Tail Unit',
+            'Front Fender / Mudguard', 'Rear Fender / Mudguard',
+            'Fuel Tank Cover / Shroud', 'Side Cover', 'Seat Assembly',
+            'Frame Slider / Crash Protector', 'Number Plate Holder',
+        ],
+        'Cooling System': [
+            'Radiator Core', 'Radiator Hose (Upper)', 'Radiator Hose (Lower)',
+            'Thermostat & Housing', 'Water Pump Body', 'Water Pump Impeller & Seal',
+            'Radiator Fan & Motor', 'Coolant Reservoir', 'Hose Clamp',
+            'Coolant Temperature Sensor',
+        ],
+        'Filters & Fluids': [
+            'Engine Oil Filter', 'Air Filter Element', 'Fuel Filter',
+            'Oil Drain Plug & Washer', 'Oil Pressure Switch',
+            'Coolant / Antifreeze', 'Brake Fluid', 'Fork Oil', 'Gear / Transmission Oil',
+        ],
+        'Controls & Cables': [
+            'Throttle Cable (Open)', 'Throttle Cable (Close)', 'Clutch Cable',
+            'Choke / Enricher Cable', 'Rear Brake Cable', 'Speedometer Cable',
+            'Handlebar Grip Set', 'Throttle Tube', 'Brake Lever', 'Clutch Lever',
+            'Footpeg & Mount', 'Brake Pedal', 'Gear Lever & Linkage',
+        ],
+        'Lighting': [
+            'Headlight Assembly', 'Headlight Bulb (H4 / H7)', 'LED Headlight Conversion',
+            'Tail Light Assembly', 'Tail Light Bulb / LED', 'Turn Signal / Indicator',
+            'Indicator Lens', 'Licence Plate Light', 'DRL / LED Strip',
+            'Headlight Bracket & Stay',
+        ],
+        'Instruments': [
+            'Speedometer (Analogue)', 'Speedometer (Digital)', 'Tachometer',
+            'Fuel Gauge / Sender Unit', 'Temperature Gauge', 'Digital Dash Display',
+            'Odometer / Hour Meter', 'GPS / Navigation Mount',
         ],
     }
 
@@ -369,6 +455,7 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                     location: location.trim() || undefined,
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     category: spCategory as any,
+                    subCategory: spSubCategory.trim() || undefined,
                 })
             } else {
                 await addItem('accessories', {
@@ -832,20 +919,43 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                                 {type === 'spareParts' && (
                                     <>
                                         <Section title="Spare Part Details" />
-                                        <Field label="Category" required>
-                                            <select className={selectCls} value={spCategory} onChange={(e) => setSpCategory(e.target.value)}>
-                                                <option value="">— Select category —</option>
-                                                <option>Engine</option>
-                                                <option>Brakes</option>
-                                                <option>Electrical</option>
-                                                <option>Transmission</option>
-                                                <option>Suspension</option>
-                                                <option>Fuel System</option>
-                                                <option>Tyres &amp; Wheels</option>
-                                                <option>Exhaust</option>
-                                                <option>Body &amp; Frame</option>
-                                            </select>
-                                        </Field>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <Field label="Category" required>
+                                                <select className={selectCls} value={spCategory} onChange={(e) => { setSpCategory(e.target.value); setSpSubCategory('') }}>
+                                                    <option value="">— Select category —</option>
+                                                    <optgroup label="Powertrain">
+                                                        <option>Engine</option>
+                                                        <option>Transmission</option>
+                                                        <option>Fuel System</option>
+                                                        <option>Exhaust</option>
+                                                    </optgroup>
+                                                    <optgroup label="Chassis &amp; Safety">
+                                                        <option>Suspension</option>
+                                                        <option>Brakes</option>
+                                                        <option>Tyres &amp; Wheels</option>
+                                                        <option>Controls &amp; Cables</option>
+                                                    </optgroup>
+                                                    <optgroup label="Electrical &amp; Instruments">
+                                                        <option>Electrical</option>
+                                                        <option>Lighting</option>
+                                                        <option>Instruments</option>
+                                                    </optgroup>
+                                                    <optgroup label="Body &amp; Ancillaries">
+                                                        <option>Body &amp; Frame</option>
+                                                        <option>Cooling System</option>
+                                                        <option>Filters &amp; Fluids</option>
+                                                    </optgroup>
+                                                </select>
+                                            </Field>
+                                            {SP_STYLES[spCategory] && (
+                                                <Field label="Sub-type">
+                                                    <select className={selectCls} value={spSubCategory} onChange={(e) => setSpSubCategory(e.target.value)}>
+                                                        <option value="">— Select sub-type —</option>
+                                                        {SP_STYLES[spCategory].map(s => <option key={s}>{s}</option>)}
+                                                    </select>
+                                                </Field>
+                                            )}
+                                        </div>
                                     </>
                                 )}
 

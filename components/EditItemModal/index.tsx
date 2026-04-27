@@ -9,8 +9,92 @@ import {
 
 const MC_TYPES:    MCType[]    = ['New', 'Trade-In', 'Commission']
 const WAREHOUSES:  Warehouse[] = ['Warehouse A', 'Warehouse B', 'Warehouse C', 'Warehouse D']
-const SP_CATS = ['Engine', 'Brakes', 'Electrical', 'Transmission', 'Suspension', 'Fuel System', 'Tyres & Wheels', 'Exhaust', 'Body & Frame']
 const ACC_CATS = ['Helmet', 'Gloves', 'Jacket', 'T-Shirt', 'Boots', 'Pants', 'Protection', 'Luggage', 'Seat Cover', 'Handlebars & Grips', 'Cap', 'Neck & Face']
+
+const SP_STYLES: Record<string, string[]> = {
+    'Engine': [
+        'Piston & Rings', 'Cylinder Barrel', 'Cylinder Head',
+        'Camshaft & Rocker Arms', 'Valves & Valve Springs',
+        'Crankshaft & Conrod', 'Crank Bearings & Seals',
+        'Clutch Pack & Springs', 'Oil Pump',
+        'Engine Gasket Set', 'Timing Chain & Tensioner',
+        'Engine Cover / Casing', 'Starter Motor',
+    ],
+    'Brakes': [
+        'Brake Pads (Disc)', 'Brake Shoes (Drum)', 'Brake Disc / Rotor',
+        'Caliper Assembly', 'Caliper Rebuild Kit', 'Brake Master Cylinder',
+        'Brake Line & Banjo Bolt', 'Brake Lever', 'ABS Sensor', 'ABS Modulator',
+    ],
+    'Electrical': [
+        'Battery', 'Spark Plug', 'Ignition Coil', 'CDI / ECU Module',
+        'Stator Coil', 'Rotor / Flywheel', 'Rectifier-Regulator',
+        'Wiring Harness', 'Switch Assembly', 'Relay & Fuse',
+        'Throttle Position Sensor', 'Crankshaft Position Sensor', 'Starter Relay',
+    ],
+    'Transmission': [
+        'Drive Chain', 'Front Sprocket', 'Rear Sprocket', 'Chain & Sprocket Kit',
+        'Gearshift Fork', 'Selector Drum', 'Gearbox Shaft',
+        'Clutch Cable', 'Belt Drive Kit', 'Shaft Drive Seal',
+        'Chain Tensioner / Slider', 'Chain Guard',
+    ],
+    'Suspension': [
+        'Fork Spring', 'Fork Oil Seal & Dust Seal', 'Fork Bushing / Slider',
+        'Fork Tube / Stanchion', 'Rear Shock Absorber', 'Rear Spring',
+        'Linkage / Rocker Arm Bearing', 'Steering Head Bearing & Race',
+        'Swingarm Bearing & Seal', 'Fork Brace',
+    ],
+    'Fuel System': [
+        'Carburettor Body', 'Main Jet & Needle Jet', 'Float & Float Valve',
+        'Fuel Injector', 'Fuel Pump', 'Fuel Filter',
+        'Fuel Tap / Petcock', 'Throttle Body', 'Intake Boot / Manifold',
+        'Air Box', 'Choke Assembly', 'Fuel Tank Cap & Seal',
+    ],
+    'Tyres & Wheels': [
+        'Front Tyre', 'Rear Tyre', 'Inner Tube (Front)', 'Inner Tube (Rear)',
+        'Rim Assembly (Front)', 'Rim Assembly (Rear)', 'Wheel Bearing',
+        'Wheel Seal', 'Rim Tape', 'Tyre Valve Stem', 'Rim Lock', 'Spoke Set',
+    ],
+    'Exhaust': [
+        'Header Pipe / Downpipe', 'Mid-Pipe / Link Pipe', 'Silencer / Muffler',
+        'Full Exhaust System', 'Exhaust Gasket', 'Exhaust Clamp',
+        'Exhaust Bracket & Mount', 'Heat Shield', 'DB Killer',
+    ],
+    'Body & Frame': [
+        'Upper Front Fairing', 'Side Fairing Panel', 'Lower Belly Pan',
+        'Windscreen / Windshield', 'Rear Seat Cowl', 'Tail Unit',
+        'Front Fender / Mudguard', 'Rear Fender / Mudguard',
+        'Fuel Tank Cover / Shroud', 'Side Cover', 'Seat Assembly',
+        'Frame Slider / Crash Protector', 'Number Plate Holder',
+    ],
+    'Cooling System': [
+        'Radiator Core', 'Radiator Hose (Upper)', 'Radiator Hose (Lower)',
+        'Thermostat & Housing', 'Water Pump Body', 'Water Pump Impeller & Seal',
+        'Radiator Fan & Motor', 'Coolant Reservoir', 'Hose Clamp',
+        'Coolant Temperature Sensor',
+    ],
+    'Filters & Fluids': [
+        'Engine Oil Filter', 'Air Filter Element', 'Fuel Filter',
+        'Oil Drain Plug & Washer', 'Oil Pressure Switch',
+        'Coolant / Antifreeze', 'Brake Fluid', 'Fork Oil', 'Gear / Transmission Oil',
+    ],
+    'Controls & Cables': [
+        'Throttle Cable (Open)', 'Throttle Cable (Close)', 'Clutch Cable',
+        'Choke / Enricher Cable', 'Rear Brake Cable', 'Speedometer Cable',
+        'Handlebar Grip Set', 'Throttle Tube', 'Brake Lever', 'Clutch Lever',
+        'Footpeg & Mount', 'Brake Pedal', 'Gear Lever & Linkage',
+    ],
+    'Lighting': [
+        'Headlight Assembly', 'Headlight Bulb (H4 / H7)', 'LED Headlight Conversion',
+        'Tail Light Assembly', 'Tail Light Bulb / LED', 'Turn Signal / Indicator',
+        'Indicator Lens', 'Licence Plate Light', 'DRL / LED Strip',
+        'Headlight Bracket & Stay',
+    ],
+    'Instruments': [
+        'Speedometer (Analogue)', 'Speedometer (Digital)', 'Tachometer',
+        'Fuel Gauge / Sender Unit', 'Temperature Gauge', 'Digital Dash Display',
+        'Odometer / Hour Meter', 'GPS / Navigation Mount',
+    ],
+}
 
 const ACC_STYLES: Record<string, string[]> = {
     'Helmet': [
@@ -108,7 +192,9 @@ export function EditItemModal({ item, category, onClose }: Props) {
         mcType:    (item as Motorcycle).mcType    ?? 'New',
         warehouse: (item as Motorcycle).warehouse ?? 'Warehouse A',
         // spare-part / accessory category
-        category:  (item as SparePart | Accessory).category ?? '',
+        category:    (item as SparePart | Accessory).category ?? '',
+        // spare-part sub-category
+        spSubCat:    (item as SparePart).subCategory ?? '',
         // accessory sub-group, size, and colour
         subGroup:  (item as Accessory).subGroup ?? '',
         size:      (item as Accessory).size ?? '',
@@ -157,7 +243,7 @@ export function EditItemModal({ item, category, onClose }: Props) {
                     warehouse: form.warehouse as Warehouse,
                 } as Motorcycle)
             } else if (category === 'spareParts') {
-                await updateItem('spareParts', { ...base, category: form.category } as SparePart)
+                await updateItem('spareParts', { ...base, category: form.category, subCategory: form.spSubCat.trim() || undefined } as SparePart)
             } else {
                 await updateItem('accessories', {
                     ...base,
@@ -270,37 +356,61 @@ export function EditItemModal({ item, category, onClose }: Props) {
                         </div>
                     )}
 
-                    {/* Spare-part / accessory category */}
-                    {(category === 'spareParts' || category === 'accessories') && (
+                    {/* Spare-part category + sub-type */}
+                    {category === 'spareParts' && (
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Category</label>
+                                <select value={form.category}
+                                    onChange={e => { set('category', e.target.value); set('spSubCat', '') }}
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
+                                    <optgroup label="Powertrain">
+                                        {['Engine', 'Transmission', 'Fuel System', 'Exhaust'].map(c => <option key={c}>{c}</option>)}
+                                    </optgroup>
+                                    <optgroup label="Chassis & Safety">
+                                        {['Suspension', 'Brakes', 'Tyres & Wheels', 'Controls & Cables'].map(c => <option key={c}>{c}</option>)}
+                                    </optgroup>
+                                    <optgroup label="Electrical & Instruments">
+                                        {['Electrical', 'Lighting', 'Instruments'].map(c => <option key={c}>{c}</option>)}
+                                    </optgroup>
+                                    <optgroup label="Body & Ancillaries">
+                                        {['Body & Frame', 'Cooling System', 'Filters & Fluids'].map(c => <option key={c}>{c}</option>)}
+                                    </optgroup>
+                                </select>
+                            </div>
+                            {SP_STYLES[form.category] && (
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">Sub-type</label>
+                                    <select value={form.spSubCat} onChange={e => set('spSubCat', e.target.value)}
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
+                                        <option value="">— Select sub-type —</option>
+                                        {SP_STYLES[form.category].map(s => <option key={s}>{s}</option>)}
+                                    </select>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Accessory category + style */}
+                    {category === 'accessories' && (
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-semibold text-gray-600 mb-1.5">Type</label>
                                 <select value={form.category}
                                     onChange={e => { set('category', e.target.value); set('subGroup', '') }}
                                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
-                                    {category === 'spareParts'
-                                        ? SP_CATS.map(c => <option key={c}>{c}</option>)
-                                        : (
-                                            <>
-                                                <optgroup label="Helmets"><option>Helmet</option></optgroup>
-                                                <optgroup label="Clothing">
-                                                    {['Jacket', 'Gloves', 'T-Shirt', 'Pants', 'Boots', 'Cap', 'Neck & Face'].map(c => <option key={c}>{c}</option>)}
-                                                </optgroup>
-                                                <optgroup label="Other">
-                                                    {['Seat Cover', 'Protection', 'Luggage', 'Handlebars & Grips'].map(c => <option key={c}>{c}</option>)}
-                                                </optgroup>
-                                            </>
-                                        )
-                                    }
+                                    <optgroup label="Helmets"><option>Helmet</option></optgroup>
+                                    <optgroup label="Clothing">
+                                        {['Jacket', 'Gloves', 'T-Shirt', 'Pants', 'Boots', 'Cap', 'Neck & Face'].map(c => <option key={c}>{c}</option>)}
+                                    </optgroup>
+                                    <optgroup label="Other">
+                                        {['Seat Cover', 'Protection', 'Luggage', 'Handlebars & Grips'].map(c => <option key={c}>{c}</option>)}
+                                    </optgroup>
                                 </select>
                             </div>
-                            {category === 'accessories' && (
-                                <Field label="Size (optional)" value={form.size} onChange={v => set('size', v)} placeholder="e.g. M, L, XL" />
-                            )}
-                            {category === 'accessories' && (
-                                <Field label="Colour" value={form.accColor} onChange={v => set('accColor', v)} placeholder="e.g. Black, Midnight Blue" />
-                            )}
-                            {category === 'accessories' && ACC_STYLES[form.category] && (
+                            <Field label="Size (optional)" value={form.size} onChange={v => set('size', v)} placeholder="e.g. M, L, XL" />
+                            <Field label="Colour" value={form.accColor} onChange={v => set('accColor', v)} placeholder="e.g. Black, Midnight Blue" />
+                            {ACC_STYLES[form.category] && (
                                 <div>
                                     <label className="block text-xs font-semibold text-gray-600 mb-1.5">Style</label>
                                     <select value={form.subGroup} onChange={e => set('subGroup', e.target.value)}
