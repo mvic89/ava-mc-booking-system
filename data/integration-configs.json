@@ -29,8 +29,12 @@
       "lansforsakringar",
       "trygg_hansa"
     ],
-    "credentials": {},
-    "updatedAt": "2026-04-01T22:23:09.563Z"
+    "credentials": {
+      "smtp": {
+        "SMTP_PASS": "re_ehAepSyM_P9c6HAKdYR262bKhcdt6QY5z"
+      }
+    },
+    "updatedAt": "2026-04-20T11:46:45.492Z"
   },
   "stockholm-motors-ab": {
     "dealerId": "stockholm-motors-ab",

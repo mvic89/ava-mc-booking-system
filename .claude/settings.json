@@ -24,12 +24,16 @@
       "Bash(node -e \":*)",
       "Bash(node -e \"const d=require\\(''/dev/stdin''\\); console.log\\(JSON.stringify\\({main:d.main,exports:d.exports},null,2\\)\\);\")",
       "Bash(head -5 node_modules/pdf-parse/dist/*.js)",
-      "Bash(node -e \"const m = require\\(''./node_modules/pdf-parse/dist/pdf-parse''\\); console.log\\(typeof m, Object.keys\\(m\\).join\\('',''\\)\\)\")"
+      "Bash(node -e \"const m = require\\(''./node_modules/pdf-parse/dist/pdf-parse''\\); console.log\\(typeof m, Object.keys\\(m\\).join\\('',''\\)\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(list\\(d.keys\\(\\)\\)\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('accounting', {}\\), indent=2\\)\\)\")"
     ],
     "additionalDirectories": [
       "/Users/andrewkalumba/Documents/2026internship/ava-mc-booking-system",
       "/Users/andrewkalumba/Documents/2026internship/ava-mc-booking-system/app/api/klarna/session",
-      "/Users/andrewkalumba/Documents/2026internship/ava-mc-booking-system/app/sales/leads/[id]/agreement"
+      "/Users/andrewkalumba/Documents/2026internship/ava-mc-booking-system/app/sales/leads/[id]/agreement",
+      "/Users/andrewkalumba/Documents/2026internship/ava-mc-booking-system/app/api/offers",
+      "/Users/andrewkalumba/Documents/2026internship/ava-mc-booking-system/app/sales/leads/[id]"
     ]
   }
 }

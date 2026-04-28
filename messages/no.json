@@ -205,6 +205,8 @@
     "purchaseinvoices": "Kjøpsfakturaer",
     "salesPipeline": "Salgspipeline",
     "pipeline": "Pipeline",
+    "calendar": "Kalender",
+    "tasks": "Oppgaver",
     "customers": "Kunder",
     "invoices": "Salgsfakturaer",
     "documents": "Dokumenter",
@@ -213,6 +215,8 @@
     "users": "Brukere",
     "offer": "Tilbud",
     "accounting": "Regnskap",
+    "branches": "Filialer",
+    "targets": "Prestasjonsmål",
     "auditLog": "Revisjonslogg",
     "service": "Service",
     "subscribedDealer": "Abonnert forhandler",
@@ -220,7 +224,13 @@
       "core": "KJERNE",
       "sales": "SALG",
       "admin": "ADMIN"
-    }
+    },
+    "reservations": "Reservasjoner",
+    "tradeIns": "Innbyttekjøretøy",
+    "cancellations": "Avbestillinger",
+    "warranties": "Garantier",
+    "nps": "NPS & Tilfredshet",
+    "commissions": "Provisjoner"
   },
   "login": {
     "title": "Velkommen tilbake",
@@ -770,6 +780,7 @@
       "new": "Ny",
       "contacted": "Kontaktet",
       "testRide": "Prøvekjøring",
+      "offer": "Tilbud",
       "negotiating": "Forhandling",
       "pendingPayment": "Venter på betaling",
       "closed": "Avsluttet"
@@ -1250,5 +1261,1493 @@
     "goToLogin": "Gå til innlogging",
     "alreadyHaveAccount": "Har du allerede en konto?",
     "loginLink": "Logg inn"
+  },
+  "inventory": {
+    "title": "Lager",
+    "breadcrumb": "Lager",
+    "tabs": {
+      "motorcycles": "Motorsykler",
+      "spareParts": "Reservedeler",
+      "accessories": "Tilbehør"
+    },
+    "search": "Søk i lager...",
+    "stats": {
+      "totalSkus": "Totalt antall SKU",
+      "unitsInStock": "Enheter på lager",
+      "lowStock": "Lave lageradvarsler",
+      "stockValue": "Lagerverdi"
+    },
+    "table": {
+      "id": "ID",
+      "name": "Navn / Merke",
+      "articleNo": "Artikkelnr",
+      "vin": "VIN",
+      "year": "År",
+      "engine": "Motor",
+      "color": "Farge",
+      "mcType": "MC-type",
+      "warehouse": "Lager",
+      "stock": "Lager",
+      "reorderQty": "Bestillingsantall",
+      "cost": "Kostnad",
+      "sellPrice": "Salgspris",
+      "margin": "Margin",
+      "vendor": "Leverandør"
+    },
+    "empty": "Ingen lager ennå",
+    "noMatch": "Ingen varer samsvarer med søket",
+    "hint": "Hold musepekeren over en rad for å justere lageret",
+    "import": "Importer fra Excel eller legg til manuelt",
+    "export": {
+      "pdf": "PDF",
+      "excel": "Excel (.xlsx)",
+      "spreadsheet": "Regneark",
+      "print": "Utskriftsformat"
+    }
+  },
+  "goodsReceipts": {
+    "title": "Varemottak",
+    "breadcrumb": "Varemottak",
+    "subtitle": "Registrer mottatte varer — lageret oppdateres automatisk",
+    "stats": {
+      "total": "Totalt mottak",
+      "units": "Mottatte enheter",
+      "items": "Mottatte artikler",
+      "pending": "Venter på godkjenning"
+    },
+    "table": {
+      "receiptId": "Mottak-ID",
+      "po": "Innkjøpsordre #",
+      "deliveryNote": "Følgeseddel",
+      "item": "Artikkel",
+      "artNo": "Art.nr",
+      "lineItems": "Linjer",
+      "ordered": "Bestilt",
+      "received": "Mottatt",
+      "status": "Status",
+      "source": "Kilde",
+      "notes": "Notater"
+    },
+    "newReceipt": "Nytt mottak",
+    "search": "Søk mottak...",
+    "empty": "Ingen varemottak ennå",
+    "noMatch": "Ingen mottak samsvarer med søket",
+    "approve": "Godkjenn",
+    "pending": "Venter",
+    "approved": "Godkjent",
+    "rejected": "Avvist",
+    "backorder": "Restordre",
+    "linkPo": "Koble til innkjøpsordre (valgfritt)",
+    "deliveryNoteLabel": "Følgeseddelnr (valgfritt)",
+    "receivedBy": "Mottatt av",
+    "noOpenPos": "Ingen åpne innkjøpsordrer funnet"
+  },
+  "accounting": {
+    "title": "Regnskap",
+    "breadcrumb": "Regnskap",
+    "exportBtn": "Eksporter usynkroniserte",
+    "checking": "Sjekker tilkobling…",
+    "connected": "Koblet til Fortnox",
+    "tokenInvalid": "Token konfigurert men ugyldig — koble til igjen",
+    "notConnected": "Ikke koblet til Fortnox",
+    "howItWorks": "Slik fungerer det",
+    "synced": "Synkronisert",
+    "pending": "Venter",
+    "failed": "Mislyktes",
+    "search": "Søk faktura, kunde eller kjøretøy…",
+    "noInvoices": "Ingen fakturaer funnet.",
+    "showAll": "Vis alle",
+    "reconnect": "Koble til igjen",
+    "connect": "Koble til Fortnox",
+    "update": "Oppdater",
+    "adminOnly": "Regnskap er bare tilgjengelig for administratorer.",
+    "cols": {
+      "id": "Faktura",
+      "date": "Dato",
+      "customer": "Kunde",
+      "vehicle": "Kjøretøy",
+      "amount": "Beløp",
+      "payment": "Betaling",
+      "fortnox": "Fortnox",
+      "action": "Handling"
+    },
+    "subtitle": "Fortnox-integrasjon — synkroniser og eksporter fakturaer."
+  },
+  "suppliers": {
+    "title": "Leverandører",
+    "breadcrumb": "Leverandører",
+    "subtitle": "Klikk på en rad for å vise eller redigere leverandørdetaljer.",
+    "addBtn": "Legg til leverandør",
+    "importBtn": "Importer Excel",
+    "search": "Søk leverandører...",
+    "empty": "Ingen leverandører ennå",
+    "noMatch": "Ingen leverandører samsvarer med søket",
+    "stats": {
+      "total": "Totalt antall leverandører",
+      "withContact": "Med kontaktopplysninger",
+      "lowStock": "Lave lageradvarsler",
+      "totalSkus": "Totalt leverte SKU-er"
+    },
+    "cols": {
+      "no": "Leverandørnr",
+      "name": "Leverandørnavn",
+      "address": "Adresse",
+      "phone": "Telefon",
+      "orgNo": "Organisasjonsnummer",
+      "skus": "SKU-er",
+      "categories": "Kategorier",
+      "status": "Lagerstatus"
+    },
+    "poModal": {
+      "title": "Innkjøpsordrer",
+      "noPo": "Ingen innkjøpsordrer for denne leverandøren"
+    }
+  },
+  "purchaseInvoices": {
+    "title": "Leverandørfakturaer",
+    "breadcrumb": "Leverandørfakturaer",
+    "subtitle": "Spor og administrer fakturaer fra leverandører",
+    "newBtn": "Ny faktura",
+    "search": "Søk bestilling, leverandør, fakturanr...",
+    "empty": "Ingen leverandørfakturaer ennå",
+    "noMatch": "Ingen fakturaer samsvarer med filteret",
+    "cols": {
+      "supplierInvoice": "Leverandørfaktura #",
+      "systemRef": "Systemreferanse #",
+      "po": "Bestilling (valgfritt)",
+      "amount": "Beløp",
+      "invoiceDate": "Fakturadato",
+      "dueDate": "Forfallsdato",
+      "vendor": "Leverandør",
+      "status": "Status",
+      "notes": "Notater"
+    },
+    "status": {
+      "pending": "Venter",
+      "paid": "Betalt",
+      "overdue": "Forfalt",
+      "disputed": "Omstridt"
+    }
+  },
+  "purchaseOrders": {
+    "title": "Innkjøpsordrer",
+    "breadcrumb": "Innkjøpsordrer",
+    "subtitle": "Klikk på en rad for å åpne hele innkjøpsordren.",
+    "newBtn": "Opprett innkjøpsordre",
+    "importBtn": "Importer Excel",
+    "search": "Søk innkjøpsordre, leverandør, artikkel...",
+    "empty": "Ingen innkjøpsordrer ennå",
+    "noMatch": "Ingen innkjøpsordrer samsvarer med filteret",
+    "tabs": {
+      "all": "Alle",
+      "draft": "Utkast",
+      "reviewed": "Gjennomgått",
+      "sent": "Sendt",
+      "received": "Mottatt"
+    },
+    "cols": {
+      "number": "Innkjøpsordrenr",
+      "vendor": "Leverandør",
+      "date": "Dato",
+      "items": "Artikler",
+      "total": "Totalkostnad",
+      "eta": "Forventet levering",
+      "status": "Status"
+    },
+    "autoPos": "automatisk generert innkjøpsordre fra lavt lager",
+    "allAboveReorder": "Alle lagervarer er over bestillingspunktene — ingen innkjøpsordrer trengs nå."
+  },
+  "service": {
+    "title": "Service",
+    "subtitle": "Verkstedadministrasjon, bestillinger og servicehistorikk",
+    "comingSoon": "Servicemodulen er på vei",
+    "launching": "Lansering Q3 2026",
+    "earlyAccess": "Be om tidlig tilgang",
+    "benefits": {
+      "faster": "Raskere innsjekking med digitale arbeidsordrer",
+      "scheduling": "Mindre tid på manuell planlegging",
+      "history": "Servicehistorikk alltid tilgjengelig"
+    },
+    "features": "Det som kommer"
+  },
+  "settingsUsers": {
+    "title": "Brukere & Tillatelser",
+    "subtitle": "Administrer personalkontoer, roller og tilgangsnivåer.",
+    "breadcrumb": "Innstillinger / Brukere",
+    "inviteBtn": "Inviter bruker",
+    "stats": {
+      "active": "Aktive brukere",
+      "admins": "Administratorer",
+      "bankid": "BankID-verifisert"
+    },
+    "table": {
+      "staff": "Personalkontoer",
+      "lastLogin": "Siste innlogging"
+    },
+    "status": {
+      "verified": "BankID-verifisert",
+      "inactive": "Inaktiv",
+      "pending": "Venter"
+    },
+    "roles": {
+      "admin": "Admin",
+      "sales": "Salg",
+      "service": "Service"
+    },
+    "invite": {
+      "title": "Inviter ny bruker",
+      "name": "Fullt navn",
+      "email": "E-postadresse",
+      "role": "Rolle",
+      "cancel": "Avbryt",
+      "send": "Send invitasjon",
+      "sending": "Sender...",
+      "linkLabel": "Invitasjonslenke (gyldig 7 dager):",
+      "copy": "Kopier"
+    },
+    "adminOnly": "Bare administratorer kan administrere brukere og tillatelser.",
+    "noUsers": "Ingen brukere ennå — inviter personalet ditt."
+  },
+  "settingsPayments": {
+    "title": "Betalingsleverandører",
+    "breadcrumb": "Innstillinger / Betalingsleverandører",
+    "subtitle": "Aktiver betalingsmetodene forhandleren din aksepterer.",
+    "saveBtn": "Lagre alle endringer",
+    "saving": "Lagrer…",
+    "saved": "Lagret",
+    "saveFailed": "Lagring mislyktes — prøv igjen",
+    "primaryLabel": "Primær finansieringspartner",
+    "noneSelected": "Ingen valgt",
+    "comingSoon": "Kommer snart",
+    "testConnection": "Test tilkobling",
+    "testing": "Tester…",
+    "noCredentials": "Ingen påloggingsopplysninger kreves."
+  },
+  "settingsAuth": {
+    "title": "Administratorautentisering",
+    "subtitle": "Bekreft identiteten din for å fortsette",
+    "accessDenied": "Tilgang nektet",
+    "bankid": "BankID",
+    "secure": "Sikker elektronisk identifikasjon",
+    "recommended": "ANBEFALT",
+    "personnummer": "Personnummer",
+    "email": "E-postadresse",
+    "backToDashboard": "← Tilbake til dashbord",
+    "verify": "Bekreft",
+    "useInstead": "Bruk BankID i stedet →",
+    "adminOnly": "Innstillinger krever administratorrettigheter og bekreftet identitet"
+  },
+  "settingsEmail": {
+    "title": "E-postutsendelse",
+    "breadcrumb": "Innstillinger / E-postutsendelse",
+    "subtitle": "Innkjøpsordre-e-poster sendes via Resend. Konfigurer hvor leverandørsvar returneres.",
+    "replyToLabel": "Din svar-til-e-post",
+    "replyToDesc": "Når leverandøren trykker Svar, sendes e-posten hit.",
+    "phoneLabel": "Forhandlerens telefon (valgfritt)",
+    "phoneDesc": "Vises i bunnteksten på innkjøpsordre-e-poster.",
+    "save": "Lagre",
+    "saving": "Lagrer…",
+    "saved": "Lagret!",
+    "loading": "Laster…"
+  },
+  "settingsIntegrations": {
+    "title": "Integrasjoner",
+    "subtitle": "Koble til tredjepartstjenester for å automatisere arbeidsflyten din.",
+    "breadcrumb": "Innstillinger / Integrasjoner",
+    "categories": {
+      "crm": "CRM",
+      "accounting": "Regnskap",
+      "vehicles": "Kjøretøyregister",
+      "insurance": "Forsikring",
+      "communication": "Kommunikasjon",
+      "advertising": "Annonsering"
+    },
+    "cols": {
+      "credentials": "Påloggingsopplysninger",
+      "status": "Status",
+      "action": "Handling"
+    },
+    "noCredentials": "Ingen påloggingsopplysninger kreves.",
+    "comingSoon": "Kommer snart",
+    "live": "Aktiv",
+    "configured": "konfigurert"
+  },
+  "analytics": {
+    "title": "Rapporter",
+    "subtitle": "Sanntidsdata fra salg, leads og kunder",
+    "tabs": {
+      "overview": "Oversikt",
+      "sources": "Kildeanalyse",
+      "margins": "Marginanalyse",
+      "leaderboard": "Toppliste"
+    },
+    "kpi": {
+      "totalRevenue": "Total inntekt",
+      "avgOrder": "Snittordre",
+      "convRate": "Konverteringsgrad",
+      "grossProfit": "Bruttofortjeneste",
+      "avgMargin": "Snittmargin",
+      "totalCustomers": "Kunder totalt",
+      "pendingInvoices": "Ventende fakturaer",
+      "totalGrossProfit": "Total bruttofortjeneste",
+      "bestDeal": "Beste deal",
+      "totalClosed": "Avsluttet totalt",
+      "totalLeads": "Leads totalt",
+      "uniqueSources": "Unike kilder",
+      "bestSource": "Beste kilde",
+      "avgConv": "Snitt konv."
+    },
+    "sub": {
+      "paidInvoices": "{n} betalte fakturaer",
+      "perInvoice": "per betalt faktura",
+      "paidOf": "{paid} av {total} fakturaer",
+      "dealsWithCost": "{n} deals med kostnad",
+      "perDeal": "per avsluttet deal med kostnad",
+      "vip": "{vip} VIP · {active} aktive",
+      "notPaid": "ikke betalt ennå",
+      "noCost": "n/a",
+      "allChannels": "alle kanaler",
+      "identifiedSources": "identifiserte leadkilder",
+      "avgAllSources": "alle kilder kombinert",
+      "sourceRevenue": "{rev} inntekt"
+    },
+    "series": {
+      "paid": "Betalte",
+      "pending": "Ventende",
+      "revenue": "Inntekt",
+      "grossProfit": "Bruttofortjeneste",
+      "deals": "Deals",
+      "leads": "Leads",
+      "avgDays": "Snitt dager"
+    },
+    "sections": {
+      "revenueTitle": "Inntektsutvikling — siste 12 måneder",
+      "revenueSub": "Betalte og ventende fakturaer per måned (kr)",
+      "invoicesTitle": "Fakturaer per måned",
+      "invoicesSub": "Siste 6 måneder (antall)",
+      "paymentTitle": "Betalingsmetoder",
+      "paymentSub": "Fordeling av betalte fakturaer",
+      "customersTitle": "Kundesegmenter",
+      "customersSub": "{n} kunder totalt",
+      "reportsTitle": "📧 Planlagte rapporter",
+      "reportsSub": "Hver mandag kl 08:00 sendes et ukessammendrag automatisk til admin-e-post.",
+      "reportsHint": "Konfigurer SMTP under Innstillinger → Integrasjoner.",
+      "sellerTitle": "Inntekt per selger",
+      "sellerSub": "Totalt fra avsluttede deals",
+      "leaderboardTitle": "Full toppliste",
+      "grossTitle": "Bruttofortjeneste per måned — siste 12 måneder",
+      "grossSub": "Inntekt vs bruttofortjeneste (kr)",
+      "brandTitle": "Inntekt per merke (topp 10)",
+      "brandSub": "Avsluttede deals, sortert etter inntekt",
+      "marginTitle": "Marginfordeling",
+      "marginSub": "Antall deals per marginintervall",
+      "turnoverTitle": "Lageromsetting — gjennomsnittlig tid i pipeline",
+      "turnoverSub": "Snittdager fra leadoppretting til avslutning, per merke",
+      "sourceRoiTitle": "Kildeanalyse — ROI per leadkilde",
+      "sourceRoiSub": "Leads, konvertering og inntekt fordelt per kilde",
+      "sourceVolTitle": "Leadvolum per kilde",
+      "sourceVolSub": "Totalt antall leads",
+      "sourceRevTitle": "Inntekt per kilde",
+      "sourceRevSub": "Totalt fra avsluttede deals",
+      "sourceConvTitle": "Konverteringsgrad per kilde",
+      "sourceConvSub": "Prosent leads som ble avsluttede deals"
+    },
+    "table": {
+      "rank": "Rang",
+      "salesperson": "Selger",
+      "leads": "Leads",
+      "closed": "Avsluttet",
+      "conv": "Konv.",
+      "revenue": "Inntekt",
+      "revenuePct": "Inntekt %",
+      "grossProfit": "Bruttofortjeneste",
+      "avgDeal": "Snittdeal",
+      "source": "Kilde",
+      "totalRevenue": "Total inntekt"
+    },
+    "leaderboard": {
+      "rankTotal": "#{n} totalt",
+      "revenueLabel": "Inntekt",
+      "closedLabel": "Avsluttet",
+      "ofLeads": "{closed} av {total} leads",
+      "convLabel": "Konvertering",
+      "avgDealLabel": "Snittdeal",
+      "grossLabel": "Bruttofortjeneste",
+      "target": "mål: {val}",
+      "vsTarget": "Mål vs utfall ({year})"
+    },
+    "empty": {
+      "invoices": "Ingen betalte fakturaer ennå.",
+      "leads": "Ingen leads ennå.",
+      "closed": "Ingen avsluttede deals ennå.",
+      "brands": "Ingen avsluttede deals med merkedata.",
+      "salespeople": "Ingen selgere ennå.",
+      "salespeopleSub": "Selgernavn registreres automatisk på nye leads."
+    },
+    "reports": {
+      "send": "Send testrapport",
+      "sending": "Sender…",
+      "success": "Ukessammendrag sendt til {email}",
+      "error": "Kunne ikke sende rapport"
+    },
+    "unauthorized": "Du har ikke tilgang til Analytics.",
+    "marginNote": "Grønt ≥ 10 % · Gult 5–10 % · Rødt < 5 %",
+    "timeNote": "Grønt ≤ 14 d · Gult ≤ 30 d · Rødt > 30 d",
+    "daysAvg": "{n} d snitt ({count} deals)",
+    "avgPipeline": "Snitt pipeline"
+  },
+  "purchase": {
+    "title": "Innkjøpsordre",
+    "subtitle": "Klikk på en rad for å åpne hele PO. Auto-PO oppdateres live med lagerstatus.",
+    "breadcrumb": "Innkjøpsordre",
+    "search": "Søk PO, leverandør, vare...",
+    "importBtn": "Importer Excel",
+    "createBtn": "Opprett PO",
+    "importFromExcel": "Importer fra Excel",
+    "allGoodBanner": "Alle {n} lagervarer er over sine bestillingspunkter — ingen PO trengs nå.",
+    "autoPOBanner": "{n} auto-generert{s} PO fra lavt lager",
+    "autoPOHide": "▲ skjul",
+    "autoPOShow": "▼ vis",
+    "autoPODesc": "Disse PO-ene er auto-genererte og oppdateres live når lagerstatusen endres.",
+    "empty": "Ingen innkjøpsordre ennå",
+    "emptyHint": "Importer fra Excel eller opprett en PO manuelt",
+    "noMatch": "Ingen innkjøpsordre samsvarer med filteret ditt",
+    "tabAll": "Alle",
+    "statusDraft": "Utkast",
+    "statusReviewed": "Gjennomgått",
+    "statusSent": "Sendt",
+    "statusReceived": "Mottatt",
+    "cardTotal": "Totalt PO",
+    "cardDraft": "Utkast",
+    "cardSent": "Sendte",
+    "cardValue": "Vist verdi",
+    "colPO": "PO-nummer",
+    "colVendor": "Leverandør",
+    "colDate": "Dato",
+    "colItems": "Varer",
+    "colCost": "Totalkostnad",
+    "colETA": "Estimert ankomst",
+    "colStatus": "Status"
+  },
+  "documents": {
+    "breadcrumb": "Arkiv",
+    "title": "Dokumenthåndtering",
+    "subtitle": "Kjøpsavtaler, fakturaer og tilbud — alt på ett sted",
+    "searchPlaceholder": "Søk kunde, kjøretøy, nummer…",
+    "reset": "Tilbakestill",
+    "refresh": "Oppdater",
+    "kpiTotal": "Totalt",
+    "kpiBankID": "BankID-signerte",
+    "kpiPending": "Ventende",
+    "kpiRevenue": "Omsetning",
+    "kpiThisMonth": "{n} denne måneden",
+    "kpiRequiresAction": "Krever handling",
+    "kpiPaidInvoices": "Betalte fakturaer",
+    "tabAll": "Alle",
+    "tabAgreements": "Kjøpsavtaler",
+    "tabInvoices": "Fakturaer",
+    "tabOffers": "Tilbud",
+    "tabUnsigned": "Usignerte",
+    "sortLabel": "Sorter:",
+    "docCount": "{n} dokumenter",
+    "sortDate": "Dato",
+    "sortAmount": "Beløp",
+    "sortCustomer": "Kunde",
+    "typeKopeavtal": "Kjøpsavtale",
+    "typeFaktura": "Faktura",
+    "typeOffert": "Tilbud",
+    "statusSignerat": "Signert",
+    "statusBetald": "Betalt",
+    "statusSkickad": "Sendt",
+    "statusUtkast": "Utkast",
+    "statusForfallen": "Utløpt",
+    "statusVantande": "Ventende",
+    "emptySearch": "Ingen dokumenter matcher søket",
+    "emptyNone": "Ingen dokumenter ennå",
+    "emptySearchHint": "Prøv et annet søkeord",
+    "emptyNoneHint": "Dokumenter opprettes automatisk når tilbud og fakturaer genereres",
+    "clearSearch": "Fjern søk",
+    "paymentFinancing": "Finansiering",
+    "paymentCash": "Kontant",
+    "inclVat": "inkl. mva",
+    "preview": "Forhåndsvis",
+    "download": "Last ned",
+    "openInSystem": "Åpne i systemet",
+    "downloaded": "{number} lastet ned",
+    "legalTitle": "Dokumenthåndtering etter svensk lov",
+    "legalBody": "Fakturaer og kjøpsavtaler lagres i 7 år i henhold til Bokföringslagen (1999:1078). Kjøpsavtaler reguleres av Konsumentköplagen (2022:260) med 3 års garantitid. BankID-signaturer utgjør rettslig bevis i henhold til Signaturlagen (2000:832). Personopplysninger behandles i samsvar med GDPR (2018/679).",
+    "previewBankID": "Signert med BankID",
+    "previewCustomer": "Kunde",
+    "previewVehicle": "Kjøretøy",
+    "previewDate": "Dato",
+    "previewAmount": "Beløp",
+    "previewPaymentType": "Betalingstype",
+    "previewDocId": "Dokument-ID",
+    "previewLegalTitle": "Juridisk bevis:",
+    "previewLegalNote": "Dette dokumentet er signert med BankID og utgjør en gyldig elektronisk signatur i henhold til Signaturlagen (2000:832). OCSP-verifisering og tidsstempel er lagret.",
+    "previewArchive": "Arkivert i 7 år · Bokföringslagen",
+    "previewOpen": "Åpne →"
+  },
+  "tasks": {
+    "title": "Oppgaver & Påminnelser",
+    "subtitle": "Hold oversikt over hva som må gjøres",
+    "newTask": "Ny oppgave",
+    "overdueCount": "{count} forsinkede",
+    "todayCount": "{count} i dag",
+    "openTotal": "{count} åpne totalt",
+    "filters": {
+      "open": "Åpne",
+      "done": "Ferdige",
+      "all": "Alle",
+      "allTypes": "Alle typer"
+    },
+    "types": {
+      "call": "Ring",
+      "email": "E-post",
+      "meeting": "Møte",
+      "follow_up": "Oppfølging",
+      "other": "Annet"
+    },
+    "priorities": {
+      "high": "Høy",
+      "medium": "Middels",
+      "low": "Lav"
+    },
+    "empty": {
+      "title": "Ingen oppgaver å vise",
+      "openHint": "Ingen åpne oppgaver — alt er klart!",
+      "defaultHint": "Opprett en oppgave for å komme i gang."
+    },
+    "badge": {
+      "overdue": "FORSINKET",
+      "today": "I DAG"
+    },
+    "relative": {
+      "today": "I dag",
+      "tomorrow": "I morgen",
+      "yesterday": "I går",
+      "daysAgo": "{n}d siden"
+    },
+    "modal": {
+      "title": "Ny oppgave",
+      "titleLabel": "Tittel *",
+      "titlePlaceholder": "Hva må gjøres?",
+      "type": "Type",
+      "priority": "Prioritet",
+      "dueDate": "Forfallsdato",
+      "assignedTo": "Tildelt",
+      "description": "Beskrivelse (valgfri)",
+      "descPlaceholder": "Ytterligere detaljer...",
+      "cancel": "Avbryt",
+      "save": "Lagre oppgave",
+      "saving": "Lagrer..."
+    },
+    "toast": {
+      "created": "Oppgave opprettet",
+      "done": "Oppgave markert som ferdig",
+      "deleted": "Oppgave slettet",
+      "error": "Kunne ikke opprette oppgave"
+    },
+    "deleteTitle": "Slett"
+  },
+  "calendar": {
+    "newBooking": "Ny bestilling",
+    "today": "I dag",
+    "month": "Måned",
+    "week": "Uke",
+    "types": {
+      "test_drive": "Prøvekjøring",
+      "meeting": "Møte",
+      "delivery": "Levering",
+      "viewing": "Visning"
+    },
+    "statuses": {
+      "scheduled": "Planlagt",
+      "confirmed": "Bekreftet",
+      "cancelled": "Avlyst",
+      "completed": "Gjennomført"
+    },
+    "bookingsCount": "best.",
+    "more": "+{n} til",
+    "noVehicles": "Ingen kjøretøy funnet",
+    "modal": {
+      "title": "Ny bestilling",
+      "bookingType": "Type bestilling",
+      "optionalTitle": "Tittel (valgfri)",
+      "startTime": "Starttid *",
+      "endTime": "Sluttid *",
+      "customer": "Kunde",
+      "staff": "Selger",
+      "vehicle": "Kjøretøy",
+      "vehicleSearch": "Søk kjøretøy fra lager...",
+      "notes": "Notater",
+      "cancel": "Avbryt",
+      "book": "Bestill"
+    },
+    "detail": {
+      "confirm": "✓ Bekreft bestilling",
+      "markDone": "✓ Merk som gjennomført",
+      "cancel": "Avlys",
+      "delete": "Slett bestilling"
+    },
+    "toast": {
+      "created": "Bestilling opprettet",
+      "updated": "Status oppdatert",
+      "deleted": "Bestilling slettet",
+      "timesRequired": "Angi start- og sluttid",
+      "conflict": "Konflikt: {error}"
+    }
+  },
+  "commissions": {
+    "title": "Provisjonsreskontro",
+    "subtitle": "Selgerprovisjon per avtale",
+    "addButton": "+ Provisjon",
+    "kpi": {
+      "total": "Total provisjon",
+      "deals": "Avtale verdi",
+      "pending": "Godkjent, ikke utbetalt",
+      "count": "Antall avtaler"
+    },
+    "perSeller": "Per selger",
+    "dealUnit": "avtale",
+    "dealUnitPlural": "avtaler",
+    "statuses": {
+      "pending": "Venter",
+      "approved": "Godkjent",
+      "paid": "Utbetalt",
+      "voided": "Ugyldig",
+      "all": "Alle"
+    },
+    "months": [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "Mai",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Okt",
+      "Nov",
+      "Des"
+    ],
+    "empty": {
+      "title": "Ingen provisjoner denne perioden",
+      "desc": "Provisjoner registreres automatisk ved avsluttede avtaler."
+    },
+    "table": {
+      "seller": "Selger",
+      "customerVehicle": "Kunde / Kjøretøy",
+      "dealValue": "Avtaleverdi",
+      "rate": "Sats",
+      "commission": "Provisjon",
+      "status": "Status",
+      "date": "Dato"
+    },
+    "actions": {
+      "approve": "Godkjenn",
+      "markPaid": "Merk betalt"
+    },
+    "modal": {
+      "title": "Registrer provisjon",
+      "seller": "Selger *",
+      "customer": "Kunde",
+      "leadId": "Lead ID",
+      "vehicle": "Kjøretøy",
+      "dealValue": "Avtaleverdi (kr) *",
+      "commissionRate": "Provisjon (%)",
+      "estimated": "Beregnet provisjon:",
+      "notes": "Notater",
+      "cancel": "Avbryt",
+      "save": "Lagre",
+      "saving": "Lagrer..."
+    },
+    "toast": {
+      "created": "Provisjon registrert",
+      "updated": "Status oppdatert",
+      "error": "Mislyktes"
+    }
+  },
+  "cancellations": {
+    "title": "Avbestillinger & Refusjoner",
+    "subtitle": "Alle kansellerte avtaler og refusjoner",
+    "kpi": {
+      "total": "Totalt avbestilt",
+      "refunds": "Totalt refundert",
+      "pending": "Ventende refusjoner",
+      "topReason": "Vanligste årsak"
+    },
+    "filters": {
+      "all": "Alle",
+      "open": "Åpne",
+      "closed": "Stengte"
+    },
+    "reasons": {
+      "changed_mind": "Ombestemt seg",
+      "financial": "Økonomi",
+      "found_elsewhere": "Fant annet sted",
+      "financing_denied": "Finansiering avslått",
+      "other": "Annen årsak"
+    },
+    "refundStatus": {
+      "pending": "Venter",
+      "sent": "Sendt",
+      "confirmed": "Bekreftet"
+    },
+    "empty": {
+      "title": "Ingen avbestillinger å vise",
+      "desc": "Kansellerte avtaler registreres her automatisk."
+    },
+    "table": {
+      "date": "Dato",
+      "customer": "Kunde",
+      "vehicle": "Kjøretøy",
+      "reason": "Årsak",
+      "refund": "Refusjon",
+      "refundStatus": "Refusjonsstatus",
+      "by": "Av"
+    }
+  },
+  "tradeIns": {
+    "title": "Innbyttehåndtering",
+    "subtitle": "Verdsett og håndter innbyttekjøretøy",
+    "kpi": {
+      "total": "Totalt innbytte",
+      "value": "Total kreditverdi",
+      "pending": "Venter mottak",
+      "received": "Mottatt"
+    },
+    "statuses": {
+      "pending": "Venter",
+      "completed": "Mottatt",
+      "cancelled": "Avbrutt",
+      "all": "Alle"
+    },
+    "conditions": {
+      "excellent": "Utmerket",
+      "good": "Bra",
+      "fair": "OK",
+      "poor": "Dårlig"
+    },
+    "empty": {
+      "title": "Ingen innbyttekjøretøy",
+      "desc": "Bruk kalkulatoren ovenfor for å verdsette og lagre et innbytte."
+    },
+    "table": {
+      "vehicle": "Kjøretøy",
+      "regVin": "Reg.nr / VIN",
+      "mileage": "Kilometerstand",
+      "value": "Innbytteverdi",
+      "status": "Status",
+      "lead": "Lead",
+      "date": "Dato"
+    },
+    "valuation": {
+      "title": "Innbyttevurdering",
+      "brand": "Merke *",
+      "model": "Modell *",
+      "year": "År",
+      "mileageKm": "Km-stand (km)",
+      "regNr": "Reg.nr",
+      "color": "Farge",
+      "marketValue": "Markedsverdi (kr)",
+      "marketHint": "Sjekk FINN.no for referansepris",
+      "condition": "Stand",
+      "estimatedValue": "Estimert innbytteverdi",
+      "marketLabel": "Markedsverdi:",
+      "conditionAdj": "Standfaktor:",
+      "ageDiscount": "Aldersavdrag:",
+      "mileageDiscount": "Kilometeravdrag:",
+      "leadId": "Lead ID *",
+      "vin": "VIN",
+      "notes": "Notater",
+      "notesPlaceholder": "Ripe på tanken, nytt dekk...",
+      "saveButton": "Lagre innbytte på lead",
+      "saving": "Lagrer...",
+      "leadIdPlaceholder": "Lead-nummer"
+    },
+    "toast": {
+      "saved": "Innbyttekjøretøy lagret",
+      "error": "Mislyktes",
+      "required": "Lead ID, merke og modell er påkrevd"
+    }
+  },
+  "warranties": {
+    "title": "Garantihåndtering",
+    "subtitle": "Aktive garantier og reklamasjoner",
+    "addButton": "+ Registrer garanti",
+    "kpi": {
+      "active": "Aktive garantier",
+      "coverage": "Total dekning",
+      "expiring": "Utløper innen 30 dager",
+      "claims": "Åpne reklamasjoner"
+    },
+    "types": {
+      "standard": "Standard",
+      "extended": "Utvidet",
+      "manufacturer": "Produsent",
+      "third_party": "Tredjepart"
+    },
+    "statuses": {
+      "active": "Aktiv",
+      "expired": "Utløpt",
+      "claimed": "Reklamasjon",
+      "cancelled": "Avsluttet",
+      "voided": "Ugyldiggjort",
+      "all": "Alle"
+    },
+    "expiresIn": "Utløper om {days} dager",
+    "expired": "Utløpt",
+    "empty": {
+      "title": "Ingen garantier",
+      "desc": "Registrerte garantier vises her."
+    },
+    "table": {
+      "vehicle": "Kjøretøy",
+      "type": "Type",
+      "provider": "Leverandør",
+      "period": "Periode",
+      "coverage": "Dekning",
+      "status": "Status"
+    },
+    "actions": {
+      "claim": "Reklamasjon"
+    },
+    "modal": {
+      "title": "Registrer garanti",
+      "vehicle": "Kjøretøy *",
+      "vin": "VIN",
+      "regNr": "Reg.nr",
+      "type": "Type",
+      "provider": "Leverandør",
+      "policyNumber": "Polisenummer",
+      "startDate": "Startdato *",
+      "endDate": "Sluttdato *",
+      "maxCoverage": "Maks dekningsbeløp (kr)",
+      "leadId": "Lead ID",
+      "notes": "Notater",
+      "cancel": "Avbryt",
+      "save": "Registrer",
+      "saving": "Lagrer..."
+    },
+    "claimModal": {
+      "title": "Reklamasjon – {vehicle}",
+      "policyNr": "Polisenr: {nr}",
+      "amount": "Reklamasjonsbeløp (kr)",
+      "details": "Detaljer *",
+      "detailsPlaceholder": "Beskriv feilen...",
+      "cancel": "Avbryt",
+      "save": "Registrer reklamasjon",
+      "saving": "Lagrer..."
+    },
+    "toast": {
+      "created": "Garanti registrert",
+      "claim": "Reklamasjon registrert",
+      "error": "Mislyktes"
+    }
+  },
+  "reservations": {
+    "title": "Reservasjoner & Depositum",
+    "subtitle": "Spor kjøretøyreservasjoner og innbetalte depositumer",
+    "addButton": "+ Ny reservasjon",
+    "kpi": {
+      "active": "Aktive reservasjoner",
+      "deposits": "Innbetalt depositum",
+      "expiring": "Utløper snart (< 48t)",
+      "total": "Totalt"
+    },
+    "statuses": {
+      "active": "Aktiv",
+      "converted": "Konvertert",
+      "expired": "Utløpt",
+      "cancelled": "Avbestilt",
+      "refunded": "Refundert",
+      "all": "Alle"
+    },
+    "depositPaid": "Betalt",
+    "depositUnpaid": "Ikke betalt",
+    "expiringSoon": "Utløper snart!",
+    "expired": "Utløpt",
+    "empty": {
+      "title": "Ingen reservasjoner",
+      "desc": "Reserverte kjøretøy og depositumer vises her."
+    },
+    "table": {
+      "customer": "Kunde",
+      "vehicle": "Kjøretøy",
+      "deposit": "Depositum",
+      "validUntil": "Gyldig til",
+      "status": "Status",
+      "reservedBy": "Reservert av"
+    },
+    "actions": {
+      "convert": "Konverter",
+      "cancel": "Avbestill"
+    },
+    "modal": {
+      "title": "Ny reservasjon",
+      "leadId": "Lead ID *",
+      "reservedBy": "Reservert av",
+      "reservedByPlaceholder": "Selger",
+      "vehicle": "Kjøretøy *",
+      "vinReg": "VIN / Reg.nr",
+      "vinRegPlaceholder": "VIN eller registreringsnummer",
+      "deposit": "Depositum (kr)",
+      "paymentMethod": "Betalingsmetode",
+      "paymentPlaceholder": "Vipps / Kort",
+      "depositPaid": "Depositum betalt",
+      "validUntil": "Gyldig til",
+      "customerInfo": "Kundeinformasjon",
+      "customerName": "Navn",
+      "customerPhone": "Telefon",
+      "customerEmail": "E-post",
+      "notes": "Notater",
+      "cancel": "Avbryt",
+      "save": "Lagre reservasjon",
+      "saving": "Lagrer..."
+    },
+    "toast": {
+      "created": "Reservasjon opprettet",
+      "updated": "Status oppdatert",
+      "error": "Mislyktes"
+    }
+  },
+  "offer": {
+    "sellerView": "Selgervisning",
+    "title": "BikeMenuNow",
+    "module": "Modul",
+    "offers": "Tilbud",
+    "testRides": "Prøvekjøringer",
+    "stats": {
+      "new": "Nye",
+      "reviewing": "Gjennomgås",
+      "sent": "Sendte",
+      "booked": "Bookede",
+      "completed": "Fullførte"
+    },
+    "statuses": {
+      "new": "Ny",
+      "reviewing": "Gjennomgås",
+      "sent": "Sendt",
+      "accepted": "Akseptert",
+      "declined": "Avslått"
+    },
+    "table": {
+      "customer": "Kunde",
+      "motorcycle": "Motorsykkel",
+      "date": "Dato",
+      "payment": "Betaling",
+      "tradeIn": "Innbytte",
+      "accessories": "Tilbehør",
+      "status": "Status"
+    },
+    "payment": {
+      "cash": "Kontant",
+      "financing": "Finansiering"
+    },
+    "yes": "Ja",
+    "no": "Nei",
+    "open": "Åpne →",
+    "biketesting": {
+      "title": "Prøvekjøringer",
+      "back": "Tilbud",
+      "stats": {
+        "scheduled": "Planlagte",
+        "completed": "Fullførte"
+      },
+      "testStatuses": {
+        "scheduled": "Bestilt",
+        "completed": "Fullført"
+      },
+      "table": {
+        "customer": "Kunde",
+        "motorcycle": "Motorsykkel",
+        "requestedDate": "Ønsket dato",
+        "submitted": "Innsendt",
+        "seller": "Selger",
+        "status": "Status"
+      },
+      "waiting": "Venter",
+      "sign": "Signer →",
+      "view": "Vis →",
+      "mobile": {
+        "customerSigned": "Kunde ✓",
+        "sellerSigned": "Selger ✓",
+        "sellerWaiting": "Selger venter"
+      },
+      "detail": {
+        "requestedDate": "Ønsket dato:",
+        "driver": "Sjåfør",
+        "name": "Navn",
+        "personalNumber": "Personnummer",
+        "phone": "Telefon",
+        "email": "E-post",
+        "address": "Adresse",
+        "zipCode": "Postnummer",
+        "termsTitle": "Gjeldende vilkår",
+        "termsText": "Prøvekjøring maks 15 minutter i nærheten av salgsstedet. Egenandel {excess} kr ved skade forårsaket av sjåføren. Kunden har godkjent disse vilkårene og signert med BankID.",
+        "signatures": "Signaturer"
+      }
+    },
+    "offert": {
+      "back": "Tilbud",
+      "customerSection": "Kunde",
+      "fields": {
+        "name": "Navn",
+        "email": "E-post",
+        "phone": "Telefon",
+        "payment": "Betaling"
+      },
+      "preferences": "Kundens ønsker",
+      "tradeInLabel": "Innbytte",
+      "noTradeIn": "Intet innbytte",
+      "accessoriesLabel": "Tilbehør",
+      "noAccessories": "Intet tilbehør",
+      "messageLabel": "Melding",
+      "sellerSection": "Selgerens tillegg"
+    },
+    "offerBuilder": {
+      "sentTitle": "Tilbud sendt",
+      "sentDesc": "Tilbudet har blitt sendt til {name} på {email}.",
+      "backToDashboard": "← Tilbake til dashboard",
+      "tradeInSection": "Innbyttevurdering",
+      "tradeIn": {
+        "make": "Merke",
+        "model": "Modell",
+        "year": "År",
+        "mileage": "Kilometerstand",
+        "estimatedValue": "Estimert innbytteverdi (kr)",
+        "hint": "Fratrekk fra totalpris"
+      },
+      "accessoriesSection": "Tilbehør — prissetting",
+      "accessoriesPlaceholder": "Pris (kr)",
+      "customerNote": "Kundens notat:",
+      "offerSection": "Tilbudsdetaljer",
+      "regFee": "Registreringsavgift (kr)",
+      "discount": "Rabatt (kr)",
+      "extWarranty": "Utvidet garanti",
+      "include": "Inkluder",
+      "notIncluded": "Ikke inkludert",
+      "deliveryDate": "Leveringsdato",
+      "validity": "Tilbudets gyldighet (dager)",
+      "sellerComment": "Selgerens kommentar",
+      "commentPlaceholder": "Andre vilkår eller informasjon til kunden...",
+      "priceSection": "Prissammendrag",
+      "price": {
+        "listPrice": "Listepris",
+        "accessories": "Tilbehør",
+        "regFee": "Registreringsavgift",
+        "extWarranty": "Utvidet garanti",
+        "discount": "Rabatt",
+        "tradeInValue": "Innbytteverdi",
+        "total": "Totalt"
+      },
+      "financing": "Finansiering via Santander — kredittvurdering gjøres separat.",
+      "sendButton": "Send tilbud til {name}",
+      "sendNote": "Tilbudet sendes til {email} og er gyldig i {days} dager."
+    },
+    "sellerSignOff": {
+      "customerSignature": "Kundens signatur",
+      "signed": "✓ Signert",
+      "viaBankId": "via BankID",
+      "sellerSignature": "Selgerens signatur",
+      "sellerConfirm": "Signer for å bekrefte at prøvekjøringen ble gjennomført i henhold til vilkårene.",
+      "waiting": "Venter på BankID...",
+      "openApp": "Åpne appen og godkjenn signeringen.",
+      "sellerLabel": "AVA MC — Selger",
+      "signButton": "Signer fullføring",
+      "completedTitle": "Fullført dokument",
+      "vehicle": "Kjøretøy",
+      "driver": "Sjåfør",
+      "personalNumber": "Personnummer",
+      "date": "Dato",
+      "maxTime": "Maks tid",
+      "maxTimeValue": "15 minutter",
+      "excess": "Egenandel",
+      "excessValue": "15 000 kr ved skade",
+      "customer": "Kunde",
+      "seller": "Selger"
+    }
+  },
+  "settingsProfile": {
+    "breadcrumb": "Innstillinger",
+    "title": "Forhandlerprofil",
+    "subtitle": "Firmanavn, adresse, organisasjonsnummer, logo og kontaktopplysninger",
+    "saving": "Lagrer…",
+    "save": "💾 Lagre endringer",
+    "backToSettings": "← Tilbake til innstillinger",
+    "sections": {
+      "company": "Company information",
+      "address": "Address",
+      "contact": "Contact details",
+      "banking": "Banking details",
+      "sms": "SMS (Twilio)",
+      "notifEmails": "Notification Emails",
+      "cover": "Cover image — Dashboard background",
+      "logo": "Logo"
+    },
+    "fields": {
+      "companyName": "Company name",
+      "orgNr": "Organisation number",
+      "orgNrHint": "Format: 556123-4567",
+      "vat": "VAT number",
+      "vatHint": "Derived automatically from org. no.",
+      "fSkatt": "F-tax certificate registered",
+      "street": "Street address",
+      "postalCode": "Postal code",
+      "city": "City",
+      "county": "County",
+      "phone": "Phone",
+      "email": "Email",
+      "emailDomain": "Company email domain",
+      "emailDomainHint": "Used when inviting staff",
+      "website": "Website",
+      "bankName": "Bank",
+      "bankNameHint": "Bank name",
+      "bankgiro": "Bankgiro number",
+      "bankgiroHint": "Format: 1234-5678",
+      "swish": "Swish (business number)",
+      "swishHint": "10 digits",
+      "iban": "IBAN",
+      "ibanHint": "International bank account number",
+      "bic": "BIC / SWIFT",
+      "bicHint": "Bank identifier code",
+      "twilioSid": "Account SID",
+      "twilioSidHint": "Starts with AC…",
+      "twilioToken": "Auth Token",
+      "twilioTokenHint": "Secret — never share with customers",
+      "twilioFrom": "Sender number",
+      "twilioFromHint": "E.164 format, e.g. +46701234567",
+      "deliveryEmail": "Delivery Note Email",
+      "deliveryEmailHint": "Receives email when a delivery note arrives.",
+      "invoiceEmail": "Invoice Email",
+      "invoiceEmailHint": "Receives purchase invoices from suppliers.",
+      "coverTitle": "Upload cover image",
+      "coverDesc": "PNG, JPG or WebP · Max {maxKb} KB",
+      "logoTitle": "Upload logo",
+      "logoDesc": "PNG, JPG, SVG or WebP · Max {maxKb} KB"
+    },
+    "actions": {
+      "chooseImage": "📂 Choose image",
+      "chooseFile": "📂 Choose file",
+      "remove": "🗑 Remove",
+      "resizing": "Resizing…"
+    },
+    "messages": {
+      "saved": "Profile saved",
+      "saveError": "Could not save profile.",
+      "imageOnly": "Only image files allowed.",
+      "svgTooLarge": "SVG file is too large. Max {maxKb} KB.",
+      "svgNoCover": "SVG is not supported as cover image.",
+      "processError": "Could not process image.",
+      "resizing": "⏳ Resizing automatically…",
+      "compressed": "✓ Image compressed automatically",
+      "compressedTo": "✓ Image compressed to {maxKb} KB",
+      "coverUploaded": "✓ Cover image uploaded",
+      "logoUploaded": "✓ Logo uploaded"
+    },
+    "preview": "Preview — shown on agreements and invoices",
+    "noCoverImage": "No cover image",
+    "coverRatio": "16:9 recommended",
+    "noLogo": "No logo",
+    "coverDesc2": "Shown as background on dashboard."
+  },
+  "settingsTargets": {
+    "breadcrumb": "Innstillinger",
+    "nav": "Salgsmål",
+    "title": "Ytelsesmål",
+    "subtitle": "Set and track targets per seller — leads and revenue",
+    "exportCSV": "Eksporter CSV",
+    "newTarget": "Nytt mål",
+    "months": [
+      "Hele året",
+      "Januar",
+      "Februar",
+      "Mars",
+      "April",
+      "Mai",
+      "Juni",
+      "Juli",
+      "August",
+      "September",
+      "Oktober",
+      "November",
+      "Desember"
+    ],
+    "table": {
+      "period": "Period",
+      "leadsTarget": "Leads target",
+      "leadsActual": "Leads actual",
+      "leadsPct": "Leads %",
+      "revenueTarget": "Revenue target",
+      "revenueActual": "Revenue actual",
+      "revenuePct": "Revenue %"
+    },
+    "staff": {
+      "totalActual": "Total actual:",
+      "leads": "leads",
+      "revenue": "Revenue:"
+    },
+    "empty": {
+      "title": "No targets set for {year}",
+      "subtitle": "Set targets for sellers to start tracking performance",
+      "button": "Set target"
+    },
+    "form": {
+      "title": "Set performance target",
+      "name": "Name *",
+      "email": "Email *",
+      "year": "Year",
+      "period": "Period",
+      "leadsTarget": "Leads target",
+      "revenueTarget": "Revenue target (SEK)",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save": "Save target"
+    },
+    "actions": {
+      "edit": "Edit",
+      "fullYear": "full year"
+    },
+    "toasts": {
+      "nameEmailRequired": "Name and email are required",
+      "saved": "Target saved",
+      "deleted": "Target deleted",
+      "csvExported": "CSV exported"
+    },
+    "deleteConfirm": "Delete target for {name} — {period}?"
+  },
+  "settingsBranches": {
+    "breadcrumb": "Innstillinger",
+    "nav": "Filialer",
+    "title": "Filialer og steder",
+    "subtitle": "Manage dealership locations and assign staff",
+    "newBranch": "Ny filial",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "empty": {
+      "title": "No branches yet",
+      "subtitle": "Create your first branch to start assigning staff and leads",
+      "button": "Create branch"
+    },
+    "actions": {
+      "edit": "Edit",
+      "deactivate": "Deactivate",
+      "activate": "Activate"
+    },
+    "form": {
+      "titleNew": "New branch",
+      "titleEdit": "Edit branch",
+      "name": "Branch name *",
+      "namePlaceholder": "e.g. Stockholm North",
+      "address": "Address",
+      "addressPlaceholder": "Street 1",
+      "city": "City",
+      "phone": "Phone",
+      "manager": "Manager",
+      "active": "Branch is active",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save": "Save changes",
+      "create": "Create branch"
+    },
+    "toasts": {
+      "nameRequired": "Name is required",
+      "updated": "Branch updated",
+      "created": "Branch created",
+      "deleted": "Branch deleted"
+    },
+    "deleteConfirm": "Delete branch {name}? Leads and staff connected to it are not affected."
+  },
+  "leadDetail": {
+    "notFound": "Lead ikke funnet.",
+    "back": "← Tilbake",
+    "overdue": "{days}d forsinket",
+    "lostBadge": "Tapt",
+    "reminderLabel": "Påminnelse:",
+    "overdueMsg": "Denne lead har ligget i {stage} i {days} dager — tid for oppfølging!",
+    "by": "av",
+    "info": {
+      "title": "Lead-informasjon",
+      "vehicle": "Kjøretøy",
+      "source": "Kilde",
+      "seller": "Selger",
+      "personnummer": "Personnummer",
+      "created": "Opprettet",
+      "email": "E-post",
+      "phone": "Telefon",
+      "notes": "Notater"
+    },
+    "value": {
+      "title": "Forretningsverdi",
+      "salePrice": "Salgspris",
+      "costPrice": "Kostpris",
+      "grossProfit": "Bruttofortjeneste",
+      "margin": "Margin"
+    },
+    "score": {
+      "title": "Lead Score",
+      "hot": "Varm lead 🔥",
+      "warm": "Middels 🌡",
+      "cold": "Kald lead ❄️",
+      "bankid": "BankID verifisert",
+      "emailPhone": "E-post & telefon",
+      "tradeIn": "Innbytte-interesse",
+      "financing": "Finansieringsinteresse",
+      "agreementOpened": "Avtale åpnet",
+      "stageProgress": "Faseutvikling",
+      "costPriceSet": "Kostpris satt"
+    },
+    "directPurchase": {
+      "title": "Direktkjøp",
+      "badge": "Tilbehør / Reservedeler",
+      "desc": "Dette er et direktekjøp — ingen prøvekjøringer eller tilbud nødvendig.",
+      "goToPayment": "Gå til betaling →",
+      "cancel": "Avbryt kjøp",
+      "cancelled": "Avbrutt:",
+      "completed": "✓ Kjøp gjennomført"
+    },
+    "pipeline": {
+      "title": "Pipeline-fase",
+      "goToPayment": "Gå til betaling →",
+      "openAgreement": "Åpne avtale →",
+      "viewOffer": "Vis tilbud →",
+      "viewTestDrive": "Vis prøvekjøring →",
+      "createOffer": "Opprett tilbud →",
+      "bookTestDrive": "Book prøvekjøring →",
+      "markLost": "Tap",
+      "cancelDeal": "Annuller avtale",
+      "lostReason": "Årsak til tap:",
+      "reactivate": "↩ Reaktiver lead",
+      "viewClosed": "Vis avsluttet avtale →"
+    },
+    "tasks": {
+      "title": "Oppgaver",
+      "open": "{n} åpne",
+      "placeholder": "Legg til oppgave...",
+      "priorityHigh": "🔴 Høy",
+      "priorityMedium": "🟡 Middels",
+      "priorityLow": "⚪ Lav",
+      "empty": "Ingen oppgaver ennå",
+      "viewAll": "Vis alle {n} oppgaver →"
+    },
+    "comms": {
+      "title": "Kundekommunikasjon",
+      "contact": "✉️ Kontakt kunde",
+      "emailBtn": "✉️ E-post",
+      "smsBtn": "💬 SMS",
+      "subjectPlaceholder": "Emne...",
+      "emailBodyPlaceholder": "Skriv meldingen din...",
+      "smsBodyPlaceholder": "SMS til {phone}...",
+      "cancel": "Avbryt",
+      "send": "Send",
+      "empty": "Ingen kommunikasjon logget ennå",
+      "failed": "MISLYKTES",
+      "inbound": "SVAR",
+      "you": "Du",
+      "customer": "Kunde"
+    },
+    "activity": {
+      "title": "Logg aktivitet",
+      "save": "Lagre",
+      "placeholderCall": "Hva ble diskutert? Neste steg?",
+      "placeholderEmail": "Emne og sammendrag...",
+      "placeholderMeeting": "Hva ble bestemt på møtet?",
+      "placeholderNote": "Legg til en merknad..."
+    },
+    "timeline": {
+      "title": "Aktivitetslogg",
+      "events": "{n} hendelser",
+      "empty": "Ingen aktiviteter ennå",
+      "emptyDesc": "Logg samtaler, e-poster og møter ovenfor for å bygge en historikk.",
+      "created": "Lead opprettet — {bike} ({value} kr)"
+    },
+    "lostModal": {
+      "title": "Lukk som tapt avtale",
+      "subtitle": "Velg en årsak for å hjelpe oss forstå hvor avtaler tapes.",
+      "otherPlaceholder": "Beskriv årsaken...",
+      "cancel": "Avbryt",
+      "confirm": "Bekreft tap"
+    },
+    "cancelModal": {
+      "title": "Annuller avtale",
+      "subtitle": "Registrer kansellering og eventuell kreditttilbakebetaling.",
+      "reasonLabel": "Årsak *",
+      "reasons": {
+        "changed_mind": "Ombestemt",
+        "financial": "Økonomiske grunner",
+        "found_elsewhere": "Fant annet",
+        "financing_denied": "Finansiering nektet",
+        "other": "Annen årsak"
+      },
+      "detailsPlaceholder": "Detaljer (valgfritt)...",
+      "refundLabel": "Kreditttilbakebetaling",
+      "amountLabel": "Beløp (NOK)",
+      "bankLabel": "Bank",
+      "clearingLabel": "Clearingsnr",
+      "accountLabel": "Kontonummer",
+      "referenceLabel": "Referanse",
+      "bankPlaceholder": "f.eks. DNB",
+      "returnToStock": "Returner kjøretøy til lager",
+      "notesPlaceholder": "Interne notater (valgfritt)...",
+      "cancel": "Avbryt",
+      "confirm": "Bekreft annullering"
+    },
+    "stages": {
+      "new": "Ny",
+      "contacted": "Kontaktet",
+      "testride": "Prøvekjøring",
+      "offer": "Tilbud",
+      "negotiating": "Forhandling",
+      "pending_payment": "Betaling pågår",
+      "closed": "Avsluttet"
+    },
+    "taskTypes": {
+      "call": "Ring",
+      "email": "E-post",
+      "meeting": "Møte",
+      "follow_up": "Oppfølging",
+      "other": "Annet"
+    },
+    "activityTypes": {
+      "note": "Merknad",
+      "call": "Samtale",
+      "email": "E-post",
+      "meeting": "Møte",
+      "stage_change": "Statusendring",
+      "score_update": "Poengoppdatering",
+      "reminder": "Påminnelse",
+      "lost": "Tapt avtale"
+    },
+    "lostReasons": [
+      "Pris — for dyrt",
+      "Konkurrent — valgte annet merke",
+      "Konkurrent — valgte annen forhandler",
+      "Ikke lenger interessert",
+      "Budsjett — råd ikke til det nå",
+      "Tok tid — kan komme tilbake",
+      "Kjøpte brukt i stedet",
+      "Annen årsak"
+    ],
+    "toasts": {
+      "taskCreated": "Oppgave opprettet",
+      "taskError": "Kunne ikke opprette oppgave",
+      "emailSent": "E-post sendt",
+      "smsSent": "SMS sendt",
+      "sendError": "Kunne ikke sende",
+      "activityAdded": "Aktivitet lagt til",
+      "activityError": "Kunne ikke lagre aktivitet",
+      "stageChanged": "Fase endret til {stage}",
+      "stageError": "Kunne ikke oppdatere fase",
+      "dealCancelled": "Avtale annullert og registrert",
+      "cancelError": "Kunne ikke annullere avtale",
+      "reactivated": "Lead reaktivert — tilbake i Pipeline",
+      "reactivateError": "Kunne ikke reaktivere lead",
+      "closedLost": "Lead lukket som tapt",
+      "closeError": "Kunne ikke lukke lead"
+    }
   }
 }

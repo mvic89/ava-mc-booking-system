@@ -76,6 +76,7 @@ function QRCodeSVG({ data, size = 200 }: { data: string; size?: number }) {
 
 export default function BankIDModal({
   mode = 'auth',
+  action = 'auth',
   signText,
   onComplete,
   onCancel,
@@ -175,7 +176,7 @@ export default function BankIDModal({
           const collectRes = await fetch('/api/bankid/collect', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderRef: orderRef.current }),
+            body: JSON.stringify({ orderRef: orderRef.current, action }),
           });
           const collectData = await collectRes.json();
 

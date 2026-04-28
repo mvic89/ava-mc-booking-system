@@ -88,12 +88,17 @@ function broadcast() {
   }
 }
 
-export function addNotification(n: Omit<AppNotification, 'id' | 'createdAt' | 'read'>): void {
+export function addNotification(
+  n: Omit<AppNotification, 'id' | 'createdAt' | 'read'> & { id?: string; createdAt?: string },
+): void {
   const list = getNotifications();
   const item: AppNotification = {
-    ...n,
-    id:        Date.now().toString() + Math.random().toString(36).slice(2, 6),
-    createdAt: new Date().toISOString(),
+    type:      n.type,
+    title:     n.title,
+    message:   n.message,
+    href:      n.href,
+    id:        n.id ?? (Date.now().toString() + Math.random().toString(36).slice(2, 6)),
+    createdAt: n.createdAt ?? new Date().toISOString(),
     read:      false,
   };
   const updated = [item, ...list].slice(0, 50); // keep latest 50

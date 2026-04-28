@@ -1,9 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import type { CustomerInquiry } from "@/app/offer/data";
 
 export default function OfferBuilder({ inq }: { inq: CustomerInquiry }) {
+  const t      = useTranslations("offer.offerBuilder");
+  const locale = useLocale();
+
   const [sent, setSent] = useState(false);
 
   const [tradeInValue,      setTradeInValue]      = useState("");
@@ -34,17 +38,15 @@ export default function OfferBuilder({ inq }: { inq: CustomerInquiry }) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h2 className="text-slate-900 font-bold text-xl">Offert skickad</h2>
+        <h2 className="text-slate-900 font-bold text-xl">{t("sentTitle")}</h2>
         <p className="text-slate-500 text-sm mt-2 max-w-xs leading-relaxed">
-          Offerten har skickats till{" "}
-          <span className="text-slate-900 font-medium">{inq.customer.name}</span> på{" "}
-          <span className="text-slate-900 font-medium">{inq.customer.email}</span>.
+          {t("sentDesc", { name: inq.customer.name, email: inq.customer.email })}
         </p>
         <a
           href="/offer"
           className="mt-8 text-xs font-semibold text-[#FF6B2C] hover:underline transition-colors"
         >
-          ← Tillbaka till dashboard
+          {t("backToDashboard")}
         </a>
       </div>
     );
@@ -55,15 +57,15 @@ export default function OfferBuilder({ inq }: { inq: CustomerInquiry }) {
 
       {/* Trade-in valuation */}
       {inq.tradeIn.has && (
-        <Section label="Inbytesvärdering">
+        <Section label={t("tradeInSection")}>
           <div className="space-y-3">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-              {[
-                ["Märke",       inq.tradeIn.make],
-                ["Modell",      inq.tradeIn.model],
-                ["År",          inq.tradeIn.year],
-                ["Körsträcka",  `${parseInt(inq.tradeIn.mileage ?? "0").toLocaleString("sv-SE")} km`],
-              ].map(([k, v]) => (
+              {([
+                [t("tradeIn.make"),    inq.tradeIn.make],
+                [t("tradeIn.model"),   inq.tradeIn.model],
+                [t("tradeIn.year"),    inq.tradeIn.year],
+                [t("tradeIn.mileage"), `${parseInt(inq.tradeIn.mileage ?? "0").toLocaleString(locale)} km`],
+              ] as [string, string][]).map(([k, v]) => (
                 <div key={k} className="bg-slate-50 border border-slate-100 rounded-xl p-2.5">
                   <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-widest">{k}</p>
                   <p className="text-slate-800 font-medium mt-0.5">{v}</p>
@@ -71,12 +73,12 @@ export default function OfferBuilder({ inq }: { inq: CustomerInquiry }) {
               ))}
             </div>
             <SellerField
-              label="Bedömt inbytesvärde (kr)"
+              label={t("tradeIn.estimatedValue")}
               value={tradeInValue}
               onChange={setTradeInValue}
               placeholder="0"
               type="number"
-              hint="Avdrag från totalpriset"
+              hint={t("tradeIn.hint")}
             />
           </div>
         </Section>
@@ -84,7 +86,7 @@ export default function OfferBuilder({ inq }: { inq: CustomerInquiry }) {
 
       {/* Accessory pricing */}
       {inq.accessories.wants && (
-        <Section label="Tillbehör — prissättning">
+        <Section label={t("accessoriesSection")}>
           <div className="space-y-2">
             {inq.accessories.items?.map((item, i) => (
               <div key={item} className="flex items-center gap-3">
@@ -92,7 +94,7 @@ export default function OfferBuilder({ inq }: { inq: CustomerInquiry }) {
                 <div className="w-32">
                   <input
                     type="number"
-                    placeholder="Pris (kr)"
+                    placeholder={t("accessoriesPlaceholder")}
                     value={accessories[i]?.price ?? ""}
                     onChange={(e) => {
                       const updated = [...accessories];
@@ -106,7 +108,7 @@ export default function OfferBuilder({ inq }: { inq: CustomerInquiry }) {
             ))}
             {inq.accessories.note && (
               <p className="text-slate-400 text-xs pt-1">
-                Kundens notering: &ldquo;{inq.accessories.note}&rdquo;
+                {t("customerNote")} &ldquo;{inq.accessories.note}&rdquo;
               </p>
             )}
           </div>
@@ -114,17 +116,17 @@ export default function OfferBuilder({ inq }: { inq: CustomerInquiry }) {
       )}
 
       {/* Offer details */}
-      <Section label="Offertuppgifter">
+      <Section label={t("offerSection")}>
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <SellerField
-              label="Registreringsavgift (kr)"
+              label={t("regFee")}
               value={registrationFee}
               onChange={setRegistrationFee}
               type="number"
             />
             <SellerField
-              label="Rabatt (kr)"
+              label={t("discount")}
               value={discount}
               onChange={setDiscount}
               placeholder="0"
@@ -135,13 +137,13 @@ export default function OfferBuilder({ inq }: { inq: CustomerInquiry }) {
           {/* Extended warranty toggle */}
           <div>
             <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-2">
-              Förlängd garanti
+              {t("extWarranty")}
             </p>
             <div className="flex items-center gap-3">
               <div className="grid grid-cols-2 gap-2 flex-1">
                 {[
-                  { val: true,  label: "Inkludera"    },
-                  { val: false, label: "Ej inkluderad" },
+                  { val: true,  label: t("include")     },
+                  { val: false, label: t("notIncluded") },
                 ].map((opt) => (
                   <button
                     key={String(opt.val)}
@@ -172,13 +174,13 @@ export default function OfferBuilder({ inq }: { inq: CustomerInquiry }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <SellerField
-              label="Leveransdatum"
+              label={t("deliveryDate")}
               value={deliveryDate}
               onChange={setDeliveryDate}
               type="date"
             />
             <SellerField
-              label="Offertens giltighetstid (dagar)"
+              label={t("validity")}
               value={validityDays}
               onChange={setValidityDays}
               type="number"
@@ -187,13 +189,13 @@ export default function OfferBuilder({ inq }: { inq: CustomerInquiry }) {
 
           <div>
             <label className="block text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-1.5">
-              Säljarens kommentar
+              {t("sellerComment")}
             </label>
             <textarea
               rows={3}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Övriga villkor eller information till kunden..."
+              placeholder={t("commentPlaceholder")}
               className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-300 focus:outline-none focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C]/20 transition-colors resize-none"
             />
           </div>
@@ -201,34 +203,32 @@ export default function OfferBuilder({ inq }: { inq: CustomerInquiry }) {
       </Section>
 
       {/* Price summary */}
-      <Section label="Prissammanfattning">
+      <Section label={t("priceSection")}>
         <div className="space-y-2">
-          {[
-            ["Listpris", base],
-            ...(accTotal  > 0 ? [["Tillbehör",          accTotal]]  : []),
-            ...(reg       > 0 ? [["Registreringsavgift", reg]]       : []),
-            ...(warranty  > 0 ? [["Förlängd garanti",    warranty]]  : []),
-            ...(disc      > 0 ? [["Rabatt",              -disc]]     : []),
-            ...(tradeVal  > 0 ? [["Inbytesvärde",        -tradeVal]] : []),
-          ].map(([label, value]) => (
-            <div key={String(label)} className="flex justify-between text-sm">
+          {([
+            [t("price.listPrice"), base],
+            ...(accTotal  > 0 ? [[t("price.accessories"),  accTotal]]  : []),
+            ...(reg       > 0 ? [[t("price.regFee"),        reg]]       : []),
+            ...(warranty  > 0 ? [[t("price.extWarranty"),   warranty]]  : []),
+            ...(disc      > 0 ? [[t("price.discount"),      -disc]]     : []),
+            ...(tradeVal  > 0 ? [[t("price.tradeInValue"),  -tradeVal]] : []),
+          ] as [string, number][]).map(([label, value]) => (
+            <div key={label} className="flex justify-between text-sm">
               <span className="text-slate-500">{label}</span>
-              <span className={(value as number) < 0 ? "text-green-600 font-medium" : "text-slate-700"}>
-                {(value as number) < 0 ? "−" : "+"}{" "}
-                {Math.abs(value as number).toLocaleString("sv-SE")} kr
+              <span className={value < 0 ? "text-green-600 font-medium" : "text-slate-700"}>
+                {value < 0 ? "−" : "+"}{" "}
+                {Math.abs(value).toLocaleString(locale)} kr
               </span>
             </div>
           ))}
           <div className="border-t border-slate-200 pt-3 mt-2 flex justify-between items-baseline">
-            <span className="text-slate-900 font-semibold">Totalt</span>
+            <span className="text-slate-900 font-semibold">{t("price.total")}</span>
             <span className="text-slate-900 font-bold text-xl">
-              {total.toLocaleString("sv-SE")} kr
+              {total.toLocaleString(locale)} kr
             </span>
           </div>
           {inq.payment === "financing" && (
-            <p className="text-[10px] text-slate-400 pt-1">
-              Finansiering via Santander — kreditprövning sker separat.
-            </p>
+            <p className="text-[10px] text-slate-400 pt-1">{t("financing")}</p>
           )}
         </div>
       </Section>
@@ -239,10 +239,10 @@ export default function OfferBuilder({ inq }: { inq: CustomerInquiry }) {
         disabled={!deliveryDate}
         className="w-full bg-[#FF6B2C] hover:bg-[#e55a1f] text-white font-semibold text-sm py-3 rounded-xl transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
       >
-        Skicka Offert till {inq.customer.name}
+        {t("sendButton", { name: inq.customer.name })}
       </button>
       <p className="text-[10px] text-slate-400 text-center">
-        Offerten skickas till {inq.customer.email} och är giltig i {validityDays} dagar.
+        {t("sendNote", { email: inq.customer.email, days: validityDays })}
       </p>
 
     </div>

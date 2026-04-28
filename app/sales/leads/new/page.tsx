@@ -15,6 +15,7 @@ import { isValidEmail, isValidPhone } from '@/lib/validation';
 import type { BankIDResult } from '@/types';
 
 type TabType = 'bankid' | 'manual' | 'phone';
+type LeadType = 'motorcycle' | 'accessories';
 
 const TABS: { id: TabType; icon: string; labelKey: string }[] = [
   { id: 'bankid', icon: '🔒', labelKey: 'tabs.bankid' },
@@ -32,7 +33,7 @@ export default function NewLeadPage() {
   const router   = useRouter();
   const t        = useTranslations();
   const tNotif   = useTranslations('notifications');
-  const { motorcycles } = useInventory();
+  const { motorcycles, accessories, spareParts } = useInventory();
 
   const [activeTab,   setActiveTab]   = useState<TabType>('bankid');
   const [showBankID,  setShowBankID]  = useState(false);
@@ -40,6 +41,11 @@ export default function NewLeadPage() {
   const [user,        setUser]        = useState<Record<string,unknown> | null>(null);
   const [gdprConsent, setGdprConsent] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; phone?: string }>({});
+
+  // Lead type: motorcycle purchase vs accessories/spare parts only
+  const [leadType,     setLeadType]     = useState<LeadType>('motorcycle');
+  const [itemSearch,   setItemSearch]   = useState('');
+  const [selectedItems, setSelectedItems] = useState<{ id: string; name: string; brand: string; price: number; qty: number; itemType: 'acc' | 'sp' }[]>([]);
 
   // Returning customer — set when URL contains ?customerId=
   const [returningCustomerId,   setReturningCustomerId]   = useState<string | null>(null);
@@ -75,13 +81,44 @@ export default function NewLeadPage() {
 
   const [vehicleSearch, setVehicleSearch] = useState('');
 
+  // ── Accessories/spare-parts picker ────────────────────────────────────────
+  const allShopItems = useMemo(() => {
+    const accs = accessories.map(a => ({ id: a.id, name: a.name, brand: a.brand, price: a.sellingPrice, stock: a.stock, itemType: 'acc' as const }));
+    const sps  = spareParts.map(s  => ({ id: s.id, name: s.name, brand: s.brand, price: s.sellingPrice, stock: s.stock, itemType: 'sp'  as const }));
+    return [...accs, ...sps];
+  }, [accessories, spareParts]);
+
+  const filteredShopItems = useMemo(() => {
+    const q = itemSearch.toLowerCase().trim();
+    const items = q ? allShopItems.filter(i => `${i.brand} ${i.name}`.toLowerCase().includes(q)) : allShopItems;
+    return items.slice(0, 20);
+  }, [allShopItems, itemSearch]);
+
+  const selectedTotal = useMemo(
+    () => selectedItems.reduce((s, i) => s + i.price * i.qty, 0),
+    [selectedItems],
+  );
+
+  function toggleItem(item: typeof allShopItems[0]) {
+    setSelectedItems(prev => {
+      const exists = prev.find(p => p.id === item.id);
+      if (exists) return prev.filter(p => p.id !== item.id);
+      return [...prev, { id: item.id, name: item.name, brand: item.brand, price: item.price, qty: 1, itemType: item.itemType }];
+    });
+  }
+
+  function changeQty(id: string, qty: number) {
+    if (qty < 1) { setSelectedItems(prev => prev.filter(p => p.id !== id)); return; }
+    setSelectedItems(prev => prev.map(p => p.id === id ? { ...p, qty } : p));
+  }
+
   // ── Live vehicles: in-stock motorcycles ranked by interest-field relevance ──
   const liveVehicles = useMemo(() => {
     const inStock = motorcycles.filter(m => m.stock > 0);
     const q       = formData.interest.toLowerCase().trim();
 
     return inStock
-      .map(m => {
+      .map((m, i) => {
         const fullName = `${m.brand} ${m.name}`;
         const margin   = m.sellingPrice > 0
           ? Math.min(99, Math.round(((m.sellingPrice - m.cost) / m.sellingPrice) * 100))
@@ -89,12 +126,16 @@ export default function NewLeadPage() {
         const textMatch = q ? fullName.toLowerCase().includes(q) : false;
         const score     = textMatch ? 100 + margin : margin;
         return {
-          name:     fullName,
-          price:    `${m.sellingPrice.toLocaleString('sv-SE')} kr`,
-          rawPrice: m.sellingPrice,
-          stock:    m.stock,
-          match:    textMatch ? Math.min(99, 70 + margin) : margin,
+          key:       `${m.brand}-${m.name}-${i}`,
+          name:      fullName,
+          price:     `${m.sellingPrice.toLocaleString('sv-SE')} kr`,
+          rawPrice:  m.sellingPrice,
+          stock:     m.stock,
+          match:     textMatch ? Math.min(99, 70 + margin) : margin,
           score,
+          color:     m.color     ?? '',
+          year:      m.year      ?? 0,
+          engineCC:  m.engineCC  ?? 0,
         };
       })
       .sort((a, b) => b.score - a.score)
@@ -108,11 +149,15 @@ export default function NewLeadPage() {
     return motorcycles
       .filter(m => `${m.brand} ${m.name}`.toLowerCase().includes(q))
       .slice(0, 8)
-      .map(m => ({
+      .map((m, i) => ({
+        key:      `${m.brand}-${m.name}-${i}`,
         name:     `${m.brand} ${m.name}`,
         price:    `${m.sellingPrice.toLocaleString('sv-SE')} kr`,
         rawPrice: m.sellingPrice,
         stock:    m.stock,
+        color:    m.color    ?? '',
+        year:     m.year     ?? 0,
+        engineCC: m.engineCC ?? 0,
       }));
   }, [motorcycles, vehicleSearch]);
 
@@ -161,13 +206,23 @@ export default function NewLeadPage() {
       const postalCode  = postalMatch ? postalMatch[1].replace(/\s/g, '') : null;
       const cityPart    = postalMatch ? postalMatch[2].trim() : restPart || null;
 
+      const bikeField = leadType === 'accessories'
+        ? selectedItems.length > 0
+          ? 'Tillbehör: ' + selectedItems.map(i => `${i.name}${i.qty > 1 ? ` ×${i.qty}` : ''}`).join(', ')
+          : formData.interest || 'Tillbehör / Reservdelar'
+        : formData.interest || '—';
+
+      const dealValue = leadType === 'accessories' && selectedTotal > 0
+        ? selectedTotal
+        : formData.estimatedValue || 0;
+
       const lead = await createLead({
         name:         formData.name,
-        bike:         formData.interest || '—',
-        value:        formData.estimatedValue || 0,
-        cost_price:   formData.costPrice      || 0,
+        bike:         bikeField,
+        value:        dealValue,
+        cost_price:   formData.costPrice || 0,
         lead_status:  'warm',
-        stage:        'new',
+        stage:        leadType === 'accessories' ? 'pending_payment' : 'new',
         email:        formData.email,
         phone:        formData.phone,
         personnummer: bankIDData?.user.personalNumber?.replace(/-/g, '') || null,
@@ -177,6 +232,8 @@ export default function NewLeadPage() {
         city:             cityPart      || null,
         customer_id:      returningCustomerId ?? null,
         salesperson_name: (user?.name as string) || null,
+        lead_type:        leadType,
+        lead_items:       leadType === 'accessories' ? selectedItems : [],
       });
       notify('newLead', {
         type:    'lead',
@@ -185,7 +242,11 @@ export default function NewLeadPage() {
         href:    '/sales/leads',
       });
       toast.success('Lead skapat!');
-      router.push('/sales/leads');
+      if (leadType === 'accessories') {
+        router.push(`/sales/leads/${lead.id}/payment`);
+      } else {
+        router.push('/sales/leads');
+      }
     } catch (err: unknown) {
       toast.error('Kunde inte skapa lead', { description: err instanceof Error ? err.message : String(err) });
     }
@@ -402,21 +463,48 @@ export default function NewLeadPage() {
 
               </>)}
 
-              {/* Source + Interest in a row */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">{t('newLead.fields.source')}</label>
-                  <select
-                    value={formData.source}
-                    onChange={e => setFormData({ ...formData, source: e.target.value })}
-                    className={inputCls(false, false)}
-                  >
-                    <option>{t('newLead.sourceOptions.walkin')}</option>
-                    <option>{t('newLead.sourceOptions.phone')}</option>
-                    <option>{t('newLead.sourceOptions.website')}</option>
-                    <option>{t('newLead.sourceOptions.referral')}</option>
-                  </select>
+              {/* Lead type toggle */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Typ av köp</label>
+                <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
+                  {([
+                    { id: 'motorcycle',  icon: '🏍',  label: 'Motorcykel'           },
+                    { id: 'accessories', icon: '🛒', label: 'Tillbehör / Reservdelar' },
+                  ] as { id: LeadType; icon: string; label: string }[]).map(opt => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => { setLeadType(opt.id); setSelectedItems([]); setItemSearch(''); }}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold transition-all duration-150 ${
+                        leadType === opt.id
+                          ? 'bg-white text-slate-900 shadow-sm'
+                          : 'text-slate-500 hover:text-slate-700'
+                      }`}
+                    >
+                      <span>{opt.icon}</span>
+                      <span>{opt.label}</span>
+                    </button>
+                  ))}
                 </div>
+              </div>
+
+              {/* Source row */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">{t('newLead.fields.source')}</label>
+                <select
+                  value={formData.source}
+                  onChange={e => setFormData({ ...formData, source: e.target.value })}
+                  className={inputCls(false, false)}
+                >
+                  <option>{t('newLead.sourceOptions.walkin')}</option>
+                  <option>{t('newLead.sourceOptions.phone')}</option>
+                  <option>{t('newLead.sourceOptions.website')}</option>
+                  <option>{t('newLead.sourceOptions.referral')}</option>
+                </select>
+              </div>
+
+              {/* Interest — only for motorcycle leads */}
+              {leadType === 'motorcycle' && (
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">{t('newLead.fields.interest')}</label>
                   <input
@@ -427,7 +515,47 @@ export default function NewLeadPage() {
                     placeholder={t('newLead.placeholders.interest')}
                   />
                 </div>
-              </div>
+              )}
+
+              {/* Selected accessories summary — only for accessories leads */}
+              {leadType === 'accessories' && selectedItems.length > 0 && (
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Valda artiklar</label>
+                  <div className="space-y-1.5">
+                    {selectedItems.map(item => (
+                      <div key={item.id} className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2 border border-slate-200">
+                        <span className="text-xs text-slate-400 shrink-0">{item.itemType === 'acc' ? '🧤' : '🔧'}</span>
+                        <span className="flex-1 text-xs font-medium text-slate-800 truncate">{item.brand} {item.name}</span>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button type="button" onClick={() => changeQty(item.id, item.qty - 1)} className="w-5 h-5 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 text-xs font-bold flex items-center justify-center transition-colors">−</button>
+                          <span className="w-5 text-center text-xs font-bold text-slate-700">{item.qty}</span>
+                          <button type="button" onClick={() => changeQty(item.id, item.qty + 1)} className="w-5 h-5 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 text-xs font-bold flex items-center justify-center transition-colors">+</button>
+                        </div>
+                        <span className="text-xs font-semibold text-slate-600 w-20 text-right shrink-0">
+                          {(item.price * item.qty).toLocaleString('sv-SE')} kr
+                        </span>
+                        <button type="button" onClick={() => changeQty(item.id, 0)} className="text-slate-300 hover:text-red-400 transition-colors ml-1 shrink-0">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-between items-center mt-2 px-1">
+                    <span className="text-xs text-slate-500">{selectedItems.reduce((s, i) => s + i.qty, 0)} artiklar</span>
+                    <span className="text-sm font-bold text-slate-800">{selectedTotal.toLocaleString('sv-SE')} kr</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Extra notes for accessories leads */}
+              {leadType === 'accessories' && selectedItems.length === 0 && (
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Sök och välj artiklar →</label>
+                  <p className="text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200 px-4 py-3 text-center">
+                    Använd panelen till höger för att välja tillbehör eller reservdelar
+                  </p>
+                </div>
+              )}
 
               {/* Deal value + cost price side by side */}
               <div className="grid grid-cols-2 gap-3">
@@ -437,14 +565,18 @@ export default function NewLeadPage() {
                     <input
                       type="number"
                       min="0"
-                      step="1000"
-                      value={formData.estimatedValue || ''}
+                      step="1"
+                      value={(leadType === 'accessories' && selectedTotal > 0 ? selectedTotal : formData.estimatedValue) || ''}
                       onChange={e => setFormData({ ...formData, estimatedValue: parseInt(e.target.value) || 0 })}
-                      className={`${inputCls(false, false)} pr-12`}
+                      readOnly={leadType === 'accessories' && selectedTotal > 0}
+                      className={`${inputCls(leadType === 'accessories' && selectedTotal > 0, leadType === 'accessories' && selectedTotal > 0)} pr-12`}
                       placeholder={t('newLead.placeholders.dealValue')}
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 font-medium pointer-events-none">kr</span>
                   </div>
+                  {leadType === 'accessories' && selectedTotal > 0 && (
+                    <p className="text-[11px] mt-1 text-slate-400">Beräknat från valda artiklar</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
@@ -455,7 +587,7 @@ export default function NewLeadPage() {
                     <input
                       type="number"
                       min="0"
-                      step="1000"
+                      step="1"
                       value={formData.costPrice || ''}
                       onChange={e => setFormData({ ...formData, costPrice: parseInt(e.target.value) || 0 })}
                       className={`${inputCls(false, false)} pr-12`}
@@ -544,7 +676,88 @@ export default function NewLeadPage() {
               </div>
             </div>
 
-            {/* Matching vehicles — live from inventory */}
+            {/* Right panel: vehicle browser OR accessories/spare parts picker */}
+            {leadType === 'accessories' ? (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    🛒 Tillbehör &amp; Reservdelar
+                  </p>
+                  <span className="text-[10px] font-semibold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">
+                    {allShopItems.length} artiklar
+                  </span>
+                </div>
+
+                {/* Search */}
+                <div className="relative mb-3">
+                  <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+                  </svg>
+                  <input
+                    type="text"
+                    value={itemSearch}
+                    onChange={e => setItemSearch(e.target.value)}
+                    placeholder="Sök artikel..."
+                    className="w-full pl-7 pr-7 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C]/20 outline-none transition-all placeholder:text-slate-400 text-slate-700"
+                  />
+                  {itemSearch && (
+                    <button type="button" onClick={() => setItemSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-slate-300 hover:bg-slate-400 text-white text-[10px] leading-none flex items-center justify-center">×</button>
+                  )}
+                </div>
+
+                {allShopItems.length === 0 ? (
+                  <div className="rounded-xl border-2 border-dashed border-slate-200 py-8 text-center">
+                    <p className="text-2xl mb-2">📦</p>
+                    <p className="text-xs text-slate-400 font-medium">Inga tillbehör eller reservdelar i lager</p>
+                  </div>
+                ) : filteredShopItems.length === 0 ? (
+                  <div className="rounded-xl border-2 border-dashed border-slate-200 py-5 text-center">
+                    <p className="text-xs text-slate-400">Inga artiklar matchade &ldquo;{itemSearch}&rdquo;</p>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5 max-h-80 overflow-y-auto pr-0.5">
+                    {filteredShopItems.map(item => {
+                      const isSelected = selectedItems.some(s => s.id === item.id);
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => toggleItem(item)}
+                          className={`w-full text-left rounded-xl border-2 px-3 py-2.5 transition-all ${
+                            isSelected
+                              ? 'border-[#FF6B2C] bg-[#FF6B2C]/5'
+                              : 'border-transparent bg-slate-50 hover:bg-slate-100'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="text-xs shrink-0">{item.itemType === 'acc' ? '🧤' : '🔧'}</span>
+                              <span className="text-xs font-bold text-slate-900 truncate">{item.brand} {item.name}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {item.stock === 0 ? (
+                                <span className="text-[9px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded">Slut</span>
+                              ) : (
+                                <span className="text-[9px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">{item.stock} st</span>
+                              )}
+                              {isSelected && (
+                                <span className="text-[9px] font-bold text-[#FF6B2C] bg-[#FF6B2C]/10 px-1.5 py-0.5 rounded">✓</span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-[11px] text-slate-500 mt-0.5">
+                            {item.price.toLocaleString('sv-SE')} kr / st
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                <p className="text-xs text-slate-400 mt-3 leading-relaxed">
+                  Klicka för att lägga till · justera antal i formuläret
+                </p>
+              </div>
+            ) : (
             <div>
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
@@ -592,7 +805,7 @@ export default function NewLeadPage() {
                       const active = formData.interest === v.name;
                       return (
                         <button
-                          key={v.name}
+                          key={v.key}
                           type="button"
                           onClick={() => {
                             setFormData(prev => ({ ...prev, interest: v.name, estimatedValue: v.rawPrice }));
@@ -612,7 +825,16 @@ export default function NewLeadPage() {
                               <span className="text-[9px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded shrink-0">{v.stock} st</span>
                             )}
                           </div>
-                          <span className="text-[11px] text-slate-500">{v.price}</span>
+                          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                            <span className="text-[11px] text-slate-500">{v.price}</span>
+                            {v.year > 0 && <span className="text-[10px] text-slate-400">{v.year}</span>}
+                            {v.engineCC > 0 && <span className="text-[10px] text-slate-400">{v.engineCC} cc</span>}
+                            {v.color && (
+                              <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-full truncate max-w-30">
+                                {v.color}
+                              </span>
+                            )}
+                          </div>
                         </button>
                       );
                     })}
@@ -635,7 +857,7 @@ export default function NewLeadPage() {
                     const active = formData.interest === v.name;
                     return (
                       <button
-                        key={v.name}
+                        key={v.key}
                         type="button"
                         onClick={() => setFormData(prev => ({ ...prev, interest: v.name, estimatedValue: v.rawPrice }))}
                         className={`w-full text-left rounded-xl border-2 px-4 py-3 transition-all ${
@@ -647,6 +869,15 @@ export default function NewLeadPage() {
                         <div className="flex items-center justify-between mb-1.5">
                           <span className="text-sm font-bold text-slate-900 truncate pr-2">{v.name}</span>
                           <span className={`text-xs font-bold shrink-0 ${clr.text}`}>{v.match}%</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+                          {v.year > 0 && <span className="text-[10px] text-slate-400">{v.year}</span>}
+                          {v.engineCC > 0 && <span className="text-[10px] text-slate-400">{v.engineCC} cc</span>}
+                          {v.color && (
+                            <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-full truncate max-w-30">
+                              {v.color}
+                            </span>
+                          )}
                         </div>
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-xs text-slate-500">{v.price}</span>
@@ -671,6 +902,7 @@ export default function NewLeadPage() {
                 </p>
               )}
             </div>
+            )}
           </div>
         </div>
       </div>
@@ -678,6 +910,7 @@ export default function NewLeadPage() {
       {showBankID && (
         <BankIDModal
           mode="auth"
+          action="auth"
           onComplete={handleBankIDComplete}
           onCancel={() => setShowBankID(false)}
           autoStart

@@ -6,7 +6,18 @@ import { getDealershipId } from './tenant';
 function db() { return getSupabaseBrowser() as any; }
 
 export type Status = 'hot' | 'warm' | 'cold';
-export type Stage  = 'new' | 'contacted' | 'testride' | 'negotiating' | 'pending_payment' | 'closed';
+export type Stage  = 'new' | 'contacted' | 'testride' | 'offer' | 'negotiating' | 'pending_payment' | 'closed';
+
+export type LeadType = 'motorcycle' | 'accessories';
+
+export interface LeadItem {
+  id:       string;
+  name:     string;
+  brand:    string;
+  price:    number;
+  qty:      number;
+  itemType: 'acc' | 'sp';
+}
 
 export interface Lead {
   id:             number;
@@ -32,13 +43,14 @@ export interface Lead {
   lostReason:      string | null;  // why deal was lost (if closed as lost)
   source:          string;         // lead origin: BankID, Walk-in, Website, etc.
   createdAt:       string;         // ISO — when lead was created
+  leadType:        LeadType;       // 'motorcycle' | 'accessories'
+  leadItems:       LeadItem[];     // selected accessories/spare-parts (empty for motorcycle leads)
 }
 
 // ── Column mapping ─────────────────────────────────────────────────────────────
 
 function formatValue(n: number): string {
-  if (n >= 1000) return `${Math.round(n / 1000)}k kr`;
-  return `${n} kr`;
+  return `${Math.round(n).toLocaleString('sv-SE')} kr`;
 }
 
 function formatTime(ts: string | null): string {
@@ -91,6 +103,14 @@ function mapDbToLead(row: Record<string, unknown>): Lead {
     lostReason:      (row.lost_reason as string | null) ?? null,
     source:          (row.source      as string)        ?? 'Walk-in',
     createdAt:       (row.created_at  as string)        ?? '',
+    leadType:        ((row.lead_type  as LeadType)      ?? 'motorcycle'),
+    leadItems:       (() => {
+      try {
+        const v = row.lead_items;
+        if (!v) return [];
+        return Array.isArray(v) ? (v as LeadItem[]) : JSON.parse(v as string);
+      } catch { return []; }
+    })(),
   };
 }
 
@@ -139,6 +159,8 @@ export interface CreateLeadInput {
   city?:             string | null;
   customer_id?:      string | number | null;
   salesperson_name?: string | null;
+  lead_type?:        LeadType;
+  lead_items?:       LeadItem[];
 }
 
 export async function createLead(data: CreateLeadInput): Promise<Lead> {
@@ -162,6 +184,10 @@ export async function createLead(data: CreateLeadInput): Promise<Lead> {
       dealership_id:    dealershipId,
       customer_id:      data.customer_id       ?? null,
       salesperson_name: data.salesperson_name  || null,
+      lead_type:        data.lead_type         ?? 'motorcycle',
+      lead_items:       data.lead_items && data.lead_items.length > 0
+                          ? JSON.stringify(data.lead_items)
+                          : null,
     })
     .select()
     .single();
@@ -181,8 +207,9 @@ export async function updateLeadStage(id: number, stage: Stage): Promise<void> {
 }
 
 /**
- * Advance a lead to 'negotiating' only if it is still at 'new' or 'contacted'.
- * Called when the agreement page is opened so the kanban column updates.
+ * Advance a lead to 'negotiating' only if it is still at 'new', 'contacted',
+ * 'testride', or 'offer'. Called when the agreement page is opened so the
+ * kanban column updates.
  */
 export async function advanceLeadToNegotiating(id: number): Promise<void> {
   const dealershipId = getDealershipId();
@@ -192,7 +219,7 @@ export async function advanceLeadToNegotiating(id: number): Promise<void> {
     .update({ stage: 'negotiating' })
     .eq('id', id)
     .eq('dealership_id', dealershipId)
-    .in('stage', ['new', 'contacted']);   // never regress a further-along lead
+    .in('stage', ['new', 'contacted', 'testride', 'offer']);  // never regress further-along leads
 }
 
 /**

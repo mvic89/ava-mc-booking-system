@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { logAudit } from '@/lib/audit';
+import { notify } from '@/lib/notify';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Row = Record<string, any>;
@@ -100,22 +101,39 @@ async function handleCreate(lead: Row, dealershipId: string): Promise<NextRespon
   });
 
   // ── 2. Check existing customer ────────────────────────────────────────────
+  // Use .limit(1) + first-row selection instead of .maybeSingle() so that if
+  // duplicates already exist in the DB we still find one and update it instead
+  // of cascading yet another duplicate.
   let existingId: number | null = null;
 
   if (lead.personnummer) {
-    const { data: byPnr } = await sb()
+    const { data: rows } = await sb()
       .from('customers').select('id')
       .eq('personnummer', lead.personnummer)
-      .eq('dealership_id', dealershipId).maybeSingle();
+      .eq('dealership_id', dealershipId)
+      .limit(1);
+    const byPnr = rows?.[0] ?? null;
     if (byPnr) { existingId = byPnr.id; console.log('[customers/create] found by pnr:', existingId); }
   }
 
   if (!existingId && lead.email) {
-    const { data: byEmail } = await sb()
+    const { data: rows } = await sb()
       .from('customers').select('id')
       .eq('email', lead.email)
-      .eq('dealership_id', dealershipId).maybeSingle();
+      .eq('dealership_id', dealershipId)
+      .limit(1);
+    const byEmail = rows?.[0] ?? null;
     if (byEmail) { existingId = byEmail.id; console.log('[customers/create] found by email:', existingId); }
+  }
+
+  if (!existingId && lead.phone) {
+    const { data: rows } = await sb()
+      .from('customers').select('id')
+      .eq('phone', lead.phone)
+      .eq('dealership_id', dealershipId)
+      .limit(1);
+    const byPhone = rows?.[0] ?? null;
+    if (byPhone) { existingId = byPhone.id; console.log('[customers/create] found by phone:', existingId); }
   }
 
   let customerId: number | null = existingId;
@@ -149,6 +167,11 @@ async function handleCreate(lead: Row, dealershipId: string): Promise<NextRespon
       tag:                'Active',
       lifetime_value:     leadValue,
       last_activity:      new Date().toISOString(),
+      customer_since:     new Date().toISOString(),
+      risk_level:         'low',
+      citizenship:        null,
+      deceased:           false,
+      notes:              null,
       dealership_id:      dealershipId,
     };
 
@@ -159,15 +182,22 @@ async function handleCreate(lead: Row, dealershipId: string): Promise<NextRespon
 
     if (insertErr) {
       if (insertErr.code === '23505') {
-        // Race — re-look up by personnummer then email
+        // Race — re-look up by personnummer, email, then phone
         console.warn('[customers/create] duplicate on insert, re-looking up');
-        const { data: d1 } = await sb().from('customers').select('id')
-          .eq('personnummer', lead.personnummer ?? '').eq('dealership_id', dealershipId).maybeSingle();
-        if (d1) customerId = d1.id;
-        if (!customerId) {
-          const { data: d2 } = await sb().from('customers').select('id')
-            .eq('email', lead.email ?? '').eq('dealership_id', dealershipId).maybeSingle();
-          if (d2) customerId = d2.id;
+        if (lead.personnummer) {
+          const { data: r1 } = await sb().from('customers').select('id')
+            .eq('personnummer', lead.personnummer).eq('dealership_id', dealershipId).limit(1);
+          if (r1?.[0]) customerId = r1[0].id;
+        }
+        if (!customerId && lead.email) {
+          const { data: r2 } = await sb().from('customers').select('id')
+            .eq('email', lead.email).eq('dealership_id', dealershipId).limit(1);
+          if (r2?.[0]) customerId = r2[0].id;
+        }
+        if (!customerId && lead.phone) {
+          const { data: r3 } = await sb().from('customers').select('id')
+            .eq('phone', lead.phone).eq('dealership_id', dealershipId).limit(1);
+          if (r3?.[0]) customerId = r3[0].id;
         }
       } else {
         console.error('[customers/create] INSERT error:', insertErr.message, 'code:', insertErr.code,
@@ -227,5 +257,16 @@ async function handleCreate(lead: Row, dealershipId: string): Promise<NextRespon
   if (updErr) console.error('[customers/create] update lead stage failed:', updErr.message);
 
   console.log('[customers/create] done — customerId:', customerId, 'created:', created);
+
+  if (created) {
+    notify({
+      dealershipId,
+      type:    'customer',
+      title:   'Ny kund skapad',
+      message: `${lead.name} är nu registrerad som kund`,
+      href:    `/customers/${customerId}`,
+    });
+  }
+
   return NextResponse.json({ customerId, created });
 }

@@ -788,6 +788,7 @@ export default function NewCustomerPage() {
       {showBankID && (
         <BankIDModal
           mode="auth"
+          action="verify_identity"
           title={t('new.scanning.title')}
           subtitle={t('new.scanning.subtitle')}
           onComplete={handleBankIDComplete}

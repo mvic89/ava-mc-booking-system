@@ -46,9 +46,9 @@ export async function POST(req: NextRequest) {
     const tasks: Promise<unknown>[] = [];
 
     // Länsförsäkringar
-    const lfKey  = getCredential(dealerId, 'lansforsakringar', 'LF_API_KEY');
-    const lfPid  = getCredential(dealerId, 'lansforsakringar', 'LF_PARTNER_ID');
-    const lfUrl  = getCredential(dealerId, 'lansforsakringar', 'LF_API_URL') || 'https://api.lansforsakringar.se/partner/v1';
+    const lfKey  = await getCredential(dealerId, 'lansforsakringar', 'LF_API_KEY');
+    const lfPid  = await getCredential(dealerId, 'lansforsakringar', 'LF_PARTNER_ID');
+    const lfUrl  = await getCredential(dealerId, 'lansforsakringar', 'LF_API_URL') || 'https://api.lansforsakringar.se/partner/v1';
     if (lfKey && lfPid) {
       tasks.push(
         getQuoteLF(lfKey, lfPid, lfUrl, payload).catch(e => ({ error: e.message, provider: 'lansforsakringar' })),
@@ -56,9 +56,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Trygg-Hansa
-    const thKey  = getCredential(dealerId, 'trygg_hansa', 'TRYGG_HANSA_API_KEY');
-    const thBid  = getCredential(dealerId, 'trygg_hansa', 'TRYGG_HANSA_BROKER_ID');
-    const thUrl  = getCredential(dealerId, 'trygg_hansa', 'TRYGG_HANSA_API_URL') || 'https://api-test.trygghansa.se/partner/v2';
+    const thKey  = await getCredential(dealerId, 'trygg_hansa', 'TRYGG_HANSA_API_KEY');
+    const thBid  = await getCredential(dealerId, 'trygg_hansa', 'TRYGG_HANSA_BROKER_ID');
+    const thUrl  = await getCredential(dealerId, 'trygg_hansa', 'TRYGG_HANSA_API_URL') || 'https://api-test.trygghansa.se/partner/v2';
     if (thKey && thBid) {
       tasks.push(
         getQuoteTryggHansa(thKey, thBid, thUrl, payload).catch(e => ({ error: e.message, provider: 'trygg_hansa' })),

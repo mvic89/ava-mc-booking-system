@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
 
 const UPCOMING: { icon: string; title: string; desc: string; eta: string }[] = [
@@ -49,6 +50,7 @@ const STATS = [
 ];
 
 export default function ServicePage() {
+  const t = useTranslations('service')
   return (
     <div className="flex min-h-screen bg-[#f5f7fa]">
       <Sidebar />
@@ -65,8 +67,8 @@ export default function ServicePage() {
           </nav>
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <h1 className="text-2xl font-black text-[#0b1524]">Service</h1>
-              <p className="text-sm text-slate-500 mt-1">Workshop management, bookings, and service history</p>
+              <h1 className="text-2xl font-black text-[#0b1524]">{t('title')}</h1>
+              <p className="text-sm text-slate-500 mt-1">{t('subtitle')}</p>
             </div>
             <span className="text-xs font-bold bg-amber-100 text-amber-700 px-3 py-1.5 rounded-full border border-amber-200">
               Coming Soon
@@ -77,22 +79,22 @@ export default function ServicePage() {
         <div className="px-5 md:px-8 py-8 max-w-4xl space-y-8">
 
           {/* Hero card */}
-          <div className="bg-gradient-to-br from-[#0b1524] to-[#1a3050] rounded-2xl p-8 text-white relative overflow-hidden">
+          <div className="bg-linear-to-br from-[#0b1524] to-[#1a3050] rounded-2xl p-8 text-white relative overflow-hidden">
             {/* decorative circles */}
             <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5" />
             <div className="absolute -bottom-6 -left-6 w-32 h-32 rounded-full bg-white/5" />
 
             <div className="relative">
               <p className="text-4xl mb-4">🔧</p>
-              <h2 className="text-2xl font-black mb-3">Service module is on its way</h2>
+              <h2 className="text-2xl font-black mb-3">{t('comingSoon')}</h2>
               <p className="text-slate-300 text-sm leading-relaxed max-w-xl">
                 We're building a full workshop management system designed specifically for motorcycle dealerships.
                 From online bookings to digital work orders, technician time tracking, and parts management —
                 everything in one place, fully connected to your existing CRM and invoicing.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
-                <span className="text-xs font-bold bg-white/10 px-3 py-1.5 rounded-full">🗓 Launching Q3 2026</span>
-                <span className="text-xs font-bold bg-[#FF6B2C]/80 px-3 py-1.5 rounded-full">Early access available</span>
+                <span className="text-xs font-bold bg-white/10 px-3 py-1.5 rounded-full">🗓 {t('launching')}</span>
+                <span className="text-xs font-bold bg-[#FF6B2C]/80 px-3 py-1.5 rounded-full">{t('earlyAccess')}</span>
               </div>
             </div>
           </div>
@@ -109,7 +111,7 @@ export default function ServicePage() {
 
           {/* Upcoming features */}
           <div>
-            <h3 className="text-sm font-black text-slate-700 uppercase tracking-widest mb-4">What's coming</h3>
+            <h3 className="text-sm font-black text-slate-700 uppercase tracking-widest mb-4">{t('features')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {UPCOMING.map(f => (
                 <div key={f.title} className="bg-white rounded-2xl border border-slate-100 p-5">
@@ -143,7 +145,7 @@ export default function ServicePage() {
               href="mailto:support@bikemenow.com?subject=Service Module Early Access"
               className="shrink-0 px-5 py-2.5 rounded-xl bg-[#FF6B2C] hover:bg-[#e55a1f] text-white text-sm font-bold transition-colors"
             >
-              Request early access →
+              {t('earlyAccess')} →
             </a>
           </div>
 

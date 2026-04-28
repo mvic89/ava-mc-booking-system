@@ -16,14 +16,14 @@ export async function GET(req: NextRequest) {
   const sb = getSupabaseAdmin();
   const { data, error } = await sb
     .from('dealerships')
-    .select('smtp_user,smtp_pass,twilio_account_sid,twilio_auth_token,twilio_from_number,admin_phone,admin_email,email')
+    .select('smtp_user,smtp_pass,smtp_host,smtp_port,twilio_account_sid,twilio_auth_token,twilio_from_number,admin_phone,admin_email,email')
     .eq('id', dealershipId)
     .maybeSingle();
 
   if (error || !data) return NextResponse.json({ error: error?.message ?? 'Not found' }, { status: 404 });
 
   const d = data as {
-    smtp_user: string | null; smtp_pass: string | null;
+    smtp_user: string | null; smtp_pass: string | null; smtp_host: string | null; smtp_port: number | null;
     twilio_account_sid: string | null; twilio_auth_token: string | null; twilio_from_number: string | null;
     admin_phone: string | null; admin_email: string | null; email: string | null;
   };
@@ -33,6 +33,14 @@ export async function GET(req: NextRequest) {
     twilioOk:   !!(d.twilio_account_sid && d.twilio_auth_token && d.twilio_from_number),
     adminPhone: d.admin_phone ?? null,
     adminEmail: d.admin_email ?? d.email ?? null,
+    // Return saved values so the UI can pre-fill inputs (secrets masked by type="password")
+    smtpUser:          d.smtp_user          ?? '',
+    smtpPass:          d.smtp_pass          ?? '',
+    smtpHost:          d.smtp_host          ?? '',
+    smtpPort:          d.smtp_port          ?? null,
+    twilioAccountSid:  d.twilio_account_sid ?? '',
+    twilioAuthToken:   d.twilio_auth_token  ?? '',
+    twilioFromNumber:  d.twilio_from_number ?? '',
   });
 }
 

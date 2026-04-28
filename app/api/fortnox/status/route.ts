@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'dealershipId is required' }, { status: 400 });
   }
 
-  const token          = getCredential(dealershipId, 'fortnox', 'FORTNOX_ACCESS_TOKEN');
+  const token          = await getCredential(dealershipId, 'fortnox', 'FORTNOX_ACCESS_TOKEN');
   const tokenConfigured = Boolean(token);
 
   // Test connection + get company name (parallel)

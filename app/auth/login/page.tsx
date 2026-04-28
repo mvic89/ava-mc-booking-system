@@ -526,6 +526,7 @@ export default function LoginPage() {
       {showBankID && (
         <BankIDModal
           mode="auth"
+          action="auth"
           onComplete={handleBankIDComplete}
           onCancel={() => setShowBankID(false)}
           autoStart

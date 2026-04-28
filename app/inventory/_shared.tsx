@@ -7,6 +7,7 @@ import { Motorcycle, SparePart, Accessory, BaseInventoryItem, InventoryCategory 
 import { AddItemModal } from '@/components/AddItemModal'
 import { ImportInventoryModal } from '@/components/ImportInventoryModal'
 import { EditItemModal } from '@/components/EditItemModal'
+import Sidebar from '@/components/Sidebar'
 
 // ─── Column resize + drag-to-reorder ─────────────────────────────────────────
 
@@ -724,7 +725,9 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
     const tabLabel    = TABS.find(t => t.id === category)?.label ?? ''
 
     return (
-        <div className="lg:ml-64 h-screen overflow-hidden bg-[#f5f7fa] flex flex-col">
+        <div className="flex min-h-screen bg-[#f5f7fa]">
+        <Sidebar />
+        <div className="lg:ml-64 flex-1 h-screen overflow-hidden bg-[#f5f7fa] flex flex-col">
             <div className="brand-top-bar" />
 
             {/* Compact header — single row */}
@@ -1020,6 +1023,7 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
             {showAddModal    && <AddItemModal onClose={() => setShowAddModal(false)} />}
             {showImportModal && <ImportInventoryModal onClose={() => setShowImportModal(false)} />}
             {selectedItem   && <EditItemModal item={selectedItem} category={category} onClose={() => setSelectedItem(null)} />}
+        </div>
         </div>
     )
 }

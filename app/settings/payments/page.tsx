@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
 import { PAYMENT_REGISTRY } from '@/lib/payments/registry';
@@ -82,6 +83,7 @@ function ConfiguredCount({ provider, fieldStatus }: { provider: PaymentProviderD
 
 export default function PaymentSettingsPage() {
   const router = useRouter();
+  const t      = useTranslations('settingsPayments');
 
   const [loading,          setLoading]          = useState(true);
   const [saving,           setSaving]           = useState(false);
@@ -270,23 +272,21 @@ export default function PaymentSettingsPage() {
           <div className="flex items-start justify-between mb-6 animate-fade-up">
             <div>
               <p className="text-xs text-slate-400 uppercase tracking-widest mb-1">
-                <Link href="/settings" className="hover:text-[#FF6B2C] transition-colors">Settings</Link>
-                {' / '}Payment Providers
+                <Link href="/settings" className="hover:text-[#FF6B2C] transition-colors">{t('breadcrumb')}</Link>
+                {' / '}{t('title')}
               </p>
-              <h1 className="text-2xl font-black text-[#0b1524]">Payment Providers</h1>
-              <p className="text-sm text-slate-500 mt-1">
-                Enable the payment methods your dealership accepts and fill in your credentials.
-              </p>
+              <h1 className="text-2xl font-black text-[#0b1524]">{t('title')}</h1>
+              <p className="text-sm text-slate-500 mt-1">{t('subtitle')}</p>
             </div>
             <div className="flex items-center gap-3 shrink-0">
               {saveResult === 'ok' && (
                 <span className="text-xs font-bold text-green-600 bg-green-50 px-3 py-1.5 rounded-lg border border-green-200 animate-fade-up">
-                  ✓ Saved successfully
+                  ✓ {t('saved')}
                 </span>
               )}
               {saveResult === 'error' && (
                 <span className="text-xs font-bold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg border border-red-200">
-                  ✗ Save failed — try again
+                  ✗ {t('saveFailed')}
                 </span>
               )}
               <span className="text-xs text-slate-400">{enabledCount} provider{enabledCount !== 1 ? 's' : ''} enabled</span>
@@ -296,7 +296,7 @@ export default function PaymentSettingsPage() {
                 className="px-5 py-2.5 rounded-xl bg-[#FF6B2C] hover:bg-[#e05a20] text-white text-sm font-bold transition-colors disabled:opacity-60 flex items-center gap-2"
               >
                 {saving && <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                {saving ? 'Saving…' : 'Save All Changes'}
+                {saving ? t('saving') : t('saveBtn')}
               </button>
             </div>
           </div>

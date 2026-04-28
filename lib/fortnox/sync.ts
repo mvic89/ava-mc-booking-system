@@ -33,22 +33,22 @@ function sb() { return getSupabaseAdmin() as any; }
  * Automatically refreshes if the stored token is expired.
  */
 async function getValidToken(dealershipId: string): Promise<string> {
-  let token = getCredential(dealershipId, 'fortnox', 'FORTNOX_ACCESS_TOKEN');
+  let token = await getCredential(dealershipId, 'fortnox', 'FORTNOX_ACCESS_TOKEN');
 
-  const expiresAtStr = getCredential(dealershipId, 'fortnox', 'FORTNOX_TOKEN_EXPIRES_AT');
+  const expiresAtStr = await getCredential(dealershipId, 'fortnox', 'FORTNOX_TOKEN_EXPIRES_AT');
   const expiresAt    = expiresAtStr ? Number(expiresAtStr) : 0;
   const isExpired    = expiresAt > 0 && Date.now() > expiresAt - 60_000; // 1-min buffer
 
   if (isExpired) {
-    const refreshToken  = getCredential(dealershipId, 'fortnox', 'FORTNOX_REFRESH_TOKEN');
-    const clientId      = getCredential(dealershipId, 'fortnox', 'FORTNOX_CLIENT_ID');
-    const clientSecret  = getCredential(dealershipId, 'fortnox', 'FORTNOX_CLIENT_SECRET');
+    const refreshToken  = await getCredential(dealershipId, 'fortnox', 'FORTNOX_REFRESH_TOKEN');
+    const clientId      = await getCredential(dealershipId, 'fortnox', 'FORTNOX_CLIENT_ID');
+    const clientSecret  = await getCredential(dealershipId, 'fortnox', 'FORTNOX_CLIENT_SECRET');
 
     if (refreshToken && clientId && clientSecret) {
       try {
         const result = await refreshAccessToken(clientId, clientSecret, refreshToken);
         // Persist refreshed tokens back to config store
-        const cfg = getStoredConfig(dealershipId);
+        const cfg = await getStoredConfig(dealershipId);
         if (cfg) {
           cfg.credentials.fortnox = {
             ...cfg.credentials.fortnox,
@@ -56,7 +56,7 @@ async function getValidToken(dealershipId: string): Promise<string> {
             FORTNOX_REFRESH_TOKEN:    result.refresh_token,
             FORTNOX_TOKEN_EXPIRES_AT: String(Date.now() + result.expires_in * 1_000),
           };
-          saveStoredConfig(cfg);
+          await saveStoredConfig(cfg);
           token = result.access_token;
         }
       } catch (e) {

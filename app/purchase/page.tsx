@@ -10,6 +10,7 @@ import { POModal, STATUS_STYLE, formatCurrency, qtyKey, VendorItem } from '@/com
 import { CreatePOModal, FlatInventoryItem } from '@/components/CreatePOModal'
 import { ImportPOModal } from '@/components/ImportPOModal'
 import { POLineItem, POStatus, PurchaseOrder } from '@/utils/types'
+import Sidebar from '@/components/Sidebar'
 
 const ALL_STATUSES: POStatus[] = ['Draft', 'Reviewed', 'Sent', 'Received']
 
@@ -522,7 +523,9 @@ export default function PurchasePage() {
     const poDefaultWidths = useMemo(() => poCols.map(c => c.defaultWidth), [poCols])
 
     return (
-        <div className="lg:ml-64 h-screen overflow-hidden flex flex-col bg-white">
+        <div className="flex min-h-screen">
+        <Sidebar />
+        <div className="lg:ml-64 h-screen overflow-hidden flex flex-col bg-white w-full">
             {/* Top bar */}
             <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 shrink-0">
                 <span className="text-sm text-gray-500 font-medium">Purchase Orders</span>
@@ -662,6 +665,7 @@ export default function PurchasePage() {
                     vendorEmailOverride={supplierEmails[selectedPO.vendor]}
                 />
             )}
+        </div>
         </div>
     )
 }

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { getTranslations, getLocale } from "next-intl/server";
 import Sidebar from "@/components/Sidebar";
 import { inquiries, getInquiry, statusMeta } from "../../data";
 import OfferBuilder from "@/components//OfferBuilder";
@@ -15,8 +16,11 @@ export default async function OffertBuilderPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const inq = getInquiry(id);
+  const inq    = getInquiry(id);
   if (!inq) notFound();
+
+  const t      = await getTranslations("offer");
+  const locale = await getLocale();
 
   const meta = statusMeta[inq.status];
 
@@ -27,18 +31,17 @@ export default async function OffertBuilderPage({
       <div className="lg:ml-64 flex-1 flex flex-col min-w-0">
         <div className="brand-top-bar" />
 
-        {/* Page header */}
         <div className="px-5 md:px-8 py-6 bg-white border-b border-slate-100 animate-fade-up">
           <Link
             href="/offer/offers"
             className="text-xs text-slate-400 uppercase tracking-widest font-semibold hover:text-slate-600 transition-colors"
           >
-            ← Offerter
+            ← {t("offert.back")}
           </Link>
           <div className="flex items-center justify-between mt-1">
             <h1 className="text-2xl font-bold text-slate-900">{inq.customer.name}</h1>
             <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ${meta.bg} ${meta.color}`}>
-              {meta.label}
+              {t(`statuses.${inq.status}` as "statuses.new")}
             </span>
           </div>
         </div>
@@ -48,15 +51,16 @@ export default async function OffertBuilderPage({
 
             {/* Customer + Bike */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              {/* Customer */}
               <div className="bg-white border border-slate-100 rounded-2xl p-5 space-y-3">
-                <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">Kund</p>
-                {[
-                  ["Namn",      inq.customer.name],
-                  ["E-post",    inq.customer.email],
-                  ["Telefon",   inq.customer.phone],
-                  ["Betalning", inq.payment === "cash" ? "Kontant" : "Finansiering"],
-                ].map(([label, value]) => (
+                <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">
+                  {t("offert.customerSection")}
+                </p>
+                {([
+                  [t("offert.fields.name"),    inq.customer.name],
+                  [t("offert.fields.email"),   inq.customer.email],
+                  [t("offert.fields.phone"),   inq.customer.phone],
+                  [t("offert.fields.payment"), inq.payment === "cash" ? t("payment.cash") : t("payment.financing")],
+                ] as [string, string][]).map(([label, value]) => (
                   <div key={label}>
                     <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">{label}</p>
                     <p className="text-slate-800 text-sm mt-0.5">{value}</p>
@@ -64,7 +68,6 @@ export default async function OffertBuilderPage({
                 ))}
               </div>
 
-              {/* Bike */}
               <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden">
                 <div className="relative h-28 w-full">
                   <Image
@@ -78,7 +81,7 @@ export default async function OffertBuilderPage({
                   <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">{inq.bike.brand}</p>
                   <p className="text-slate-900 font-semibold text-sm">{inq.bike.model}</p>
                   <p className="text-slate-500 text-xs">
-                    {inq.bike.price.toLocaleString("sv-SE")} kr · {inq.bike.year} · {inq.bike.type}
+                    {inq.bike.price.toLocaleString(locale)} kr · {inq.bike.year} · {inq.bike.type}
                   </p>
                 </div>
               </div>
@@ -86,22 +89,28 @@ export default async function OffertBuilderPage({
 
             {/* Customer preferences */}
             <div className="bg-white border border-slate-100 rounded-2xl p-5 mb-6 space-y-4">
-              <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">Kundens önskemål</p>
+              <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">
+                {t("offert.preferences")}
+              </p>
 
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide mb-1">Inbyte</p>
+                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide mb-1">
+                    {t("offert.tradeInLabel")}
+                  </p>
                   {inq.tradeIn.has ? (
                     <p className="text-amber-700 font-medium text-xs">
                       {inq.tradeIn.make} {inq.tradeIn.model} ({inq.tradeIn.year}) —{" "}
-                      {parseInt(inq.tradeIn.mileage ?? "0").toLocaleString("sv-SE")} km
+                      {parseInt(inq.tradeIn.mileage ?? "0").toLocaleString(locale)} km
                     </p>
                   ) : (
-                    <p className="text-slate-400 text-xs">Inget inbyte</p>
+                    <p className="text-slate-400 text-xs">{t("offert.noTradeIn")}</p>
                   )}
                 </div>
                 <div>
-                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide mb-1">Tillbehör</p>
+                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide mb-1">
+                    {t("offert.accessoriesLabel")}
+                  </p>
                   {inq.accessories.wants ? (
                     <div>
                       <p className="text-blue-700 font-medium text-xs">{inq.accessories.items?.join(", ")}</p>
@@ -110,14 +119,16 @@ export default async function OffertBuilderPage({
                       )}
                     </div>
                   ) : (
-                    <p className="text-slate-400 text-xs">Inga tillbehör</p>
+                    <p className="text-slate-400 text-xs">{t("offert.noAccessories")}</p>
                   )}
                 </div>
               </div>
 
               {inq.message && (
                 <div>
-                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide mb-1">Meddelande</p>
+                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide mb-1">
+                    {t("offert.messageLabel")}
+                  </p>
                   <p className="text-slate-600 text-xs">&ldquo;{inq.message}&rdquo;</p>
                 </div>
               )}
@@ -127,7 +138,7 @@ export default async function OffertBuilderPage({
             <div className="flex items-center gap-3 mb-6">
               <div className="flex-1 border-t border-slate-200" />
               <span className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">
-                Säljarens tillägg
+                {t("offert.sellerSection")}
               </span>
               <div className="flex-1 border-t border-slate-200" />
             </div>

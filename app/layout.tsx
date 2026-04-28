@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import {NextIntlClientProvider} from 'next-intl';
-import {getMessages, getLocale} from 'next-intl/server';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages, getLocale } from 'next-intl/server';
 import { Toaster } from 'sonner';
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
 import RealtimeSync from "@/components/RealtimeSync";
 import { InventoryProvider } from "@/context/InventoryContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,20 +28,29 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const locale = await getLocale();
+  const locale   = await getLocale();
   const messages = await getMessages();
 
   return (
-    <html lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} translate="no" className="notranslate">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'} translate="no" className="notranslate" suppressHydrationWarning>
+      <head>
+        {/* Anti-flash: apply dark class before first paint */}
+        <script dangerouslySetInnerHTML={{ __html: `
+(function(){try{
+  var s=localStorage.getItem('theme');
+  var p=window.matchMedia('(prefers-color-scheme:dark)').matches;
+  if(s==='dark'||(s===null&&p)){document.documentElement.classList.add('dark');}
+}catch(e){}})();
+        `}} />
+      </head>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <NextIntlClientProvider messages={messages}>
-          <InventoryProvider>
-            <RealtimeSync />
-            <Sidebar />
-            {children}
-          </InventoryProvider>
+          <ThemeProvider>
+            <InventoryProvider>
+              <RealtimeSync />
+              {children}
+            </InventoryProvider>
+          </ThemeProvider>
         </NextIntlClientProvider>
         <Toaster
           position="bottom-right"
