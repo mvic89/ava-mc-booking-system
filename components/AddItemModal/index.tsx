@@ -136,6 +136,7 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
     const [cost, setCost]                   = useState('')
     const [sellingPrice, setSellingPrice]   = useState('')
     const [vendor, setVendor]               = useState('')
+    const [location, setLocation]           = useState('')
 
     // Motorcycle-specific
     const VIN_REGEX = /^[A-HJ-NPR-Z0-9]{17}$/  // exactly 17 chars, no I/O/Q
@@ -147,11 +148,166 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
     const [warehouse, setWarehouse] = useState<Warehouse>('Warehouse A')
 
     // Spare part-specific
-    const [spCategory, setSpCategory] = useState('')
+    const [spCategory,    setSpCategory]    = useState('')
+    const [spSubCategory, setSpSubCategory] = useState('')
+
+    // Website listing
+    const [listedOnWebsite, setListedOnWebsite] = useState(false)
 
     // Accessory-specific
     const [accCategory, setAccCategory] = useState('')
+    const [accSubGroup, setAccSubGroup] = useState('')
     const [size, setSize]               = useState('')
+    const [accColor, setAccColor]       = useState('')
+
+    const ACC_STYLES: Record<string, string[]> = {
+        'Helmet': [
+            'Open Face', 'Full Face', 'Modular / Flip-Up', 'Off-Road / Motocross',
+            'Half Shell', 'Dual Sport', 'Enduro', 'Trial',
+        ],
+        'Gloves': [
+            'Fingerless / Mitts', 'Short Cuff Summer', 'Full Finger Mid-Season',
+            'Full Gauntlet Winter', 'Hard Knuckle', 'Racing / Track Day',
+            'Touring', 'Off-Road / Motocross', 'Urban / Street',
+            'Heated', 'Waterproof', 'Adventure / ADV',
+        ],
+        'Jacket': [
+            'Leather Racing', 'Leather Touring', 'Leather Urban',
+            'Textile Sport', 'Textile Touring', 'Textile Adventure',
+            'Mesh / Summer', 'Softshell', 'Waterproof / Rain',
+            'Winter / Insulated', 'Urban / Casual', 'High-Vis',
+        ],
+        'Boots': [
+            'Racing / Track', 'Sports Touring', 'Touring',
+            'Adventure / ADV', 'Off-Road / Motocross', 'Urban / Street',
+            'Short / Ankle', 'Waterproof Touring', 'Cruiser',
+        ],
+        'Pants': [
+            'Leather Racing', 'Leather Touring',
+            'Textile Sport', 'Textile Touring', 'Textile Adventure',
+            'Mesh / Summer', 'Waterproof / Rain', 'Denim / Jeans',
+            'Overpants', 'Off-Road',
+        ],
+        'T-Shirt': [
+            'Men Crew Neck', 'Women Fitted', 'Unisex',
+            'Polo', 'Long Sleeve', 'Compression Base Layer',
+        ],
+        'Cap': [
+            'Baseball Cap Men', 'Baseball Cap Women', 'Snapback',
+            'Beanie', 'Bucket Hat', 'Flat Cap', 'Trucker Cap',
+        ],
+        'Neck & Face': [
+            'Full Balaclava', 'Open Face Balaclava', 'Lightweight Balaclava',
+            'Neck Tube / Buff', 'Face Mask / Gaiter', 'Windproof Mask', 'Scarf',
+        ],
+        'Seat Cover': [
+            'OEM Replacement', 'Custom Fit', 'Gel Padded',
+            'Memory Foam', 'Heated', 'Anti-Slip / Grippy',
+            'Sheepskin', 'Waterproof',
+        ],
+        'Protection': [
+            'Back Protector Level 1', 'Back Protector Level 2',
+            'Chest Protector', 'Knee Guard Soft', 'Knee Guard Hard Shell',
+            'Elbow Guard', 'Hip Guard', 'Shoulder Pad',
+            'Spine Protector', 'Neck Brace', 'Airbag Vest', 'Full Body Armor',
+        ],
+        'Luggage': [
+            'Tank Bag Magnetic', 'Tank Bag Strap-On', 'Tail Bag / Seat Bag',
+            'Hard Pannier', 'Soft Saddlebag', 'Backpack',
+            'Dry Bag', 'Top Case Liner', 'Handlebar Bag',
+            'Roll Bag', 'Cargo Net',
+        ],
+        'Handlebars & Grips': [
+            'Standard Grip', 'Ergonomic Grip', 'Heated Grip', 'Lock-On Grip',
+            'Bar End Weight', 'Riser / Adapter', 'Clip-On / Clubman',
+            'Fatbar', 'Crossbar Pad', 'Throttle Assist',
+        ],
+    }
+
+    const SP_STYLES: Record<string, string[]> = {
+        'Engine': [
+            'Piston & Rings', 'Cylinder Barrel', 'Cylinder Head',
+            'Camshaft & Rocker Arms', 'Valves & Valve Springs',
+            'Crankshaft & Conrod', 'Crank Bearings & Seals',
+            'Clutch Pack & Springs', 'Oil Pump',
+            'Engine Gasket Set', 'Timing Chain & Tensioner',
+            'Engine Cover / Casing', 'Starter Motor',
+        ],
+        'Brakes': [
+            'Brake Pads (Disc)', 'Brake Shoes (Drum)', 'Brake Disc / Rotor',
+            'Caliper Assembly', 'Caliper Rebuild Kit', 'Brake Master Cylinder',
+            'Brake Line & Banjo Bolt', 'Brake Lever', 'ABS Sensor', 'ABS Modulator',
+        ],
+        'Electrical': [
+            'Battery', 'Spark Plug', 'Ignition Coil', 'CDI / ECU Module',
+            'Stator Coil', 'Rotor / Flywheel', 'Rectifier-Regulator',
+            'Wiring Harness', 'Switch Assembly', 'Relay & Fuse',
+            'Throttle Position Sensor', 'Crankshaft Position Sensor', 'Starter Relay',
+        ],
+        'Transmission': [
+            'Drive Chain', 'Front Sprocket', 'Rear Sprocket', 'Chain & Sprocket Kit',
+            'Gearshift Fork', 'Selector Drum', 'Gearbox Shaft',
+            'Clutch Cable', 'Belt Drive Kit', 'Shaft Drive Seal',
+            'Chain Tensioner / Slider', 'Chain Guard',
+        ],
+        'Suspension': [
+            'Fork Spring', 'Fork Oil Seal & Dust Seal', 'Fork Bushing / Slider',
+            'Fork Tube / Stanchion', 'Rear Shock Absorber', 'Rear Spring',
+            'Linkage / Rocker Arm Bearing', 'Steering Head Bearing & Race',
+            'Swingarm Bearing & Seal', 'Fork Brace',
+        ],
+        'Fuel System': [
+            'Carburettor Body', 'Main Jet & Needle Jet', 'Float & Float Valve',
+            'Fuel Injector', 'Fuel Pump', 'Fuel Filter',
+            'Fuel Tap / Petcock', 'Throttle Body', 'Intake Boot / Manifold',
+            'Air Box', 'Choke Assembly', 'Fuel Tank Cap & Seal',
+        ],
+        'Tyres & Wheels': [
+            'Front Tyre', 'Rear Tyre', 'Inner Tube (Front)', 'Inner Tube (Rear)',
+            'Rim Assembly (Front)', 'Rim Assembly (Rear)', 'Wheel Bearing',
+            'Wheel Seal', 'Rim Tape', 'Tyre Valve Stem', 'Rim Lock', 'Spoke Set',
+        ],
+        'Exhaust': [
+            'Header Pipe / Downpipe', 'Mid-Pipe / Link Pipe', 'Silencer / Muffler',
+            'Full Exhaust System', 'Exhaust Gasket', 'Exhaust Clamp',
+            'Exhaust Bracket & Mount', 'Heat Shield', 'DB Killer',
+        ],
+        'Body & Frame': [
+            'Upper Front Fairing', 'Side Fairing Panel', 'Lower Belly Pan',
+            'Windscreen / Windshield', 'Rear Seat Cowl', 'Tail Unit',
+            'Front Fender / Mudguard', 'Rear Fender / Mudguard',
+            'Fuel Tank Cover / Shroud', 'Side Cover', 'Seat Assembly',
+            'Frame Slider / Crash Protector', 'Number Plate Holder',
+        ],
+        'Cooling System': [
+            'Radiator Core', 'Radiator Hose (Upper)', 'Radiator Hose (Lower)',
+            'Thermostat & Housing', 'Water Pump Body', 'Water Pump Impeller & Seal',
+            'Radiator Fan & Motor', 'Coolant Reservoir', 'Hose Clamp',
+            'Coolant Temperature Sensor',
+        ],
+        'Filters & Fluids': [
+            'Engine Oil Filter', 'Air Filter Element', 'Fuel Filter',
+            'Oil Drain Plug & Washer', 'Oil Pressure Switch',
+            'Coolant / Antifreeze', 'Brake Fluid', 'Fork Oil', 'Gear / Transmission Oil',
+        ],
+        'Controls & Cables': [
+            'Throttle Cable (Open)', 'Throttle Cable (Close)', 'Clutch Cable',
+            'Choke / Enricher Cable', 'Rear Brake Cable', 'Speedometer Cable',
+            'Handlebar Grip Set', 'Throttle Tube', 'Brake Lever', 'Clutch Lever',
+            'Footpeg & Mount', 'Brake Pedal', 'Gear Lever & Linkage',
+        ],
+        'Lighting': [
+            'Headlight Assembly', 'Headlight Bulb (H4 / H7)', 'LED Headlight Conversion',
+            'Tail Light Assembly', 'Tail Light Bulb / LED', 'Turn Signal / Indicator',
+            'Indicator Lens', 'Licence Plate Light', 'DRL / LED Strip',
+            'Headlight Bracket & Stay',
+        ],
+        'Instruments': [
+            'Speedometer (Analogue)', 'Speedometer (Digital)', 'Tachometer',
+            'Fuel Gauge / Sender Unit', 'Temperature Gauge', 'Digital Dash Display',
+            'Odometer / Hour Meter', 'GPS / Navigation Mount',
+        ],
+    }
 
     // Auto-generate item ID when type is chosen (includes dealership UUID fingerprint)
     const autoId = useMemo(() => {
@@ -281,6 +437,8 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                     cost: parseFloat(cost) || 0,
                     sellingPrice: parseFloat(sellingPrice) || 0,
                     vendor: vendor.trim(),
+                    location: location.trim() || undefined,
+                    listedOnWebsite,
                     vin: vin.trim().toUpperCase(),
                     engineCC: parseInt(engineCC) || 0,
                     color: color.trim(),
@@ -298,8 +456,11 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                     cost: parseFloat(cost) || 0,
                     sellingPrice: parseFloat(sellingPrice) || 0,
                     vendor: vendor.trim(),
+                    location: location.trim() || undefined,
+                    listedOnWebsite,
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     category: spCategory as any,
+                    subCategory: spSubCategory.trim() || undefined,
                 })
             } else {
                 await addItem('accessories', {
@@ -311,9 +472,13 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                     cost: parseFloat(cost) || 0,
                     sellingPrice: parseFloat(sellingPrice) || 0,
                     vendor: vendor.trim(),
+                    location: location.trim() || undefined,
+                    listedOnWebsite,
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     category: accCategory as any,
+                    subGroup: accSubGroup.trim() || undefined,
                     size: size.trim() || undefined,
+                    color: accColor.trim() || undefined,
                 })
             }
             onClose()
@@ -599,6 +764,9 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                                     <Field label="Article Number" required>
                                         <input className={inputCls} placeholder="e.g. ART-00123" value={articleNumber} onChange={(e) => setArticleNumber(e.target.value)} />
                                     </Field>
+                                    <Field label="Location">
+                                        <input className={inputCls} placeholder="e.g. B3-12" value={location} onChange={(e) => setLocation(e.target.value)} />
+                                    </Field>
                                 </div>
                                 <Field label="Description">
                                     <textarea
@@ -757,20 +925,43 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                                 {type === 'spareParts' && (
                                     <>
                                         <Section title="Spare Part Details" />
-                                        <Field label="Category" required>
-                                            <select className={selectCls} value={spCategory} onChange={(e) => setSpCategory(e.target.value)}>
-                                                <option value="">— Select category —</option>
-                                                <option>Engine</option>
-                                                <option>Brakes</option>
-                                                <option>Electrical</option>
-                                                <option>Transmission</option>
-                                                <option>Suspension</option>
-                                                <option>Fuel System</option>
-                                                <option>Tyres &amp; Wheels</option>
-                                                <option>Exhaust</option>
-                                                <option>Body &amp; Frame</option>
-                                            </select>
-                                        </Field>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <Field label="Category" required>
+                                                <select className={selectCls} value={spCategory} onChange={(e) => { setSpCategory(e.target.value); setSpSubCategory('') }}>
+                                                    <option value="">— Select category —</option>
+                                                    <optgroup label="Powertrain">
+                                                        <option>Engine</option>
+                                                        <option>Transmission</option>
+                                                        <option>Fuel System</option>
+                                                        <option>Exhaust</option>
+                                                    </optgroup>
+                                                    <optgroup label="Chassis &amp; Safety">
+                                                        <option>Suspension</option>
+                                                        <option>Brakes</option>
+                                                        <option>Tyres &amp; Wheels</option>
+                                                        <option>Controls &amp; Cables</option>
+                                                    </optgroup>
+                                                    <optgroup label="Electrical &amp; Instruments">
+                                                        <option>Electrical</option>
+                                                        <option>Lighting</option>
+                                                        <option>Instruments</option>
+                                                    </optgroup>
+                                                    <optgroup label="Body &amp; Ancillaries">
+                                                        <option>Body &amp; Frame</option>
+                                                        <option>Cooling System</option>
+                                                        <option>Filters &amp; Fluids</option>
+                                                    </optgroup>
+                                                </select>
+                                            </Field>
+                                            {SP_STYLES[spCategory] && (
+                                                <Field label="Sub-type">
+                                                    <select className={selectCls} value={spSubCategory} onChange={(e) => setSpSubCategory(e.target.value)}>
+                                                        <option value="">— Select sub-type —</option>
+                                                        {SP_STYLES[spCategory].map(s => <option key={s}>{s}</option>)}
+                                                    </select>
+                                                </Field>
+                                            )}
+                                        </div>
                                     </>
                                 )}
 
@@ -779,28 +970,72 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                                     <>
                                         <Section title="Accessory Details" />
                                         <div className="grid grid-cols-2 gap-4">
-                                            <Field label="Category" required>
-                                                <select className={selectCls} value={accCategory} onChange={(e) => setAccCategory(e.target.value)}>
+                                            <Field label="Type" required>
+                                                <select className={selectCls} value={accCategory} onChange={(e) => { setAccCategory(e.target.value); setAccSubGroup('') }}>
                                                     <option value="">— Select category —</option>
-                                                    <option>Helmet</option>
-                                                    <option>Gloves</option>
-                                                    <option>Jacket</option>
-                                                    <option>Boots</option>
-                                                    <option>Pants</option>
-                                                    <option>Protection</option>
-                                                    <option>Luggage</option>
-                                                    <option>Handlebars &amp; Grips</option>
-                                                    <option>Cap</option>
-                                                    <option>Neck &amp; Face</option>
+                                                    <optgroup label="Helmets">
+                                                        <option>Helmet</option>
+                                                    </optgroup>
+                                                    <optgroup label="Clothing">
+                                                        <option>Jacket</option>
+                                                        <option>Gloves</option>
+                                                        <option>T-Shirt</option>
+                                                        <option>Pants</option>
+                                                        <option>Boots</option>
+                                                        <option>Cap</option>
+                                                        <option>Neck &amp; Face</option>
+                                                    </optgroup>
+                                                    <optgroup label="Other">
+                                                        <option>Seat Cover</option>
+                                                        <option>Protection</option>
+                                                        <option>Luggage</option>
+                                                        <option>Handlebars &amp; Grips</option>
+                                                    </optgroup>
                                                 </select>
                                             </Field>
                                             <Field label="Size" required>
                                                 <input className={inputCls} placeholder="e.g. M, L, XL or 42" value={size} onChange={(e) => setSize(e.target.value)} />
                                             </Field>
+                                            <Field label="Colour">
+                                                <input className={inputCls} placeholder="e.g. Black, Midnight Blue" value={accColor} onChange={(e) => setAccColor(e.target.value)} />
+                                            </Field>
+                                            {ACC_STYLES[accCategory] && (
+                                                <Field label="Style">
+                                                    <select className={selectCls} value={accSubGroup} onChange={(e) => setAccSubGroup(e.target.value)}>
+                                                        <option value="">— Select style —</option>
+                                                        {ACC_STYLES[accCategory].map(s => <option key={s}>{s}</option>)}
+                                                    </select>
+                                                </Field>
+                                            )}
                                         </div>
                                     </>
                                 )}
                             </>
+                        )}
+
+                        {/* ── Website listing toggle ── */}
+                        {type && (
+                            <div
+                                onClick={() => setListedOnWebsite(v => !v)}
+                                className={`flex items-center justify-between px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
+                                    listedOnWebsite
+                                        ? 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100'
+                                        : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                                }`}
+                            >
+                                <div className="flex items-center gap-2.5">
+                                    <span className="text-base">🌐</span>
+                                    <div>
+                                        <p className={`text-sm font-semibold ${listedOnWebsite ? 'text-emerald-700' : 'text-gray-600'}`}>
+                                            {listedOnWebsite ? 'List on website' : 'Not listed on website'}
+                                        </p>
+                                        <p className="text-xs text-gray-400 mt-0.5">Toggle to show this product on the dealer website</p>
+                                    </div>
+                                </div>
+                                <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${listedOnWebsite ? 'bg-emerald-500' : 'bg-gray-300'}`}>
+                                    <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${listedOnWebsite ? 'left-5' : 'left-0.5'}`} />
+                                </div>
+                            </div>
                         )}
 
                         {error && (

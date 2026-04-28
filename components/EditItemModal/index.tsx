@@ -1,7 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useInventory } from '@/context/InventoryContext'
+import { getSupabaseBrowser } from '@/lib/supabase'
+import { getDealershipId } from '@/lib/tenant'
+
 import {
     Motorcycle, SparePart, Accessory, BaseInventoryItem,
     InventoryCategory, MCType, Warehouse,
@@ -9,8 +12,156 @@ import {
 
 const MC_TYPES:    MCType[]    = ['New', 'Trade-In', 'Commission']
 const WAREHOUSES:  Warehouse[] = ['Warehouse A', 'Warehouse B', 'Warehouse C', 'Warehouse D']
-const SP_CATS = ['Engine', 'Brakes', 'Electrical', 'Transmission', 'Suspension', 'Fuel System', 'Tyres & Wheels', 'Exhaust', 'Body & Frame']
-const ACC_CATS = ['Helmet', 'Gloves', 'Jacket', 'Boots', 'Pants', 'Protection', 'Luggage', 'Handlebars & Grips', 'Cap', 'Neck & Face']
+const ACC_CATS = ['Helmet', 'Gloves', 'Jacket', 'T-Shirt', 'Boots', 'Pants', 'Protection', 'Luggage', 'Seat Cover', 'Handlebars & Grips', 'Cap', 'Neck & Face']
+
+const SP_STYLES: Record<string, string[]> = {
+    'Engine': [
+        'Piston & Rings', 'Cylinder Barrel', 'Cylinder Head',
+        'Camshaft & Rocker Arms', 'Valves & Valve Springs',
+        'Crankshaft & Conrod', 'Crank Bearings & Seals',
+        'Clutch Pack & Springs', 'Oil Pump',
+        'Engine Gasket Set', 'Timing Chain & Tensioner',
+        'Engine Cover / Casing', 'Starter Motor',
+    ],
+    'Brakes': [
+        'Brake Pads (Disc)', 'Brake Shoes (Drum)', 'Brake Disc / Rotor',
+        'Caliper Assembly', 'Caliper Rebuild Kit', 'Brake Master Cylinder',
+        'Brake Line & Banjo Bolt', 'Brake Lever', 'ABS Sensor', 'ABS Modulator',
+    ],
+    'Electrical': [
+        'Battery', 'Spark Plug', 'Ignition Coil', 'CDI / ECU Module',
+        'Stator Coil', 'Rotor / Flywheel', 'Rectifier-Regulator',
+        'Wiring Harness', 'Switch Assembly', 'Relay & Fuse',
+        'Throttle Position Sensor', 'Crankshaft Position Sensor', 'Starter Relay',
+    ],
+    'Transmission': [
+        'Drive Chain', 'Front Sprocket', 'Rear Sprocket', 'Chain & Sprocket Kit',
+        'Gearshift Fork', 'Selector Drum', 'Gearbox Shaft',
+        'Clutch Cable', 'Belt Drive Kit', 'Shaft Drive Seal',
+        'Chain Tensioner / Slider', 'Chain Guard',
+    ],
+    'Suspension': [
+        'Fork Spring', 'Fork Oil Seal & Dust Seal', 'Fork Bushing / Slider',
+        'Fork Tube / Stanchion', 'Rear Shock Absorber', 'Rear Spring',
+        'Linkage / Rocker Arm Bearing', 'Steering Head Bearing & Race',
+        'Swingarm Bearing & Seal', 'Fork Brace',
+    ],
+    'Fuel System': [
+        'Carburettor Body', 'Main Jet & Needle Jet', 'Float & Float Valve',
+        'Fuel Injector', 'Fuel Pump', 'Fuel Filter',
+        'Fuel Tap / Petcock', 'Throttle Body', 'Intake Boot / Manifold',
+        'Air Box', 'Choke Assembly', 'Fuel Tank Cap & Seal',
+    ],
+    'Tyres & Wheels': [
+        'Front Tyre', 'Rear Tyre', 'Inner Tube (Front)', 'Inner Tube (Rear)',
+        'Rim Assembly (Front)', 'Rim Assembly (Rear)', 'Wheel Bearing',
+        'Wheel Seal', 'Rim Tape', 'Tyre Valve Stem', 'Rim Lock', 'Spoke Set',
+    ],
+    'Exhaust': [
+        'Header Pipe / Downpipe', 'Mid-Pipe / Link Pipe', 'Silencer / Muffler',
+        'Full Exhaust System', 'Exhaust Gasket', 'Exhaust Clamp',
+        'Exhaust Bracket & Mount', 'Heat Shield', 'DB Killer',
+    ],
+    'Body & Frame': [
+        'Upper Front Fairing', 'Side Fairing Panel', 'Lower Belly Pan',
+        'Windscreen / Windshield', 'Rear Seat Cowl', 'Tail Unit',
+        'Front Fender / Mudguard', 'Rear Fender / Mudguard',
+        'Fuel Tank Cover / Shroud', 'Side Cover', 'Seat Assembly',
+        'Frame Slider / Crash Protector', 'Number Plate Holder',
+    ],
+    'Cooling System': [
+        'Radiator Core', 'Radiator Hose (Upper)', 'Radiator Hose (Lower)',
+        'Thermostat & Housing', 'Water Pump Body', 'Water Pump Impeller & Seal',
+        'Radiator Fan & Motor', 'Coolant Reservoir', 'Hose Clamp',
+        'Coolant Temperature Sensor',
+    ],
+    'Filters & Fluids': [
+        'Engine Oil Filter', 'Air Filter Element', 'Fuel Filter',
+        'Oil Drain Plug & Washer', 'Oil Pressure Switch',
+        'Coolant / Antifreeze', 'Brake Fluid', 'Fork Oil', 'Gear / Transmission Oil',
+    ],
+    'Controls & Cables': [
+        'Throttle Cable (Open)', 'Throttle Cable (Close)', 'Clutch Cable',
+        'Choke / Enricher Cable', 'Rear Brake Cable', 'Speedometer Cable',
+        'Handlebar Grip Set', 'Throttle Tube', 'Brake Lever', 'Clutch Lever',
+        'Footpeg & Mount', 'Brake Pedal', 'Gear Lever & Linkage',
+    ],
+    'Lighting': [
+        'Headlight Assembly', 'Headlight Bulb (H4 / H7)', 'LED Headlight Conversion',
+        'Tail Light Assembly', 'Tail Light Bulb / LED', 'Turn Signal / Indicator',
+        'Indicator Lens', 'Licence Plate Light', 'DRL / LED Strip',
+        'Headlight Bracket & Stay',
+    ],
+    'Instruments': [
+        'Speedometer (Analogue)', 'Speedometer (Digital)', 'Tachometer',
+        'Fuel Gauge / Sender Unit', 'Temperature Gauge', 'Digital Dash Display',
+        'Odometer / Hour Meter', 'GPS / Navigation Mount',
+    ],
+}
+
+const ACC_STYLES: Record<string, string[]> = {
+    'Helmet': [
+        'Open Face', 'Full Face', 'Modular / Flip-Up', 'Off-Road / Motocross',
+        'Half Shell', 'Dual Sport', 'Enduro', 'Trial',
+    ],
+    'Gloves': [
+        'Fingerless / Mitts', 'Short Cuff Summer', 'Full Finger Mid-Season',
+        'Full Gauntlet Winter', 'Hard Knuckle', 'Racing / Track Day',
+        'Touring', 'Off-Road / Motocross', 'Urban / Street',
+        'Heated', 'Waterproof', 'Adventure / ADV',
+    ],
+    'Jacket': [
+        'Leather Racing', 'Leather Touring', 'Leather Urban',
+        'Textile Sport', 'Textile Touring', 'Textile Adventure',
+        'Mesh / Summer', 'Softshell', 'Waterproof / Rain',
+        'Winter / Insulated', 'Urban / Casual', 'High-Vis',
+    ],
+    'Boots': [
+        'Racing / Track', 'Sports Touring', 'Touring',
+        'Adventure / ADV', 'Off-Road / Motocross', 'Urban / Street',
+        'Short / Ankle', 'Waterproof Touring', 'Cruiser',
+    ],
+    'Pants': [
+        'Leather Racing', 'Leather Touring',
+        'Textile Sport', 'Textile Touring', 'Textile Adventure',
+        'Mesh / Summer', 'Waterproof / Rain', 'Denim / Jeans',
+        'Overpants', 'Off-Road',
+    ],
+    'T-Shirt': [
+        'Men Crew Neck', 'Women Fitted', 'Unisex',
+        'Polo', 'Long Sleeve', 'Compression Base Layer',
+    ],
+    'Cap': [
+        'Baseball Cap Men', 'Baseball Cap Women', 'Snapback',
+        'Beanie', 'Bucket Hat', 'Flat Cap', 'Trucker Cap',
+    ],
+    'Neck & Face': [
+        'Full Balaclava', 'Open Face Balaclava', 'Lightweight Balaclava',
+        'Neck Tube / Buff', 'Face Mask / Gaiter', 'Windproof Mask', 'Scarf',
+    ],
+    'Seat Cover': [
+        'OEM Replacement', 'Custom Fit', 'Gel Padded',
+        'Memory Foam', 'Heated', 'Anti-Slip / Grippy',
+        'Sheepskin', 'Waterproof',
+    ],
+    'Protection': [
+        'Back Protector Level 1', 'Back Protector Level 2',
+        'Chest Protector', 'Knee Guard Soft', 'Knee Guard Hard Shell',
+        'Elbow Guard', 'Hip Guard', 'Shoulder Pad',
+        'Spine Protector', 'Neck Brace', 'Airbag Vest', 'Full Body Armor',
+    ],
+    'Luggage': [
+        'Tank Bag Magnetic', 'Tank Bag Strap-On', 'Tail Bag / Seat Bag',
+        'Hard Pannier', 'Soft Saddlebag', 'Backpack',
+        'Dry Bag', 'Top Case Liner', 'Handlebar Bag',
+        'Roll Bag', 'Cargo Net',
+    ],
+    'Handlebars & Grips': [
+        'Standard Grip', 'Ergonomic Grip', 'Heated Grip', 'Lock-On Grip',
+        'Bar End Weight', 'Riser / Adapter', 'Clip-On / Clubman',
+        'Fatbar', 'Crossbar Pad', 'Throttle Assist',
+    ],
+}
 
 function formatSEK(v: number) {
     return new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK', minimumFractionDigits: 0 }).format(v)
@@ -23,7 +174,7 @@ interface Props {
 }
 
 export function EditItemModal({ item, category, onClose }: Props) {
-    const { updateItem, deleteItem } = useInventory()
+    const { updateItem, deleteItem, updateImages, websiteUrl } = useInventory()
 
     // initialise form from item
     const [form, setForm] = useState({
@@ -44,17 +195,27 @@ export function EditItemModal({ item, category, onClose }: Props) {
         mcType:    (item as Motorcycle).mcType    ?? 'New',
         warehouse: (item as Motorcycle).warehouse ?? 'Warehouse A',
         // spare-part / accessory category
-        category:  (item as SparePart | Accessory).category ?? '',
-        // accessory size
+        category:    (item as SparePart | Accessory).category ?? '',
+        // spare-part sub-category
+        spSubCat:    (item as SparePart).subCategory ?? '',
+        // accessory sub-group, size, and colour
+        subGroup:  (item as Accessory).subGroup ?? '',
         size:      (item as Accessory).size ?? '',
+        accColor:  (item as Accessory).color ?? '',
+        // shared optional
+        location:        item.location ?? '',
+        listedOnWebsite: item.listedOnWebsite ?? false,
+        images:          item.images ?? [] as string[],
     })
 
-    const [saving,  setSaving]  = useState(false)
-    const [deleting, setDeleting] = useState(false)
-    const [saved,   setSaved]   = useState(false)
-    const [error,   setError]   = useState('')
+    const [saving,    setSaving]    = useState(false)
+    const [deleting,  setDeleting]  = useState(false)
+    const [saved,     setSaved]     = useState(false)
+    const [error,     setError]     = useState('')
+    const [uploading, setUploading] = useState(false)
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
-    function set(field: string, value: string) {
+    function set(field: string, value: string | boolean) {
         setForm(f => ({ ...f, [field]: value }))
         setSaved(false)
         setError('')
@@ -65,16 +226,19 @@ export function EditItemModal({ item, category, onClose }: Props) {
         setError('')
         try {
             const base: BaseInventoryItem = {
-                id:            item.id,
-                name:          form.name.trim(),
-                brand:         form.brand.trim(),
-                articleNumber: form.articleNumber.trim(),
-                description:   form.description.trim(),
-                stock:         parseInt(form.stock)         || 0,
-                reorderQty:    parseInt(form.reorderQty)    || 0,
-                cost:          parseFloat(form.cost)        || 0,
-                sellingPrice:  parseFloat(form.sellingPrice)|| 0,
-                vendor:        form.vendor.trim(),
+                id:              item.id,
+                name:            form.name.trim(),
+                brand:           form.brand.trim(),
+                articleNumber:   form.articleNumber.trim(),
+                description:     form.description.trim(),
+                stock:           parseInt(form.stock)         || 0,
+                reorderQty:      parseInt(form.reorderQty)    || 0,
+                cost:            parseFloat(form.cost)        || 0,
+                sellingPrice:    parseFloat(form.sellingPrice)|| 0,
+                vendor:          form.vendor.trim(),
+                location:        form.location.trim() || undefined,
+                listedOnWebsite: form.listedOnWebsite,
+                images:          form.images,
             }
 
             if (category === 'motorcycles') {
@@ -88,12 +252,14 @@ export function EditItemModal({ item, category, onClose }: Props) {
                     warehouse: form.warehouse as Warehouse,
                 } as Motorcycle)
             } else if (category === 'spareParts') {
-                await updateItem('spareParts', { ...base, category: form.category } as SparePart)
+                await updateItem('spareParts', { ...base, category: form.category, subCategory: form.spSubCat.trim() || undefined } as SparePart)
             } else {
                 await updateItem('accessories', {
                     ...base,
                     category: form.category,
+                    subGroup: form.subGroup.trim() || undefined,
                     size:     form.size.trim() || undefined,
+                    color:    form.accColor.trim() || undefined,
                 } as Accessory)
             }
             setSaved(true)
@@ -111,9 +277,60 @@ export function EditItemModal({ item, category, onClose }: Props) {
         onClose()
     }
 
+    async function handleUpload(files: FileList | null) {
+        if (!files || files.length === 0) return
+        const dealershipId = getDealershipId()
+        if (!dealershipId) { setError('Not logged in — cannot upload'); return }
+        setUploading(true)
+        setError('')
+        try {
+            const newUrls: string[] = []
+            for (const file of Array.from(files)) {
+                const body = new FormData()
+                body.append('file',         file)
+                body.append('dealershipId', dealershipId)
+                body.append('itemId',       item.id)
+                const res  = await fetch('/api/inventory/upload-image', { method: 'POST', body })
+                const json = await res.json()
+                if (!res.ok) throw new Error(json.error ?? 'Upload failed')
+                newUrls.push(json.url as string)
+            }
+            const updated = [...form.images, ...newUrls]
+            setForm(f => ({ ...f, images: updated }))
+            await updateImages(item.id, updated)
+        } catch (err) {
+            console.error('[upload]', err)
+            setError(err instanceof Error ? err.message : 'Upload failed')
+        } finally {
+            setUploading(false)
+            if (fileInputRef.current) fileInputRef.current.value = ''
+        }
+    }
+
+    async function handleRemoveImage(url: string) {
+        const updated = form.images.filter(u => u !== url)
+        setForm(f => ({ ...f, images: updated }))
+        await updateImages(item.id, updated)
+        // Best-effort: remove the file from Storage via server route (bypasses RLS)
+        try {
+            const urlPath   = new URL(url).pathname
+            const bucketIdx = urlPath.indexOf('/inventory-images/')
+            if (bucketIdx !== -1) {
+                const storagePath = urlPath.slice(bucketIdx + '/inventory-images/'.length)
+                await fetch('/api/inventory/delete-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: storagePath }),
+                })
+            }
+        } catch { /* non-critical */ }
+    }
+
     const margin = form.sellingPrice && form.cost
         ? (((parseFloat(form.sellingPrice) - parseFloat(form.cost)) / parseFloat(form.sellingPrice)) * 100).toFixed(1)
         : '0.0'
+
+    const [activeImg, setActiveImg] = useState(0)
 
     return (
         <div
@@ -121,11 +338,11 @@ export function EditItemModal({ item, category, onClose }: Props) {
             onClick={onClose}
         >
             <div
-                className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden"
+                className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-start justify-between px-6 pt-5 pb-4 border-b border-gray-100 shrink-0">
+                <div className="flex items-start justify-between px-6 pt-4 pb-3 border-b border-gray-100 shrink-0">
                     <div>
                         <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-0.5">
                             {category === 'motorcycles' ? '🏍️ Motorcycle' : category === 'spareParts' ? '🔧 Spare Part' : '🪖 Accessory'}
@@ -140,84 +357,253 @@ export function EditItemModal({ item, category, onClose }: Props) {
                     >✕</button>
                 </div>
 
-                {/* Body */}
-                <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+                {/* Two-column body */}
+                <div className="flex flex-1 overflow-hidden">
 
-                    {/* Pricing summary strip */}
-                    <div className="grid grid-cols-3 gap-3">
-                        {[
-                            { label: 'Cost',       value: formatSEK(parseFloat(form.cost) || 0),         color: 'bg-gray-50' },
-                            { label: 'Sell Price', value: formatSEK(parseFloat(form.sellingPrice) || 0), color: 'bg-orange-50' },
-                            { label: 'Margin',     value: `${margin}%`,                                  color: 'bg-green-50' },
-                        ].map(c => (
-                            <div key={c.label} className={`${c.color} rounded-xl p-3 text-center`}>
-                                <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">{c.label}</p>
-                                <p className="text-base font-bold text-gray-800 mt-0.5">{c.value}</p>
-                            </div>
-                        ))}
-                    </div>
+                    {/* ── LEFT: form fields ────────────────────────────────── */}
+                    <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5 border-r border-gray-100">
 
-                    {/* Core fields */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <Field label="Name *" value={form.name} onChange={v => set('name', v)} />
-                        <Field label="Brand *" value={form.brand} onChange={v => set('brand', v)} />
-                        <Field label="Article Number" value={form.articleNumber} onChange={v => set('articleNumber', v)} mono />
-                        <Field label="Vendor / Supplier" value={form.vendor} onChange={v => set('vendor', v)} />
-                    </div>
-                    <Field label="Description" value={form.description} onChange={v => set('description', v)} multiline />
+                        {/* Pricing strip */}
+                        <div className="grid grid-cols-3 gap-3">
+                            {[
+                                { label: 'Cost',       value: formatSEK(parseFloat(form.cost) || 0),         color: 'bg-gray-50' },
+                                { label: 'Sell Price', value: formatSEK(parseFloat(form.sellingPrice) || 0), color: 'bg-orange-50' },
+                                { label: 'Margin',     value: `${margin}%`,                                  color: 'bg-green-50' },
+                            ].map(c => (
+                                <div key={c.label} className={`${c.color} rounded-xl p-3 text-center`}>
+                                    <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">{c.label}</p>
+                                    <p className="text-base font-bold text-gray-800 mt-0.5">{c.value}</p>
+                                </div>
+                            ))}
+                        </div>
 
-                    {/* Stock */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <Field label="Stock" value={form.stock} onChange={v => set('stock', v)} type="number" />
-                        <Field label="Reorder Qty" value={form.reorderQty} onChange={v => set('reorderQty', v)} type="number" />
-                        <Field label="Cost (SEK)" value={form.cost} onChange={v => set('cost', v)} type="number" />
-                        <Field label="Sell Price (SEK)" value={form.sellingPrice} onChange={v => set('sellingPrice', v)} type="number" />
-                    </div>
-
-                    {/* Motorcycle-specific */}
-                    {category === 'motorcycles' && (
+                        {/* Core fields */}
                         <div className="grid grid-cols-2 gap-4">
-                            <Field label="VIN" value={form.vin} onChange={v => set('vin', v)} mono />
-                            <Field label="Year" value={form.year} onChange={v => set('year', v)} type="number" />
-                            <Field label="Engine CC" value={form.engineCC} onChange={v => set('engineCC', v)} type="number" />
-                            <Field label="Color" value={form.color} onChange={v => set('color', v)} />
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-600 mb-1.5">MC Type</label>
-                                <select value={form.mcType} onChange={e => set('mcType', e.target.value)}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
-                                    {MC_TYPES.map(t => <option key={t}>{t}</option>)}
-                                </select>
+                            <Field label="Name *" value={form.name} onChange={v => set('name', v)} />
+                            <Field label="Brand *" value={form.brand} onChange={v => set('brand', v)} />
+                            <Field label="Article Number" value={form.articleNumber} onChange={v => set('articleNumber', v)} mono />
+                            <Field label="Vendor / Supplier" value={form.vendor} onChange={v => set('vendor', v)} />
+                            <Field label="Location" value={form.location} onChange={v => set('location', v)} placeholder="e.g. B3-12" />
+                        </div>
+                        <Field label="Description" value={form.description} onChange={v => set('description', v)} multiline />
+
+                        {/* Stock & pricing */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <Field label="Stock" value={form.stock} onChange={v => set('stock', v)} type="number" />
+                            <Field label="Reorder Qty" value={form.reorderQty} onChange={v => set('reorderQty', v)} type="number" />
+                            <Field label="Cost (SEK)" value={form.cost} onChange={v => set('cost', v)} type="number" />
+                            <Field label="Sell Price (SEK)" value={form.sellingPrice} onChange={v => set('sellingPrice', v)} type="number" />
+                        </div>
+
+                        {/* Motorcycle-specific */}
+                        {category === 'motorcycles' && (
+                            <div className="grid grid-cols-2 gap-4">
+                                <Field label="VIN" value={form.vin} onChange={v => set('vin', v)} mono />
+                                <Field label="Year" value={form.year} onChange={v => set('year', v)} type="number" />
+                                <Field label="Engine CC" value={form.engineCC} onChange={v => set('engineCC', v)} type="number" />
+                                <Field label="Color" value={form.color} onChange={v => set('color', v)} />
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">MC Type</label>
+                                    <select value={form.mcType} onChange={e => set('mcType', e.target.value)}
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
+                                        {MC_TYPES.map(t => <option key={t}>{t}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">Warehouse</label>
+                                    <select value={form.warehouse} onChange={e => set('warehouse', e.target.value)}
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
+                                        {WAREHOUSES.map(w => <option key={w}>{w}</option>)}
+                                    </select>
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Warehouse</label>
-                                <select value={form.warehouse} onChange={e => set('warehouse', e.target.value)}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
-                                    {WAREHOUSES.map(w => <option key={w}>{w}</option>)}
-                                </select>
+                        )}
+
+                        {/* Spare-part category + sub-type */}
+                        {category === 'spareParts' && (
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">Category</label>
+                                    <select value={form.category}
+                                        onChange={e => { set('category', e.target.value); set('spSubCat', '') }}
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
+                                        <optgroup label="Powertrain">
+                                            {['Engine', 'Transmission', 'Fuel System', 'Exhaust'].map(c => <option key={c}>{c}</option>)}
+                                        </optgroup>
+                                        <optgroup label="Chassis & Safety">
+                                            {['Suspension', 'Brakes', 'Tyres & Wheels', 'Controls & Cables'].map(c => <option key={c}>{c}</option>)}
+                                        </optgroup>
+                                        <optgroup label="Electrical & Instruments">
+                                            {['Electrical', 'Lighting', 'Instruments'].map(c => <option key={c}>{c}</option>)}
+                                        </optgroup>
+                                        <optgroup label="Body & Ancillaries">
+                                            {['Body & Frame', 'Cooling System', 'Filters & Fluids'].map(c => <option key={c}>{c}</option>)}
+                                        </optgroup>
+                                    </select>
+                                </div>
+                                {SP_STYLES[form.category] && (
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-600 mb-1.5">Sub-type</label>
+                                        <select value={form.spSubCat} onChange={e => set('spSubCat', e.target.value)}
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
+                                            <option value="">— Select sub-type —</option>
+                                            {SP_STYLES[form.category].map(s => <option key={s}>{s}</option>)}
+                                        </select>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Accessory category + style */}
+                        {category === 'accessories' && (
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">Type</label>
+                                    <select value={form.category}
+                                        onChange={e => { set('category', e.target.value); set('subGroup', '') }}
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
+                                        <optgroup label="Helmets"><option>Helmet</option></optgroup>
+                                        <optgroup label="Clothing">
+                                            {['Jacket', 'Gloves', 'T-Shirt', 'Pants', 'Boots', 'Cap', 'Neck & Face'].map(c => <option key={c}>{c}</option>)}
+                                        </optgroup>
+                                        <optgroup label="Other">
+                                            {['Seat Cover', 'Protection', 'Luggage', 'Handlebars & Grips'].map(c => <option key={c}>{c}</option>)}
+                                        </optgroup>
+                                    </select>
+                                </div>
+                                <Field label="Size (optional)" value={form.size} onChange={v => set('size', v)} placeholder="e.g. M, L, XL" />
+                                <Field label="Colour" value={form.accColor} onChange={v => set('accColor', v)} placeholder="e.g. Black, Midnight Blue" />
+                                {ACC_STYLES[form.category] && (
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-600 mb-1.5">Style</label>
+                                        <select value={form.subGroup} onChange={e => set('subGroup', e.target.value)}
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
+                                            <option value="">— Select style —</option>
+                                            {ACC_STYLES[form.category].map(s => <option key={s}>{s}</option>)}
+                                        </select>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Website listing toggle */}
+                        <div
+                            onClick={() => set('listedOnWebsite', !form.listedOnWebsite)}
+                            className={`flex items-center justify-between px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
+                                form.listedOnWebsite
+                                    ? 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100'
+                                    : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                            }`}
+                        >
+                            <div className="flex items-center gap-2.5">
+                                <span className="text-base">🌐</span>
+                                <div>
+                                    <p className={`text-sm font-semibold ${form.listedOnWebsite ? 'text-emerald-700' : 'text-gray-600'}`}>
+                                        {form.listedOnWebsite ? 'Listed on website' : 'Not listed on website'}
+                                    </p>
+                                    <p className="text-xs text-gray-400 mt-0.5">
+                                        {form.listedOnWebsite ? 'Visible to customers online' : 'Click to publish on your website'}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${form.listedOnWebsite ? 'bg-emerald-500' : 'bg-gray-300'}`}>
+                                <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${form.listedOnWebsite ? 'left-5' : 'left-0.5'}`} />
                             </div>
                         </div>
-                    )}
 
-                    {/* Spare-part / accessory category */}
-                    {(category === 'spareParts' || category === 'accessories') && (
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Category</label>
-                                <select value={form.category} onChange={e => set('category', e.target.value)}
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400">
-                                    {(category === 'spareParts' ? SP_CATS : ACC_CATS).map(c => <option key={c}>{c}</option>)}
-                                </select>
-                            </div>
-                            {category === 'accessories' && (
-                                <Field label="Size (optional)" value={form.size} onChange={v => set('size', v)} placeholder="e.g. M, L, XL" />
+                        {error && (
+                            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">{error}</div>
+                        )}
+                    </div>
+
+                    {/* ── RIGHT: photo panel ───────────────────────────────── */}
+                    <div className="w-72 shrink-0 flex flex-col bg-gray-50/60 overflow-y-auto">
+
+                        {/* Panel header */}
+                        <div className="flex items-center justify-between px-4 pt-4 pb-3 shrink-0">
+                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Photos</p>
+                            <button
+                                type="button"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={uploading}
+                                className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white rounded-lg transition-colors"
+                            >
+                                {uploading
+                                    ? <><span className="inline-block w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />Uploading…</>
+                                    : '+ Upload'}
+                            </button>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                className="hidden"
+                                onChange={e => { handleUpload(e.target.files); setActiveImg(form.images.length) }}
+                            />
+                        </div>
+
+                        {/* Main preview */}
+                        <div className="mx-4 mb-3 shrink-0">
+                            {form.images.length > 0 ? (
+                                <div className="relative rounded-xl overflow-hidden bg-gray-200 aspect-square">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                        src={form.images[Math.min(activeImg, form.images.length - 1)]}
+                                        alt="Preview"
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveImage(form.images[Math.min(activeImg, form.images.length - 1)])}
+                                        className="absolute top-2 right-2 w-7 h-7 bg-black/60 hover:bg-red-600 text-white rounded-full text-xs font-bold flex items-center justify-center transition-colors"
+                                        title="Remove this photo"
+                                    >✕</button>
+                                    {form.images.length > 1 && (
+                                        <span className="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                                            {Math.min(activeImg, form.images.length - 1) + 1} / {form.images.length}
+                                        </span>
+                                    )}
+                                </div>
+                            ) : (
+                                <div
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="rounded-xl border-2 border-dashed border-gray-300 aspect-square flex flex-col items-center justify-center cursor-pointer hover:border-orange-400 hover:bg-orange-50/40 transition-colors"
+                                >
+                                    <span className="text-3xl mb-2">📷</span>
+                                    <p className="text-xs text-gray-400 font-medium">Click to upload</p>
+                                    <p className="text-[10px] text-gray-300 mt-0.5">JPG, PNG, WEBP</p>
+                                </div>
                             )}
                         </div>
-                    )}
 
-                    {/* Error */}
-                    {error && (
-                        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">{error}</div>
-                    )}
+                        {/* Thumbnail strip */}
+                        {form.images.length > 1 && (
+                            <div className="px-4 mb-3 grid grid-cols-4 gap-1.5 shrink-0">
+                                {form.images.map((url, i) => (
+                                    <button
+                                        key={url}
+                                        type="button"
+                                        onClick={() => setActiveImg(i)}
+                                        className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                                            i === Math.min(activeImg, form.images.length - 1)
+                                                ? 'border-orange-500 scale-105'
+                                                : 'border-transparent hover:border-gray-300'
+                                        }`}
+                                    >
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src={url} alt="" className="w-full h-full object-cover" />
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Website hint */}
+                        {websiteUrl && form.listedOnWebsite && (
+                            <p className="mx-4 mb-3 text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2 leading-relaxed shrink-0">
+                                Visible at <span className="font-mono font-semibold">{websiteUrl}</span>
+                            </p>
+                        )}
+                    </div>
                 </div>
 
                 {/* Footer */}

@@ -1,24 +1,24 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router   = useRouter();
   const [checking, setChecking] = useState(true);
+  const redirected = useRef(false);
 
   useEffect(() => {
-    // The auth page itself is always accessible
     if (pathname === '/settings/auth') {
       setChecking(false);
       return;
     }
     const unlocked = sessionStorage.getItem('settings_unlocked');
-    if (!unlocked) {
+    if (!unlocked && !redirected.current) {
+      redirected.current = true;
       router.replace('/settings/auth');
-      // keep spinner visible while redirect completes
-    } else {
+    } else if (unlocked) {
       setChecking(false);
     }
   }, [pathname, router]);

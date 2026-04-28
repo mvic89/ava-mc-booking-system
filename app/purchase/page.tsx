@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
+import { ReorderableTable, type ColDef } from '@/components/ResizableTable'
 import { useInventory }   from '@/context/InventoryContext'
 import { supabase }       from '@/lib/supabase'
 import { getDealershipId, getDealershipTag } from '@/lib/tenant'
@@ -454,8 +455,74 @@ export default function PurchasePage() {
     }, [historicalPOs, userPOs])
     const tabs: (POStatus | 'All')[] = ['All', ...ALL_STATUSES]
 
+    const poCols = useMemo<ColDef<PurchaseOrder>[]>(() => [
+        {
+            label: 'PO Number',
+            defaultWidth: 180,
+            cell: po => (
+                <div className="flex items-center gap-1.5">
+                    <span className="font-mono text-sm font-semibold text-gray-800">{po.id}</span>
+                    {autoIds.has(po.id) && (
+                        <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-semibold">AUTO</span>
+                    )}
+                </div>
+            ),
+        },
+        {
+            label: 'Vendor',
+            defaultWidth: 180,
+            cell: po => <span className="text-gray-700 text-sm truncate block">{po.vendor}</span>,
+        },
+        {
+            label: 'Date',
+            defaultWidth: 110,
+            cell: po => <span className="text-gray-500 text-sm">{po.date}</span>,
+        },
+        {
+            label: 'Items',
+            defaultWidth: 100,
+            cell: po => (
+                <span className="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full font-medium">
+                    {po.items.length} item{po.items.length !== 1 ? 's' : ''}
+                </span>
+            ),
+        },
+        {
+            label: 'Total Cost',
+            defaultWidth: 130,
+            cell: po => {
+                const effTotal = po.items.reduce((sum, li) => {
+                    const qty = qtyOverrides[qtyKey(po.id, li.inventoryId)] ?? li.orderQty
+                    return sum + qty * li.unitCost
+                }, 0)
+                return <span className="text-gray-800 font-semibold text-sm">{formatCurrency(effTotal)}</span>
+            },
+        },
+        {
+            label: 'ETA',
+            defaultWidth: 110,
+            cell: po => <span className="text-gray-500 text-sm">{po.eta}</span>,
+        },
+        {
+            label: 'Status',
+            defaultWidth: 120,
+            cell: po => {
+                const displayStatus = poStatusOverrides[po.id] ?? po.status
+                const style = STATUS_STYLE[displayStatus] ?? STATUS_STYLE['Draft']
+                return (
+                    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${style.badge}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
+                        {displayStatus}
+                    </span>
+                )
+            },
+        },
+    ], [autoIds, qtyOverrides, poStatusOverrides])
+
+    const poDefaultWidths = useMemo(() => poCols.map(c => c.defaultWidth), [poCols])
+
     return (
-        <div className="lg:ml-64 min-h-screen flex flex-col bg-white">
+        <div className="lg:ml-64 h-screen overflow-hidden flex flex-col bg-white">
             {/* Top bar */}
             <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 shrink-0">
                 <span className="text-sm text-gray-500 font-medium">Purchase Orders</span>
@@ -472,8 +539,8 @@ export default function PurchasePage() {
             </div>
 
             {/* Page body */}
-            <div className="flex-1 overflow-auto p-6">
-                <div className="flex items-center justify-between mb-5">
+            <div className="flex-1 min-h-0 p-6 flex flex-col">
+                <div className="flex items-center justify-between mb-5 shrink-0">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Purchase Orders</h1>
                         <p className="text-sm text-gray-400 mt-0.5">
@@ -496,11 +563,11 @@ export default function PurchasePage() {
                     </div>
                 </div>
 
-                <SummaryCards allPOs={allPOsResolved} filtered={filtered} />
-                <AutoPOBanner autoPOs={autoPOs} allInventoryCount={allInventoryCount} />
+                <div className="shrink-0"><SummaryCards allPOs={allPOsResolved} filtered={filtered} /></div>
+                <div className="shrink-0"><AutoPOBanner autoPOs={autoPOs} allInventoryCount={allInventoryCount} /></div>
 
                 {/* Status tabs */}
-                <div className="flex gap-1 overflow-x-auto mb-4 pb-1">
+                <div className="flex gap-1 overflow-x-auto mb-4 pb-1 shrink-0">
                     {tabs.map((tab) => (
                         <button
                             key={tab}
@@ -522,7 +589,7 @@ export default function PurchasePage() {
                 </div>
 
                 {/* PO table */}
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="table-scroll bg-white rounded-xl border border-gray-200 shadow-sm overflow-auto flex-1 min-h-0">
                     {filtered.length === 0 ? (
                         allPOs.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-64 gap-4">
@@ -545,61 +612,13 @@ export default function PurchasePage() {
                             </div>
                         )
                     ) : (
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs uppercase text-gray-500 tracking-wider">
-                                    <th className="px-4 py-3">PO Number</th>
-                                    <th className="py-3 pr-4">Vendor</th>
-                                    <th className="py-3 pr-4">Date</th>
-                                    <th className="py-3 pr-4">Items</th>
-                                    <th className="py-3 pr-4">Total Cost</th>
-                                    <th className="py-3 pr-4">ETA</th>
-                                    <th className="py-3 pr-4">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filtered.map((po) => {
-                                    const displayStatus = poStatusOverrides[po.id] ?? po.status
-                                    const style    = STATUS_STYLE[displayStatus] ?? STATUS_STYLE['Draft']
-                                    const isAuto   = autoIds.has(po.id)
-                                    const effTotal = po.items.reduce((sum, li) => {
-                                        const qty = qtyOverrides[qtyKey(po.id, li.inventoryId)] ?? li.orderQty
-                                        return sum + qty * li.unitCost
-                                    }, 0)
-                                    return (
-                                        <tr
-                                            key={po.id}
-                                            onClick={() => setSelectedPO(po)}
-                                            className={`border-b border-gray-100 hover:bg-orange-50 transition-colors cursor-pointer ${isAuto ? 'bg-amber-50/30' : ''}`}
-                                        >
-                                            <td className="py-3.5 pl-4 pr-2">
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className="font-mono text-sm font-semibold text-gray-800">{po.id}</span>
-                                                    {isAuto && (
-                                                        <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-semibold">AUTO</span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="py-3.5 pr-4 text-gray-700 text-sm max-w-55 truncate" title={po.vendor}>{po.vendor}</td>
-                                            <td className="py-3.5 pr-4 text-gray-500 text-sm">{po.date}</td>
-                                            <td className="py-3.5 pr-4">
-                                                <span className="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full font-medium">
-                                                    {po.items.length} item{po.items.length !== 1 ? 's' : ''}
-                                                </span>
-                                            </td>
-                                            <td className="py-3.5 pr-4 text-gray-800 font-semibold text-sm">{formatCurrency(effTotal)}</td>
-                                            <td className="py-3.5 pr-4 text-gray-500 text-sm">{po.eta}</td>
-                                            <td className="py-3.5 pr-4">
-                                                <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${style.badge}`}>
-                                                    <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
-                                                    {displayStatus}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    )
-                                })}
-                            </tbody>
-                        </table>
+                        <ReorderableTable<PurchaseOrder>
+                            cols={poCols}
+                            data={filtered}
+                            defaultWidths={poDefaultWidths}
+                            onRowClick={po => setSelectedPO(po)}
+                            rowKey={po => po.id}
+                        />
                     )}
                 </div>
             </div>

@@ -31,12 +31,15 @@ function dbToMotorcycle(r: any): Motorcycle {
         color:        r.color,
         mcType:       r.mc_type,
         warehouse:    r.warehouse,
-        stock:        r.stock,
-        reorderQty:   r.reorder_qty,
-        cost:         Number(r.cost),
-        sellingPrice: Number(r.selling_price),
-        vendor:       r.vendor,
-        description:  r.description,
+        stock:           r.stock,
+        reorderQty:      r.reorder_qty,
+        cost:            Number(r.cost),
+        sellingPrice:    Number(r.selling_price),
+        vendor:          r.vendor,
+        description:     r.description,
+        location:        r.location ?? undefined,
+        listedOnWebsite: r.listed_on_website ?? false,
+        images:          r.images ?? [],
     }
 }
 
@@ -47,13 +50,17 @@ function dbToSparePart(r: any): SparePart {
         name:         r.name,
         articleNumber: r.article_number,
         brand:        r.brand,
-        category:     r.category,
-        stock:        r.stock,
-        reorderQty:   r.reorder_qty,
-        cost:         Number(r.cost),
-        sellingPrice: Number(r.selling_price),
-        vendor:       r.vendor,
-        description:  r.description,
+        category:        r.category,
+        subCategory:     r.sub_category ?? undefined,
+        stock:           r.stock,
+        reorderQty:      r.reorder_qty,
+        cost:            Number(r.cost),
+        sellingPrice:    Number(r.selling_price),
+        vendor:          r.vendor,
+        description:     r.description,
+        location:        r.location ?? undefined,
+        listedOnWebsite: r.listed_on_website ?? false,
+        images:          r.images ?? [],
     }
 }
 
@@ -65,13 +72,18 @@ function dbToAccessory(r: any): Accessory {
         articleNumber: r.article_number,
         brand:        r.brand,
         category:     r.category,
-        size:         r.size ?? undefined,
-        stock:        r.stock,
-        reorderQty:   r.reorder_qty,
-        cost:         Number(r.cost),
-        sellingPrice: Number(r.selling_price),
-        vendor:       r.vendor,
-        description:  r.description,
+        subGroup:        r.sub_group ?? undefined,
+        size:            r.size ?? undefined,
+        color:           r.color ?? undefined,
+        stock:           r.stock,
+        reorderQty:      r.reorder_qty,
+        cost:            Number(r.cost),
+        sellingPrice:    Number(r.selling_price),
+        vendor:          r.vendor,
+        description:     r.description,
+        location:        r.location ?? undefined,
+        listedOnWebsite: r.listed_on_website ?? false,
+        images:          r.images ?? [],
     }
 }
 
@@ -85,12 +97,18 @@ interface InventoryContextValue {
     loading:     boolean
     /** Adjust a single item's stock to an absolute value (not a delta). */
     updateStock: (id: string, newStock: number) => void
+    /** Toggle website listing visibility for a single item. */
+    toggleListing: (id: string, listed: boolean) => void
+    /** Immediately persist an updated images array for one item. */
+    updateImages: (id: string, images: string[]) => Promise<void>
     /** Insert a new item into the correct Supabase table and update local state. */
     addItem: (category: InventoryCategory, item: Motorcycle | SparePart | Accessory) => Promise<void>
     /** Update all fields of an existing item in Supabase and local state. */
     updateItem: (category: InventoryCategory, item: Motorcycle | SparePart | Accessory) => Promise<void>
     /** Delete an item from Supabase and remove from local state. */
     deleteItem: (id: string) => Promise<void>
+    /** The dealership's own website URL stored in their profile (e.g. www.avamc.se). */
+    websiteUrl: string
 }
 
 const InventoryContext = createContext<InventoryContextValue | null>(null)
@@ -102,6 +120,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
     const [spareParts,  setSpareParts ] = useState<SparePart[] >([])
     const [accessories, setAccessories] = useState<Accessory[] >([])
     const [loading,     setLoading    ] = useState(true)
+    const [websiteUrl,  setWebsiteUrl ] = useState('')
 
     // Fetch all inventory from Supabase
     const loadInventory = useCallback(async () => {
@@ -126,12 +145,13 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
             supabase.from('motorcycles').select('*').eq('dealership_id', dealershipId).order('id'),
             supabase.from('spare_parts').select('*').eq('dealership_id', dealershipId).order('id'),
             supabase.from('accessories').select('*').eq('dealership_id', dealershipId).order('id'),
-            supabase.from('dealerships').select('name').eq('id', dealershipId).single(),
+            supabase.from('dealerships').select('name, website').eq('id', dealershipId).single(),
         ])
         if (mcs.data)  setMotorcycles(mcs.data.map(dbToMotorcycle))
         if (sps.data)  setSpareParts(sps.data.map(dbToSparePart))
         if (accs.data) setAccessories(accs.data.map(dbToAccessory))
-        if (dealerRes.data?.name) setDealershipTagCache(tagFromName(dealerRes.data.name))
+        if (dealerRes.data?.name)    setDealershipTagCache(tagFromName(dealerRes.data.name))
+        if (dealerRes.data?.website) setWebsiteUrl(dealerRes.data.website)
         setLoading(false)
     }, [])
 
@@ -154,6 +174,19 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
         const dealershipId = getDealershipId()
         if (!dealershipId) return
         supabase.from(table).update({ stock: qty }).eq('id', id).eq('dealership_id', dealershipId).then()
+        emit({ type: 'data:refresh' })
+    }, [])
+
+    const toggleListing = useCallback((id: string, listed: boolean) => {
+        setMotorcycles((prev) => prev.map((m) => m.id === id ? { ...m, listedOnWebsite: listed } : m))
+        setSpareParts ((prev) => prev.map((s) => s.id === id ? { ...s, listedOnWebsite: listed } : s))
+        setAccessories((prev) => prev.map((a) => a.id === id ? { ...a, listedOnWebsite: listed } : a))
+        const table = id.startsWith('MC-')  ? 'motorcycles'
+                    : id.startsWith('SP-')  ? 'spare_parts'
+                    : 'accessories'
+        const dealershipId = getDealershipId()
+        if (!dealershipId) return
+        supabase.from(table).update({ listed_on_website: listed }).eq('id', id).eq('dealership_id', dealershipId).then()
         emit({ type: 'data:refresh' })
     }, [])
 
@@ -184,9 +217,12 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 warehouse:     mc.warehouse,
                 stock:         mc.stock,
                 reorder_qty:   mc.reorderQty,
-                cost:          mc.cost,
-                selling_price: mc.sellingPrice,
-                vendor:        mc.vendor,
+                cost:               mc.cost,
+                selling_price:      mc.sellingPrice,
+                vendor:             mc.vendor,
+                location:           mc.location ?? null,
+                listed_on_website:  mc.listedOnWebsite ?? false,
+                images:             mc.images ?? [],
             })
             if (error) throw new Error(error.message)
             setMotorcycles((prev) => [mc, ...prev])
@@ -200,11 +236,15 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 brand:         sp.brand,
                 description:   sp.description,
                 category:      sp.category,
+                sub_category:  sp.subCategory ?? null,
                 stock:         sp.stock,
                 reorder_qty:   sp.reorderQty,
-                cost:          sp.cost,
-                selling_price: sp.sellingPrice,
-                vendor:        sp.vendor,
+                cost:               sp.cost,
+                selling_price:      sp.sellingPrice,
+                vendor:             sp.vendor,
+                location:           sp.location ?? null,
+                listed_on_website:  sp.listedOnWebsite ?? false,
+                images:             sp.images ?? [],
             })
             if (error) throw new Error(error.message)
             setSpareParts((prev) => [sp, ...prev])
@@ -218,12 +258,17 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 brand:         acc.brand,
                 description:   acc.description,
                 category:      acc.category,
+                sub_group:     acc.subGroup ?? null,
                 size:          acc.size ?? null,
+                color:         acc.color ?? null,
                 stock:         acc.stock,
                 reorder_qty:   acc.reorderQty,
-                cost:          acc.cost,
-                selling_price: acc.sellingPrice,
-                vendor:        acc.vendor,
+                cost:               acc.cost,
+                selling_price:      acc.sellingPrice,
+                vendor:             acc.vendor,
+                location:           acc.location ?? null,
+                listed_on_website:  acc.listedOnWebsite ?? false,
+                images:             acc.images ?? [],
             })
             if (error) throw new Error(error.message)
             setAccessories((prev) => [acc, ...prev])
@@ -243,6 +288,8 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 engine_cc: mc.engineCC, color: mc.color, mc_type: mc.mcType,
                 warehouse: mc.warehouse, stock: mc.stock, reorder_qty: mc.reorderQty,
                 cost: mc.cost, selling_price: mc.sellingPrice, vendor: mc.vendor,
+                location: mc.location ?? null, listed_on_website: mc.listedOnWebsite ?? false,
+                images: mc.images ?? [],
             }).eq('id', mc.id).eq('dealership_id', dealershipId)
             setMotorcycles(prev => prev.map(m => m.id === mc.id ? mc : m))
         } else if (category === 'spareParts') {
@@ -250,8 +297,11 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
             await supabase.from('spare_parts').update({
                 name: sp.name, brand: sp.brand, description: sp.description,
                 article_number: sp.articleNumber, category: sp.category,
+                sub_category: sp.subCategory ?? null,
                 stock: sp.stock, reorder_qty: sp.reorderQty,
                 cost: sp.cost, selling_price: sp.sellingPrice, vendor: sp.vendor,
+                location: sp.location ?? null, listed_on_website: sp.listedOnWebsite ?? false,
+                images: sp.images ?? [],
             }).eq('id', sp.id).eq('dealership_id', dealershipId)
             setSpareParts(prev => prev.map(s => s.id === sp.id ? sp : s))
         } else {
@@ -259,12 +309,28 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
             await supabase.from('accessories').update({
                 name: acc.name, brand: acc.brand, description: acc.description,
                 article_number: acc.articleNumber, category: acc.category,
-                size: acc.size ?? null, stock: acc.stock, reorder_qty: acc.reorderQty,
+                sub_group: acc.subGroup ?? null,
+                size: acc.size ?? null, color: acc.color ?? null,
+                stock: acc.stock, reorder_qty: acc.reorderQty,
                 cost: acc.cost, selling_price: acc.sellingPrice, vendor: acc.vendor,
+                location: acc.location ?? null, listed_on_website: acc.listedOnWebsite ?? false,
+                images: acc.images ?? [],
             }).eq('id', acc.id).eq('dealership_id', dealershipId)
             setAccessories(prev => prev.map(a => a.id === acc.id ? acc : a))
         }
         emit({ type: 'data:refresh' })
+    }, [])
+
+    const updateImages = useCallback(async (id: string, images: string[]) => {
+        const table = id.startsWith('MC-') ? 'motorcycles'
+                    : id.startsWith('SP-') ? 'spare_parts'
+                    : 'accessories'
+        const dealershipId = getDealershipId()
+        if (!dealershipId) return
+        setMotorcycles(prev => prev.map(m => m.id === id ? { ...m, images } : m))
+        setSpareParts (prev => prev.map(s => s.id === id ? { ...s, images } : s))
+        setAccessories(prev => prev.map(a => a.id === id ? { ...a, images } : a))
+        await supabase.from(table).update({ images }).eq('id', id).eq('dealership_id', dealershipId)
     }, [])
 
     const deleteItem = useCallback(async (id: string) => {
@@ -289,7 +355,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
     )
 
     return (
-        <InventoryContext.Provider value={{ motorcycles, spareParts, accessories, autoPOs, loading, updateStock, addItem, updateItem, deleteItem }}>
+        <InventoryContext.Provider value={{ motorcycles, spareParts, accessories, autoPOs, loading, updateStock, toggleListing, updateImages, addItem, updateItem, deleteItem, websiteUrl }}>
             {children}
         </InventoryContext.Provider>
     )

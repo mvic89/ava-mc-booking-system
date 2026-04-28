@@ -32,11 +32,12 @@ const securityHeaders = [
       // x.klarnacdn.net — Klarna Payments JS SDK
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://x.klarnacdn.net https://js.stripe.com",
       "style-src 'self' 'unsafe-inline' https://vercel.live https://www.gstatic.com https://*.klarnacdn.net",
-      "img-src 'self' data: blob: https://vercel.live https://*.vercel.com https://www.gstatic.com https://*.klarnacdn.net https://*.klarna.com",
+      "img-src 'self' data: blob: https://vercel.live https://*.vercel.com https://www.gstatic.com https://*.klarnacdn.net https://*.klarna.com https://*.supabase.co",
       "font-src 'self' https://vercel.live https://fonts.gstatic.com https://*.klarnacdn.net",
       // *.klarna.com — Klarna SDK makes direct API calls to Klarna from the browser
       // api.stripe.com — Stripe.js makes direct calls to Stripe from the browser
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vercel.live wss://ws-us3.pusher.com https://*.klarna.com https://*.klarnacdn.net https://api.stripe.com",
+      "media-src 'self' blob:",
       // *.klarnacdn.net + *.klarna.com — Klarna widget iframe origins
       // js.stripe.com + hooks.stripe.com — Stripe Elements iframes
       "frame-src https://vercel.live https://*.klarnacdn.net https://*.klarna.com https://js.stripe.com https://hooks.stripe.com",
@@ -50,12 +51,23 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  turbopack: {
+    root: __dirname,
+  },
   async headers() {
     return [
       {
         // Apply security headers to all routes
         source: '/(.*)',
         headers: securityHeaders,
+      },
+      {
+        source: '/bike.mp4',
+        headers: [{ key: 'Content-Type', value: 'video/mp4' }],
+      },
+      {
+        source: '/bike.mp3',
+        headers: [{ key: 'Content-Type', value: 'audio/mpeg' }],
       },
     ];
   },
