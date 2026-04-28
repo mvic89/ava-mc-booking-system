@@ -12,6 +12,7 @@ import { ImportSuppliersModal }   from '@/components/ImportSuppliersModal'
 import { POLineItem, POStatus, PurchaseOrder } from '@/utils/types'
 import { supabase } from '@/lib/supabase'
 import { getDealershipId, getDealershipTag, tagFromName } from '@/lib/tenant'
+import Sidebar from '@/components/Sidebar'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -500,7 +501,9 @@ export default function SuppliersPage() {
     const supplierDefaultWidths = useMemo(() => supplierCols.map(c => c.defaultWidth), [supplierCols])
 
     return (
-        <div className="lg:ml-64 h-screen overflow-hidden flex flex-col bg-white">
+        <div className="flex min-h-screen">
+        <Sidebar />
+        <div className="lg:ml-64 h-screen overflow-hidden flex flex-col bg-white w-full">
             {/* Top bar */}
             <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 shrink-0">
                 <span className="text-sm text-gray-500 font-medium">Suppliers</span>
@@ -679,6 +682,7 @@ export default function SuppliersPage() {
                     vendorEmailOverride={supplierEdits[selectedPO.vendor]?.email ?? poListSupplier?.email}
                 />
             )}
+        </div>
         </div>
     )
 }
