@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import Sidebar from '@/components/Sidebar'
 import { supabase } from '@/lib/supabase'
 import { getDealershipId, getDealershipTag } from '@/lib/tenant'
@@ -403,6 +404,7 @@ export default function GoodsReceiptsPage() {
 }
 
 function GoodsReceiptsContent() {
+    const t            = useTranslations('goodsReceipts')
     const searchParams = useSearchParams()
     const [receipts, setReceipts]   = useState<GoodsReceipt[]>([])
     const [loading,  setLoading]    = useState(true)
@@ -621,16 +623,16 @@ function GoodsReceiptsContent() {
                     {/* Header */}
                     <div className="flex items-center justify-between mb-6 shrink-0">
                         <div>
-                            <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Purchasing</p>
-                            <h1 className="text-2xl font-black text-gray-900">Goods Receipts</h1>
-                            <p className="text-sm text-gray-400 mt-0.5">Track incoming deliveries — auto-captured from email or entered manually</p>
+                            <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">{t('breadcrumb')}</p>
+                            <h1 className="text-2xl font-black text-gray-900">{t('title')}</h1>
+                            <p className="text-sm text-gray-400 mt-0.5">{t('subtitle')}</p>
                         </div>
                         <div className="flex gap-2">
                             <div className="relative">
                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
                                 <input
                                     type="text"
-                                    placeholder="Search receipts..."
+                                    placeholder={t('search')}
                                     value={search}
                                     onChange={e => setSearch(e.target.value)}
                                     className="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-400 w-56"
@@ -640,7 +642,7 @@ function GoodsReceiptsContent() {
                                 onClick={() => { setForm(EMPTY_FORM); setSaveError(''); setOpenPos([]); loadVendors(); setShowCreate(true) }}
                                 className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
                             >
-                                + Manual Entry
+                                + {t('newReceipt')}
                             </button>
                         </div>
                     </div>

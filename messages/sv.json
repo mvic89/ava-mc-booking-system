@@ -205,6 +205,8 @@
     "purchaseinvoices": "Inköpsfakturor",
     "salesPipeline": "Försäljningspipeline",
     "pipeline": "Pipeline",
+    "calendar": "Kalender",
+    "tasks": "Uppgifter",
     "customers": "Kunder",
     "invoices": "Säljfakturor",
     "documents": "Dokument",
@@ -213,6 +215,8 @@
     "users": "Användare",
     "offer": "Offerter",
     "accounting": "Bokföring",
+    "branches": "Filialer",
+    "targets": "Prestationsmål",
     "auditLog": "Granskningslogg",
     "service": "Service",
     "subscribedDealer": "Prenumerant återförsäljare",
@@ -220,7 +224,13 @@
       "core": "KÄRNA",
       "sales": "FÖRSÄLJNING",
       "admin": "ADMIN"
-    }
+    },
+    "reservations": "Reservationer",
+    "tradeIns": "Inbyten",
+    "cancellations": "Avbokningar",
+    "warranties": "Garantier",
+    "nps": "NPS & Nöjdhet",
+    "commissions": "Provisioner"
   },
   "login": {
     "title": "Välkommen tillbaka",
@@ -770,6 +780,7 @@
       "new": "Ny",
       "contacted": "Kontaktad",
       "testRide": "Provkörning",
+      "offer": "Offert",
       "negotiating": "Förhandling",
       "pendingPayment": "Betalning pågår",
       "closed": "Avslutad"
@@ -1251,5 +1262,1493 @@
     "goToLogin": "Gå till inloggning",
     "alreadyHaveAccount": "Har du redan ett konto?",
     "loginLink": "Logga in"
+  },
+  "inventory": {
+    "title": "Lager",
+    "breadcrumb": "Lager",
+    "tabs": {
+      "motorcycles": "Motorcyklar",
+      "spareParts": "Reservdelar",
+      "accessories": "Tillbehör"
+    },
+    "search": "Sök i lager...",
+    "stats": {
+      "totalSkus": "Totalt antal SKU",
+      "unitsInStock": "Enheter i lager",
+      "lowStock": "Låga lagervarningar",
+      "stockValue": "Lagervärde"
+    },
+    "table": {
+      "id": "ID",
+      "name": "Namn / Märke",
+      "articleNo": "Artikelnr",
+      "vin": "VIN",
+      "year": "År",
+      "engine": "Motor",
+      "color": "Färg",
+      "mcType": "MC-typ",
+      "warehouse": "Lager",
+      "stock": "Lager",
+      "reorderQty": "Återbeställningsantal",
+      "cost": "Kostnad",
+      "sellPrice": "Försäljningspris",
+      "margin": "Marginal",
+      "vendor": "Leverantör"
+    },
+    "empty": "Inget lager ännu",
+    "noMatch": "Inga artiklar matchar din sökning",
+    "hint": "Håll muspekaren på en rad för att justera lagret",
+    "import": "Importera från Excel eller lägg till manuellt",
+    "export": {
+      "pdf": "PDF",
+      "excel": "Excel (.xlsx)",
+      "spreadsheet": "Kalkylblad",
+      "print": "Utskriftsformat"
+    }
+  },
+  "goodsReceipts": {
+    "title": "Varuinleveranser",
+    "breadcrumb": "Varuinleveranser",
+    "subtitle": "Registrera mottagna varor — lagret uppdateras automatiskt",
+    "stats": {
+      "total": "Totalt antal inleveranser",
+      "units": "Mottagna enheter",
+      "items": "Mottagna artiklar",
+      "pending": "Väntar på godkännande"
+    },
+    "table": {
+      "receiptId": "Inleverans-ID",
+      "po": "Inköpsorder #",
+      "deliveryNote": "Följesedel",
+      "item": "Artikel",
+      "artNo": "Art.nr",
+      "lineItems": "Rader",
+      "ordered": "Beställt",
+      "received": "Mottaget",
+      "status": "Status",
+      "source": "Källa",
+      "notes": "Anteckningar"
+    },
+    "newReceipt": "Ny inleverans",
+    "search": "Sök inleveranser...",
+    "empty": "Inga varuinleveranser ännu",
+    "noMatch": "Inga inleveranser matchar din sökning",
+    "approve": "Godkänn",
+    "pending": "Väntande",
+    "approved": "Godkänd",
+    "rejected": "Avvisad",
+    "backorder": "Restorder",
+    "linkPo": "Koppla till Inköpsorder (valfritt)",
+    "deliveryNoteLabel": "Följesedelnr (valfritt)",
+    "receivedBy": "Mottagen av",
+    "noOpenPos": "Inga öppna inköpsorder hittades"
+  },
+  "accounting": {
+    "title": "Bokföring",
+    "subtitle": "Fortnox-integration — synka och exportera fakturor.",
+    "breadcrumb": "Bokföring",
+    "exportBtn": "Exportera osynkade",
+    "checking": "Kontrollerar anslutning…",
+    "connected": "Ansluten till Fortnox",
+    "tokenInvalid": "Token konfigurerad men ogiltig — anslut igen",
+    "notConnected": "Ej ansluten till Fortnox",
+    "howItWorks": "Hur det fungerar",
+    "synced": "Synkade",
+    "pending": "Väntande",
+    "failed": "Misslyckade",
+    "search": "Sök faktura, kund eller fordon…",
+    "noInvoices": "Inga fakturor hittades.",
+    "showAll": "Visa alla",
+    "reconnect": "Återanslut",
+    "connect": "Anslut till Fortnox",
+    "update": "Uppdatera",
+    "adminOnly": "Bokföring är bara tillgänglig för administratörer.",
+    "cols": {
+      "id": "Faktura",
+      "date": "Datum",
+      "customer": "Kund",
+      "vehicle": "Fordon",
+      "amount": "Belopp",
+      "payment": "Betalning",
+      "fortnox": "Fortnox",
+      "action": "Åtgärd"
+    }
+  },
+  "suppliers": {
+    "title": "Leverantörer",
+    "breadcrumb": "Leverantörer",
+    "subtitle": "Klicka på en rad för att visa eller redigera leverantörsuppgifter.",
+    "addBtn": "Lägg till leverantör",
+    "importBtn": "Importera Excel",
+    "search": "Sök leverantörer...",
+    "empty": "Inga leverantörer ännu",
+    "noMatch": "Inga leverantörer matchar din sökning",
+    "stats": {
+      "total": "Totalt antal leverantörer",
+      "withContact": "Med kontaktuppgifter",
+      "lowStock": "Låga lagervarningar",
+      "totalSkus": "Totalt levererade SKU:er"
+    },
+    "cols": {
+      "no": "Leverantörsnr",
+      "name": "Leverantörsnamn",
+      "address": "Adress",
+      "phone": "Telefon",
+      "orgNo": "Organisationsnummer",
+      "skus": "SKU:er",
+      "categories": "Kategorier",
+      "status": "Lagerstatus"
+    },
+    "poModal": {
+      "title": "Inköpsorder",
+      "noPo": "Inga inköpsorder för denna leverantör"
+    }
+  },
+  "purchaseInvoices": {
+    "title": "Leverantörsfakturor",
+    "breadcrumb": "Leverantörsfakturor",
+    "subtitle": "Spåra och hantera fakturor från leverantörer",
+    "newBtn": "Ny faktura",
+    "search": "Sök inköpsorder, leverantör, fakturanr...",
+    "empty": "Inga leverantörsfakturor ännu",
+    "noMatch": "Inga fakturor matchar ditt filter",
+    "cols": {
+      "supplierInvoice": "Leverantörsfaktura #",
+      "systemRef": "Systemreferens #",
+      "po": "Inköpsorder (valfritt)",
+      "amount": "Belopp",
+      "invoiceDate": "Fakturadatum",
+      "dueDate": "Förfallodatum",
+      "vendor": "Leverantör",
+      "status": "Status",
+      "notes": "Anteckningar"
+    },
+    "status": {
+      "pending": "Väntande",
+      "paid": "Betald",
+      "overdue": "Förfallen",
+      "disputed": "Bestridd"
+    }
+  },
+  "purchaseOrders": {
+    "title": "Inköpsorder",
+    "breadcrumb": "Inköpsorder",
+    "subtitle": "Klicka på en rad för att öppna hela inköpsordern.",
+    "newBtn": "Skapa inköpsorder",
+    "importBtn": "Importera Excel",
+    "search": "Sök inköpsorder, leverantör, artikel...",
+    "empty": "Inga inköpsorder ännu",
+    "noMatch": "Inga inköpsorder matchar ditt filter",
+    "tabs": {
+      "all": "Alla",
+      "draft": "Utkast",
+      "reviewed": "Granskade",
+      "sent": "Skickade",
+      "received": "Mottagna"
+    },
+    "cols": {
+      "number": "Inköpsordernr",
+      "vendor": "Leverantör",
+      "date": "Datum",
+      "items": "Artiklar",
+      "total": "Totalkostnad",
+      "eta": "Beräknad leverans",
+      "status": "Status"
+    },
+    "autoPos": "automatiskt genererad inköpsorder från lager med lågt saldo",
+    "allAboveReorder": "Alla lagerartiklar är över sina beställningspunkter — inga inköpsorder behövs just nu."
+  },
+  "service": {
+    "title": "Service",
+    "subtitle": "Verkstadshantering, bokningar och servicehistorik",
+    "comingSoon": "Servicemodulen är på väg",
+    "launching": "Lansering Q3 2026",
+    "earlyAccess": "Begär tidig åtkomst",
+    "benefits": {
+      "faster": "Snabbare incheckning med digitala arbetsorder",
+      "scheduling": "Mindre tid på manuell schemaläggning",
+      "history": "Servicehistorik alltid tillgänglig"
+    },
+    "features": "Det som kommer"
+  },
+  "settingsUsers": {
+    "title": "Användare & Behörigheter",
+    "subtitle": "Hantera personalkonton, roller och åtkomstnivåer.",
+    "breadcrumb": "Inställningar / Användare",
+    "inviteBtn": "Bjud in användare",
+    "stats": {
+      "active": "Aktiva användare",
+      "admins": "Administratörer",
+      "bankid": "BankID-verifierade"
+    },
+    "table": {
+      "staff": "Personalkonton",
+      "lastLogin": "Senaste inloggning"
+    },
+    "status": {
+      "verified": "BankID-verifierad",
+      "inactive": "Inaktiv",
+      "pending": "Väntande"
+    },
+    "roles": {
+      "admin": "Admin",
+      "sales": "Försäljning",
+      "service": "Service"
+    },
+    "invite": {
+      "title": "Bjud in ny användare",
+      "name": "Fullständigt namn",
+      "email": "E-postadress",
+      "role": "Roll",
+      "cancel": "Avbryt",
+      "send": "Skicka inbjudan",
+      "sending": "Skickar...",
+      "linkLabel": "Inbjudningslänk (giltig 7 dagar):",
+      "copy": "Kopiera"
+    },
+    "adminOnly": "Endast administratörer kan hantera användare och behörigheter.",
+    "noUsers": "Inga användare ännu — bjud in din personal."
+  },
+  "settingsPayments": {
+    "title": "Betalningsleverantörer",
+    "breadcrumb": "Inställningar / Betalningsleverantörer",
+    "subtitle": "Aktivera de betalningsmetoder din återförsäljare accepterar.",
+    "saveBtn": "Spara alla ändringar",
+    "saving": "Sparar…",
+    "saved": "Sparades",
+    "saveFailed": "Misslyckades — försök igen",
+    "primaryLabel": "Primär finansieringspartner",
+    "noneSelected": "Inget valt",
+    "comingSoon": "Kommer snart",
+    "testConnection": "Testa anslutning",
+    "testing": "Testar…",
+    "noCredentials": "Inga uppgifter behövs."
+  },
+  "settingsAuth": {
+    "title": "Administratörsinloggning",
+    "subtitle": "Verifiera din identitet för att fortsätta",
+    "accessDenied": "Åtkomst nekad",
+    "bankid": "BankID",
+    "secure": "Säker elektronisk identifiering",
+    "recommended": "REKOMMENDERAT",
+    "personnummer": "Personnummer",
+    "email": "E-postadress",
+    "backToDashboard": "← Tillbaka till dashboard",
+    "verify": "Verifiera",
+    "useInstead": "Använd BankID istället →",
+    "adminOnly": "Inställningar kräver administratörsbehörighet och verifierad identitet"
+  },
+  "settingsEmail": {
+    "title": "E-postutskick",
+    "breadcrumb": "Inställningar / E-postutskick",
+    "subtitle": "Inköpsorder-e-post skickas via Resend. Konfigurera vart leverantörssvar skickas.",
+    "replyToLabel": "Ditt svar-till-e-post",
+    "replyToDesc": "När leverantören trycker på Svara skickas deras e-post hit.",
+    "phoneLabel": "Återförsäljarens telefon (valfritt)",
+    "phoneDesc": "Visas i sidfoten på inköpsorder-e-post så att leverantören kan ringa dig.",
+    "save": "Spara",
+    "saving": "Sparar…",
+    "saved": "Sparat!",
+    "loading": "Laddar…"
+  },
+  "settingsIntegrations": {
+    "title": "Integrationer",
+    "subtitle": "Anslut tredjepartstjänster för att automatisera ditt arbetsflöde.",
+    "breadcrumb": "Inställningar / Integrationer",
+    "categories": {
+      "crm": "CRM",
+      "accounting": "Bokföring",
+      "vehicles": "Fordonsregister",
+      "insurance": "Försäkring",
+      "communication": "Kommunikation",
+      "advertising": "Annonsering"
+    },
+    "cols": {
+      "credentials": "Uppgifter",
+      "status": "Status",
+      "action": "Åtgärd"
+    },
+    "noCredentials": "Inga uppgifter behövs.",
+    "comingSoon": "Kommer snart",
+    "live": "Aktiv",
+    "configured": "konfigurerade"
+  },
+  "analytics": {
+    "title": "Rapporter",
+    "subtitle": "Realtidsdata från försäljning, leads och kunder",
+    "tabs": {
+      "overview": "Översikt",
+      "sources": "Källanalys",
+      "margins": "Marginanalys",
+      "leaderboard": "Topplista"
+    },
+    "kpi": {
+      "totalRevenue": "Total intäkt",
+      "avgOrder": "Snittordervärde",
+      "convRate": "Konverteringsgrad",
+      "grossProfit": "Bruttovinst",
+      "avgMargin": "Snittmarginal",
+      "totalCustomers": "Kunder totalt",
+      "pendingInvoices": "Väntande fakturor",
+      "totalGrossProfit": "Total bruttovinst",
+      "bestDeal": "Bästa affär",
+      "totalClosed": "Avslutade totalt",
+      "totalLeads": "Leads totalt",
+      "uniqueSources": "Unika källor",
+      "bestSource": "Bästa källa",
+      "avgConv": "Snitt konv."
+    },
+    "sub": {
+      "paidInvoices": "{n} betalda fakturor",
+      "perInvoice": "per betald faktura",
+      "paidOf": "{paid} av {total} fakturor",
+      "dealsWithCost": "{n} affärer med kostnad",
+      "perDeal": "per avslutad affär med kostnad",
+      "vip": "{vip} VIP · {active} aktiva",
+      "notPaid": "ej betalda ännu",
+      "noCost": "n/a",
+      "allChannels": "alla kanaler",
+      "identifiedSources": "identifierade leadkällor",
+      "avgAllSources": "alla källor kombinerat",
+      "sourceRevenue": "{rev} intäkt"
+    },
+    "series": {
+      "paid": "Betalda",
+      "pending": "Väntande",
+      "revenue": "Intäkt",
+      "grossProfit": "Bruttovinst",
+      "deals": "Affärer",
+      "leads": "Leads",
+      "avgDays": "Snitt dagar"
+    },
+    "sections": {
+      "revenueTitle": "Intäktsutveckling — senaste 12 månader",
+      "revenueSub": "Betalda och väntande fakturor per månad (kr)",
+      "invoicesTitle": "Fakturor per månad",
+      "invoicesSub": "Senaste 6 månader (antal)",
+      "paymentTitle": "Betalmetoder",
+      "paymentSub": "Fördelning av betalda fakturor",
+      "customersTitle": "Kundsegment",
+      "customersSub": "{n} kunder totalt",
+      "reportsTitle": "📧 Schemalagda rapporter",
+      "reportsSub": "Varje måndag kl 08:00 skickas en veckoresumé med intäkter, leads, konvertering och toppaffärer automatiskt till admin-e-posten via Vercel Cron + SMTP. Du kan också skicka en testrapport direkt till din e-post.",
+      "reportsHint": "Konfigurera SMTP under Inställningar → Integrationer.",
+      "sellerTitle": "Intäkt per säljare",
+      "sellerSub": "Totalt från avslutade affärer",
+      "leaderboardTitle": "Fullständig topplista",
+      "grossTitle": "Bruttovinst per månad — senaste 12 månader",
+      "grossSub": "Intäkt vs bruttovinst (kr)",
+      "brandTitle": "Intäkt per märke (topp 10)",
+      "brandSub": "Avslutade affärer, sorterade på intäkt",
+      "marginTitle": "Marginfördelning",
+      "marginSub": "Antal affärer per marginalintervall",
+      "turnoverTitle": "Inventariecirkulation — genomsnittlig tid i pipeline",
+      "turnoverSub": "Snittdagar från lead-skapande till avslut, per märke (kortare = bättre)",
+      "sourceRoiTitle": "Källanalys — ROI per leadkälla",
+      "sourceRoiSub": "Leads, konvertering och intäkt uppdelat per källa",
+      "sourceVolTitle": "Leadvolym per källa",
+      "sourceVolSub": "Totalt antal leads",
+      "sourceRevTitle": "Intäkt per källa",
+      "sourceRevSub": "Totalt från avslutade affärer",
+      "sourceConvTitle": "Konverteringsgrad per källa",
+      "sourceConvSub": "Procent leads som blivit avslutade affärer"
+    },
+    "table": {
+      "rank": "Rank",
+      "salesperson": "Säljare",
+      "leads": "Leads",
+      "closed": "Avslut",
+      "conv": "Konv.",
+      "revenue": "Intäkt",
+      "revenuePct": "Intäkt %",
+      "grossProfit": "Bruttovinst",
+      "avgDeal": "Snittaffär",
+      "source": "Källa",
+      "totalRevenue": "Total intäkt"
+    },
+    "leaderboard": {
+      "rankTotal": "#{n} totalt",
+      "revenueLabel": "Intäkt",
+      "closedLabel": "Avslut",
+      "ofLeads": "{closed} av {total} leads",
+      "convLabel": "Konvertering",
+      "avgDealLabel": "Snittaffär",
+      "grossLabel": "Bruttovinst",
+      "target": "mål: {val}",
+      "vsTarget": "Mål vs utfall ({year})"
+    },
+    "empty": {
+      "invoices": "Inga betalda fakturor än.",
+      "leads": "Inga leads ännu.",
+      "closed": "Inga avslutade affärer ännu.",
+      "brands": "Inga avslutade affärer med märkesdata.",
+      "salespeople": "Inga säljare ännu.",
+      "salespeopleSub": "Säljarnamn registreras automatiskt på nya leads framöver."
+    },
+    "reports": {
+      "send": "Skicka testrapport",
+      "sending": "Skickar…",
+      "success": "Veckoresumé skickad till {email}",
+      "error": "Kunde inte skicka rapport"
+    },
+    "unauthorized": "Du har inte behörighet till Analytics.",
+    "marginNote": "Grönt ≥ 10 % · Gult 5–10 % · Rött < 5 %",
+    "timeNote": "Grönt ≤ 14 d · Gult ≤ 30 d · Rött > 30 d",
+    "daysAvg": "{n} d snitt ({count} affärer)",
+    "avgPipeline": "Snitt pipeline"
+  },
+  "purchase": {
+    "title": "Inköpsorder",
+    "subtitle": "Klicka på en rad för att öppna hela PO. Auto-PO uppdateras live med lagerstatus.",
+    "breadcrumb": "Inköpsorder",
+    "search": "Sök PO, leverantör, artikel...",
+    "importBtn": "Importera Excel",
+    "createBtn": "Skapa PO",
+    "importFromExcel": "Importera från Excel",
+    "allGoodBanner": "Alla {n} lagerartiklar är över sina beställningspunkter — inga PO behövs just nu.",
+    "autoPOBanner": "{n} auto-genererad{s} PO från lågt lager",
+    "autoPOHide": "▲ dölj",
+    "autoPOShow": "▼ visa",
+    "autoPODesc": "Dessa PO är auto-genererade och uppdateras live när lagerstatus ändras.",
+    "empty": "Inga inköpsorder ännu",
+    "emptyHint": "Importera från Excel eller skapa en PO manuellt",
+    "noMatch": "Inga inköpsorder matchar ditt filter",
+    "tabAll": "Alla",
+    "statusDraft": "Utkast",
+    "statusReviewed": "Granskad",
+    "statusSent": "Skickad",
+    "statusReceived": "Mottagen",
+    "cardTotal": "Totalt PO",
+    "cardDraft": "Utkast",
+    "cardSent": "Skickade",
+    "cardValue": "Visat värde",
+    "colPO": "PO-nummer",
+    "colVendor": "Leverantör",
+    "colDate": "Datum",
+    "colItems": "Artiklar",
+    "colCost": "Totalkostnad",
+    "colETA": "Beräknad ankomst",
+    "colStatus": "Status"
+  },
+  "documents": {
+    "breadcrumb": "Arkiv",
+    "title": "Dokumenthantering",
+    "subtitle": "Köpeavtal, fakturor och offerter — allt på ett ställe",
+    "searchPlaceholder": "Sök kund, fordon, nummer…",
+    "reset": "Återställ",
+    "refresh": "Uppdatera",
+    "kpiTotal": "Totalt",
+    "kpiBankID": "BankID-signerade",
+    "kpiPending": "Väntande",
+    "kpiRevenue": "Omsättning",
+    "kpiThisMonth": "{n} denna månad",
+    "kpiRequiresAction": "Kräver åtgärd",
+    "kpiPaidInvoices": "Betalda fakturor",
+    "tabAll": "Alla",
+    "tabAgreements": "Köpeavtal",
+    "tabInvoices": "Fakturor",
+    "tabOffers": "Offerter",
+    "tabUnsigned": "Osignerade",
+    "sortLabel": "Sortera:",
+    "docCount": "{n} dokument",
+    "sortDate": "Datum",
+    "sortAmount": "Belopp",
+    "sortCustomer": "Kund",
+    "typeKopeavtal": "Köpeavtal",
+    "typeFaktura": "Faktura",
+    "typeOffert": "Offert",
+    "statusSignerat": "Signerat",
+    "statusBetald": "Betald",
+    "statusSkickad": "Skickad",
+    "statusUtkast": "Utkast",
+    "statusForfallen": "Förfallen",
+    "statusVantande": "Väntande",
+    "emptySearch": "Inga dokument matchar sökningen",
+    "emptyNone": "Inga dokument här ännu",
+    "emptySearchHint": "Prova ett annat sökord",
+    "emptyNoneHint": "Dokument skapas automatiskt när offerter och fakturor genereras",
+    "clearSearch": "Rensa sökning",
+    "paymentFinancing": "Finansiering",
+    "paymentCash": "Kontant",
+    "inclVat": "inkl. moms",
+    "preview": "Förhandsgranska",
+    "download": "Ladda ned",
+    "openInSystem": "Öppna i systemet",
+    "downloaded": "{number} nedladdad",
+    "legalTitle": "Dokumenthantering enligt svensk lag",
+    "legalBody": "Fakturor och köpeavtal sparas i 7 år enligt Bokföringslagen (1999:1078). Köpeavtal regleras av Konsumentköplagen (2022:260) med 3 års garantitid. BankID-signaturer utgör rättslig bevisning enligt Signaturlagen (2000:832). Personuppgifter hanteras i enlighet med GDPR (2018/679).",
+    "previewBankID": "Signerat med BankID",
+    "previewCustomer": "Kund",
+    "previewVehicle": "Fordon",
+    "previewDate": "Datum",
+    "previewAmount": "Belopp",
+    "previewPaymentType": "Betalningstyp",
+    "previewDocId": "Dokument-ID",
+    "previewLegalTitle": "Rättslig bevisning:",
+    "previewLegalNote": "Detta dokument är signerat med BankID och utgör en giltig elektronisk underskrift enligt Signaturlagen (2000:832). OCSP-verifiering och tidsstämpel är lagrade.",
+    "previewArchive": "Arkiveras i 7 år · Bokföringslagen",
+    "previewOpen": "Öppna →"
+  },
+  "tasks": {
+    "title": "Uppgifter & Påminnelser",
+    "subtitle": "Håll koll på vad som behöver göras",
+    "newTask": "Ny uppgift",
+    "overdueCount": "{count} försenade",
+    "todayCount": "{count} idag",
+    "openTotal": "{count} öppna totalt",
+    "filters": {
+      "open": "Öppna",
+      "done": "Klara",
+      "all": "Alla",
+      "allTypes": "Alla typer"
+    },
+    "types": {
+      "call": "Ring",
+      "email": "E-post",
+      "meeting": "Möte",
+      "follow_up": "Uppföljning",
+      "other": "Övrigt"
+    },
+    "priorities": {
+      "high": "Hög",
+      "medium": "Medel",
+      "low": "Låg"
+    },
+    "empty": {
+      "title": "Inga uppgifter att visa",
+      "openHint": "Inga öppna uppgifter — allt klart!",
+      "defaultHint": "Skapa en uppgift för att komma igång."
+    },
+    "badge": {
+      "overdue": "FÖRSENAD",
+      "today": "IDAG"
+    },
+    "relative": {
+      "today": "Idag",
+      "tomorrow": "Imorgon",
+      "yesterday": "Igår",
+      "daysAgo": "{n}d sedan"
+    },
+    "modal": {
+      "title": "Ny uppgift",
+      "titleLabel": "Titel *",
+      "titlePlaceholder": "Vad behöver göras?",
+      "type": "Typ",
+      "priority": "Prioritet",
+      "dueDate": "Förfallodatum",
+      "assignedTo": "Tilldelad",
+      "description": "Beskrivning (valfri)",
+      "descPlaceholder": "Ytterligare detaljer...",
+      "cancel": "Avbryt",
+      "save": "Spara uppgift",
+      "saving": "Sparar..."
+    },
+    "toast": {
+      "created": "Uppgift skapad",
+      "done": "Uppgift markerad som klar",
+      "deleted": "Uppgift borttagen",
+      "error": "Kunde inte skapa uppgift"
+    },
+    "deleteTitle": "Ta bort"
+  },
+  "calendar": {
+    "newBooking": "Ny bokning",
+    "today": "Idag",
+    "month": "Månad",
+    "week": "Vecka",
+    "types": {
+      "test_drive": "Provkörning",
+      "meeting": "Möte",
+      "delivery": "Leverans",
+      "viewing": "Visning"
+    },
+    "statuses": {
+      "scheduled": "Bokad",
+      "confirmed": "Bekräftad",
+      "cancelled": "Avbokad",
+      "completed": "Genomförd"
+    },
+    "bookingsCount": "bokn.",
+    "more": "+{n} till",
+    "noVehicles": "Inga fordon hittades",
+    "modal": {
+      "title": "Ny bokning",
+      "bookingType": "Typ av bokning",
+      "optionalTitle": "Titel (valfri)",
+      "startTime": "Starttid *",
+      "endTime": "Sluttid *",
+      "customer": "Kund",
+      "staff": "Säljare",
+      "vehicle": "Fordon",
+      "vehicleSearch": "Sök fordon från lager...",
+      "notes": "Anteckningar",
+      "cancel": "Avbryt",
+      "book": "Boka"
+    },
+    "detail": {
+      "confirm": "✓ Bekräfta bokning",
+      "markDone": "✓ Markera som genomförd",
+      "cancel": "Avboka",
+      "delete": "Ta bort bokning"
+    },
+    "toast": {
+      "created": "Bokning skapad",
+      "updated": "Status uppdaterad",
+      "deleted": "Bokning borttagen",
+      "timesRequired": "Ange start- och sluttid",
+      "conflict": "Konflikt: {error}"
+    }
+  },
+  "commissions": {
+    "title": "Provisionsreskontra",
+    "subtitle": "Säljarprovisioner per affär",
+    "addButton": "+ Provision",
+    "kpi": {
+      "total": "Total provision",
+      "deals": "Affärsvärde",
+      "pending": "Godkänd, ej utbetald",
+      "count": "Antal affärer"
+    },
+    "perSeller": "Per säljare",
+    "dealUnit": "affär",
+    "dealUnitPlural": "affärer",
+    "statuses": {
+      "pending": "Väntar",
+      "approved": "Godkänd",
+      "paid": "Utbetald",
+      "voided": "Ogiltig",
+      "all": "Alla"
+    },
+    "months": [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "Maj",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Okt",
+      "Nov",
+      "Dec"
+    ],
+    "empty": {
+      "title": "Inga provisioner denna period",
+      "desc": "Provisioner registreras automatiskt vid stängda affärer."
+    },
+    "table": {
+      "seller": "Säljare",
+      "customerVehicle": "Kund / Fordon",
+      "dealValue": "Affärsvärde",
+      "rate": "Sats",
+      "commission": "Provision",
+      "status": "Status",
+      "date": "Datum"
+    },
+    "actions": {
+      "approve": "Godkänn",
+      "markPaid": "Markera betald"
+    },
+    "modal": {
+      "title": "Registrera provision",
+      "seller": "Säljare *",
+      "customer": "Kund",
+      "leadId": "Lead ID",
+      "vehicle": "Fordon",
+      "dealValue": "Affärsvärde (kr) *",
+      "commissionRate": "Provision (%)",
+      "estimated": "Beräknad provision:",
+      "notes": "Anteckningar",
+      "cancel": "Avbryt",
+      "save": "Spara",
+      "saving": "Sparar..."
+    },
+    "toast": {
+      "created": "Provision registrerad",
+      "updated": "Status uppdaterad",
+      "error": "Misslyckades"
+    }
+  },
+  "cancellations": {
+    "title": "Avbokningar & Återbetalningar",
+    "subtitle": "Alla avbrutna affärer och refusioner",
+    "kpi": {
+      "total": "Totalt avbokade",
+      "refunds": "Totalt återbetalt",
+      "pending": "Väntande refusioner",
+      "topReason": "Vanligaste orsak"
+    },
+    "filters": {
+      "all": "Alla",
+      "open": "Öppna",
+      "closed": "Stängda"
+    },
+    "reasons": {
+      "changed_mind": "Ångrat sig",
+      "financial": "Ekonomi",
+      "found_elsewhere": "Hittade annanstans",
+      "financing_denied": "Finansiering nekad",
+      "other": "Annan anledning"
+    },
+    "refundStatus": {
+      "pending": "Väntar",
+      "sent": "Skickad",
+      "confirmed": "Bekräftad"
+    },
+    "empty": {
+      "title": "Inga avbokningar att visa",
+      "desc": "Avbokade affärer registreras här automatiskt."
+    },
+    "table": {
+      "date": "Datum",
+      "customer": "Kund",
+      "vehicle": "Fordon",
+      "reason": "Orsak",
+      "refund": "Återbetalning",
+      "refundStatus": "Status återbetalt",
+      "by": "Av"
+    }
+  },
+  "tradeIns": {
+    "title": "Inbyteshantering",
+    "subtitle": "Värdera och hantera inbytesfordon",
+    "kpi": {
+      "total": "Totalt inbyten",
+      "value": "Totalt kreditsumma",
+      "pending": "Avvaktar mottagning",
+      "received": "Mottagna"
+    },
+    "statuses": {
+      "pending": "Avvaktar",
+      "completed": "Mottagen",
+      "cancelled": "Avbruten",
+      "all": "Alla"
+    },
+    "conditions": {
+      "excellent": "Utmärkt",
+      "good": "Bra",
+      "fair": "OK",
+      "poor": "Dålig"
+    },
+    "empty": {
+      "title": "Inga inbytesfordon",
+      "desc": "Använd kalkylatorn ovan för att värdera och spara ett inbyte."
+    },
+    "table": {
+      "vehicle": "Fordon",
+      "regVin": "Reg.nr / VIN",
+      "mileage": "Miltal",
+      "value": "Inbytesvärde",
+      "status": "Status",
+      "lead": "Lead",
+      "date": "Datum"
+    },
+    "valuation": {
+      "title": "Inbytesvärdering",
+      "brand": "Märke *",
+      "model": "Modell *",
+      "year": "År",
+      "mileageKm": "Miltal (km)",
+      "regNr": "Reg.nr",
+      "color": "Färg",
+      "marketValue": "Marknadsvärde (kr)",
+      "marketHint": "Kolla Blocket / Bytbil för referenspris",
+      "condition": "Skick",
+      "estimatedValue": "Uppskattat inbytesvärde",
+      "marketLabel": "Marknadsvärde:",
+      "conditionAdj": "Skickkorrektör:",
+      "ageDiscount": "Åldersavdrag:",
+      "mileageDiscount": "Milsavdrag:",
+      "leadId": "Lead ID *",
+      "vin": "VIN",
+      "notes": "Anteckningar",
+      "notesPlaceholder": "Repa på tanken, nytt däck...",
+      "saveButton": "Spara inbyte på lead",
+      "saving": "Sparar...",
+      "leadIdPlaceholder": "Lead-nummer"
+    },
+    "toast": {
+      "saved": "Inbytesfordon sparat",
+      "error": "Misslyckades",
+      "required": "Lead ID, märke och modell krävs"
+    }
+  },
+  "warranties": {
+    "title": "Garantihantering",
+    "subtitle": "Aktiva garantier och reklamationer",
+    "addButton": "+ Registrera garanti",
+    "kpi": {
+      "active": "Aktiva garantier",
+      "coverage": "Total täckning",
+      "expiring": "Utgår inom 30 dagar",
+      "claims": "Öppna reklamationer"
+    },
+    "types": {
+      "standard": "Standard",
+      "extended": "Utökad",
+      "manufacturer": "Tillverkare",
+      "third_party": "Tredje part"
+    },
+    "statuses": {
+      "active": "Aktiv",
+      "expired": "Utgången",
+      "claimed": "Reklamation",
+      "cancelled": "Avslutad",
+      "voided": "Ogiltigförklarad",
+      "all": "Alla"
+    },
+    "expiresIn": "Utgår om {days} dagar",
+    "expired": "Utgången",
+    "empty": {
+      "title": "Inga garantier",
+      "desc": "Registrerade garantier visas här."
+    },
+    "table": {
+      "vehicle": "Fordon",
+      "type": "Typ",
+      "provider": "Leverantör",
+      "period": "Period",
+      "coverage": "Täckning",
+      "status": "Status"
+    },
+    "actions": {
+      "claim": "Reklamation"
+    },
+    "modal": {
+      "title": "Registrera garanti",
+      "vehicle": "Fordon *",
+      "vin": "VIN",
+      "regNr": "Reg.nr",
+      "type": "Typ",
+      "provider": "Leverantör",
+      "policyNumber": "Policynummer",
+      "startDate": "Startdatum *",
+      "endDate": "Slutdatum *",
+      "maxCoverage": "Max täckningsbelopp (kr)",
+      "leadId": "Lead ID",
+      "notes": "Anteckningar",
+      "cancel": "Avbryt",
+      "save": "Registrera",
+      "saving": "Sparar..."
+    },
+    "claimModal": {
+      "title": "Reklamation – {vehicle}",
+      "policyNr": "Policynr: {nr}",
+      "amount": "Reklamationsbelopp (kr)",
+      "details": "Detaljer *",
+      "detailsPlaceholder": "Beskriv felet...",
+      "cancel": "Avbryt",
+      "save": "Registrera reklamation",
+      "saving": "Sparar..."
+    },
+    "toast": {
+      "created": "Garanti registrerad",
+      "claim": "Reklamation registrerad",
+      "error": "Misslyckades"
+    }
+  },
+  "reservations": {
+    "title": "Reservationer & Handpenning",
+    "subtitle": "Spåra fordonsreservationer och inbetalda handpenningar",
+    "addButton": "+ Ny reservation",
+    "kpi": {
+      "active": "Aktiva reservationer",
+      "deposits": "Inbetald handpenning",
+      "expiring": "Utgår snart (< 48h)",
+      "total": "Totalt"
+    },
+    "statuses": {
+      "active": "Aktiv",
+      "converted": "Konverterad",
+      "expired": "Utgått",
+      "cancelled": "Avbokad",
+      "refunded": "Återbetald",
+      "all": "Alla"
+    },
+    "depositPaid": "Betald",
+    "depositUnpaid": "Ej betald",
+    "expiringSoon": "Utgår snart!",
+    "expired": "Utgått",
+    "empty": {
+      "title": "Inga reservationer",
+      "desc": "Reserverade fordon och handpenningar visas här."
+    },
+    "table": {
+      "customer": "Kund",
+      "vehicle": "Fordon",
+      "deposit": "Handpenning",
+      "validUntil": "Giltig till",
+      "status": "Status",
+      "reservedBy": "Reserverat av"
+    },
+    "actions": {
+      "convert": "Konvertera",
+      "cancel": "Avboka"
+    },
+    "modal": {
+      "title": "Ny reservation",
+      "leadId": "Lead ID *",
+      "reservedBy": "Reserverat av",
+      "reservedByPlaceholder": "Säljare",
+      "vehicle": "Fordon *",
+      "vinReg": "VIN / Regnr",
+      "vinRegPlaceholder": "VIN eller registreringsnummer",
+      "deposit": "Handpenning (kr)",
+      "paymentMethod": "Betalningssätt",
+      "paymentPlaceholder": "Swish / Kort",
+      "depositPaid": "Handpenning betald",
+      "validUntil": "Giltig till",
+      "customerInfo": "Kundinformation",
+      "customerName": "Namn",
+      "customerPhone": "Telefon",
+      "customerEmail": "E-post",
+      "notes": "Anteckningar",
+      "cancel": "Avbryt",
+      "save": "Spara reservation",
+      "saving": "Sparar..."
+    },
+    "toast": {
+      "created": "Reservation skapad",
+      "updated": "Status uppdaterad",
+      "error": "Misslyckades"
+    }
+  },
+  "offer": {
+    "sellerView": "Säljarvy",
+    "title": "BikeMenuNow",
+    "module": "Modul",
+    "offers": "Offerter",
+    "testRides": "Testkörningar",
+    "stats": {
+      "new": "Nya",
+      "reviewing": "Granskas",
+      "sent": "Skickade",
+      "booked": "Bokade",
+      "completed": "Slutförda"
+    },
+    "statuses": {
+      "new": "Ny",
+      "reviewing": "Granskas",
+      "sent": "Skickad",
+      "accepted": "Accepterad",
+      "declined": "Avböjd"
+    },
+    "table": {
+      "customer": "Kund",
+      "motorcycle": "Motorcykel",
+      "date": "Datum",
+      "payment": "Betalning",
+      "tradeIn": "Inbyte",
+      "accessories": "Tillbehör",
+      "status": "Status"
+    },
+    "payment": {
+      "cash": "Kontant",
+      "financing": "Finansiering"
+    },
+    "yes": "Ja",
+    "no": "Nej",
+    "open": "Öppna →",
+    "biketesting": {
+      "title": "Testkörningar",
+      "back": "Offer",
+      "stats": {
+        "scheduled": "Bokade",
+        "completed": "Slutförda"
+      },
+      "testStatuses": {
+        "scheduled": "Bokad",
+        "completed": "Slutförd"
+      },
+      "table": {
+        "customer": "Kund",
+        "motorcycle": "Motorcykel",
+        "requestedDate": "Önskat datum",
+        "submitted": "Inskickat",
+        "seller": "Säljare",
+        "status": "Status"
+      },
+      "waiting": "Väntar",
+      "sign": "Signera →",
+      "view": "Visa →",
+      "mobile": {
+        "customerSigned": "Kund ✓",
+        "sellerSigned": "Säljare ✓",
+        "sellerWaiting": "Säljare väntar"
+      },
+      "detail": {
+        "requestedDate": "Önskat datum:",
+        "driver": "Förare",
+        "name": "Namn",
+        "personalNumber": "Personnummer",
+        "phone": "Telefon",
+        "email": "E-post",
+        "address": "Adress",
+        "zipCode": "Postnummer",
+        "termsTitle": "Gällande villkor",
+        "termsText": "Provkörning max 15 minuter i närheten av försäljningsstället. Självrisk {excess} kr vid skada orsakad av föraren. Kunden har godkänt dessa villkor och signerat med BankID.",
+        "signatures": "Signaturer"
+      }
+    },
+    "offert": {
+      "back": "Offerter",
+      "customerSection": "Kund",
+      "fields": {
+        "name": "Namn",
+        "email": "E-post",
+        "phone": "Telefon",
+        "payment": "Betalning"
+      },
+      "preferences": "Kundens önskemål",
+      "tradeInLabel": "Inbyte",
+      "noTradeIn": "Inget inbyte",
+      "accessoriesLabel": "Tillbehör",
+      "noAccessories": "Inga tillbehör",
+      "messageLabel": "Meddelande",
+      "sellerSection": "Säljarens tillägg"
+    },
+    "offerBuilder": {
+      "sentTitle": "Offert skickad",
+      "sentDesc": "Offerten har skickats till {name} på {email}.",
+      "backToDashboard": "← Tillbaka till dashboard",
+      "tradeInSection": "Inbytesvärdering",
+      "tradeIn": {
+        "make": "Märke",
+        "model": "Modell",
+        "year": "År",
+        "mileage": "Körsträcka",
+        "estimatedValue": "Bedömt inbytesvärde (kr)",
+        "hint": "Avdrag från totalpriset"
+      },
+      "accessoriesSection": "Tillbehör — prissättning",
+      "accessoriesPlaceholder": "Pris (kr)",
+      "customerNote": "Kundens notering:",
+      "offerSection": "Offertuppgifter",
+      "regFee": "Registreringsavgift (kr)",
+      "discount": "Rabatt (kr)",
+      "extWarranty": "Förlängd garanti",
+      "include": "Inkludera",
+      "notIncluded": "Ej inkluderad",
+      "deliveryDate": "Leveransdatum",
+      "validity": "Offertens giltighetstid (dagar)",
+      "sellerComment": "Säljarens kommentar",
+      "commentPlaceholder": "Övriga villkor eller information till kunden...",
+      "priceSection": "Prissammanfattning",
+      "price": {
+        "listPrice": "Listpris",
+        "accessories": "Tillbehör",
+        "regFee": "Registreringsavgift",
+        "extWarranty": "Förlängd garanti",
+        "discount": "Rabatt",
+        "tradeInValue": "Inbytesvärde",
+        "total": "Totalt"
+      },
+      "financing": "Finansiering via Santander — kreditprövning sker separat.",
+      "sendButton": "Skicka Offert till {name}",
+      "sendNote": "Offerten skickas till {email} och är giltig i {days} dagar."
+    },
+    "sellerSignOff": {
+      "customerSignature": "Kunds signatur",
+      "signed": "✓ Signerad",
+      "viaBankId": "via BankID",
+      "sellerSignature": "Säljarens signatur",
+      "sellerConfirm": "Signera för att bekräfta att testkörningen har genomförts enligt villkoren.",
+      "waiting": "Väntar på BankID...",
+      "openApp": "Öppna appen och godkänn signeringen.",
+      "sellerLabel": "AVA MC — Säljare",
+      "signButton": "Signera slutförande",
+      "completedTitle": "Slutfört dokument",
+      "vehicle": "Fordon",
+      "driver": "Förare",
+      "personalNumber": "Personnummer",
+      "date": "Datum",
+      "maxTime": "Max tid",
+      "maxTimeValue": "15 minuter",
+      "excess": "Självrisk",
+      "excessValue": "15 000 kr vid skada",
+      "customer": "Kund",
+      "seller": "Säljare"
+    }
+  },
+  "settingsProfile": {
+    "breadcrumb": "Inställningar",
+    "title": "Återförsäljarprofil",
+    "subtitle": "Företagets namn, adress, organisationsnummer, logotyp och kontaktuppgifter",
+    "saving": "Sparar…",
+    "save": "💾 Spara ändringar",
+    "backToSettings": "← Tillbaka till inställningar",
+    "sections": {
+      "company": "Företagsinformation",
+      "address": "Adress",
+      "contact": "Kontaktuppgifter",
+      "banking": "Bankuppgifter",
+      "sms": "SMS (Twilio)",
+      "notifEmails": "Notification Emails",
+      "cover": "Omslagsbild — Dashboard-bakgrund",
+      "logo": "Logotyp"
+    },
+    "fields": {
+      "companyName": "Företagsnamn",
+      "orgNr": "Organisationsnummer",
+      "orgNrHint": "Format: 556123-4567",
+      "vat": "Momsnummer (VAT)",
+      "vatHint": "Härleds automatiskt från org.nr",
+      "fSkatt": "F-skattebevis registrerat",
+      "street": "Gatuadress",
+      "postalCode": "Postnummer",
+      "city": "Ort",
+      "county": "Län",
+      "phone": "Telefon",
+      "email": "E-post",
+      "emailDomain": "Företagets e-postdomän",
+      "emailDomainHint": "Används när ni bjuder in personal — t.ex. avamc.se ger @avamc.se",
+      "website": "Hemsida",
+      "bankName": "Bank",
+      "bankNameHint": "Bankens namn, t.ex. Handelsbanken, SEB, Swedbank",
+      "bankgiro": "Bankgironummer",
+      "bankgiroHint": "Format: 1234-5678",
+      "swish": "Swish (företagsnummer)",
+      "swishHint": "10 siffror, används för betalningar",
+      "iban": "IBAN",
+      "ibanHint": "Internationellt bankkontonummer",
+      "bic": "BIC / SWIFT",
+      "bicHint": "Bankens identifieringskod, t.ex. HANDSESS",
+      "twilioSid": "Account SID",
+      "twilioSidHint": "Börjar med AC…",
+      "twilioToken": "Auth Token",
+      "twilioTokenHint": "Hemligt — delas aldrig med kunder",
+      "twilioFrom": "Avsändarnummer",
+      "twilioFromHint": "E.164-format, t.ex. +46701234567",
+      "deliveryEmail": "Delivery Note Email",
+      "deliveryEmailHint": "Mottar e-post när en leveransnota anländer.",
+      "invoiceEmail": "Invoice Email",
+      "invoiceEmailHint": "Mottar inköpsfakturor från leverantörer.",
+      "coverTitle": "Ladda upp omslagsbild",
+      "coverDesc": "PNG, JPG eller WebP · Max {maxKb} KB (stora bilder skalas automatiskt)",
+      "logoTitle": "Ladda upp logotyp",
+      "logoDesc": "PNG, JPG, SVG eller WebP · Max {maxKb} KB"
+    },
+    "actions": {
+      "chooseImage": "📂 Välj bild",
+      "chooseFile": "📂 Välj fil",
+      "remove": "🗑 Ta bort",
+      "resizing": "Ändrar storlek…"
+    },
+    "messages": {
+      "saved": "Profil sparad",
+      "saveError": "Kunde inte spara profilen.",
+      "imageOnly": "Endast bildfiler tillåtna (PNG, JPG, SVG, WebP).",
+      "svgTooLarge": "SVG-filen är för stor. Max {maxKb} KB.",
+      "svgNoCover": "SVG stöds inte som omslagsbild. Använd PNG eller JPG.",
+      "processError": "Kunde inte bearbeta bilden. Försök med en annan fil.",
+      "resizing": "⏳ Bilden är stor — ändrar storlek automatiskt…",
+      "compressed": "✓ Bild komprimerad och anpassad automatiskt",
+      "compressedTo": "✓ Bild komprimerad och anpassad automatiskt till {maxKb} KB",
+      "coverUploaded": "✓ Omslagsbild uppladdad — visas på dashboard",
+      "logoUploaded": "✓ Logotyp uppladdad och sparas lokalt"
+    },
+    "preview": "Förhandsvisning — visas på avtal och fakturor",
+    "noCoverImage": "Ingen omslagsbild",
+    "coverRatio": "16:9 rekommenderat",
+    "noLogo": "Ingen logotyp",
+    "coverDesc2": "Visas som bakgrundsbild på dashboard. Välj ett foto av er showroom, lokal eller flotta. Rekommenderat: liggande format (16:9), minst 1280 × 720 px."
+  },
+  "settingsTargets": {
+    "breadcrumb": "Inställningar",
+    "nav": "Säljarens mål",
+    "title": "Prestationsmål",
+    "subtitle": "Sätt och följ upp mål per säljare — leads och intäkt",
+    "exportCSV": "Exportera CSV",
+    "newTarget": "Nytt mål",
+    "months": [
+      "Hela året",
+      "Januari",
+      "Februari",
+      "Mars",
+      "April",
+      "Maj",
+      "Juni",
+      "Juli",
+      "Augusti",
+      "September",
+      "Oktober",
+      "November",
+      "December"
+    ],
+    "table": {
+      "period": "Period",
+      "leadsTarget": "Leads mål",
+      "leadsActual": "Leads utfall",
+      "leadsPct": "Leads %",
+      "revenueTarget": "Intäkt mål",
+      "revenueActual": "Intäkt utfall",
+      "revenuePct": "Intäkt %"
+    },
+    "staff": {
+      "totalActual": "Total utfall:",
+      "leads": "leads",
+      "revenue": "Intäkt:"
+    },
+    "empty": {
+      "title": "Inga mål satta för {year}",
+      "subtitle": "Sätt mål för säljarna för att börja följa upp prestationer",
+      "button": "Sätt mål"
+    },
+    "form": {
+      "title": "Sätt prestationsmål",
+      "name": "Namn *",
+      "email": "E-post *",
+      "year": "År",
+      "period": "Period",
+      "leadsTarget": "Leads mål",
+      "revenueTarget": "Intäktsmål (kr)",
+      "cancel": "Avbryt",
+      "saving": "Sparar…",
+      "save": "Spara mål"
+    },
+    "actions": {
+      "edit": "Redigera",
+      "fullYear": "helår"
+    },
+    "toasts": {
+      "nameEmailRequired": "Namn och e-post krävs",
+      "saved": "Mål sparat",
+      "deleted": "Mål borttaget",
+      "csvExported": "CSV exporterad"
+    },
+    "deleteConfirm": "Ta bort mål för {name} — {period}?"
+  },
+  "settingsBranches": {
+    "breadcrumb": "Inställningar",
+    "nav": "Filialer",
+    "title": "Filialer & platser",
+    "subtitle": "Hantera återförsäljarens lokationer och tilldela personal",
+    "newBranch": "Ny filial",
+    "status": {
+      "active": "Aktiv",
+      "inactive": "Inaktiv"
+    },
+    "empty": {
+      "title": "Inga filialer ännu",
+      "subtitle": "Skapa din första filial för att börja tilldela personal och leads",
+      "button": "Skapa filial"
+    },
+    "actions": {
+      "edit": "Redigera",
+      "deactivate": "Inaktivera",
+      "activate": "Aktivera"
+    },
+    "form": {
+      "titleNew": "Ny filial",
+      "titleEdit": "Redigera filial",
+      "name": "Filialnamn *",
+      "namePlaceholder": "t.ex. Stockholm Nord",
+      "address": "Adress",
+      "addressPlaceholder": "Gatugatan 1",
+      "city": "Stad",
+      "phone": "Telefon",
+      "manager": "Ansvarig",
+      "active": "Filial är aktiv",
+      "cancel": "Avbryt",
+      "saving": "Sparar…",
+      "save": "Spara ändringar",
+      "create": "Skapa filial"
+    },
+    "toasts": {
+      "nameRequired": "Namn krävs",
+      "updated": "Filial uppdaterad",
+      "created": "Filial skapad",
+      "deleted": "Filial borttagen"
+    },
+    "deleteConfirm": "Ta bort filial {name}? Leads och personal kopplade till den påverkas inte."
+  },
+  "leadDetail": {
+    "notFound": "Lead hittades inte.",
+    "back": "← Tillbaka",
+    "overdue": "{days}d försenad",
+    "lostBadge": "Förlorad",
+    "reminderLabel": "Påminnelse:",
+    "overdueMsg": "Denna lead har legat i {stage} i {days} dagar — dags att följa upp!",
+    "by": "av",
+    "info": {
+      "title": "Leadinformation",
+      "vehicle": "Fordon",
+      "source": "Källa",
+      "seller": "Säljare",
+      "personnummer": "Personnummer",
+      "created": "Skapad",
+      "email": "E-post",
+      "phone": "Telefon",
+      "notes": "Anteckningar"
+    },
+    "value": {
+      "title": "Affärsvärde",
+      "salePrice": "Försäljningspris",
+      "costPrice": "Inköpspris",
+      "grossProfit": "Bruttovinst",
+      "margin": "Marginal"
+    },
+    "score": {
+      "title": "Lead Score",
+      "hot": "Varm lead 🔥",
+      "warm": "Medelmåttig 🌡",
+      "cold": "Kall lead ❄️",
+      "bankid": "BankID verifierad",
+      "emailPhone": "E-post & telefon",
+      "tradeIn": "Trade-in intresse",
+      "financing": "Finansieringsintresse",
+      "agreementOpened": "Avtal öppnat",
+      "stageProgress": "Fasveckling",
+      "costPriceSet": "Kostnadspris satt"
+    },
+    "directPurchase": {
+      "title": "Direktköp",
+      "badge": "Tillbehör / Reservdelar",
+      "desc": "Detta är ett direktköp — inga provkörningar eller offerter krävs.",
+      "goToPayment": "Gå till betalning →",
+      "cancel": "Avbryt köp",
+      "cancelled": "Avbrutet:",
+      "completed": "✓ Köp genomfört"
+    },
+    "pipeline": {
+      "title": "Pipeline-fas",
+      "goToPayment": "Gå till betalning →",
+      "openAgreement": "Öppna avtal →",
+      "viewOffer": "Visa offert →",
+      "viewTestDrive": "Visa provkörning →",
+      "createOffer": "Skapa offert →",
+      "bookTestDrive": "Boka provkörning →",
+      "markLost": "Förlora",
+      "cancelDeal": "Annullera affär",
+      "lostReason": "Anledning till förlust:",
+      "reactivate": "↩ Återaktivera lead",
+      "viewClosed": "Visa avslutad affär →"
+    },
+    "tasks": {
+      "title": "Uppgifter",
+      "open": "{n} öppna",
+      "placeholder": "Lägg till uppgift...",
+      "priorityHigh": "🔴 Hög",
+      "priorityMedium": "🟡 Medel",
+      "priorityLow": "⚪ Låg",
+      "empty": "Inga uppgifter ännu",
+      "viewAll": "Visa alla {n} uppgifter →"
+    },
+    "comms": {
+      "title": "Kundkommunikation",
+      "contact": "✉️ Kontakta kund",
+      "emailBtn": "✉️ E-post",
+      "smsBtn": "💬 SMS",
+      "subjectPlaceholder": "Ämne...",
+      "emailBodyPlaceholder": "Skriv ditt meddelande...",
+      "smsBodyPlaceholder": "SMS till {phone}...",
+      "cancel": "Avbryt",
+      "send": "Skicka",
+      "empty": "Ingen kommunikation loggad ännu",
+      "failed": "MISSLYCKADES",
+      "inbound": "SVAR",
+      "you": "Du",
+      "customer": "Kund"
+    },
+    "activity": {
+      "title": "Logga aktivitet",
+      "save": "Spara",
+      "placeholderCall": "Vad pratades det om? Nästa steg?",
+      "placeholderEmail": "Ämne och sammanfattning...",
+      "placeholderMeeting": "Vad bestämdes på mötet?",
+      "placeholderNote": "Lägg till en anteckning..."
+    },
+    "timeline": {
+      "title": "Aktivitetslogg",
+      "events": "{n} händelser",
+      "empty": "Inga aktiviteter än",
+      "emptyDesc": "Logga samtal, e-post och möten ovan för att bygga upp en historik.",
+      "created": "Lead skapad — {bike} ({value} kr)"
+    },
+    "lostModal": {
+      "title": "Stäng som förlorad affär",
+      "subtitle": "Välj en anledning för att hjälpa oss förstå var affärer förloras.",
+      "otherPlaceholder": "Beskriv anledningen...",
+      "cancel": "Avbryt",
+      "confirm": "Bekräfta förlust"
+    },
+    "cancelModal": {
+      "title": "Annullera affär",
+      "subtitle": "Registrera avbeställning och eventuell kreditåterbetalning.",
+      "reasonLabel": "Anledning *",
+      "reasons": {
+        "changed_mind": "Ångrat sig",
+        "financial": "Ekonomiska skäl",
+        "found_elsewhere": "Hittade annat",
+        "financing_denied": "Finansiering nekad",
+        "other": "Annan anledning"
+      },
+      "detailsPlaceholder": "Detaljer (valfritt)...",
+      "refundLabel": "Kreditåterbetalning",
+      "amountLabel": "Belopp (SEK)",
+      "bankLabel": "Bank",
+      "clearingLabel": "Clearingnr",
+      "accountLabel": "Kontonummer",
+      "referenceLabel": "Referens",
+      "bankPlaceholder": "t.ex. Handelsbanken",
+      "returnToStock": "Återlägg fordon i lager",
+      "notesPlaceholder": "Interna anteckningar (valfritt)...",
+      "cancel": "Avbryt",
+      "confirm": "Bekräfta annullering"
+    },
+    "stages": {
+      "new": "Ny",
+      "contacted": "Kontaktad",
+      "testride": "Provkörning",
+      "offer": "Offert",
+      "negotiating": "Förhandling",
+      "pending_payment": "Betalning pågår",
+      "closed": "Avslutad"
+    },
+    "taskTypes": {
+      "call": "Ring",
+      "email": "E-post",
+      "meeting": "Möte",
+      "follow_up": "Uppföljning",
+      "other": "Övrigt"
+    },
+    "activityTypes": {
+      "note": "Anteckning",
+      "call": "Samtal",
+      "email": "E-post",
+      "meeting": "Möte",
+      "stage_change": "Statusändring",
+      "score_update": "Poänguppdatering",
+      "reminder": "Påminnelse",
+      "lost": "Förlorad affär"
+    },
+    "lostReasons": [
+      "Pris — för dyrt",
+      "Konkurrent — valde annat märke",
+      "Konkurrent — valde annan återförsäljare",
+      "Inte längre intresserad",
+      "Budget — inte råd just nu",
+      "Tog tid — kan återkomma",
+      "Köpte begagnat istället",
+      "Annan anledning"
+    ],
+    "toasts": {
+      "taskCreated": "Uppgift skapad",
+      "taskError": "Kunde inte skapa uppgift",
+      "emailSent": "E-post skickad",
+      "smsSent": "SMS skickat",
+      "sendError": "Kunde inte skicka",
+      "activityAdded": "Aktivitet tillagd",
+      "activityError": "Kunde inte spara aktivitet",
+      "stageChanged": "Fas ändrad till {stage}",
+      "stageError": "Kunde inte uppdatera fas",
+      "dealCancelled": "Affären annullerades och registrerades",
+      "cancelError": "Kunde inte annullera affären",
+      "reactivated": "Lead återaktiverat — återfinns i Pipeline",
+      "reactivateError": "Kunde inte återaktivera lead",
+      "closedLost": "Lead stängt som förlorat",
+      "closeError": "Kunde inte stänga lead"
+    }
   }
 }

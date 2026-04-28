@@ -3,12 +3,14 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import Sidebar from '@/components/Sidebar'
 import { supabase } from '@/lib/supabase'
 import { getDealershipId } from '@/lib/tenant'
 
 export default function EmailSettingsPage() {
     const router = useRouter()
+    const t      = useTranslations('settingsEmail')
     const [replyTo,  setReplyTo]  = useState('')
     const [phone,    setPhone]    = useState('')
     const [saving,   setSaving]   = useState(false)
@@ -61,9 +63,9 @@ export default function EmailSettingsPage() {
 
                     {/* Breadcrumb */}
                     <div className="flex items-center gap-2 text-xs text-slate-400 mb-6">
-                        <Link href="/settings" className="hover:text-[#FF6B2C] transition-colors">Settings</Link>
+                        <Link href="/settings" className="hover:text-[#FF6B2C] transition-colors">{t('breadcrumb')}</Link>
                         <span>/</span>
-                        <span className="text-slate-600 font-medium">Email Sending</span>
+                        <span className="text-slate-600 font-medium">{t('title')}</span>
                     </div>
 
                     {/* Header */}
@@ -71,8 +73,8 @@ export default function EmailSettingsPage() {
                         <div className="flex items-center gap-3 mb-1">
                             <div className="w-10 h-10 rounded-xl bg-[#FF6B2C]/10 flex items-center justify-center text-xl">✉️</div>
                             <div>
-                                <h1 className="text-xl font-black text-[#0b1524]">Email Sending</h1>
-                                <p className="text-xs text-slate-500">PO emails are sent via Resend. Configure where vendor replies come back to.</p>
+                                <h1 className="text-xl font-black text-[#0b1524]">{t('title')}</h1>
+                                <p className="text-xs text-slate-500">{t('subtitle')}</p>
                             </div>
                         </div>
                     </div>
@@ -103,17 +105,15 @@ export default function EmailSettingsPage() {
 
                     {/* Reply-To config */}
                     {!loaded ? (
-                        <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center text-slate-400 text-sm">Loading…</div>
+                        <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center text-slate-400 text-sm">{t('loading')}</div>
                     ) : (
                         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm divide-y divide-slate-100">
 
                             <div className="px-6 py-5">
                                 <label className="block text-sm font-bold text-slate-800 mb-1">
-                                    Your Reply-To Email
+                                    {t('replyToLabel')}
                                 </label>
-                                <p className="text-xs text-slate-400 mb-3">
-                                    When the vendor hits <strong>Reply</strong>, their email comes here. Use your own inbox — Gmail, Outlook, anything.
-                                </p>
+                                <p className="text-xs text-slate-400 mb-3">{t('replyToDesc')}</p>
                                 <input
                                     type="email"
                                     placeholder="you@yourdealership.com"
@@ -125,11 +125,9 @@ export default function EmailSettingsPage() {
 
                             <div className="px-6 py-5">
                                 <label className="block text-sm font-bold text-slate-800 mb-1">
-                                    Dealership Phone <span className="font-normal text-slate-400">(optional)</span>
+                                    {t('phoneLabel')}
                                 </label>
-                                <p className="text-xs text-slate-400 mb-3">
-                                    Shown in the PO email footer so the vendor can call you.
-                                </p>
+                                <p className="text-xs text-slate-400 mb-3">{t('phoneDesc')}</p>
                                 <input
                                     type="tel"
                                     placeholder="+1 555 123 4567"
@@ -148,9 +146,9 @@ export default function EmailSettingsPage() {
                                     {saving ? (
                                         <>
                                             <span className="inline-block w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                            Saving…
+                                            {t('saving')}
                                         </>
-                                    ) : saved ? '✓ Saved!' : 'Save'}
+                                    ) : saved ? `✓ ${t('saved')}` : t('save')}
                                 </button>
                             </div>
                         </div>

@@ -31,9 +31,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Read credentials at request time so settings-saved values work immediately
-    const secretKey  = getCredential(dealerId, 'nets', 'NETS_SECRET_KEY');
-    const merchantId = getCredential(dealerId, 'nets', 'NETS_MERCHANT_ID');
-    const baseUrl    = getCredential(dealerId, 'nets', 'NETS_API_URL')
+    const secretKey  = await getCredential(dealerId, 'nets', 'NETS_SECRET_KEY');
+    const merchantId = await getCredential(dealerId, 'nets', 'NETS_MERCHANT_ID');
+    const baseUrl    = await getCredential(dealerId, 'nets', 'NETS_API_URL')
                     || process.env.NETS_API_URL
                     || 'https://test.api.dibspayment.eu';
 

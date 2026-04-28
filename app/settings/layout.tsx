@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import Sidebar from '@/components/Sidebar';
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -25,8 +26,11 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
 
   if (checking) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#f5f7fa]">
-        <div className="w-10 h-10 border-4 border-[#FF6B2C] border-t-transparent rounded-full animate-spin" />
+      <div className="flex min-h-screen bg-[#f5f7fa]">
+        <Sidebar />
+        <div className="lg:ml-64 flex-1 flex items-center justify-center">
+          <div className="w-10 h-10 border-4 border-[#FF6B2C] border-t-transparent rounded-full animate-spin" />
+        </div>
       </div>
     );
   }

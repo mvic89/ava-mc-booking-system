@@ -26,9 +26,9 @@ export async function POST(req: NextRequest) {
     const dealerId = body.dealerId ?? 'ava-mc';
 
     if (body.provider === 'lansforsakringar') {
-      const apiKey    = getCredential(dealerId, 'lansforsakringar', 'LF_API_KEY');
-      const partnerId = getCredential(dealerId, 'lansforsakringar', 'LF_PARTNER_ID');
-      const apiUrl    = getCredential(dealerId, 'lansforsakringar', 'LF_API_URL') || 'https://api.lansforsakringar.se/partner/v1';
+      const apiKey    = await getCredential(dealerId, 'lansforsakringar', 'LF_API_KEY');
+      const partnerId = await getCredential(dealerId, 'lansforsakringar', 'LF_PARTNER_ID');
+      const apiUrl    = await getCredential(dealerId, 'lansforsakringar', 'LF_API_URL') || 'https://api.lansforsakringar.se/partner/v1';
 
       if (!apiKey || !partnerId) {
         return NextResponse.json({ error: 'Länsförsäkringar credentials not configured' }, { status: 400 });

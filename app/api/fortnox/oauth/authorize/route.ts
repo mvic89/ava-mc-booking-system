@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'dealershipId is required' }, { status: 400 });
   }
 
-  const clientId = getCredential(dealershipId, 'fortnox', 'FORTNOX_CLIENT_ID');
+  const clientId = await getCredential(dealershipId, 'fortnox', 'FORTNOX_CLIENT_ID');
   if (!clientId) {
     return NextResponse.json(
       { error: 'FORTNOX_CLIENT_ID is not configured. Go to Settings → Integrations → Fortnox.' },

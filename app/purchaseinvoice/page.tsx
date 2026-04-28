@@ -6,6 +6,7 @@ import { PurchaseInvoice, PurchaseInvoiceStatus, CreditNote, CreditNoteStatus } 
 import { supabase } from '@/lib/supabase';
 import { getDealershipId, getDealershipProfile, tagFromName } from '@/lib/tenant';
 import { ImportInvoiceModal } from '@/components/ImportInvoiceModal';
+import Sidebar from '@/components/Sidebar';
 
 // ── Download helpers ────────────────────────────────────────────────────────
 
@@ -685,7 +686,9 @@ export default function PurchaseInvoicePage() {
   }
 
   return (
-    <div className="lg:ml-64 min-h-screen flex flex-col bg-white">
+    <div className="flex min-h-screen bg-[#f5f7fa]">
+    <Sidebar />
+    <div className="lg:ml-64 min-h-screen flex flex-col bg-white w-full">
 
       {/* Top bar */}
       <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 shrink-0">
@@ -1826,6 +1829,7 @@ export default function PurchaseInvoicePage() {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }

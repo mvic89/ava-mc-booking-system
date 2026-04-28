@@ -11,8 +11,8 @@ export async function GET(req: NextRequest) {
   try {
     const dealerId = req.nextUrl.searchParams.get('dealerId') ?? 'ava-mc';
 
-    const apiKey    = getCredential(dealerId, 'blocket', 'BLOCKET_API_KEY');
-    const accountId = getCredential(dealerId, 'blocket', 'BLOCKET_ACCOUNT_ID');
+    const apiKey    = await getCredential(dealerId, 'blocket', 'BLOCKET_API_KEY');
+    const accountId = await getCredential(dealerId, 'blocket', 'BLOCKET_ACCOUNT_ID');
 
     if (!apiKey || !accountId) {
       return NextResponse.json({ error: 'Blocket API key and Account ID not configured' }, { status: 400 });

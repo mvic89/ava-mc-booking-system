@@ -27,15 +27,19 @@ export async function POST(
     credentials?: Record<string, string>;
   };
 
-  // Resolve credential: use form value if provided, else stored/env fallback
-  function cred(envVar: string): string {
-    return credentials[envVar]?.trim() || getCredential(dealerId, integrationId, envVar);
-  }
+  // Resolve credential: use form value if provided, else stored/env fallback (async)
+  const cred = async (envVar: string): Promise<string> =>
+    credentials[envVar]?.trim() || await getCredential(dealerId, integrationId, envVar);
 
   // Check all required fields are present
+  const credValues: Record<string, string> = {};
+  for (const v of integration.requiredEnvVars) {
+    credValues[v] = await cred(v);
+  }
+
   const missing = integration.requiredEnvVars.filter(v => {
     if (v.endsWith('_URL')) return false;  // URL fields have defaults — don't block test
-    return !cred(v);
+    return !credValues[v];
   });
   if (missing.length > 0) {
     return NextResponse.json({
@@ -44,11 +48,15 @@ export async function POST(
     });
   }
 
+  // Sync helper using pre-fetched values
+  const credSync = (envVar: string): string => credValues[envVar] ?? '';
+
   try {
-    const result = await runTest(integrationId, cred);
+    const result = await runTest(integrationId, credSync);
     return NextResponse.json(result);
-  } catch (error: any) {
-    return NextResponse.json({ success: false, message: error.message });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ success: false, message: msg });
   }
 }
 
@@ -61,7 +69,6 @@ async function runTest(
   switch (id) {
 
     // ── Fortnox ───────────────────────────────────────────────────────────────
-    // Auth: Bearer access token. Test: GET /companyinformation
     case 'fortnox': {
       const token = cred('FORTNOX_ACCESS_TOKEN');
       if (!token) {
@@ -79,7 +86,6 @@ async function runTest(
     }
 
     // ── Transportstyrelsen ────────────────────────────────────────────────────
-    // Auth: X-Api-Key header
     case 'transportstyrelsen': {
       const apiKey = cred('TRANSPORTSTYRELSEN_API_KEY');
       const ok = await testTransportstyrelsen(apiKey);
@@ -93,7 +99,6 @@ async function runTest(
     }
 
     // ── Blocket ───────────────────────────────────────────────────────────────
-    // Auth: X-Api-Key header
     case 'blocket': {
       const apiKey    = cred('BLOCKET_API_KEY');
       const accountId = cred('BLOCKET_ACCOUNT_ID');
@@ -108,7 +113,6 @@ async function runTest(
     }
 
     // ── Länsförsäkringar ──────────────────────────────────────────────────────
-    // Auth: X-Api-Key + X-Partner-Id
     case 'lansforsakringar': {
       const apiKey    = cred('LF_API_KEY');
       const partnerId = cred('LF_PARTNER_ID');
@@ -121,7 +125,6 @@ async function runTest(
         return { success: false, message: 'Länsförsäkringar Partner ID missing or too short' };
       }
 
-      // Attempt a health check on the partner API
       try {
         const res = await fetch(`${apiUrl}/health`, {
           headers: { 'X-Api-Key': apiKey, 'X-Partner-Id': partnerId, Accept: 'application/json' },
@@ -142,7 +145,6 @@ async function runTest(
     }
 
     // ── Trygg-Hansa ───────────────────────────────────────────────────────────
-    // Auth: X-Api-Key + X-Broker-Id
     case 'trygg_hansa': {
       const apiKey   = cred('TRYGG_HANSA_API_KEY');
       const brokerId = cred('TRYGG_HANSA_BROKER_ID');

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
 import PhoneInput from '@/components/PhoneInput';
 import { getSupabaseBrowser } from '@/lib/supabase';
@@ -25,8 +26,15 @@ interface DealershipProfile {
   email:             string;
   emailDomain:       string;   // e.g. "avamc.se" — shared by all staff at this dealership
   website:           string;
+  bankName:              string;
   bankgiro:              string;
   swish:                 string;
+  iban:                  string;
+  bic:                   string;
+  // SMS gateway (Twilio)
+  twilioAccountSid:      string;
+  twilioAuthToken:       string;
+  twilioFromNumber:      string;   // e.g. +46701234567
   deliveryNoteEmail:     string;   // who receives delivery note notifications
   invoiceEmail:          string;   // who receives purchase invoice notifications
   logoDataUrl:           string;
@@ -54,8 +62,14 @@ const DEFAULTS: DealershipProfile = {
   email:       '',
   emailDomain: '',
   website:     '',
+  bankName:          '',
   bankgiro:          '',
   swish:             '',
+  iban:              '',
+  bic:               '',
+  twilioAccountSid:  '',
+  twilioAuthToken:   '',
+  twilioFromNumber:  '',
   deliveryNoteEmail: '',
   invoiceEmail:      '',
   logoDataUrl:       '',
@@ -176,8 +190,14 @@ async function fetchProfileFromSupabase(dealershipId: string): Promise<Partial<D
       email:             data.email                 ?? '',
       emailDomain:       data.email_domain          ?? '',
       website:           data.website               ?? '',
+      bankName:          data.bank_name             ?? '',
       bankgiro:          data.bankgiro              ?? '',
       swish:             data.swish                 ?? '',
+      iban:              data.iban                  ?? '',
+      bic:               data.bic                   ?? '',
+      twilioAccountSid:  data.twilio_account_sid    ?? '',
+      twilioAuthToken:   data.twilio_auth_token     ?? '',
+      twilioFromNumber:  data.twilio_from_number    ?? '',
       deliveryNoteEmail: data.delivery_note_email   ?? '',
       invoiceEmail:      data.invoice_email         ?? '',
       logoDataUrl:       data.logo_data_url         ?? '',
@@ -205,8 +225,14 @@ async function fetchProfileFromSupabase(dealershipId: string): Promise<Partial<D
     email:             data.email             ?? '',
     emailDomain:       data.email_domain      ?? '',
     website:           data.website           ?? '',
+    bankName:          data.bank_name             ?? '',
     bankgiro:          data.bankgiro              ?? '',
     swish:             data.swish                 ?? '',
+    iban:              data.iban                  ?? '',
+    bic:               data.bic                   ?? '',
+    twilioAccountSid:  data.twilio_account_sid    ?? '',
+    twilioAuthToken:   data.twilio_auth_token     ?? '',
+    twilioFromNumber:  data.twilio_from_number    ?? '',
     deliveryNoteEmail: data.delivery_note_email   ?? '',
     invoiceEmail:      data.invoice_email         ?? '',
     logoDataUrl:       data.logo_data_url         ?? '',
@@ -232,8 +258,14 @@ async function saveProfileToSupabase(dealershipId: string, profile: DealershipPr
     email:                profile.email,
     email_domain:         profile.emailDomain,
     website:              profile.website,
+    bank_name:            profile.bankName          || null,
     bankgiro:             profile.bankgiro,
     swish:                profile.swish,
+    iban:                 profile.iban              || null,
+    bic:                  profile.bic               || null,
+    twilio_account_sid:   profile.twilioAccountSid  || null,
+    twilio_auth_token:    profile.twilioAuthToken   || null,
+    twilio_from_number:   profile.twilioFromNumber  || null,
     delivery_note_email:  profile.deliveryNoteEmail || null,
     invoice_email:        profile.invoiceEmail      || null,
     logo_data_url:        profile.logoDataUrl,
@@ -244,14 +276,18 @@ async function saveProfileToSupabase(dealershipId: string, profile: DealershipPr
   const { error } = await sb.from('dealership_settings').upsert(payload, { onConflict: 'dealership_id' });
 
   if (error) {
-    // If email_domain column doesn't exist yet (migration not run), retry without it
-    if (error.message?.includes('email_domain')) {
-      delete payload.email_domain;
-      const { error: error2 } = await sb.from('dealership_settings').upsert(payload, { onConflict: 'dealership_id' });
-      if (error2) throw new Error(error2.message);
-    } else {
-      throw new Error(error.message);
+    // Strip columns that may not exist yet (migration not run) and retry
+    const missingCol = (msg: string) =>
+      ['email_domain', 'twilio_account_sid', 'twilio_auth_token', 'twilio_from_number', 'iban', 'bic']
+        .find(c => msg.includes(c));
+    let retryError = error;
+    while (retryError && missingCol(retryError.message ?? '')) {
+      const col = missingCol(retryError.message ?? '')!;
+      delete payload[col];
+      const { error: e2 } = await sb.from('dealership_settings').upsert(payload, { onConflict: 'dealership_id' });
+      retryError = e2;
     }
+    if (retryError) throw new Error(retryError.message);
   }
 
   // Also keep dealerships table in sync so prefetchDealerProfile fallback works
@@ -265,8 +301,11 @@ async function saveProfileToSupabase(dealershipId: string, profile: DealershipPr
       city:          profile.city          || null,
       phone:         profile.phone         || null,
       email:         profile.email         || null,
-      website:       profile.website       || null,
-      logo_data_url: profile.logoDataUrl   || null,
+      website:              profile.website           || null,
+      logo_data_url:        profile.logoDataUrl       || null,
+      twilio_account_sid:   profile.twilioAccountSid  || null,
+      twilio_auth_token:    profile.twilioAuthToken   || null,
+      twilio_from_number:   profile.twilioFromNumber  || null,
     })
     .eq('id', dealershipId);
 
@@ -341,6 +380,7 @@ function Toggle({ checked, onChange, label }: {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DealershipProfilePage() {
+  const t          = useTranslations('settingsProfile');
   const router     = useRouter();
   const fileRef    = useRef<HTMLInputElement>(null);
   const coverRef   = useRef<HTMLInputElement>(null);
@@ -412,7 +452,7 @@ export default function DealershipProfilePage() {
     setLogoResized(false);
 
     if (!file.type.startsWith('image/')) {
-      setLogoErr('Endast bildfiler tillåtna (PNG, JPG, SVG, WebP).');
+      setLogoErr(t('messages.imageOnly'));
       return;
     }
 
@@ -422,7 +462,7 @@ export default function DealershipProfilePage() {
     if (!tooBig || isSvg) {
       // Small enough (or SVG — keep as vector) → read as-is
       if (isSvg && tooBig) {
-        setLogoErr(`SVG-filen är för stor. Max ${MAX_LOGO_KB} KB.`);
+        setLogoErr(t('messages.svgTooLarge', { maxKb: MAX_LOGO_KB }));
         return;
       }
       const reader = new FileReader();
@@ -438,7 +478,7 @@ export default function DealershipProfilePage() {
         setProfile(p => ({ ...p, logoDataUrl: resized }));
         setLogoResized(true);
       } catch {
-        setLogoErr('Kunde inte bearbeta bilden. Försök med en annan fil.');
+        setLogoErr(t('messages.processError'));
       } finally {
         setLogoResizing(false);
       }
@@ -452,11 +492,11 @@ export default function DealershipProfilePage() {
     setCoverResized(false);
 
     if (!file.type.startsWith('image/')) {
-      setCoverErr('Endast bildfiler tillåtna (PNG, JPG, WebP).');
+      setCoverErr(t('messages.imageOnly'));
       return;
     }
     if (file.type === 'image/svg+xml') {
-      setCoverErr('SVG stöds inte som omslagsbild. Använd PNG eller JPG.');
+      setCoverErr(t('messages.svgNoCover'));
       return;
     }
 
@@ -474,7 +514,7 @@ export default function DealershipProfilePage() {
         setProfile(p => ({ ...p, coverImageDataUrl: resized }));
         setCoverResized(true);
       } catch {
-        setCoverErr('Kunde inte bearbeta bilden. Försök med en annan fil.');
+        setCoverErr(t('messages.processError'));
       } finally {
         setCoverResizing(false);
       }
@@ -507,11 +547,11 @@ export default function DealershipProfilePage() {
       }
 
       setSaving(false);
-      toast.success('Profil sparad', { description: `${profile.name} · ${profile.orgNr}` });
+      toast.success(t('messages.saved'), { description: `${profile.name} · ${profile.orgNr}` });
     } catch (err) {
       setSaving(false);
       const detail = err instanceof Error ? err.message : String(err);
-      toast.error('Kunde inte spara profilen.', { description: detail });
+      toast.error(t('messages.saveError'), { description: detail });
     }
   };
 
@@ -525,16 +565,14 @@ export default function DealershipProfilePage() {
         {/* Header */}
         <div className="px-5 md:px-8 py-6 bg-white border-b border-slate-100">
           <nav className="flex items-center gap-1.5 text-xs text-slate-400 mb-3">
-            <Link href="/settings" className="hover:text-[#FF6B2C] transition-colors">Inställningar</Link>
+            <Link href="/settings" className="hover:text-[#FF6B2C] transition-colors">{t('breadcrumb')}</Link>
             <span>→</span>
-            <span className="text-slate-700 font-medium">Återförsäljarprofil</span>
+            <span className="text-slate-700 font-medium">{t('title')}</span>
           </nav>
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <h1 className="text-2xl font-black text-[#0b1524]">Återförsäljarprofil</h1>
-              <p className="text-sm text-slate-500 mt-1">
-                Företagets namn, adress, organisationsnummer, logotyp och kontaktuppgifter
-              </p>
+              <h1 className="text-2xl font-black text-[#0b1524]">{t('title')}</h1>
+              <p className="text-sm text-slate-500 mt-1">{t('subtitle')}</p>
             </div>
             <button
               onClick={handleSave}
@@ -542,9 +580,9 @@ export default function DealershipProfilePage() {
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#FF6B2C] hover:bg-[#e55a1f] disabled:opacity-60 text-white text-sm font-bold transition-colors shrink-0"
             >
               {saving ? (
-                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Sparar…</>
+                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {t('saving')}</>
               ) : (
-                <>💾 Spara ändringar</>
+                <>{t('save')}</>
               )}
             </button>
           </div>
@@ -555,199 +593,122 @@ export default function DealershipProfilePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
             {/* ── Company Info ── */}
-            <SectionCard title="Företagsinformation" icon="🏢">
-              <Field label="Företagsnamn">
-                <Input
-                  value={profile.name}
-                  onChange={set('name')}
-                  placeholder="AVA MC AB"
-                />
+            <SectionCard title={t('sections.company')} icon="🏢">
+              <Field label={t('fields.companyName')}>
+                <Input value={profile.name} onChange={set('name')} placeholder="AVA MC AB" />
               </Field>
-              <Field
-                label="Organisationsnummer"
-                hint="Format: 556123-4567"
-              >
-                <Input
-                  value={profile.orgNr}
-                  onChange={handleOrgNrChange}
-                  placeholder="556123-4567"
-                  mono
-                />
+              <Field label={t('fields.orgNr')} hint={t('fields.orgNrHint')}>
+                <Input value={profile.orgNr} onChange={handleOrgNrChange} placeholder="556123-4567" mono />
               </Field>
-              <Field
-                label="Momsnummer (VAT)"
-                hint="Härleds automatiskt från org.nr"
-              >
+              <Field label={t('fields.vat')} hint={t('fields.vatHint')}>
                 <div className="flex items-center gap-2">
-                  <input
-                    readOnly
-                    value={profile.vatNr}
-                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-100 bg-slate-50 text-sm text-slate-500 font-mono tracking-wider cursor-not-allowed"
-                  />
+                  <input readOnly value={profile.vatNr} className="flex-1 px-4 py-2.5 rounded-xl border border-slate-100 bg-slate-50 text-sm text-slate-500 font-mono tracking-wider cursor-not-allowed" />
                   <span className="text-[10px] bg-slate-100 text-slate-400 px-2 py-1 rounded-lg font-semibold">AUTO</span>
                 </div>
               </Field>
-              <Toggle
-                checked={profile.fSkatt}
-                onChange={set('fSkatt')}
-                label="F-skattebevis registrerat"
-              />
+              <Toggle checked={profile.fSkatt} onChange={set('fSkatt')} label={t('fields.fSkatt')} />
             </SectionCard>
 
             {/* ── Address ── */}
-            <SectionCard title="Adress" icon="📍">
-              <Field label="Gatuadress">
-                <Input
-                  value={profile.street}
-                  onChange={set('street')}
-                  placeholder="Knarrarnäsgatan 7"
-                />
+            <SectionCard title={t('sections.address')} icon="📍">
+              <Field label={t('fields.street')}>
+                <Input value={profile.street} onChange={set('street')} placeholder="Knarrarnäsgatan 7" />
               </Field>
               <div className="grid grid-cols-2 gap-3">
-                <Field label="Postnummer">
-                  <Input
-                    value={profile.postalCode}
-                    onChange={set('postalCode')}
-                    placeholder="164 40"
-                    mono
-                  />
+                <Field label={t('fields.postalCode')}>
+                  <Input value={profile.postalCode} onChange={set('postalCode')} placeholder="164 40" mono />
                 </Field>
-                <Field label="Ort">
-                  <Input
-                    value={profile.city}
-                    onChange={set('city')}
-                    placeholder="Kista"
-                  />
+                <Field label={t('fields.city')}>
+                  <Input value={profile.city} onChange={set('city')} placeholder="Kista" />
                 </Field>
               </div>
-              <Field label="Län">
-                <select
-                  value={profile.county}
-                  onChange={e => set('county')(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#FF6B2C]/30 focus:border-[#FF6B2C] transition-all"
-                >
-                  {SWEDISH_COUNTIES.map(c => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
+              <Field label={t('fields.county')}>
+                <select value={profile.county} onChange={e => set('county')(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-[#FF6B2C]/30 focus:border-[#FF6B2C] transition-all">
+                  {SWEDISH_COUNTIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </Field>
             </SectionCard>
 
             {/* ── Contact ── */}
-            <SectionCard title="Kontaktuppgifter" icon="📞">
-              <Field label="Telefon">
-                <PhoneInput
-                  value={profile.phone}
-                  onChange={set('phone')}
-                  placeholder="123 456 78"
-                />
+            <SectionCard title={t('sections.contact')} icon="📞">
+              <Field label={t('fields.phone')}>
+                <PhoneInput value={profile.phone} onChange={set('phone')} placeholder="123 456 78" />
               </Field>
-              <Field label="E-post">
-                <Input
-                  value={profile.email}
-                  onChange={set('email')}
-                  placeholder="info@bikeme.se"
-                  type="email"
-                />
+              <Field label={t('fields.email')}>
+                <Input value={profile.email} onChange={set('email')} placeholder="info@bikeme.se" type="email" />
               </Field>
-              <Field
-                label="Företagets e-postdomän"
-                hint="Används när ni bjuder in personal — t.ex. avamc.se ger @avamc.se"
-              >
+              <Field label={t('fields.emailDomain')} hint={t('fields.emailDomainHint')}>
                 <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#FF6B2C]/30 focus-within:border-[#FF6B2C] transition-all bg-white">
                   <span className="px-3 text-sm text-slate-400 select-none">@</span>
-                  <input
-                    type="text"
-                    value={profile.emailDomain}
-                    onChange={e => setProfile(p => ({ ...p, emailDomain: e.target.value.toLowerCase().replace(/^@/, '') }))}
-                    placeholder="bikeme.se"
-                    className="flex-1 py-2.5 pr-3 text-sm text-slate-900 bg-transparent outline-none font-mono"
-                  />
+                  <input type="text" value={profile.emailDomain} onChange={e => setProfile(p => ({ ...p, emailDomain: e.target.value.toLowerCase().replace(/^@/, '') }))} placeholder="bikeme.se" className="flex-1 py-2.5 pr-3 text-sm text-slate-900 bg-transparent outline-none font-mono" />
                 </div>
               </Field>
-              <Field label="Hemsida">
-                <Input
-                  value={profile.website}
-                  onChange={set('website')}
-                  placeholder="https://bikeme.se"
-                  type="url"
-                />
+              <Field label={t('fields.website')}>
+                <Input value={profile.website} onChange={set('website')} placeholder="https://bikeme.se" type="url" />
               </Field>
             </SectionCard>
 
             {/* ── Banking ── */}
-            <SectionCard title="Bankuppgifter" icon="🏦">
-              <Field
-                label="Bankgironummer"
-                hint="Format: 1234-5678"
-              >
-                <Input
-                  value={profile.bankgiro}
-                  onChange={v => setProfile(p => ({ ...p, bankgiro: formatBankgiro(v) }))}
-                  placeholder="1234-5678"
-                  mono
-                />
+            <SectionCard title={t('sections.banking')} icon="🏦">
+              <Field label={t('fields.bankName')} hint={t('fields.bankNameHint')}>
+                <Input value={profile.bankName} onChange={set('bankName')} placeholder="Handelsbanken" />
               </Field>
-              <Field
-                label="Swish (företagsnummer)"
-                hint="10 siffror, används för betalningar"
-              >
-                <Input
-                  value={profile.swish}
-                  onChange={set('swish')}
-                  placeholder="1231234567"
-                  mono
-                />
+              <Field label={t('fields.bankgiro')} hint={t('fields.bankgiroHint')}>
+                <Input value={profile.bankgiro} onChange={v => setProfile(p => ({ ...p, bankgiro: formatBankgiro(v) }))} placeholder="1234-5678" mono />
+              </Field>
+              <Field label={t('fields.swish')} hint={t('fields.swishHint')}>
+                <Input value={profile.swish} onChange={set('swish')} placeholder="1231234567" mono />
+              </Field>
+              <Field label={t('fields.iban')} hint={t('fields.ibanHint')}>
+                <Input value={profile.iban} onChange={set('iban')} placeholder="SE35 5000 0000 0549 1000 0003" mono />
+              </Field>
+              <Field label={t('fields.bic')} hint={t('fields.bicHint')}>
+                <Input value={profile.bic} onChange={set('bic')} placeholder="HANDSESS" mono />
+              </Field>
+            </SectionCard>
+
+            {/* ── SMS / Twilio ── */}
+            <SectionCard title={t('sections.sms')} icon="📱">
+              <p className="text-xs text-slate-500 -mt-2 mb-1">
+                Krävs för att skicka SMS till kunder. Hämta dina uppgifter från{' '}
+                <a href="https://console.twilio.com" target="_blank" rel="noreferrer" className="text-[#FF6B2C] hover:underline">console.twilio.com</a>.
+              </p>
+              <Field label={t('fields.twilioSid')} hint={t('fields.twilioSidHint')}>
+                <Input value={profile.twilioAccountSid} onChange={set('twilioAccountSid')} placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" mono />
+              </Field>
+              <Field label={t('fields.twilioToken')} hint={t('fields.twilioTokenHint')}>
+                <Input value={profile.twilioAuthToken} onChange={set('twilioAuthToken')} placeholder="••••••••••••••••••••••••••••••••" mono type="password" />
+              </Field>
+              <Field label={t('fields.twilioFrom')} hint={t('fields.twilioFromHint')}>
+                <Input value={profile.twilioFromNumber} onChange={set('twilioFromNumber')} placeholder="+46701234567" mono />
               </Field>
             </SectionCard>
 
             {/* ── Notification emails ── */}
-            <SectionCard title="Notification Emails" icon="📧">
-              <Field
-                label="Delivery Note Email"
-                hint="Who receives an email when a supplier delivery note arrives. Leave blank to use the general contact email."
-              >
-                <Input
-                  value={profile.deliveryNoteEmail}
-                  onChange={set('deliveryNoteEmail')}
-                  placeholder="warehouse@yourcompany.com"
-                  type="email"
-                />
+            <SectionCard title={t('sections.notifEmails')} icon="📧">
+              <Field label={t('fields.deliveryEmail')} hint={t('fields.deliveryEmailHint')}>
+                <Input value={profile.deliveryNoteEmail} onChange={set('deliveryNoteEmail')} placeholder="warehouse@yourcompany.com" type="email" />
               </Field>
-              <Field
-                label="Invoice Email"
-                hint="Who receives purchase invoices from suppliers. Leave blank to use the general contact email."
-              >
-                <Input
-                  value={profile.invoiceEmail}
-                  onChange={set('invoiceEmail')}
-                  placeholder="accounts@yourcompany.com"
-                  type="email"
-                />
+              <Field label={t('fields.invoiceEmail')} hint={t('fields.invoiceEmailHint')}>
+                <Input value={profile.invoiceEmail} onChange={set('invoiceEmail')} placeholder="accounts@yourcompany.com" type="email" />
               </Field>
             </SectionCard>
 
             {/* ── Cover image ── full-width ── */}
             <div className="lg:col-span-2">
-              <SectionCard title="Omslagsbild — Dashboard-bakgrund" icon="🏞️">
-                <p className="text-xs text-slate-400 -mt-2 mb-2">
-                  Visas som bakgrundsbild på dashboard. Välj ett foto av er showroom, lokal eller flotta. Rekommenderat: liggande format (16:9), minst 1280 × 720 px.
-                </p>
+              <SectionCard title={t('sections.cover')} icon="🏞️">
+                <p className="text-xs text-slate-400 -mt-2 mb-2">{t('coverDesc2')}</p>
                 <div className="flex items-start gap-6 flex-wrap">
 
                   {/* Landscape preview */}
                   <div className="w-full max-w-xs rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center shrink-0 overflow-hidden" style={{ aspectRatio: '16/7' }}>
                     {profile.coverImageDataUrl ? (
-                      <img
-                        src={profile.coverImageDataUrl}
-                        alt="Omslagsbild"
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={profile.coverImageDataUrl} alt={t('sections.cover')} className="w-full h-full object-cover" />
                     ) : (
                       <div className="text-center py-6">
                         <span className="text-4xl">🏢</span>
-                        <p className="text-[10px] text-slate-400 mt-2 font-medium">Ingen omslagsbild</p>
-                        <p className="text-[10px] text-slate-300">16:9 rekommenderat</p>
+                        <p className="text-[10px] text-slate-400 mt-2 font-medium">{t('noCoverImage')}</p>
+                        <p className="text-[10px] text-slate-300">{t('coverRatio')}</p>
                       </div>
                     )}
                   </div>
@@ -755,52 +716,24 @@ export default function DealershipProfilePage() {
                   {/* Upload controls */}
                   <div className="flex-1 min-w-0 space-y-3">
                     <div>
-                      <p className="text-sm font-semibold text-slate-700 mb-0.5">Ladda upp omslagsbild</p>
-                      <p className="text-xs text-slate-400">PNG, JPG eller WebP · Max {MAX_COVER_KB} KB (stora bilder skalas automatiskt)</p>
+                      <p className="text-sm font-semibold text-slate-700 mb-0.5">{t('fields.coverTitle')}</p>
+                      <p className="text-xs text-slate-400">{t('fields.coverDesc', { maxKb: MAX_COVER_KB })}</p>
                     </div>
-
-                    <input
-                      ref={coverRef}
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp"
-                      className="hidden"
-                      onChange={e => {
-                        const f = e.target.files?.[0];
-                        if (f) handleCoverFile(f);
-                        e.target.value = '';
-                      }}
-                    />
-
+                    <input ref={coverRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleCoverFile(f); e.target.value = ''; }} />
                     <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => coverRef.current?.click()}
-                        disabled={coverResizing}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-[#FF6B2C]/40 hover:bg-orange-50 text-sm font-semibold text-slate-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {coverResizing ? (
-                          <><div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /> Ändrar storlek…</>
-                        ) : '📂 Välj bild'}
+                      <button type="button" onClick={() => coverRef.current?.click()} disabled={coverResizing} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-[#FF6B2C]/40 hover:bg-orange-50 text-sm font-semibold text-slate-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                        {coverResizing ? <><div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /> {t('actions.resizing')}</> : t('actions.chooseImage')}
                       </button>
                       {profile.coverImageDataUrl && !coverResizing && (
-                        <button
-                          type="button"
-                          onClick={() => { setProfile(p => ({ ...p, coverImageDataUrl: '' })); setCoverResized(false); }}
-                          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-sm font-semibold text-red-600 transition-all"
-                        >
-                          🗑 Ta bort
+                        <button type="button" onClick={() => { setProfile(p => ({ ...p, coverImageDataUrl: '' })); setCoverResized(false); }} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-sm font-semibold text-red-600 transition-all">
+                          {t('actions.remove')}
                         </button>
                       )}
                     </div>
-
                     {coverErr && <p className="text-xs text-red-500 font-medium">{coverErr}</p>}
-                    {coverResizing && <p className="text-xs text-amber-600 font-medium">⏳ Bilden är stor — ändrar storlek automatiskt…</p>}
-                    {coverResized && !coverResizing && (
-                      <p className="text-xs text-blue-600 font-medium">✓ Bild komprimerad och anpassad automatiskt</p>
-                    )}
-                    {profile.coverImageDataUrl && !coverResized && !coverResizing && (
-                      <p className="text-xs text-green-600 font-medium">✓ Omslagsbild uppladdad — visas på dashboard</p>
-                    )}
+                    {coverResizing && <p className="text-xs text-amber-600 font-medium">{t('messages.resizing')}</p>}
+                    {coverResized && !coverResizing && <p className="text-xs text-blue-600 font-medium">{t('messages.compressed')}</p>}
+                    {profile.coverImageDataUrl && !coverResized && !coverResizing && <p className="text-xs text-green-600 font-medium">{t('messages.coverUploaded')}</p>}
                   </div>
                 </div>
               </SectionCard>
@@ -808,21 +741,17 @@ export default function DealershipProfilePage() {
 
             {/* ── Logo ── full-width ── */}
             <div className="lg:col-span-2">
-              <SectionCard title="Logotyp" icon="🖼">
+              <SectionCard title={t('sections.logo')} icon="🖼">
                 <div className="flex items-start gap-6 flex-wrap">
 
                   {/* Preview */}
                   <div className="w-32 h-32 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center shrink-0 overflow-hidden">
                     {profile.logoDataUrl ? (
-                      <img
-                        src={profile.logoDataUrl}
-                        alt="Logotyp"
-                        className="w-full h-full object-contain p-2"
-                      />
+                      <img src={profile.logoDataUrl} alt={t('sections.logo')} className="w-full h-full object-contain p-2" />
                     ) : (
                       <div className="text-center">
                         <span className="text-3xl">🏍</span>
-                        <p className="text-[10px] text-slate-400 mt-1 font-medium">Ingen logotyp</p>
+                        <p className="text-[10px] text-slate-400 mt-1 font-medium">{t('noLogo')}</p>
                       </div>
                     )}
                   </div>
@@ -830,63 +759,24 @@ export default function DealershipProfilePage() {
                   {/* Upload controls */}
                   <div className="flex-1 min-w-0 space-y-3">
                     <div>
-                      <p className="text-sm font-semibold text-slate-700 mb-0.5">Ladda upp logotyp</p>
-                      <p className="text-xs text-slate-400">PNG, JPG, SVG eller WebP · Max {MAX_LOGO_KB} KB</p>
+                      <p className="text-sm font-semibold text-slate-700 mb-0.5">{t('fields.logoTitle')}</p>
+                      <p className="text-xs text-slate-400">{t('fields.logoDesc', { maxKb: MAX_LOGO_KB })}</p>
                     </div>
-
-                    <input
-                      ref={fileRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={e => {
-                        const f = e.target.files?.[0];
-                        if (f) handleLogoFile(f);
-                        e.target.value = '';
-                      }}
-                    />
-
+                    <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleLogoFile(f); e.target.value = ''; }} />
                     <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => fileRef.current?.click()}
-                        disabled={logoResizing}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-[#FF6B2C]/40 hover:bg-orange-50 text-sm font-semibold text-slate-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {logoResizing ? (
-                          <><div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /> Ändrar storlek…</>
-                        ) : '📂 Välj fil'}
+                      <button type="button" onClick={() => fileRef.current?.click()} disabled={logoResizing} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:border-[#FF6B2C]/40 hover:bg-orange-50 text-sm font-semibold text-slate-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                        {logoResizing ? <><div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /> {t('actions.resizing')}</> : t('actions.chooseFile')}
                       </button>
                       {profile.logoDataUrl && !logoResizing && (
-                        <button
-                          type="button"
-                          onClick={() => { setProfile(p => ({ ...p, logoDataUrl: '' })); setLogoResized(false); }}
-                          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-sm font-semibold text-red-600 transition-all"
-                        >
-                          🗑 Ta bort
+                        <button type="button" onClick={() => { setProfile(p => ({ ...p, logoDataUrl: '' })); setLogoResized(false); }} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-sm font-semibold text-red-600 transition-all">
+                          {t('actions.remove')}
                         </button>
                       )}
                     </div>
-
-                    {logoErr && (
-                      <p className="text-xs text-red-500 font-medium">{logoErr}</p>
-                    )}
-
-                    {logoResizing && (
-                      <p className="text-xs text-amber-600 font-medium">
-                        ⏳ Bilden är stor — ändrar storlek automatiskt…
-                      </p>
-                    )}
-
-                    {logoResized && !logoResizing && (
-                      <p className="text-xs text-blue-600 font-medium">
-                        ✓ Bild komprimerad och anpassad automatiskt till {MAX_LOGO_KB} KB
-                      </p>
-                    )}
-
-                    {profile.logoDataUrl && !logoResized && !logoResizing && (
-                      <p className="text-xs text-green-600 font-medium">✓ Logotyp uppladdad och sparas lokalt</p>
-                    )}
+                    {logoErr && <p className="text-xs text-red-500 font-medium">{logoErr}</p>}
+                    {logoResizing && <p className="text-xs text-amber-600 font-medium">{t('messages.resizing')}</p>}
+                    {logoResized && !logoResizing && <p className="text-xs text-blue-600 font-medium">{t('messages.compressedTo', { maxKb: MAX_LOGO_KB })}</p>}
+                    {profile.logoDataUrl && !logoResized && !logoResizing && <p className="text-xs text-green-600 font-medium">{t('messages.logoUploaded')}</p>}
                   </div>
                 </div>
               </SectionCard>

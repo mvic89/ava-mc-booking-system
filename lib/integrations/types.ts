@@ -6,12 +6,13 @@
  */
 
 export type IntegrationCategory =
-  | 'accounting'    // Fortnox — invoicing & bookkeeping
-  | 'marketplace'   // Blocket — vehicle listing ads
-  | 'registry'      // Transportstyrelsen — ownership & vehicle data
-  | 'insurance'     // Länsförsäkringar, Trygg-Hansa — MC insurance
-  | 'communication' // Email, SMS notifications
-  | 'crm';          // CRM systems
+  | 'accounting'     // Fortnox — invoicing & bookkeeping
+  | 'marketplace'    // Blocket — vehicle listing ads
+  | 'registry'       // Transportstyrelsen — ownership & vehicle data
+  | 'insurance'      // Länsförsäkringar, Trygg-Hansa — MC insurance
+  | 'communication'  // Email, SMS notifications
+  | 'crm'            // CRM systems
+  | 'dealer_website'; // Dealership's own website webhook
 
 export type IntegrationStatus =
   | 'live'     // Implemented and tested with real credentials

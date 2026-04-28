@@ -1,22 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import type { TestDriveBooking } from "@/app/offer/biketesting/data";
 
-function formatDateTime(iso: string) {
-  return new Date(iso).toLocaleString("sv-SE", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export default function SellerSignOff({ booking }: { booking: TestDriveBooking }) {
+  const t      = useTranslations("offer.sellerSignOff");
+  const locale = useLocale();
+
   const [signed, setSigned] = useState(booking.sellerSigned);
   const [loading, setLoading] = useState(false);
   const completedAt = new Date().toISOString();
+
+  function formatDateTime(iso: string) {
+    return new Date(iso).toLocaleString(locale, {
+      day: "numeric", month: "short", year: "numeric",
+      hour: "2-digit", minute: "2-digit",
+    });
+  }
 
   function handleSign() {
     setLoading(true);
@@ -34,7 +35,7 @@ export default function SellerSignOff({ booking }: { booking: TestDriveBooking }
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-1">
-              Kunds signatur
+              {t("customerSignature")}
             </p>
             <p className="text-slate-900 text-sm font-semibold">
               {booking.customer.firstName} {booking.customer.lastName}
@@ -44,8 +45,8 @@ export default function SellerSignOff({ booking }: { booking: TestDriveBooking }
             </p>
           </div>
           <div className="text-right">
-            <span className="text-green-600 text-sm font-semibold">✓ Signerad</span>
-            <p className="text-slate-400 text-[10px] mt-0.5">via BankID</p>
+            <span className="text-green-600 text-sm font-semibold">{t("signed")}</span>
+            <p className="text-slate-400 text-[10px] mt-0.5">{t("viaBankId")}</p>
           </div>
         </div>
       </div>
@@ -56,7 +57,7 @@ export default function SellerSignOff({ booking }: { booking: TestDriveBooking }
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-1">
-                Säljarens signatur
+                {t("sellerSignature")}
               </p>
               <p className="text-slate-900 text-sm font-semibold">AVA MC</p>
               <p className="text-slate-500 text-xs mt-0.5">
@@ -64,42 +65,39 @@ export default function SellerSignOff({ booking }: { booking: TestDriveBooking }
               </p>
             </div>
             <div className="text-right">
-              <span className="text-green-600 text-sm font-semibold">✓ Signerad</span>
-              <p className="text-slate-400 text-[10px] mt-0.5">via BankID</p>
+              <span className="text-green-600 text-sm font-semibold">{t("signed")}</span>
+              <p className="text-slate-400 text-[10px] mt-0.5">{t("viaBankId")}</p>
             </div>
           </div>
         ) : (
           <div className="space-y-4">
             <div>
               <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-1">
-                Säljarens signatur
+                {t("sellerSignature")}
               </p>
-              <p className="text-slate-500 text-xs">
-                Signera för att bekräfta att testkörningen har genomförts enligt villkoren.
-              </p>
+              <p className="text-slate-500 text-xs">{t("sellerConfirm")}</p>
             </div>
 
-            {/* BankID sign block */}
             <div className="border border-[#235971]/20 rounded-2xl p-5 bg-[#235971] flex flex-col items-center gap-4">
               {loading ? (
                 <>
                   <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   <div className="text-center">
-                    <p className="text-white text-sm font-semibold">Väntar på BankID...</p>
-                    <p className="text-white/60 text-xs mt-1">Öppna appen och godkänn signeringen.</p>
+                    <p className="text-white text-sm font-semibold">{t("waiting")}</p>
+                    <p className="text-white/60 text-xs mt-1">{t("openApp")}</p>
                   </div>
                 </>
               ) : (
                 <>
                   <div className="text-center">
                     <p className="text-white font-bold text-xl tracking-widest">BankID</p>
-                    <p className="text-white/60 text-xs mt-1">AVA MC — Säljare</p>
+                    <p className="text-white/60 text-xs mt-1">{t("sellerLabel")}</p>
                   </div>
                   <button
                     onClick={handleSign}
                     className="w-full bg-white hover:bg-slate-50 text-[#235971] font-semibold text-sm py-2.5 rounded-xl transition-colors"
                   >
-                    Signera slutförande
+                    {t("signButton")}
                   </button>
                 </>
               )}
@@ -112,16 +110,16 @@ export default function SellerSignOff({ booking }: { booking: TestDriveBooking }
       {signed && (
         <div className="border border-slate-200 rounded-2xl p-5 bg-white space-y-2.5">
           <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">
-            Slutfört dokument
+            {t("completedTitle")}
           </p>
-          {[
-            ["Fordon",       `${booking.bike.brand} ${booking.bike.model} (${booking.bike.year})`],
-            ["Förare",       `${booking.customer.firstName} ${booking.customer.lastName}`],
-            ["Personnummer", booking.customer.personalNumber],
-            ["Datum",        formatDateTime(booking.completedAt ?? completedAt)],
-            ["Max tid",      "15 minuter"],
-            ["Självrisk",    "15 000 kr vid skada"],
-          ].map(([label, value]) => (
+          {([
+            [t("vehicle"),        `${booking.bike.brand} ${booking.bike.model} (${booking.bike.year})`],
+            [t("driver"),         `${booking.customer.firstName} ${booking.customer.lastName}`],
+            [t("personalNumber"), booking.customer.personalNumber],
+            [t("date"),           formatDateTime(booking.completedAt ?? completedAt)],
+            [t("maxTime"),        t("maxTimeValue")],
+            [t("excess"),         t("excessValue")],
+          ] as [string, string][]).map(([label, value]) => (
             <div key={label} className="flex justify-between text-xs">
               <span className="text-slate-400">{label}</span>
               <span className="text-slate-800 font-medium text-right ml-4">{value}</span>
@@ -129,11 +127,11 @@ export default function SellerSignOff({ booking }: { booking: TestDriveBooking }
           ))}
           <div className="border-t border-slate-100 pt-3 grid grid-cols-2 gap-2">
             <div className="text-center">
-              <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Kund</p>
+              <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">{t("customer")}</p>
               <p className="text-green-600 text-xs font-semibold mt-0.5">✓ BankID</p>
             </div>
             <div className="text-center">
-              <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Säljare</p>
+              <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">{t("seller")}</p>
               <p className="text-green-600 text-xs font-semibold mt-0.5">✓ BankID</p>
             </div>
           </div>

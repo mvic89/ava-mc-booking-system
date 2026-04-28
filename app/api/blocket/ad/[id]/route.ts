@@ -14,8 +14,8 @@ export async function DELETE(
   try {
     const { id }    = await params;
     const dealerId  = req.nextUrl.searchParams.get('dealerId') ?? 'ava-mc';
-    const apiKey    = getCredential(dealerId, 'blocket', 'BLOCKET_API_KEY');
-    const accountId = getCredential(dealerId, 'blocket', 'BLOCKET_ACCOUNT_ID');
+    const apiKey    = await getCredential(dealerId, 'blocket', 'BLOCKET_API_KEY');
+    const accountId = await getCredential(dealerId, 'blocket', 'BLOCKET_ACCOUNT_ID');
 
     if (!apiKey || !accountId) {
       return NextResponse.json({ error: 'Blocket credentials not configured' }, { status: 400 });
@@ -43,8 +43,8 @@ export async function PATCH(
     const { id }   = await params;
     const body     = await req.json() as { dealerId?: string; [key: string]: unknown };
     const dealerId = (body.dealerId as string) ?? 'ava-mc';
-    const apiKey    = getCredential(dealerId, 'blocket', 'BLOCKET_API_KEY');
-    const accountId = getCredential(dealerId, 'blocket', 'BLOCKET_ACCOUNT_ID');
+    const apiKey    = await getCredential(dealerId, 'blocket', 'BLOCKET_API_KEY');
+    const accountId = await getCredential(dealerId, 'blocket', 'BLOCKET_ACCOUNT_ID');
 
     if (!apiKey || !accountId) {
       return NextResponse.json({ error: 'Blocket credentials not configured' }, { status: 400 });

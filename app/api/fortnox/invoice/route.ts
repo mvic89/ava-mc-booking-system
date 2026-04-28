@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createInvoice, getInvoice, bookkeepInvoice } from '@/lib/fortnox/client';
 import { getCredential } from '@/lib/integrations/config-store';
 
-function getToken(dealerId: string) {
-  return getCredential(dealerId, 'fortnox', 'FORTNOX_ACCESS_TOKEN');
+async function getToken(dealerId: string) {
+  return await getCredential(dealerId, 'fortnox', 'FORTNOX_ACCESS_TOKEN');
 }
 
 /**
@@ -22,26 +22,32 @@ function getToken(dealerId: string) {
  * }
  */
 export async function POST(req: NextRequest) {
+  let body: {
+    dealerId:        string;
+    customerNumber:  string;
+    agreementNumber: string;
+    vehicle:         string;
+    totalAmount:     number;
+    vatAmount:       number;
+    dueDate?:        string;
+  };
+
   try {
-    const body = await req.json() as {
-      dealerId:        string;
-      customerNumber:  string;
-      agreementNumber: string;
-      vehicle:         string;
-      totalAmount:     number;
-      vatAmount:       number;
-      dueDate?:        string;
-    };
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+  }
 
-    const token = getToken(body.dealerId ?? 'ava-mc');
-    if (!token) {
-      return NextResponse.json({ error: 'Fortnox access token not configured' }, { status: 400 });
-    }
+  const token = await getToken(body.dealerId ?? 'ava-mc');
+  if (!token) {
+    return NextResponse.json({ skipped: true, reason: 'Fortnox not configured' });
+  }
 
+  try {
     const today    = new Date();
     const due      = body.dueDate ?? new Date(today.getTime() + 30 * 86_400_000).toISOString().slice(0, 10);
     const netPrice = body.totalAmount - body.vatAmount;
-    const vatRate  = Math.round((body.vatAmount / netPrice) * 100 * 100); // basis points → 2500 = 25%
+    const vatRate  = netPrice > 0 ? Math.round((body.vatAmount / netPrice) * 100) : 25;
 
     const invoice = await createInvoice(token, {
       CustomerNumber: body.customerNumber,
@@ -56,15 +62,16 @@ export async function POST(req: NextRequest) {
           Description:       body.vehicle,
           DeliveredQuantity: 1,
           Price:             netPrice,
-          VAT:               vatRate / 100,
+          VAT:               vatRate,
         },
       ],
     });
 
     return NextResponse.json({ success: true, invoice });
-  } catch (error: any) {
-    console.error('[fortnox/invoice POST]', error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.warn('[fortnox/invoice POST] Fortnox API error (integration skipped):', msg);
+    return NextResponse.json({ skipped: true, reason: msg }, { status: 502 });
   }
 }
 
@@ -79,7 +86,7 @@ export async function GET(req: NextRequest) {
   if (!invoiceNumber) {
     return NextResponse.json({ error: 'invoiceNumber required' }, { status: 400 });
   }
-  const token = getToken(dealerId);
+  const token = await getToken(dealerId);
   if (!token) {
     return NextResponse.json({ error: 'Fortnox access token not configured' }, { status: 400 });
   }
@@ -87,7 +94,8 @@ export async function GET(req: NextRequest) {
     const invoice = await getInvoice(token, invoiceNumber);
     if (!invoice) return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
     return NextResponse.json({ invoice });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: msg }, { status: 502 });
   }
 }

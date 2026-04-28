@@ -143,6 +143,17 @@ export async function createInvoice(
   return mapDbToInvoice(created as Record<string, unknown>);
 }
 
+export async function updateInvoicePaymentMethod(invoiceId: string, paymentMethod: string): Promise<void> {
+  const dealershipId = getDealershipId();
+  if (!dealershipId) return;
+  const { error } = await db()
+    .from('invoices')
+    .update({ payment_method: paymentMethod } as any)
+    .eq('id', invoiceId)
+    .eq('dealership_id', dealershipId);
+  if (error) console.error('[invoices] updateInvoicePaymentMethod:', error.message);
+}
+
 export async function markInvoicePaid(leadId: string, paymentMethod: string): Promise<void> {
   const dealershipId = getDealershipId();
   if (!dealershipId) return;

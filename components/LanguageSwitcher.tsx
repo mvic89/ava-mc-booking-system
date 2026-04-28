@@ -28,13 +28,9 @@ export default function LanguageSwitcher({ variant = 'default' }: LanguageSwitch
   }
 
   const handleLanguageChange = (newLocale: string) => {
-    // Set locale cookie
-    document.cookie = `locale=${newLocale}; path=/; max-age=31536000`; // 1 year
+    document.cookie = `locale=${newLocale}; path=/; max-age=31536000`;
     setShowMenu(false);
-    // Get current path and reload to apply new locale
-    const currentPath = window.location.pathname;
-    // Use window.location to force a full page reload with new locale
-    window.location.href = currentPath;
+    window.location.reload();
   };
 
   const currentLanguage = languageOptions.find(lang => lang.code === locale) || languageOptions[0];

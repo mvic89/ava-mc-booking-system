@@ -156,12 +156,13 @@ export default function CustomersPage() {
         <div className="brand-top-bar" />
 
         {/* Page header */}
-        <div className="px-6 md:px-10 pt-8 pb-6 bg-white border-b border-slate-100">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-white border-b border-slate-100">
+          {/* Title strip */}
+          <div className="px-6 md:px-10 pt-6 pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold mb-1.5">CRM</p>
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl md:text-3xl font-bold text-slate-900">{t('title')}</h1>
+              <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold mb-1">CRM</p>
+              <div className="flex items-center gap-2.5">
+                <h1 className="text-2xl font-bold text-slate-900">{t('title')}</h1>
                 <span className="px-2.5 py-0.5 bg-slate-100 text-slate-500 text-sm font-bold rounded-full">
                   {customers.length}
                 </span>
@@ -178,7 +179,7 @@ export default function CustomersPage() {
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   placeholder={t('searchPlaceholder')}
-                  className="pl-9 pr-4 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#FF6B2C] focus:ring-2 focus:ring-[#FF6B2C]/20 outline-none w-56 transition-all"
+                  className="pl-9 pr-4 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-[#FF6B2C] focus:ring-2 focus:ring-[#FF6B2C]/20 outline-none w-52 transition-all"
                 />
               </div>
 
@@ -205,7 +206,7 @@ export default function CustomersPage() {
 
               <Link
                 href="/customers/new"
-                className="flex items-center gap-2 bg-[#235971] hover:bg-[#1a4557] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-all shadow-sm whitespace-nowrap"
+                className="flex items-center gap-2 bg-[#FF6B2C] hover:bg-[#e55a1f] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-all shadow-sm whitespace-nowrap"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -214,48 +215,60 @@ export default function CustomersPage() {
               </Link>
             </div>
           </div>
-        </div>
-
-        <div className="flex-1 px-6 md:px-10 py-6 overflow-x-auto">
 
           {/* KPI cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-              <div className="flex items-center justify-between mb-3">
+          <div className="px-6 md:px-10 pb-5 grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="bg-[#f5f7fa] rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('stats.totalCustomers')}</span>
-                <span className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-base">👥</span>
+                <span className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-base">👥</span>
               </div>
-              <div className="text-3xl font-bold text-slate-900">{customers.length}</div>
+              <div className="text-2xl font-bold text-slate-900">{customers.length}</div>
               <div className="text-xs text-slate-400 mt-1">{totalValue > 0 ? `${(totalValue / 1000).toFixed(0)}k kr totalt värde` : 'Inga köp ännu'}</div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-              <div className="flex items-center justify-between mb-3">
+            <div className="bg-[#f5f7fa] rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('stats.bankidVerified')}</span>
-                <span className="w-8 h-8 rounded-xl bg-[#235971]/10 flex items-center justify-center text-base">🔐</span>
+                <span className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-base">🔐</span>
               </div>
-              <div className="text-3xl font-bold text-[#235971]">{bankidCount}</div>
-              <div className="text-xs text-slate-400 mt-1">{bankidPct}% av alla kunder</div>
+              <div className="text-2xl font-bold text-[#235971]">{bankidCount}</div>
+              <div className="flex items-center gap-1.5 mt-1.5">
+                <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-[#235971] rounded-full" style={{ width: `${bankidPct}%` }} />
+                </div>
+                <span className="text-xs text-slate-400 shrink-0">{bankidPct}%</span>
+              </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-              <div className="flex items-center justify-between mb-3">
+            <div className="bg-[#f5f7fa] rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('stats.protected')}</span>
-                <span className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center text-base">🛡️</span>
+                <span className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-base">🛡️</span>
               </div>
-              <div className="text-3xl font-bold text-amber-600">{protectedCount}</div>
+              <div className="text-2xl font-bold text-amber-600">{protectedCount}</div>
               <div className="text-xs text-slate-400 mt-1">Sekretessmarkerade</div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-              <div className="flex items-center justify-between mb-3">
+            <div className="bg-[#f5f7fa] rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('stats.unverified')}</span>
-                <span className="w-8 h-8 rounded-xl bg-[#FF6B2C]/10 flex items-center justify-center text-base">⚠️</span>
+                <span className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-base">⚠️</span>
               </div>
-              <div className="text-3xl font-bold text-[#FF6B2C]">{unverifiedCount}</div>
-              <div className="text-xs text-slate-400 mt-1">Ej verifierade med BankID</div>
+              <div className="text-2xl font-bold text-[#FF6B2C]">{unverifiedCount}</div>
+              <div className="flex items-center gap-1.5 mt-1.5">
+                <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-[#FF6B2C] rounded-full" style={{ width: customers.length > 0 ? `${Math.round((unverifiedCount / customers.length) * 100)}%` : '0%' }} />
+                </div>
+                <span className="text-xs text-slate-400 shrink-0">
+                  {customers.length > 0 ? `${Math.round((unverifiedCount / customers.length) * 100)}%` : '—'}
+                </span>
+              </div>
             </div>
           </div>
+        </div>{/* end header */}
+
+        <div className="flex-1 px-6 md:px-10 py-6 overflow-x-auto">
 
           {/* Table card */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">

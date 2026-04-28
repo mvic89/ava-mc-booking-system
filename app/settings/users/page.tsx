@@ -3,12 +3,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
 import { storeInvite } from '@/lib/invites';
 import { isValidEmail } from '@/lib/validation';
 import { useAutoRefresh } from '@/lib/realtime';
 import { getSupabaseBrowser } from '@/lib/supabase';
+import { getBranches, type Branch } from '@/lib/branches';
 
 //──Types ────────────────────────────────────────────────────────────────────
 
@@ -98,6 +100,7 @@ function RoleBadge({ role }: { role: Role }) {
 
 export default function UsersSettingsPage() {
   const router       = useRouter();
+  const t            = useTranslations('settingsUsers');
   const avatarRef    = useRef<HTMLInputElement>(null);
   const [ready, setReady]       = useState(false);
   const [users, setUsers]       = useState<StaffUser[]>([]);
@@ -113,6 +116,8 @@ export default function UsersSettingsPage() {
   const [inviteLink,    setInviteLink]    = useState('');
   const [inviteSending, setInviteSending] = useState(false);
   const [emailDomain,   setEmailDomain]   = useState('');
+  const [inviteBranch,  setInviteBranch]  = useState('');
+  const [branches,      setBranches]      = useState<Branch[]>([]);
 
   // Selected user for permission preview
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
@@ -180,6 +185,9 @@ export default function UsersSettingsPage() {
         setUsers(initial);
       }
       setReady(true);
+
+      // Load branches for the branch assignment dropdown
+      getBranches().then(bs => setBranches(bs.filter(b => b.active)));
     })();
   }, [router]);
 
@@ -349,19 +357,17 @@ export default function UsersSettingsPage() {
           <div className="flex items-start justify-between mb-6">
             <div>
               <p className="text-xs text-slate-400 uppercase tracking-widest mb-1">
-                <Link href="/settings" className="hover:text-[#FF6B2C] transition-colors">Inställningar</Link>
-                {' / '}Användare
+                <Link href="/settings" className="hover:text-[#FF6B2C] transition-colors">{t('breadcrumb')}</Link>
+                {' / '}{t('title')}
               </p>
-              <h1 className="text-2xl font-black text-[#0b1524]">Användare &amp; Behörigheter</h1>
-              <p className="text-sm text-slate-500 mt-1">
-                Hantera personalkonton, roller och åtkomstnivåer.
-              </p>
+              <h1 className="text-2xl font-black text-[#0b1524]">{t('title')}</h1>
+              <p className="text-sm text-slate-500 mt-1">{t('subtitle')}</p>
             </div>
             <button
               onClick={() => setShowInvite(true)}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#FF6B2C] hover:bg-[#e05a20] text-white text-sm font-bold transition-colors shrink-0"
             >
-              + Bjud in användare
+              + {t('inviteBtn')}
             </button>
           </div>
 
@@ -531,7 +537,7 @@ export default function UsersSettingsPage() {
 
                 {users.length === 0 && (
                   <div className="py-12 text-center text-sm text-slate-400">
-                    Inga användare ännu — bjud in din personal.
+                    {t('noUsers')}
                   </div>
                 )}
               </div>
@@ -607,14 +613,14 @@ export default function UsersSettingsPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md p-6 animate-fade-up">
               <div className="flex items-center justify-between mb-5">
-                <h2 className="text-lg font-bold text-slate-900">Bjud in ny användare</h2>
-                <button onClick={() => { setShowInvite(false); setInviteLink(''); setInviteName(''); setInviteEmail(''); setInviteRole('sales'); }} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">×</button>
+                <h2 className="text-lg font-bold text-slate-900">{t('invite.title')}</h2>
+                <button onClick={() => { setShowInvite(false); setInviteLink(''); setInviteName(''); setInviteEmail(''); setInviteRole('sales'); setInviteBranch(''); }} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">×</button>
               </div>
 
               {/* Copy-link area — shown after invite is sent */}
               {inviteLink && (
                 <div className="mb-4 bg-slate-50 border border-slate-200 rounded-xl p-3">
-                  <p className="text-xs font-semibold text-slate-600 mb-2">Inbjudningslänk (giltig 7 dagar):</p>
+                  <p className="text-xs font-semibold text-slate-600 mb-2">{t('invite.linkLabel')}</p>
                   <div className="flex items-center gap-2">
                     <input
                       readOnly
@@ -626,7 +632,7 @@ export default function UsersSettingsPage() {
                       onClick={() => { navigator.clipboard.writeText(inviteLink); toast.success('Länk kopierad!'); }}
                       className="px-3 py-1.5 rounded-lg bg-[#FF6B2C] text-white text-xs font-bold shrink-0 hover:bg-[#e05a20] transition-colors"
                     >
-                      Kopiera
+                      {t('invite.copy')}
                     </button>
                   </div>
                 </div>
@@ -634,7 +640,7 @@ export default function UsersSettingsPage() {
 
               <form onSubmit={handleInvite} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Fullständigt namn</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('invite.name')}</label>
                   <input
                     type="text"
                     value={inviteName}
@@ -693,7 +699,7 @@ export default function UsersSettingsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Roll</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('invite.role')}</label>
                   <div className="grid grid-cols-3 gap-2">
                     {(Object.entries(ROLES) as [Role, typeof ROLES[Role]][]).map(([key, meta]) => (
                       <button
@@ -715,20 +721,36 @@ export default function UsersSettingsPage() {
                   </p>
                 </div>
 
+                {branches.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Filial (valfritt)</label>
+                    <select
+                      value={inviteBranch}
+                      onChange={e => setInviteBranch(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm focus:outline-none focus:border-[#FF6B2C] focus:ring-1 focus:ring-[#FF6B2C]/20 bg-white"
+                    >
+                      <option value="">Ingen specifik filial</option>
+                      {branches.map(b => (
+                        <option key={b.id} value={b.id}>{b.name}{b.city ? ` — ${b.city}` : ''}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 <div className="flex gap-3 pt-1">
                   <button
                     type="button"
                     onClick={() => setShowInvite(false)}
                     className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:border-slate-300 transition-colors"
                   >
-                    Avbryt
+                    {t('invite.cancel')}
                   </button>
                   <button
                     type="submit"
                     disabled={inviteSending}
                     className="flex-1 py-2.5 rounded-xl bg-[#FF6B2C] hover:bg-[#e05a20] disabled:opacity-60 text-white text-sm font-bold transition-colors"
                   >
-                    {inviteSending ? 'Skickar...' : 'Skicka inbjudan'}
+                    {inviteSending ? t('invite.sending') : t('invite.send')}
                   </button>
                 </div>
               </form>

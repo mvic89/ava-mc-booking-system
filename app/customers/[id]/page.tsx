@@ -12,9 +12,21 @@ import { getSupabaseBrowser } from '@/lib/supabase';
 import { getDealershipId } from '@/lib/tenant';
 import { useAutoRefresh } from '@/lib/realtime';
 import { getInvoicesByCustomer } from '@/lib/invoices';
+import DocumentAttachments from '@/components/DocumentAttachments';
 
-type ProfileTab = 'overview' | 'vehicles' | 'invoices' | 'documents' | 'timeline' | 'gdpr';
+type ProfileTab = 'overview' | 'vehicles' | 'purchases' | 'invoices' | 'documents' | 'timeline' | 'gdpr';
 type SourceKey = 'BankID' | 'Folkbokföring' | 'Manuell';
+
+interface PurchaseItem {
+  invoiceId: string;
+  date: string;
+  amount: number;
+  status: string;
+  vehicle: string;
+  vehicleColor: string;
+  accessories: { name: string; qty: number; itemType: 'accessory' | 'spare_part' }[];
+  paymentMethod: string;
+}
 
 // ── localStorage cache ─────────────────────────────────────────────────────────
 interface LiveCache {
@@ -22,6 +34,7 @@ interface LiveCache {
   liveBankidLogs: any[];
   liveVehicles:   any[];
   liveTimeline:   any[];
+  livePurchases:  PurchaseItem[];
   npsScore:       string | null;
   liveRisk:       string | null;
   cachedAt:       number;
@@ -173,6 +186,7 @@ export default function CustomerProfilePage() {
   const [liveTimeline,   setLiveTimeline]   = useState<any[]>([]);
   const [liveBankidLogs, setLiveBankidLogs] = useState<any[]>([]);
   const [liveVehicles,   setLiveVehicles]   = useState<any[]>([]);
+  const [livePurchases,  setLivePurchases]  = useState<PurchaseItem[]>([]);
   const [npsScore,       setNpsScore]       = useState<string | null>(null);
   const [liveRisk,       setLiveRisk]       = useState<string | null>(null);
   const [syncing,        setSyncing]        = useState(false);
@@ -223,18 +237,21 @@ export default function CustomerProfilePage() {
     }));
     setLiveInvoices(mappedInvoices);
 
-    // Leads — used for vehicles + timeline
+    // Leads — used for vehicles + timeline + accessories-only orders
     const { data: leads } = await sb
       .from('leads')
-      .select('id, bike, created_at, closed_at, stage')
+      .select('id, bike, created_at, closed_at, stage, lead_type, lead_items')
       .eq('customer_id', custId)
       .eq('dealership_id', dealershipId)
       .order('created_at', { ascending: false });
 
-    // Live vehicles derived from leads (deduplicated by bike name)
+    // Live vehicles derived from leads — motorcycles only, no accessories/spare-part orders
     const seenBikes = new Set<string>();
     const bikes: any[] = [];
     for (const lead of (leads ?? [])) {
+      const isAccLead = lead.lead_type === 'accessories'
+        || (lead.lead_type == null && (lead.bike ?? '').startsWith('Tillbehör:'));
+      if (isAccLead) continue;                          // skip non-vehicle orders
       if (!lead.bike || seenBikes.has(lead.bike)) continue;
       seenBikes.add(lead.bike);
       bikes.push({
@@ -262,12 +279,140 @@ export default function CustomerProfilePage() {
     const resolvedNps  = custRow?.nps_score  != null ? String(custRow.nps_score)  : null;
     const resolvedRisk = custRow?.risk_level ?? null;
 
+    // ── Fetch offers for Purchases tab ────────────────────────────────────────
+    const leadIds = (leads ?? []).map((l: any) => l.id as number);
+    const offerMap: Record<number, { vehicle: string; vehicleColor: string; accessories: string; accessoriesCost: number }> = {};
+
+    // Build a map of lead_items for accessories-only orders (lead_type === 'accessories')
+    // These orders have no offer — items are stored directly on the lead
+    const leadItemsMap: Record<number, { id: string; name?: string; brand?: string; qty: number; unitPrice?: number }[]> = {};
+    for (const lead of (leads ?? [])) {
+      const isAccLead = lead.lead_type === 'accessories'
+        || (lead.lead_type == null && (lead.bike ?? '').startsWith('Tillbehör:'));
+      if (!isAccLead || !lead.lead_items) continue;
+      try {
+        const items = JSON.parse(lead.lead_items as string);
+        if (Array.isArray(items) && items.length > 0) {
+          leadItemsMap[lead.id as number] = items;
+        }
+      } catch { /* skip */ }
+    }
+
+    if (leadIds.length > 0) {
+      const { data: offerRows } = await sb
+        .from('offers')
+        .select('lead_id, vehicle, vehicle_color, accessories, accessories_cost')
+        .in('lead_id', leadIds)
+        .eq('dealership_id', dealershipId);
+      for (const o of (offerRows ?? [])) {
+        offerMap[o.lead_id as number] = {
+          vehicle:          (o.vehicle         as string) ?? '',
+          vehicleColor:     (o.vehicle_color   as string) ?? '',
+          accessories:      (o.accessories     as string) ?? '',
+          accessoriesCost:  parseFloat(o.accessories_cost ?? '0') || 0,
+        };
+      }
+    }
+
+    // Collect IDs that don't already have a name embedded — for DB fallback
+    const accIds: string[] = [];
+    const spIds:  string[] = [];
+    for (const offer of Object.values(offerMap)) {
+      if (!offer.accessories) continue;
+      try {
+        const items = JSON.parse(offer.accessories) as { id: string; name?: string; qty: number }[];
+        for (const item of items) {
+          if (!item.id || item.name) continue; // skip if name already present
+          if (item.id.startsWith('SP-')) spIds.push(item.id);
+          else accIds.push(item.id);
+        }
+      } catch { /* not valid JSON */ }
+    }
+
+    // DB name fallback (only for old records that didn't store name in JSON)
+    const accNameMap: Record<string, string> = {};
+    const spNameMap:  Record<string, string> = {};
+    if (accIds.length > 0) {
+      const { data: accRows } = await sb.from('accessories').select('id, name').in('id', accIds).eq('dealership_id', dealershipId);
+      for (const a of (accRows ?? [])) accNameMap[a.id as string] = a.name as string;
+    }
+    if (spIds.length > 0) {
+      const { data: spRows } = await sb.from('spare_parts').select('id, name').in('id', spIds).eq('dealership_id', dealershipId);
+      for (const s of (spRows ?? [])) spNameMap[s.id as string] = s.name as string;
+    }
+
+    // Build one PurchaseItem per invoice — accessories & spare parts shown as line items
+    const purchases: PurchaseItem[] = [];
+    for (const inv of invoices) {
+      const offer = inv.leadId ? offerMap[Number(inv.leadId)] : undefined;
+      const accItems: PurchaseItem['accessories'] = [];
+
+      if (offer?.accessories) {
+        let parsed: { id: string; name?: string; brand?: string; qty: number; unitPrice?: number }[] | null = null;
+        try {
+          const p = JSON.parse(offer.accessories);
+          if (Array.isArray(p) && p.length > 0) parsed = p;
+        } catch { /* not JSON — will handle below */ }
+
+        if (parsed) {
+          // Structured picker data — show each item
+          for (const item of parsed) {
+            if (!item.id && !item.name) continue;
+            const isSP = (item.id ?? '').startsWith('SP-');
+            const name = item.name || (isSP ? (spNameMap[item.id] ?? item.id) : (accNameMap[item.id] ?? item.id));
+            accItems.push({ name, qty: item.qty ?? 1, itemType: isSP ? 'spare_part' : 'accessory' });
+          }
+        } else if (offer.accessories.trim()) {
+          // Plain-text description — show as one line item
+          accItems.push({ name: offer.accessories.trim(), qty: 1, itemType: 'accessory' });
+        }
+      }
+
+      // For accessories-only orders (no offer) — pull items from lead_items
+      if (accItems.length === 0 && inv.leadId) {
+        const leadItems = leadItemsMap[Number(inv.leadId)];
+        if (leadItems) {
+          for (const item of leadItems) {
+            if (!item.id && !item.name) continue;
+            const isSP = (item.id ?? '').startsWith('SP-');
+            accItems.push({
+              name:     item.name || item.id,
+              qty:      item.qty ?? 1,
+              itemType: isSP ? 'spare_part' : 'accessory',
+            });
+          }
+        }
+      }
+
+      // Last fallback: if cost > 0 but still no items resolved, show a generic line
+      if (accItems.length === 0 && (offer?.accessoriesCost ?? 0) > 0) {
+        accItems.push({
+          name:     `Tillbehör — ${Math.round(offer!.accessoriesCost).toLocaleString('sv-SE')} kr`,
+          qty:      1,
+          itemType: 'accessory',
+        });
+      }
+
+      purchases.push({
+        invoiceId:     inv.id,
+        date:          new Date(inv.issueDate).toLocaleDateString('sv-SE'),
+        amount:        inv.totalAmount,
+        status:        inv.status,
+        vehicle:       offer?.vehicle ?? inv.vehicle ?? '—',
+        vehicleColor:  offer?.vehicleColor ?? '',
+        accessories:   accItems,
+        paymentMethod: inv.paymentMethod ?? '',
+      });
+    }
+    setLivePurchases(purchases);
+
     // Write everything to localStorage cache for instant next load
     writeCache(id, {
       liveInvoices:   mappedInvoices,
       liveBankidLogs: mappedBankidLogs,
       liveVehicles:   bikes,
       liveTimeline:   mappedTimeline,
+      livePurchases:  purchases,
       npsScore:       resolvedNps,
       liveRisk:       resolvedRisk,
       cachedAt:       Date.now(),
@@ -289,6 +434,7 @@ export default function CustomerProfilePage() {
       setLiveBankidLogs(cached.liveBankidLogs ?? []);
       setLiveVehicles(cached.liveVehicles ?? []);
       setLiveTimeline(cached.liveTimeline ?? []);
+      setLivePurchases(cached.livePurchases ?? []);
       setNpsScore(cached.npsScore ?? null);
       setLiveRisk(cached.liveRisk ?? null);
       setLoadingLive(false); // show cached data immediately; syncing spinner shown instead
@@ -398,7 +544,7 @@ export default function CustomerProfilePage() {
         localStorage.setItem(`biken_customer_meta_${id}`, JSON.stringify(updated));
         const cached = readCache(id);
         writeCache(id, {
-          ...(cached ?? { liveInvoices: [], liveBankidLogs: [], liveVehicles: [], liveTimeline: [], liveRisk: null, cachedAt: Date.now() }),
+          ...(cached ?? { liveInvoices: [], liveBankidLogs: [], liveVehicles: [], liveTimeline: [], livePurchases: [], liveRisk: null, cachedAt: Date.now() }),
           npsScore: npsNum != null ? String(npsNum) : null,
         });
       } catch {}
@@ -475,6 +621,7 @@ export default function CustomerProfilePage() {
   const PROFILE_TABS: { id: ProfileTab; label: string; count?: number }[] = [
     { id: 'overview',  label: t('profile.tabs.overview') },
     { id: 'vehicles',  label: t('profile.tabs.vehicles'),  count: c.vehicles?.length ?? 0 },
+    { id: 'purchases', label: 'Anskaffningar',             count: livePurchases.length },
     { id: 'invoices',  label: t('profile.tabs.invoices'),  count: c.invoices?.length  ?? 0 },
     { id: 'documents', label: t('profile.tabs.documents') },
     { id: 'timeline',  label: t('profile.tabs.timeline') },
@@ -505,40 +652,42 @@ export default function CustomerProfilePage() {
         <div className="brand-top-bar" />
 
         {/* ── Profile header ── */}
-        <div className="bg-white border-b border-slate-100 px-5 md:px-8 pt-6 pb-0">
+        <div className="bg-white border-b border-slate-100 px-5 md:px-8">
+
           {/* Breadcrumb */}
-          <div className="text-xs text-slate-400 mb-5 flex items-center gap-1.5">
-            <button onClick={() => router.push('/customers')} className="hover:text-slate-700 transition-colors">{t('title')}</button>
+          <div className="text-xs text-slate-400 pt-5 pb-4 flex items-center gap-1.5">
+            <button onClick={() => router.push('/customers')} className="hover:text-slate-600 transition-colors">{t('title')}</button>
             <span>/</span>
-            <span className="text-slate-700 font-medium">{c.firstName} {c.lastName}</span>
+            <span className="text-slate-600 font-medium">{c.firstName} {c.lastName}</span>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+          {/* Avatar + name + actions row */}
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-5">
             <div className="flex items-center gap-4">
               {/* Avatar */}
-              <div className="w-12 h-12 rounded-xl bg-[#0b1524] text-white font-bold text-base flex items-center justify-center shrink-0">
+              <div className="w-14 h-14 rounded-2xl bg-[#0b1524] text-white font-bold text-lg flex items-center justify-center shrink-0">
                 {c.firstName[0]}{c.lastName[0]}
               </div>
 
               <div>
-                <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                <div className="flex items-center gap-2 flex-wrap mb-1.5">
                   <h1 className="text-xl font-bold text-slate-900">{c.firstName} {c.lastName}</h1>
                   {c.bankidVerified && (
-                    <span className="text-[11px] bg-[#235971]/10 text-[#235971] border border-[#235971]/20 px-2 py-0.5 rounded-full font-semibold">BankID</span>
+                    <span className="text-[11px] bg-[#235971]/10 text-[#235971] border border-[#235971]/20 px-2 py-0.5 rounded-full font-semibold">🔐 BankID</span>
                   )}
                   {c.tag === 'VIP' && (
-                    <span className="text-[11px] bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full font-semibold">VIP</span>
+                    <span className="text-[11px] bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full font-semibold">⭐ VIP</span>
                   )}
                   {c.protectedIdentity && (
-                    <span className="text-[11px] bg-red-50 text-red-600 border border-red-200 px-2 py-0.5 rounded-full font-semibold">{t('profile.fields.protectedIdentity')}</span>
+                    <span className="text-[11px] bg-red-50 text-red-600 border border-red-200 px-2 py-0.5 rounded-full font-semibold">🛡 {t('profile.fields.protectedIdentity')}</span>
                   )}
                 </div>
-                <div className="flex items-center gap-3 text-sm text-slate-500 flex-wrap">
-                  {c.personnummer && <span className="font-mono text-xs text-slate-600">{c.personnummer}</span>}
+                <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
+                  {c.personnummer && <span className="font-mono">{c.personnummer}</span>}
                   {c.email && <span>{c.email}</span>}
                   {c.phone && <span>{c.phone}</span>}
                   {c.risk && (
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${
+                    <span className={`font-medium px-2 py-0.5 rounded-full border ${
                       String(c.risk).toLowerCase().includes('hög') || String(c.risk).toLowerCase() === 'high'
                         ? 'bg-red-50 text-red-600 border-red-200'
                         : String(c.risk).toLowerCase().includes('medel') || String(c.risk).toLowerCase() === 'medium'
@@ -547,13 +696,14 @@ export default function CustomerProfilePage() {
                     }`}>Risk: {c.risk}</span>
                   )}
                   {c.customerSince && c.customerSince !== '—' && (
-                    <span className="text-slate-400 text-xs">Kund sedan {c.customerSince}</span>
+                    <span className="text-slate-400">Kund sedan {c.customerSince}</span>
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            {/* Action buttons + syncing indicator */}
+            <div className="flex items-center gap-2 shrink-0 flex-wrap">
               {syncing && (
                 <span className="flex items-center gap-1.5 text-xs text-slate-400">
                   <span className="w-3 h-3 border-2 border-slate-200 border-t-slate-400 rounded-full animate-spin" />
@@ -577,13 +727,31 @@ export default function CustomerProfilePage() {
             </div>
           </div>
 
+          {/* Stats strip */}
+          <div className="flex items-center gap-6 pb-4 border-b border-slate-100">
+            <div>
+              <span className="text-lg font-bold text-slate-900">{totalSpentDisplay}</span>
+              <span className="text-xs text-slate-400 ml-1.5">totalt spenderat</span>
+            </div>
+            <div className="w-px h-5 bg-slate-200" />
+            <div>
+              <span className="text-lg font-bold text-slate-900">{livePurchases.length}</span>
+              <span className="text-xs text-slate-400 ml-1.5">köp</span>
+            </div>
+            <div className="w-px h-5 bg-slate-200" />
+            <div>
+              <span className="text-lg font-bold text-slate-900">{c.vehicles?.length ?? 0}</span>
+              <span className="text-xs text-slate-400 ml-1.5">fordon</span>
+            </div>
+          </div>
+
           {/* Tabs */}
-          <div className="flex gap-0 overflow-x-auto">
+          <div className="flex gap-0 overflow-x-auto -mx-0">
             {PROFILE_TABS.map(tabItem => (
               <button
                 key={tabItem.id}
                 onClick={() => setTab(tabItem.id)}
-                className={`px-4 py-2.5 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
+                className={`px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
                   tab === tabItem.id
                     ? 'border-[#FF6B2C] text-[#FF6B2C]'
                     : 'border-transparent text-slate-500 hover:text-slate-700'
@@ -910,6 +1078,143 @@ export default function CustomerProfilePage() {
             </div>
           )}
 
+          {/* ── PURCHASES ── */}
+          {tab === 'purchases' && (
+            <div className="space-y-5">
+              {/* Header row */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-base font-bold text-slate-900">Anskaffningshistorik</h2>
+                  <p className="text-sm text-slate-500 mt-0.5">Alla köpta motorcyklar, tillbehör och reservdelar</p>
+                </div>
+                {syncing && (
+                  <span className="flex items-center gap-1.5 text-xs text-slate-400">
+                    <span className="w-3 h-3 border-2 border-slate-200 border-t-[#FF6B2C] rounded-full animate-spin" />
+                    Uppdaterar…
+                  </span>
+                )}
+              </div>
+
+              {loadingLive ? (
+                <div className="grid gap-4">
+                  {[1,2].map(n => (
+                    <div key={n} className="bg-white rounded-2xl border border-slate-100 p-6 animate-pulse">
+                      <div className="h-4 bg-slate-100 rounded w-48 mb-4" />
+                      <div className="h-3 bg-slate-100 rounded w-64 mb-2" />
+                      <div className="h-3 bg-slate-100 rounded w-32" />
+                    </div>
+                  ))}
+                </div>
+              ) : livePurchases.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-slate-100 py-20 text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4 text-3xl">🏍️</div>
+                  <p className="text-slate-700 font-semibold">Inga anskaffningar ännu</p>
+                  <p className="text-sm text-slate-400 mt-1 mb-5">Genomförda köp dyker upp här</p>
+                  <button
+                    onClick={() => router.push(`/sales/leads/new?customerId=${c.id}&name=${encodeURIComponent(`${c.firstName} ${c.lastName}`)}`)}
+                    className="text-xs text-[#FF6B2C] border border-[#FF6B2C]/30 px-4 py-2 rounded-xl hover:bg-[#FF6B2C]/5 transition-colors font-medium"
+                  >
+                    Skapa nytt lead →
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {/* Summary banner */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div className="bg-white rounded-2xl border border-slate-100 p-4">
+                      <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Antal köp</p>
+                      <p className="text-2xl font-bold text-slate-900">{livePurchases.length}</p>
+                    </div>
+                    <div className="bg-white rounded-2xl border border-slate-100 p-4">
+                      <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Total summa</p>
+                      <p className="text-2xl font-bold text-[#FF6B2C]">
+                        {livePurchases.reduce((s, p) => s + p.amount, 0).toLocaleString('sv-SE')} kr
+                      </p>
+                    </div>
+                    <div className="bg-white rounded-2xl border border-slate-100 p-4 col-span-2 sm:col-span-1">
+                      <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Tillbehör totalt</p>
+                      <p className="text-2xl font-bold text-slate-900">
+                        {livePurchases.reduce((s, p) => s + p.accessories.reduce((a, i) => a + i.qty, 0), 0)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Purchase cards */}
+                  <div className="grid gap-4">
+                    {livePurchases.map((purchase, idx) => (
+                      <div key={idx} className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        {/* Card header — motorcycle */}
+                        <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-[#0b1524] to-[#1a2a40]">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-xl shrink-0">🏍️</div>
+                            <div>
+                              <p className="text-white font-bold text-base leading-tight">{purchase.vehicle || '—'}</p>
+                              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                {purchase.vehicleColor && (
+                                  <span className="text-[11px] bg-white/15 text-white/80 px-2 py-0.5 rounded-full">{purchase.vehicleColor}</span>
+                                )}
+                                <span className="text-[11px] text-white/60">{purchase.date}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="text-white font-bold text-lg">{purchase.amount.toLocaleString('sv-SE')} kr</p>
+                            <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${
+                              purchase.status === 'paid' || purchase.status === 'Betald'
+                                ? 'bg-emerald-400/20 text-emerald-300'
+                                : 'bg-amber-400/20 text-amber-300'
+                            }`}>
+                              {purchase.status === 'paid' ? '✓ Betald' : purchase.status === 'Betald' ? '✓ Betald' : '⏳ Väntande'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Accessories / spare parts */}
+                        {purchase.accessories.length > 0 ? (
+                          <div className="px-6 py-3 border-t border-slate-100">
+                            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Tillbehör & Reservdelar</p>
+                            <div className="divide-y divide-slate-50">
+                              {purchase.accessories.map((item, i) => (
+                                <div key={i} className="flex items-center gap-3 py-2">
+                                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm shrink-0 ${
+                                    item.itemType === 'spare_part' ? 'bg-blue-50' : 'bg-orange-50'
+                                  }`}>
+                                    {item.itemType === 'spare_part' ? '🔧' : '🧰'}
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-sm font-medium text-slate-800 truncate">{item.name}</p>
+                                    <p className="text-[11px] text-slate-400">{item.itemType === 'spare_part' ? 'Reservdel' : 'Tillbehör'}</p>
+                                  </div>
+                                  <span className="text-xs font-bold text-slate-500 shrink-0 bg-slate-100 px-2 py-0.5 rounded-full">×{item.qty}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="px-6 py-3 border-t border-slate-50">
+                            <p className="text-xs text-slate-400 italic">Inga tillbehör inkluderade</p>
+                          </div>
+                        )}
+
+                        {/* Footer */}
+                        <div className="px-6 py-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                          <span className="text-xs font-mono text-slate-400">{purchase.invoiceId}</span>
+                          <div className="flex items-center gap-2">
+                            {purchase.paymentMethod && (
+                              <span className="text-xs text-slate-500 bg-white border border-slate-200 px-2.5 py-0.5 rounded-lg font-medium capitalize">
+                                {purchase.paymentMethod === 'cash' ? 'Kontant' : purchase.paymentMethod === 'financing' ? 'Finansiering' : purchase.paymentMethod}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
           {/* ── INVOICES ── */}
           {tab === 'invoices' && (
             <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
@@ -995,11 +1300,7 @@ export default function CustomerProfilePage() {
 
           {/* ── DOCUMENTS ── */}
           {tab === 'documents' && (
-            <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center max-w-sm mx-auto">
-              <div className="w-12 h-12 rounded-xl bg-slate-100 text-2xl flex items-center justify-center mx-auto mb-4">📄</div>
-              <h3 className="text-base font-semibold text-slate-900 mb-1">{t('profile.tabs.documents')}</h3>
-              <p className="text-sm text-slate-400">{t('profile.underDevelopment')}</p>
-            </div>
+            <DocumentAttachments customerId={c.id} />
           )}
 
           {/* ── GDPR ── */}

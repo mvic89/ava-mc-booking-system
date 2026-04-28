@@ -45,32 +45,64 @@ export default function NotificationBell() {
 
   const load = () => setNotifs(getNotifications());
 
-  // Fetch server-side notifications (delivery notes, etc.) from Supabase
-  // and merge into localStorage so the bell shows them
+  // Fetch server-side notifications from Supabase on mount and subscribe for live updates
   useEffect(() => {
     const dealershipId = getDealershipId()
     if (!dealershipId) return
+
+    // Initial load — merge unread Supabase rows into localStorage
     supabase
       .from('notifications')
       .select('*')
       .eq('dealership_id', dealershipId)
       .eq('read', false)
       .order('created_at', { ascending: false })
-      .limit(20)
+      .limit(50)
       .then(({ data }) => {
-        if (!data?.length) return
-        const existing = getNotifications()
-        const existingIds = new Set(existing.map(n => n.id))
+        if (!data?.length) return;
+        const existing    = getNotifications();
+        const existingIds = new Set(existing.map(n => n.id));
         data.forEach(row => {
-          if (existingIds.has(row.id)) return
+          if (existingIds.has(row.id)) return;
           addNotification({
-            type:    row.type as AppNotification['type'],
-            title:   row.title,
-            message: row.message,
-            href:    row.href ?? undefined,
+            id:        row.id,
+            createdAt: row.created_at,
+            type:      row.type as AppNotification['type'],
+            title:     row.title,
+            message:   row.message,
+            href:      row.href ?? undefined,
+          });
+        });
+      });
+  }, []);
+
+  // Live Supabase Realtime — new notifications appear instantly without refresh
+  useEffect(() => {
+    const dealershipId = getDealershipId();
+    if (!dealershipId) return;
+    // Realtime subscription — new notification rows appear instantly
+    const channel = supabase
+      .channel(`notifications-live-${dealershipId}`)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .on('postgres_changes' as any,
+        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `dealership_id=eq.${dealershipId}` },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (payload: any) => {
+          const row = payload.new
+          const existing = getNotifications()
+          if (existing.some(n => n.id === row.id)) return
+          addNotification({
+            id:        row.id,
+            createdAt: row.created_at,
+            type:      row.type as AppNotification['type'],
+            title:     row.title,
+            message:   row.message,
+            href:      row.href ?? undefined,
           })
         })
-      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
   }, [])
 
   useEffect(() => {
@@ -78,11 +110,8 @@ export default function NotificationBell() {
     window.addEventListener(NOTIFS_EVENT, load);
     // Also sync when another tab writes to localStorage
     const onStorage = (e: StorageEvent) => {
-
       if (e.key === getNotifsKey()) load();
-
       if (e.key === 'app_notifications') load();
-
     };
     window.addEventListener('storage', onStorage);
     return () => {
@@ -90,6 +119,18 @@ export default function NotificationBell() {
       window.removeEventListener('storage', onStorage);
     };
   }, []);
+
+  // Close panel when clicking anywhere outside the bell component
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
 
   const unread = notifs.filter(n => !n.read).length;
 
@@ -128,10 +169,6 @@ export default function NotificationBell() {
       {/* Dropdown panel */}
       {open && (
         <>
-          {/* Backdrop */}
-          <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-
-          {/* Panel — positioned to the right of the sidebar */}
           <div className="fixed left-64 bottom-16 w-80 bg-[#0f1b2d] border border-white/10 rounded-2xl shadow-2xl z-40 overflow-hidden animate-fade-up">
 
             {/* Header */}
@@ -177,6 +214,9 @@ export default function NotificationBell() {
                     key={n.id}
                     onClick={() => {
                       markRead(n.id);
+
+                      // Sync read status to Supabase (fire-and-forget)
+                      supabase.from('notifications').update({ read: true }).eq('id', n.id).then(() => {});
                       if (n.href) {
                         setOpen(false);
                         router.push(n.href);
@@ -226,7 +266,14 @@ export default function NotificationBell() {
                 </p>
                 {unread > 0 && (
                   <button
-                    onClick={markAllRead}
+                    onClick={() => {
+                      markAllRead();
+                      const dealershipId = getDealershipId();
+                      if (dealershipId) {
+                        supabase.from('notifications').update({ read: true })
+                          .eq('dealership_id', dealershipId).eq('read', false).then(() => {});
+                      }
+                    }}
                     className="text-[10px] text-[#FF6B2C] hover:underline"
                   >
                     Markera alla som lästa

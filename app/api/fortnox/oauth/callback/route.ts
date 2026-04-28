@@ -29,8 +29,8 @@ export async function GET(req: NextRequest) {
   }
 
   // Retrieve client credentials
-  const clientId     = getCredential(dealershipId, 'fortnox', 'FORTNOX_CLIENT_ID');
-  const clientSecret = getCredential(dealershipId, 'fortnox', 'FORTNOX_CLIENT_SECRET');
+  const clientId     = await getCredential(dealershipId, 'fortnox', 'FORTNOX_CLIENT_ID');
+  const clientSecret = await getCredential(dealershipId, 'fortnox', 'FORTNOX_CLIENT_SECRET');
 
   if (!clientId || !clientSecret) {
     return NextResponse.redirect(
@@ -74,14 +74,14 @@ export async function GET(req: NextRequest) {
     };
 
     // Persist tokens in the config store
-    const cfg = getStoredConfig(dealershipId) ?? initDealerConfig(dealershipId, dealershipId);
+    const cfg = await getStoredConfig(dealershipId) ?? await initDealerConfig(dealershipId, dealershipId);
     cfg.credentials.fortnox = {
       ...cfg.credentials.fortnox,
       FORTNOX_ACCESS_TOKEN:     tokens.access_token,
       FORTNOX_REFRESH_TOKEN:    tokens.refresh_token,
       FORTNOX_TOKEN_EXPIRES_AT: String(Date.now() + tokens.expires_in * 1_000),
     };
-    saveStoredConfig(cfg);
+    await saveStoredConfig(cfg);
 
     return NextResponse.redirect(new URL('/accounting?connected=true', req.url));
 
