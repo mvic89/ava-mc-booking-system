@@ -1,11 +1,8 @@
 import { PurchaseOrder } from '@/utils/types'
 
 /**
- * Historical purchase orders only (Approved / Sent / Received).
- *
- * Draft and Pending-Approval POs are auto-generated at runtime by
- * generateAutoPOs() inside InventoryContext — they are NOT stored here.
- * This keeps vendor names automatically in sync with the inventory files.
+ * Historical purchase orders (Reviewed / Sent / Received).
+ * All POs are created manually — there are no auto-generated POs.
  */
 export const historicalPOs: PurchaseOrder[] = [
     {

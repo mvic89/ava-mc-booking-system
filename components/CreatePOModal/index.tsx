@@ -22,6 +22,7 @@ interface DraftRow {
     itemDropdownOpen: boolean
     selectedItem:     { id: string; name: string; articleNumber: string; cost: number; size?: string } | null
     qty:              number
+    isDefault?:       boolean  // item locked when pre-filled from a low-stock alert
 }
 
 function emptyRow(): DraftRow {
@@ -40,6 +41,10 @@ function emptyRow(): DraftRow {
 // If the supplier already has an open PO, prompts the user to add items to it
 // or create a separate new PO.
 
+function poIdToRefNo(poId: string): string {
+    return poId.replace(/^PO-/, 'REF-')
+}
+
 export function CreatePOModal({
     nextPOId,
     allInventoryItems,
@@ -48,25 +53,43 @@ export function CreatePOModal({
     onSave,
     onAddToExisting,
     onClose,
+    defaultVendor,
+    defaultItems,
 }: {
     nextPOId:          string
     allInventoryItems: FlatInventoryItem[]
-    /** Supplier names scoped to the current dealership — loaded from Supabase */
     suppliers:         string[]
-    /** Open POs (Draft / Reviewed / Sent) for duplicate detection */
     openPOs:           PurchaseOrder[]
     onSave:            (po: PurchaseOrder) => void
-    /** Called when user chooses to append items to an existing PO */
     onAddToExisting:   (poId: string, newItems: POLineItem[], newEta?: string) => void
     onClose:           () => void
+    /** Pre-select and lock the supplier (used when opening from a low-stock alert) */
+    defaultVendor?:    string
+    /** Pre-populate line items (used when opening from a low-stock alert) */
+    defaultItems?:     Array<{ item: FlatInventoryItem; qty: number }>
 }) {
     const todayStr   = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
     const allVendors = useMemo(() => [...suppliers].sort(), [suppliers])
 
-    const [vendorSearch,  setVendorSearch]  = useState('')
-    const [vendor,        setVendor]        = useState('')
+    const [vendorSearch,  setVendorSearch]  = useState(defaultVendor ?? '')
+    const [vendor,        setVendor]        = useState(defaultVendor ?? '')
     const [vendorOpen,    setVendorOpen]    = useState(false)
-    const [rows,          setRows]          = useState<DraftRow[]>([emptyRow(), emptyRow(), emptyRow()])
+    const [rows,          setRows]          = useState<DraftRow[]>(() => {
+        if (defaultItems && defaultItems.length > 0) {
+            return [
+                ...defaultItems.map(({ item, qty }) => ({
+                    rowId:            Math.random().toString(36).slice(2),
+                    itemSearch:       item.name,
+                    itemDropdownOpen: false,
+                    selectedItem:     { id: item.id, name: item.name, articleNumber: item.articleNumber, cost: item.cost, size: item.size },
+                    qty,
+                    isDefault:        true,
+                })),
+                emptyRow(),
+            ]
+        }
+        return [emptyRow(), emptyRow(), emptyRow()]
+    })
     const [deliveryDate,  setDeliveryDate]  = useState('')
     // 'new' = user chose to create a new PO despite existing open one
     // 'existing' = user chose to add items to the existing PO
@@ -265,6 +288,16 @@ export function CreatePOModal({
                                 {addMode === 'existing' ? existingOpenPO?.status : 'Draft'}
                             </span>
                         </div>
+                        {/* Ref No — visible when creating a new PO (not adding to existing) */}
+                        {addMode !== 'existing' && nextPOId && (
+                            <div className="flex items-center gap-1.5 mt-1.5">
+                                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Ref No.</span>
+                                <span className="font-mono text-sm font-bold text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded">
+                                    {poIdToRefNo(nextPOId)}
+                                </span>
+                                <span className="text-[10px] text-gray-400 italic">use on supplier portal</span>
+                            </div>
+                        )}
                     </div>
                     <button
                         onClick={handleBackdropClick}
@@ -368,16 +401,27 @@ export function CreatePOModal({
                                     type="text"
                                     placeholder="Type to search supplier…"
                                     value={vendorSearch}
-                                    onFocus={() => setVendorOpen(true)}
+                                    readOnly={!!defaultVendor}
+                                    onFocus={() => !defaultVendor && setVendorOpen(true)}
                                     onBlur={() => setTimeout(() => setVendorOpen(false), 150)}
                                     onChange={(e) => {
+                                        if (defaultVendor) return
                                         setVendorSearch(e.target.value)
                                         setVendor('')
                                         setVendorOpen(true)
                                     }}
-                                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                                    className={`w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 ${
+                                        defaultVendor
+                                            ? 'bg-gray-100 text-gray-600 cursor-default'
+                                            : 'bg-gray-50'
+                                    }`}
                                 />
-                                {vendorOpen && filteredVendors.length > 0 && (
+                                {defaultVendor && (
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 select-none">
+                                        🔒
+                                    </span>
+                                )}
+                                {vendorOpen && !defaultVendor && filteredVendors.length > 0 && (
                                     <div className="absolute top-full left-0 right-0 z-20 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-52 overflow-y-auto">
                                         {filteredVendors.map((v) => (
                                             <button
@@ -527,59 +571,74 @@ export function CreatePOModal({
 
                                                 {/* Item searchable dropdown */}
                                                 <td className="px-4 py-3 relative">
-                                                    <input
-                                                        type="text"
-                                                        placeholder={vendor ? 'Search any inventory item…' : 'Select supplier first'}
-                                                        disabled={!vendor}
-                                                        value={row.itemSearch}
-                                                        onFocus={() => vendor && updateRow(row.rowId, { itemDropdownOpen: true })}
-                                                        onBlur={() =>
-                                                            setTimeout(
-                                                                () => updateRow(row.rowId, { itemDropdownOpen: false }),
-                                                                150,
-                                                            )
-                                                        }
-                                                        onChange={(e) =>
-                                                            updateRow(row.rowId, {
-                                                                itemSearch:       e.target.value,
-                                                                selectedItem:     null,
-                                                                itemDropdownOpen: true,
-                                                            })
-                                                        }
-                                                        className={`w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 ${
-                                                            !vendor ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-50'
-                                                        }`}
-                                                    />
-                                                    {row.selectedItem?.size && (
-                                                        <div className="mt-1 flex items-center gap-1">
-                                                            <span className="text-xs text-gray-500">Size:</span>
-                                                            <span className="px-2 py-0.5 text-xs bg-orange-100 text-orange-700 rounded-full font-semibold">
-                                                                {row.selectedItem.size}
-                                                            </span>
+                                                    {row.isDefault ? (
+                                                        /* Locked: pre-filled from low-stock alert */
+                                                        <div className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-between gap-2">
+                                                            <span className="truncate">{row.itemSearch}</span>
+                                                            {row.selectedItem?.size && (
+                                                                <span className="px-1.5 py-0.5 text-xs bg-orange-100 text-orange-700 rounded font-semibold shrink-0">
+                                                                    {row.selectedItem.size}
+                                                                </span>
+                                                            )}
+                                                            <span className="text-gray-400 text-xs shrink-0">🔒</span>
                                                         </div>
-                                                    )}
-                                                    {row.itemDropdownOpen && filteredItems.length > 0 && (
-                                                        <div className="absolute left-4 right-0 z-30 top-full mt-0.5 bg-white border border-gray-200 rounded-xl shadow-xl max-h-48 overflow-y-auto">
-                                                            {filteredItems.map((item) => (
-                                                                <button
-                                                                    key={item.id}
-                                                                    onMouseDown={() => selectItem(row.rowId, item)}
-                                                                    className="w-full text-left px-3 py-2.5 hover:bg-orange-50 transition-colors"
-                                                                >
-                                                                    <div className="text-sm font-medium text-gray-800 flex items-center gap-2">
-                                                                        {item.name}
-                                                                        {item.size && (
-                                                                            <span className="px-1.5 py-0.5 text-xs bg-orange-100 text-orange-700 rounded font-semibold">
-                                                                                {item.size}
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
-                                                                    <div className="text-xs text-gray-400 font-mono mt-0.5">
-                                                                        {item.articleNumber} · {item.id}
-                                                                    </div>
-                                                                </button>
-                                                            ))}
-                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                        <input
+                                                            type="text"
+                                                            placeholder={vendor ? 'Search any inventory item…' : 'Select supplier first'}
+                                                            disabled={!vendor}
+                                                            value={row.itemSearch}
+                                                            onFocus={() => vendor && updateRow(row.rowId, { itemDropdownOpen: true })}
+                                                            onBlur={() =>
+                                                                setTimeout(
+                                                                    () => updateRow(row.rowId, { itemDropdownOpen: false }),
+                                                                    150,
+                                                                )
+                                                            }
+                                                            onChange={(e) =>
+                                                                updateRow(row.rowId, {
+                                                                    itemSearch:       e.target.value,
+                                                                    selectedItem:     null,
+                                                                    itemDropdownOpen: true,
+                                                                })
+                                                            }
+                                                            className={`w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 ${
+                                                                !vendor ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-50'
+                                                            }`}
+                                                        />
+                                                        {row.selectedItem?.size && (
+                                                            <div className="mt-1 flex items-center gap-1">
+                                                                <span className="text-xs text-gray-500">Size:</span>
+                                                                <span className="px-2 py-0.5 text-xs bg-orange-100 text-orange-700 rounded-full font-semibold">
+                                                                    {row.selectedItem.size}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                        {row.itemDropdownOpen && filteredItems.length > 0 && (
+                                                            <div className="absolute left-4 right-0 z-30 top-full mt-0.5 bg-white border border-gray-200 rounded-xl shadow-xl max-h-48 overflow-y-auto">
+                                                                {filteredItems.map((item) => (
+                                                                    <button
+                                                                        key={item.id}
+                                                                        onMouseDown={() => selectItem(row.rowId, item)}
+                                                                        className="w-full text-left px-3 py-2.5 hover:bg-orange-50 transition-colors"
+                                                                    >
+                                                                        <div className="text-sm font-medium text-gray-800 flex items-center gap-2">
+                                                                            {item.name}
+                                                                            {item.size && (
+                                                                                <span className="px-1.5 py-0.5 text-xs bg-orange-100 text-orange-700 rounded font-semibold">
+                                                                                    {item.size}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="text-xs text-gray-400 font-mono mt-0.5">
+                                                                            {item.articleNumber} · {item.id}
+                                                                        </div>
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                        </>
                                                     )}
                                                 </td>
 
@@ -610,13 +669,15 @@ export function CreatePOModal({
 
                                                 {/* Remove row */}
                                                 <td className="px-4 py-3 text-center">
-                                                    <button
-                                                        onClick={() => removeRow(row.rowId)}
-                                                        title="Remove row"
-                                                        className="w-6 h-6 rounded-md hover:bg-red-100 text-gray-300 hover:text-red-500 flex items-center justify-center text-xs transition-colors mx-auto"
-                                                    >
-                                                        ✕
-                                                    </button>
+                                                    {!row.isDefault && (
+                                                        <button
+                                                            onClick={() => removeRow(row.rowId)}
+                                                            title="Remove row"
+                                                            className="w-6 h-6 rounded-md hover:bg-red-100 text-gray-300 hover:text-red-500 flex items-center justify-center text-xs transition-colors mx-auto"
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    )}
                                                 </td>
                                             </tr>
                                         )

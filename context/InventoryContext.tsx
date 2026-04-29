@@ -11,10 +11,10 @@ import React, {
 
 import { supabase }         from '@/lib/supabase'
 import { getDealershipId, getDealershipProfile, getDealershipTag, setDealershipTagCache, tagFromName }  from '@/lib/tenant'
-import { generateAutoPOs }  from '@/utils/generateAutoPOs'
+import { generateLowStockAlerts } from '@/utils/generateAutoPOs'
 import { emit, useAutoRefresh } from '@/lib/realtime'
 
-import type { Motorcycle, SparePart, Accessory, PurchaseOrder, InventoryCategory } from '@/utils/types'
+import type { Motorcycle, SparePart, Accessory, LowStockAlert, InventoryCategory } from '@/utils/types'
 import type { SyncItem } from '@/lib/inventory-sync'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -116,11 +116,11 @@ function dbToAccessory(r: any): Accessory {
 // ─── Context shape ─────────────────────────────────────────────────────────────
 
 interface InventoryContextValue {
-    motorcycles: Motorcycle[]
-    spareParts:  SparePart[]
-    accessories: Accessory[]
-    autoPOs:     PurchaseOrder[]
-    loading:     boolean
+    motorcycles:    Motorcycle[]
+    spareParts:     SparePart[]
+    accessories:    Accessory[]
+    lowStockAlerts: LowStockAlert[]
+    loading:        boolean
     /** Adjust a single item's stock to an absolute value (not a delta). */
     updateStock: (id: string, newStock: number) => void
     /** Toggle website listing visibility for a single item. */
@@ -183,6 +183,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => { loadInventory() }, [loadInventory])
     useAutoRefresh(loadInventory)
+
 
     /**
      * Optimistically update React state, then persist to Supabase.
@@ -405,17 +406,14 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
         emit({ type: 'data:refresh' })
     }, [])
 
-    /**
-     * Auto-POs are re-derived every time inventory state changes.
-     * They are NOT stored in Supabase — generated client-side only.
-     */
-    const autoPOs = useMemo(
-        () => generateAutoPOs(motorcycles, spareParts, accessories, getDealershipTag()),
+    // Low stock alerts are re-derived live whenever inventory state changes.
+    const lowStockAlerts = useMemo(
+        () => generateLowStockAlerts(motorcycles, spareParts, accessories),
         [motorcycles, spareParts, accessories]
     )
 
     return (
-        <InventoryContext.Provider value={{ motorcycles, spareParts, accessories, autoPOs, loading, updateStock, toggleListing, updateImages, addItem, updateItem, deleteItem, websiteUrl }}>
+        <InventoryContext.Provider value={{ motorcycles, spareParts, accessories, lowStockAlerts, loading, updateStock, toggleListing, updateImages, addItem, updateItem, deleteItem, websiteUrl }}>
             {children}
         </InventoryContext.Provider>
     )

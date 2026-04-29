@@ -60,6 +60,20 @@ export interface Accessory extends BaseInventoryItem {
 
 export type InventoryCategory = 'motorcycles' | 'spareParts' | 'accessories';
 
+// ─── Low Stock Alert Types ────────────────────────────────────────────────────
+
+export interface LowStockAlert {
+    inventoryId: string
+    name: string
+    articleNumber: string
+    brand: string
+    vendor: string
+    currentStock: number
+    reorderQty: number
+    itemType: 'motorcycle' | 'sparePart' | 'accessory'
+    location?: string
+}
+
 // ─── Purchase Order Types ─────────────────────────────────────────────────────
 
 export interface POLineItem {
@@ -149,6 +163,7 @@ export interface SalesInvoice {
 
 export interface PurchaseOrder {
     id: string;
+    refNo?: string;     // REF-TAG-YEAR-NNN — what the supplier sees on their portal (absent on legacy POs)
     vendor: string;
     date: string;
     eta: string;
