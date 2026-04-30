@@ -106,14 +106,16 @@ export default function PurchasePage() {
             orders.forEach((po) => { overrides[po.id] = po.status as POStatus })
             setPoStatusOverrides(overrides)
             const mapped: PurchaseOrder[] = orders.map((po) => ({
-                id:        po.id,
-                refNo:     poIdToRefNo(po.id),
-                vendor:    po.vendor,
-                date:      po.date,
-                eta:       po.eta,
-                status:    po.status as POStatus,
-                totalCost: Number(po.total_cost),
-                notes:     po.notes ?? undefined,
+                id:               po.id,
+                refNo:            poIdToRefNo(po.id),
+                vendor:           po.vendor,
+                date:             po.date,
+                eta:              po.eta,
+                status:           po.status as POStatus,
+                totalCost:        Number(po.total_cost),
+                notes:            po.notes ?? undefined,
+                supplierOrderRef: po.supplier_order_ref ?? undefined,
+                placedAt:         po.placed_at ?? undefined,
                 items: (items ?? [])
                     .filter((li) => li.po_id === po.id)
                     .map((li) => ({
@@ -352,6 +354,27 @@ export default function PurchasePage() {
         }
     }
 
+    async function handleMarkOrdered(poId: string, orderRef: string) {
+        const dealershipId = getDealershipId()
+        const placedAt     = new Date().toISOString()
+        setPoStatusOverrides((prev) => ({ ...prev, [poId]: 'Sent' }))
+        // Merge supplierOrderRef + placedAt into the PO via historicalPOs override
+        setHistoricalPOs((prev) =>
+            prev.map((p) =>
+                p.id === poId
+                    ? { ...p, status: 'Sent', supplierOrderRef: orderRef || undefined, placedAt }
+                    : p,
+            ),
+        )
+        setSelectedPO(null)
+        if (dealershipId) {
+            await supabase
+                .from('purchase_orders')
+                .update({ status: 'Sent', supplier_order_ref: orderRef || null, placed_at: placedAt })
+                .eq('id', poId)
+        }
+    }
+
     async function handleReviewedPO(poId: string, items: POLineItem[], eta: string) {
         const dealershipId = getDealershipId()
         setPoStatusOverrides((prev) => ({ ...prev, [poId]: 'Reviewed' }))
@@ -543,7 +566,7 @@ export default function PurchasePage() {
                 {/* Low stock banner */}
                 {lowStockAlerts.length > 0 && (
                     <Link
-                        href="/purchase/low-stock"
+                        href="/inventory/low-stock"
                         className="shrink-0 mb-4 flex items-center justify-between gap-4 bg-amber-50 border border-amber-200 hover:bg-amber-100 rounded-xl px-4 py-3 transition-colors group"
                     >
                         <div className="flex items-center gap-3">
@@ -656,6 +679,7 @@ export default function PurchasePage() {
                     onClose={() => setSelectedPO(null)}
                     onSent={() => handleSentPO(selectedPO.id)}
                     onReviewed={(items, eta) => handleReviewedPO(selectedPO.id, items, eta)}
+                    onMarkOrdered={handleMarkOrdered}
                     vendorItems={selectedVendorItems}
                     freeShippingThreshold={vendorDetails[selectedPO.vendor]?.freeShippingThreshold}
                     vendorEmailOverride={supplierEmails[selectedPO.vendor]}

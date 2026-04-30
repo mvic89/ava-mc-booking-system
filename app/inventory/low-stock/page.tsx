@@ -59,9 +59,27 @@ export default function InventoryLowStockPage() {
 
     const [nextPOId,        setNextPOId]        = useState('')
     const [dealerSuppliers, setDealerSuppliers] = useState<string[]>([])
+    const [vendorEmails,    setVendorEmails]    = useState<Record<string, string>>({})
     const [openPOs,         setOpenPOs]         = useState<PurchaseOrder[]>([])
-    const [selectedGroup,   setSelectedGroup]   = useState<SupplierGroup | null>(null)
     const [supplierFilter,  setSupplierFilter]  = useState('')
+
+    // "Mark as Ordered" inline form — which vendor's form is open + the ref input value
+    const [orderingVendor,  setOrderingVendor]  = useState<string | null>(null)
+    const [portalOrderRef,  setPortalOrderRef]  = useState('')
+
+    // Stores the vendor + ONLY the items to pre-fill when the CreatePO modal opens.
+    const [modalConfig, setModalConfig] = useState<{
+        vendor: string
+        items:  Array<{ item: FlatInventoryItem; qty: number }>
+    } | null>(null)
+
+    // Fetch a fresh PO ID from DB every time a modal opens so each supplier
+    // group gets a unique sequential number (not the same cached value).
+    useEffect(() => {
+        if (!modalConfig) return
+        const tag = getDealershipTag()
+        generateNextPOId(tag).then(setNextPOId)
+    }, [modalConfig])
 
     useEffect(() => {
         const id  = getDealershipId()
@@ -72,11 +90,18 @@ export default function InventoryLowStockPage() {
 
         supabase
             .from('vendors')
-            .select('name')
+            .select('name, email')
             .eq('dealership_id', id)
             .eq('is_manual', true)
             .order('name')
-            .then(({ data }) => { if (data) setDealerSuppliers(data.map((r) => r.name)) })
+            .then(({ data }) => {
+                if (data) {
+                    setDealerSuppliers(data.map((r) => r.name))
+                    const emailMap: Record<string, string> = {}
+                    data.forEach((r) => { if (r.email) emailMap[r.name] = r.email })
+                    setVendorEmails(emailMap)
+                }
+            })
 
         async function loadOpenPOs() {
             const { data: orders } = await supabase
@@ -89,14 +114,16 @@ export default function InventoryLowStockPage() {
             const { data: items } = await supabase
                 .from('po_line_items').select('*').in('po_id', poIds)
             const mapped: PurchaseOrder[] = orders.map((po) => ({
-                id:        po.id,
-                refNo:     poIdToRefNo(po.id),
-                vendor:    po.vendor,
-                date:      po.date,
-                eta:       po.eta,
-                status:    po.status as POStatus,
-                totalCost: Number(po.total_cost),
-                notes:     po.notes ?? undefined,
+                id:               po.id,
+                refNo:            poIdToRefNo(po.id),
+                vendor:           po.vendor,
+                date:             po.date,
+                eta:              po.eta,
+                status:           po.status as POStatus,
+                totalCost:        Number(po.total_cost),
+                notes:            po.notes ?? undefined,
+                supplierOrderRef: po.supplier_order_ref ?? undefined,
+                placedAt:         po.placed_at ?? undefined,
                 items: (items ?? [])
                     .filter((li) => li.po_id === po.id)
                     .map((li) => ({
@@ -237,6 +264,46 @@ export default function InventoryLowStockPage() {
         }
     }
 
+    // ── Mark a PO as placed on the supplier portal ─────────────────────────────
+
+    async function handleMarkAsOrdered(poId: string, orderRef: string) {
+        const dealershipId = getDealershipId()
+        const placedAt     = new Date().toISOString()
+        setOpenPOs((prev) =>
+            prev.map((p) =>
+                p.id === poId
+                    ? { ...p, status: 'Sent', supplierOrderRef: orderRef || undefined, placedAt }
+                    : p,
+            ),
+        )
+        setOrderingVendor(null)
+        setPortalOrderRef('')
+        if (dealershipId) {
+            await supabase
+                .from('purchase_orders')
+                .update({ status: 'Sent', supplier_order_ref: orderRef || null, placed_at: placedAt })
+                .eq('id', poId)
+        }
+    }
+
+    // ── Directly add uncovered items to an existing Draft PO ──────────────────
+
+    async function handleDirectAddToExisting(
+        poId: string,
+        uncoveredItems: Array<{ item: FlatInventoryItem; qty: number }>,
+    ) {
+        const lineItems: POLineItem[] = uncoveredItems.map(({ item, qty }) => ({
+            inventoryId:   item.id,
+            name:          item.name,
+            articleNumber: item.articleNumber,
+            orderQty:      qty,
+            unitCost:      item.cost,
+            lineTotal:     qty * item.cost,
+            ...(item.size ? { size: item.size } : {}),
+        }))
+        await handleAddToExistingPO(poId, lineItems)
+    }
+
     // ── Render ────────────────────────────────────────────────────────────────
 
     return (
@@ -319,14 +386,21 @@ export default function InventoryLowStockPage() {
                     </p>
                 </div>
 
-                {/* Ref No info callout */}
-                <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-2.5 flex gap-2 text-xs text-blue-700 shrink-0">
+                {/* Real-world lifecycle callout */}
+                <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 flex gap-2 text-xs text-blue-700 shrink-0">
                     <span className="font-bold shrink-0 mt-px">ℹ</span>
-                    <span>
-                        <strong>One PO = One Ref No.</strong> — When you create a PO for a supplier the system assigns
-                        a Ref No. (e.g. <span className="font-mono">REF-AVA-2026-001</span>). Enter that on the
-                        supplier&apos;s portal so their confirmation email links back to this PO.
-                    </span>
+                    <div className="space-y-1">
+                        <p>
+                            <strong>Alerts stay until stock is replenished.</strong> Creating a PO means &ldquo;ordered,
+                            waiting for delivery&rdquo; — the alert remains visible so you know stock hasn&apos;t arrived yet.
+                            It disappears automatically once you mark the PO as <strong>Received</strong> and stock updates.
+                        </p>
+                        <p className="text-blue-500">
+                            Workflow: Low stock → Create PO → Enter{' '}
+                            <span className="font-mono font-semibold">REF-…</span> on supplier portal → PO status
+                            updates Draft → Reviewed → Sent → <strong>Received</strong> → alert gone.
+                        </p>
+                    </div>
                 </div>
 
                 {/* Main content */}
@@ -347,67 +421,208 @@ export default function InventoryLowStockPage() {
                 ) : (
                     <div className="space-y-3 pb-6">
                         {visibleGroups.map((group) => {
-                            // Find the most recent open PO for this supplier
+                            // inventoryIds actually present in open PO line items for this vendor
+                            const coveredInventoryIds = new Set<string>(
+                                openPOs
+                                    .filter((p) => p.vendor === group.vendor)
+                                    .flatMap((p) => p.items.map((li) => li.inventoryId))
+                            )
+
+                            // Most recent open PO for this vendor (for header display)
                             const existingOpenPO = openPOs
                                 .filter((p) => p.vendor === group.vendor)
                                 .sort((a, b) => b.id.localeCompare(a.id))[0] ?? null
-                            const canCreatePO = group.items.length > 0
+
+                            const uncoveredAlerts = group.alerts.filter((a) => !coveredInventoryIds.has(a.inventoryId))
+                            const uncoveredItems  = group.items.filter(({ item }) => !coveredInventoryIds.has(item.id))
+
+                            const allCovered  = group.alerts.length > 0 && uncoveredAlerts.length === 0
+                            const someCovered = !allCovered && coveredInventoryIds.size > 0
+                            const hasPO       = !!existingOpenPO
+
+                            // POs in Draft/Reviewed can still be "marked as ordered on portal"
+                            const canMarkOrdered = hasPO &&
+                                (existingOpenPO!.status === 'Draft' || existingOpenPO!.status === 'Reviewed')
+
+                            // When an existing Draft PO is open, add new items directly into it instead of new PO
+                            const existingDraftPO = openPOs
+                                .filter((p) => p.vendor === group.vendor && p.status === 'Draft')
+                                .sort((a, b) => b.id.localeCompare(a.id))[0] ?? null
+
+                            const statusColor = existingOpenPO?.status === 'Sent'
+                                ? 'bg-purple-100 text-purple-700'
+                                : existingOpenPO?.status === 'Reviewed'
+                                ? 'bg-teal-100 text-teal-700'
+                                : 'bg-slate-100 text-slate-600'
+
+                            const vendorEmail = vendorEmails[group.vendor]
+                            const isOrderingThis = orderingVendor === group.vendor
 
                             return (
                                 <div
                                     key={group.vendor}
-                                    className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
+                                    className={`bg-white rounded-xl shadow-sm overflow-hidden border-l-4 ${
+                                        hasPO ? 'border-l-blue-400 border border-blue-100' : 'border-l-amber-400 border border-slate-200'
+                                    }`}
                                 >
                                     {/* ── Supplier header ── */}
-                                    <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-100">
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <span className="text-base shrink-0">🏭</span>
-                                            <div className="min-w-0">
-                                                <p className="text-sm font-bold text-slate-800 truncate">
-                                                    {group.vendor}
-                                                </p>
-                                                <p className="text-[11px] text-slate-400">
-                                                    {group.alerts.length} item{group.alerts.length !== 1 ? 's' : ''} below reorder level
-                                                    {' · '}
-                                                    <span className="font-semibold text-slate-500">
-                                                        all go into one PO
-                                                    </span>
-                                                </p>
+                                    <div className={`px-4 py-3 border-b ${
+                                        hasPO ? 'bg-blue-50/40 border-blue-100' : 'bg-slate-50 border-slate-100'
+                                    }`}>
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <span className="text-base shrink-0">🏭</span>
+                                                <div className="min-w-0">
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <p className="text-sm font-bold text-slate-800 truncate">
+                                                            {group.vendor}
+                                                        </p>
+                                                        {allCovered && (
+                                                            <span className="text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full shrink-0 uppercase tracking-wide">
+                                                                Order in progress
+                                                            </span>
+                                                        )}
+                                                        {someCovered && (
+                                                            <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full shrink-0 uppercase tracking-wide">
+                                                                Partially ordered
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Vendor contact */}
+                                                    {vendorEmail && (
+                                                        <a
+                                                            href={`mailto:${vendorEmail}`}
+                                                            className="text-[11px] text-blue-500 hover:text-blue-700 mt-0.5 inline-flex items-center gap-1"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            📧 {vendorEmail}
+                                                        </a>
+                                                    )}
+
+                                                    {hasPO ? (
+                                                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                                            <span className="font-mono text-[11px] text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded">
+                                                                {existingOpenPO!.id}
+                                                            </span>
+                                                            <span className="text-slate-400 text-[11px]">→</span>
+                                                            <span className="font-mono text-[11px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">
+                                                                {existingOpenPO!.refNo ?? poIdToRefNo(existingOpenPO!.id)}
+                                                            </span>
+                                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusColor}`}>
+                                                                {existingOpenPO!.status}
+                                                            </span>
+                                                            {existingOpenPO!.supplierOrderRef && (
+                                                                <span className="text-[10px] font-mono text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded">
+                                                                    Portal: {existingOpenPO!.supplierOrderRef}
+                                                                </span>
+                                                            )}
+                                                            {existingOpenPO!.placedAt && (
+                                                                <span className="text-[10px] text-slate-400 italic hidden sm:inline">
+                                                                    · placed {new Date(existingOpenPO!.placedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                                </span>
+                                                            )}
+                                                            {!existingOpenPO!.placedAt && (
+                                                                <span className="text-[10px] text-slate-400 italic hidden sm:inline">
+                                                                    · use Ref No. on supplier portal
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-[11px] text-slate-400 mt-0.5">
+                                                            {group.alerts.length} item{group.alerts.length !== 1 ? 's' : ''} below reorder level
+                                                            {' · '}
+                                                            <span className="font-semibold text-slate-500">all go into one PO</span>
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* ── Action buttons ── */}
+                                            <div className="shrink-0 ml-2 flex flex-col items-end gap-1.5">
+                                                {/* Order / add items button */}
+                                                {allCovered ? null
+                                                : someCovered ? (
+                                                    uncoveredItems.length > 0 && (
+                                                        existingDraftPO ? (
+                                                            // Add new items directly into the existing Draft PO — no new PO needed
+                                                            <button
+                                                                onClick={() => handleDirectAddToExisting(existingDraftPO.id, uncoveredItems)}
+                                                                className="bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+                                                            >
+                                                                ＋ Add {uncoveredItems.length} item{uncoveredItems.length !== 1 ? 's' : ''} to {existingDraftPO.id}
+                                                            </button>
+                                                        ) : (
+                                                            // Existing PO is Sent/Reviewed — must create a new PO
+                                                            <button
+                                                                onClick={() => setModalConfig({ vendor: group.vendor, items: uncoveredItems })}
+                                                                className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+                                                            >
+                                                                + New PO · {uncoveredItems.length} item{uncoveredItems.length !== 1 ? 's' : ''}
+                                                            </button>
+                                                        )
+                                                    )
+                                                ) : (
+                                                    // No PO yet — create one for ALL low-stock items
+                                                    group.items.length > 0 ? (
+                                                        <button
+                                                            onClick={() => setModalConfig({ vendor: group.vendor, items: group.items })}
+                                                            className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+                                                        >
+                                                            + Create PO · {group.alerts.length} item{group.alerts.length !== 1 ? 's' : ''}
+                                                        </button>
+                                                    ) : (
+                                                        <span className="text-xs text-slate-400 italic">Loading…</span>
+                                                    )
+                                                )}
+
+                                                {/* Mark as Ordered — only for Draft/Reviewed POs not yet placed */}
+                                                {canMarkOrdered && !existingOpenPO!.placedAt && (
+                                                    <button
+                                                        onClick={() => {
+                                                            setOrderingVendor(isOrderingThis ? null : group.vendor)
+                                                            setPortalOrderRef('')
+                                                        }}
+                                                        className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap ${
+                                                            isOrderingThis
+                                                                ? 'bg-slate-200 text-slate-600'
+                                                                : 'bg-green-500 hover:bg-green-600 text-white'
+                                                        }`}
+                                                    >
+                                                        {isOrderingThis ? '✕ Cancel' : '✓ Placed on Portal'}
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-2 shrink-0 ml-3">
-                                            {/* Show linked open PO + Ref No if one exists */}
-                                            {existingOpenPO && (
-                                                <div className="hidden sm:flex items-center gap-1.5 text-[11px]">
-                                                    <span className="font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-                                                        {existingOpenPO.id}
-                                                    </span>
-                                                    <span className="text-slate-400">→</span>
-                                                    <span className="font-mono font-bold text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded">
-                                                        {existingOpenPO.refNo ?? poIdToRefNo(existingOpenPO.id)}
-                                                    </span>
-                                                    <span className="text-slate-400 italic text-[10px]">open</span>
+                                        {/* ── "Mark as Ordered" inline form ── */}
+                                        {isOrderingThis && existingOpenPO && (
+                                            <div className="mt-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs font-semibold text-green-800 mb-1">
+                                                        Confirm order placed on supplier portal
+                                                    </p>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Supplier's portal order / confirmation number (optional)"
+                                                        value={portalOrderRef}
+                                                        onChange={(e) => setPortalOrderRef(e.target.value)}
+                                                        className="w-full text-xs border border-green-300 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-green-400 placeholder-slate-300"
+                                                        autoFocus
+                                                    />
+                                                    <p className="text-[10px] text-green-600 mt-1 italic">
+                                                        This marks the PO as <strong>Sent</strong> and records when the order was placed.
+                                                        Use Ref No. <span className="font-mono font-bold">{existingOpenPO.refNo ?? poIdToRefNo(existingOpenPO.id)}</span> on the supplier portal.
+                                                    </p>
                                                 </div>
-                                            )}
-
-                                            {canCreatePO && (
                                                 <button
-                                                    onClick={() => setSelectedGroup(group)}
-                                                    className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+                                                    onClick={() => handleMarkAsOrdered(existingOpenPO.id, portalOrderRef)}
+                                                    className="shrink-0 bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors"
                                                 >
-                                                    {existingOpenPO
-                                                        ? '+ Add to existing PO'
-                                                        : `+ Create PO · ${group.alerts.length} item${group.alerts.length !== 1 ? 's' : ''}`
-                                                    }
+                                                    ✓ Confirm Order Placed
                                                 </button>
-                                            )}
-                                            {!canCreatePO && (
-                                                <span className="text-xs text-slate-400 italic">
-                                                    Loading items…
-                                                </span>
-                                            )}
-                                        </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* ── Items table ── */}
@@ -423,38 +638,48 @@ export default function InventoryLowStockPage() {
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-50">
-                                            {group.alerts.map((alert) => (
-                                                <tr key={alert.inventoryId} className="hover:bg-slate-50/60 transition-colors">
-                                                    <td className="px-4 py-2.5 text-center text-sm">
-                                                        <span title={alert.itemType}>
-                                                            {ITEM_TYPE_ICON[alert.itemType]}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-4 py-2.5">
-                                                        <p className="font-medium text-slate-800">{alert.name}</p>
-                                                        <p className="text-slate-400">{alert.brand}</p>
-                                                    </td>
-                                                    <td className="px-4 py-2.5 font-mono text-slate-500 hidden md:table-cell">
-                                                        {alert.articleNumber}
-                                                    </td>
-                                                    <td className="px-4 py-2.5 text-center">
-                                                        <span className="text-red-600 font-bold">{alert.currentStock}</span>
-                                                        <span className="text-slate-400 ml-1">left</span>
-                                                    </td>
-                                                    <td className="px-4 py-2.5 text-center text-slate-500">
-                                                        {alert.reorderQty}
-                                                    </td>
-                                                    <td className="px-4 py-2.5 hidden sm:table-cell">
-                                                        {alert.location ? (
-                                                            <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">
-                                                                {alert.location}
+                                            {group.alerts.map((alert) => {
+                                                const inPO = coveredInventoryIds.has(alert.inventoryId)
+                                                return (
+                                                    <tr key={alert.inventoryId} className={`hover:bg-slate-50/60 transition-colors ${inPO ? 'opacity-60' : ''}`}>
+                                                        <td className="px-4 py-2.5 text-center text-sm">
+                                                            <span title={alert.itemType}>
+                                                                {ITEM_TYPE_ICON[alert.itemType]}
                                                             </span>
-                                                        ) : (
-                                                            <span className="text-slate-300">—</span>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                                        </td>
+                                                        <td className="px-4 py-2.5">
+                                                            <div className="flex items-center gap-2 flex-wrap">
+                                                                <p className="font-medium text-slate-800">{alert.name}</p>
+                                                                {inPO && (
+                                                                    <span className="text-[9px] font-bold bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded uppercase tracking-wide">
+                                                                        In PO
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <p className="text-slate-400">{alert.brand}</p>
+                                                        </td>
+                                                        <td className="px-4 py-2.5 font-mono text-slate-500 hidden md:table-cell">
+                                                            {alert.articleNumber}
+                                                        </td>
+                                                        <td className="px-4 py-2.5 text-center">
+                                                            <span className="text-red-600 font-bold">{alert.currentStock}</span>
+                                                            <span className="text-slate-400 ml-1">left</span>
+                                                        </td>
+                                                        <td className="px-4 py-2.5 text-center text-slate-500">
+                                                            {alert.reorderQty}
+                                                        </td>
+                                                        <td className="px-4 py-2.5 hidden sm:table-cell">
+                                                            {alert.location ? (
+                                                                <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">
+                                                                    {alert.location}
+                                                                </span>
+                                                            ) : (
+                                                                <span className="text-slate-300">—</span>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                )
+                                            })}
                                         </tbody>
                                     </table>
                                 </div>
@@ -464,8 +689,8 @@ export default function InventoryLowStockPage() {
                 )}
             </div>
 
-            {/* Create PO Modal — vendor locked, ALL supplier items pre-filled */}
-            {selectedGroup && (
+            {/* Create PO Modal — vendor locked, pre-filled with uncovered items */}
+            {modalConfig && (
                 <CreatePOModal
                     nextPOId={nextPOId}
                     allInventoryItems={allInventoryItems}
@@ -473,9 +698,9 @@ export default function InventoryLowStockPage() {
                     openPOs={openPOs}
                     onSave={handleSavePO}
                     onAddToExisting={handleAddToExistingPO}
-                    onClose={() => setSelectedGroup(null)}
-                    defaultVendor={selectedGroup.vendor}
-                    defaultItems={selectedGroup.items}
+                    onClose={() => setModalConfig(null)}
+                    defaultVendor={modalConfig.vendor}
+                    defaultItems={modalConfig.items}
                 />
             )}
         </div>

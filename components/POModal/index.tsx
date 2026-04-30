@@ -45,6 +45,7 @@ export function POModal({
     onClose,
     onSent,
     onReviewed,
+    onMarkOrdered,
     vendorItems = [],
     zIndex = 'z-50',
     freeShippingThreshold,
@@ -57,15 +58,20 @@ export function POModal({
     onClose: () => void
     onSent?: () => void
     onReviewed?: (items: POLineItem[], eta: string) => void
+    /** Called when user confirms "I've placed this order on the supplier portal" */
+    onMarkOrdered?: (poId: string, orderRef: string) => void
     vendorItems?: VendorItem[]
     zIndex?: string
     freeShippingThreshold?: number
-    /** Email from Supabase — overrides the static vendorDetails lookup */
     vendorEmailOverride?: string
 }) {
     // ── Review mode state ───────────────────────────────────────────────────
     const [reviewMode, setReviewMode] = useState(false)
     const [editedEta,  setEditedEta]  = useState(po.eta)
+
+    // ── "Mark as Ordered on Portal" inline form ─────────────────────────────
+    const [markOrderedOpen,    setMarkOrderedOpen]    = useState(false)
+    const [portalOrderRefInput, setPortalOrderRefInput] = useState('')
 
     // editedItems is initialized once with effective quantities applied
     const [editedItems, setEditedItems] = useState<POLineItem[]>(() =>
@@ -470,6 +476,28 @@ export function POModal({
                         ) : (
                             <div className="text-xs text-gray-400 italic">No contact details on file</div>
                         )}
+
+                        {/* Portal order details — shown once the order has been placed */}
+                        {(po.supplierOrderRef || po.placedAt) && (
+                            <div className="mt-3 pt-3 border-t border-gray-200 flex flex-wrap items-center gap-3">
+                                {po.supplierOrderRef && (
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Portal Ref</span>
+                                        <span className="font-mono text-xs font-bold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded">
+                                            {po.supplierOrderRef}
+                                        </span>
+                                    </div>
+                                )}
+                                {po.placedAt && (
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Placed</span>
+                                        <span className="text-xs text-gray-600 font-medium">
+                                            {new Date(po.placedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     {/* Free shipping caution */}
@@ -642,6 +670,46 @@ export function POModal({
                         </div>
                     )}
 
+                    {/* ── "Mark as Ordered on Portal" inline form ── */}
+                    {markOrderedOpen && (
+                        <div className="mb-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3 space-y-2">
+                            <p className="text-xs font-semibold text-green-800">
+                                Confirm order placed on supplier portal
+                                {po.refNo && (
+                                    <span className="ml-1 font-normal text-green-700">
+                                        — use Ref No. <span className="font-mono font-bold">{po.refNo}</span>
+                                    </span>
+                                )}
+                            </p>
+                            <input
+                                type="text"
+                                placeholder="Supplier's portal order / confirmation number (optional)"
+                                value={portalOrderRefInput}
+                                onChange={(e) => setPortalOrderRefInput(e.target.value)}
+                                className="w-full text-xs border border-green-300 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-green-400 placeholder-slate-300"
+                                autoFocus
+                            />
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => {
+                                        onMarkOrdered?.(po.id, portalOrderRefInput)
+                                        setMarkOrderedOpen(false)
+                                        setPortalOrderRefInput('')
+                                    }}
+                                    className="text-xs font-bold bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-lg transition-colors"
+                                >
+                                    ✓ Confirm Order Placed
+                                </button>
+                                <button
+                                    onClick={() => { setMarkOrderedOpen(false); setPortalOrderRefInput('') }}
+                                    className="text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="flex items-center justify-between gap-3">
                         {reviewMode ? (
                             /* ── Review mode footer ── */
@@ -670,13 +738,26 @@ export function POModal({
                                     Close
                                 </button>
 
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 flex-wrap justify-end">
                                     {isSent ? (
                                         <span className="text-xs font-semibold text-purple-600 flex items-center gap-1.5 px-3 py-2 bg-purple-50 rounded-lg border border-purple-200">
                                             🔒 {po.status} — view only
                                         </span>
                                     ) : (
                                         <>
+                                            {/* Show "Mark as Ordered" only for Draft/Reviewed POs not yet placed */}
+                                            {onMarkOrdered && !po.placedAt && (
+                                                <button
+                                                    onClick={() => setMarkOrderedOpen((v) => !v)}
+                                                    className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
+                                                        markOrderedOpen
+                                                            ? 'bg-gray-100 text-gray-700'
+                                                            : 'bg-green-500 hover:bg-green-600 text-white'
+                                                    }`}
+                                                >
+                                                    ✓ Placed on Portal
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={downloadPDF}
                                                 disabled={downloading || displayItems.length === 0}

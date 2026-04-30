@@ -644,17 +644,21 @@ export function CreatePOModal({
 
                                                 {/* Qty */}
                                                 <td className="px-4 py-3 text-center">
-                                                    <input
-                                                        type="number"
-                                                        min={1}
-                                                        value={row.qty}
-                                                        onChange={(e) =>
-                                                            updateRow(row.rowId, {
-                                                                qty: Math.max(1, parseInt(e.target.value) || 1),
-                                                            })
-                                                        }
-                                                        className="w-20 px-2 py-1.5 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-400 text-center"
-                                                    />
+                                                    {row.selectedItem ? (
+                                                        <input
+                                                            type="number"
+                                                            min={1}
+                                                            value={row.qty}
+                                                            onChange={(e) =>
+                                                                updateRow(row.rowId, {
+                                                                    qty: Math.max(1, parseInt(e.target.value) || 1),
+                                                                })
+                                                            }
+                                                            className="w-20 px-2 py-1.5 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-400 text-center"
+                                                        />
+                                                    ) : (
+                                                        <span className="text-gray-300 text-sm">—</span>
+                                                    )}
                                                 </td>
 
                                                 {/* Unit cost */}
