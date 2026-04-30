@@ -388,6 +388,45 @@ export default function ServiceDashboard() {
             </div>
           </div>
 
+          {/* Quick-access tools: Vehicle History + Communications */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Link
+              href="/service/vehicles"
+              className="group bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:border-[#FF6B2C]/30 hover:shadow-md transition-all flex items-start gap-4"
+            >
+              <div className="w-12 h-12 rounded-xl bg-[#FF6B2C]/10 flex items-center justify-center text-2xl shrink-0 group-hover:bg-[#FF6B2C]/20 transition-colors">
+                🏍️
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-slate-900 group-hover:text-[#FF6B2C] transition-colors">
+                  {t('vehicles.title')}
+                </p>
+                <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{t('vehicles.subtitle')}</p>
+                <span className="mt-3 inline-flex items-center text-xs font-semibold text-[#FF6B2C]">
+                  {t('vehicles.viewHistory')} →
+                </span>
+              </div>
+            </Link>
+
+            <Link
+              href="/service/communications"
+              className="group bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:border-[#FF6B2C]/30 hover:shadow-md transition-all flex items-start gap-4"
+            >
+              <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-2xl shrink-0 group-hover:bg-blue-100 transition-colors">
+                ✉️
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-slate-900 group-hover:text-[#FF6B2C] transition-colors">
+                  {t('comms.title')}
+                </p>
+                <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{t('comms.subtitle')}</p>
+                <span className="mt-3 inline-flex items-center text-xs font-semibold text-[#FF6B2C]">
+                  {t('comms.compose')} →
+                </span>
+              </div>
+            </Link>
+          </div>
+
           {/* Bottom: Status breakdown + All orders summary */}
           {ready && orders.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

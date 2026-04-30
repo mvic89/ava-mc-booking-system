@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
 import { getDealershipId } from '@/lib/tenant';
 import { getCustomers, type Customer } from '@/lib/customers';
-import { getServiceBookings, type ServiceBooking, BOOKING_STATUS_COLORS } from '@/lib/service';
+import { getServiceBookings, getTechnicians, type ServiceBooking, type Technician, BOOKING_STATUS_COLORS } from '@/lib/service';
 
 interface CustomerVehicle {
   id: string;
@@ -65,6 +65,7 @@ export default function NewBookingPage() {
   ];
 
   const [customers,       setCustomers]       = useState<Customer[]>([]);
+  const [technicians,     setTechnicians]     = useState<Technician[]>([]);
   const [todayBookings,   setTodayBookings]   = useState<ServiceBooking[]>([]);
   const [custSearch,      setCustSearch]      = useState('');
   const [selected,        setSelected]        = useState<Customer | null>(null);
@@ -98,6 +99,7 @@ export default function NewBookingPage() {
   useEffect(() => {
     if (!localStorage.getItem('user')) { router.push('/auth/login'); return; }
     getCustomers().then(setCustomers);
+    getTechnicians().then(setTechnicians);
     getServiceBookings().then(all =>
       setTodayBookings(all.filter(b => b.scheduled_at.startsWith(today) && b.status !== 'cancelled'))
     );
@@ -418,8 +420,20 @@ export default function NewBookingPage() {
                 </div>
 
                 <Field label={t('newBooking.fields.technician')}>
-                  <input value={form.assignedTech} onChange={e => setForm(f => ({ ...f, assignedTech: e.target.value }))}
-                    placeholder={t('newBooking.fields.technicianPlaceholder')} className={inp} />
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">👷</span>
+                    <select
+                      value={form.assignedTech}
+                      onChange={e => setForm(f => ({ ...f, assignedTech: e.target.value }))}
+                      className={inp + ' pl-9 appearance-none'}
+                    >
+                      <option value="">{t('newBooking.fields.technicianPlaceholder')}</option>
+                      {technicians.map(tech => (
+                        <option key={tech.id} value={tech.name}>{tech.name}</option>
+                      ))}
+                    </select>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none">▼</span>
+                  </div>
                 </Field>
 
                 <Field label={t('newBooking.fields.notes')}>

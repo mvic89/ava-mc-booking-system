@@ -1,8 +1,7 @@
 /**
- * Client-side invite token utilities.
- * Tokens are stored in localStorage['pending_invites'].
- * The API route (/api/invite/send) only sends the email — it does not
- * need to validate or store tokens server-side.
+ * Staff invite utilities — backed by the staff_invites Supabase table.
+ * All operations go through server-side API routes so the service-role key
+ * handles RLS, and invites work across any device or browser.
  */
 
 export interface PendingInvite {
@@ -12,48 +11,47 @@ export interface PendingInvite {
   role:           'admin' | 'sales' | 'service' | 'sales_manager' | 'accountant' | 'technician';
   dealershipName: string;
   dealershipId:   string;
-  createdAt:      number;
-  expiresAt:      number;  // 7 days
-  accepted:       boolean;
 }
 
-const KEY = 'pending_invites';
-const TTL = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
-
-function load(): PendingInvite[] {
-  try { return JSON.parse(localStorage.getItem(KEY) ?? '[]'); } catch { return []; }
+/** Creates a new invite in the DB and returns the invite (with token). */
+export async function storeInvite(
+  data: Omit<PendingInvite, 'token'> & { invitedBy?: string },
+): Promise<PendingInvite> {
+  const res = await fetch('/api/invite/create', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email:          data.email,
+      name:           data.name,
+      role:           data.role,
+      dealershipId:   data.dealershipId,
+      dealershipName: data.dealershipName,
+      invitedBy:      data.invitedBy,
+    }),
+  });
+  const json = await res.json() as { token?: string; error?: string };
+  if (!res.ok || !json.token) throw new Error(json.error ?? 'Failed to create invite');
+  return { token: json.token, email: data.email, name: data.name, role: data.role, dealershipName: data.dealershipName, dealershipId: data.dealershipId };
 }
 
-function save(arr: PendingInvite[]) {
-  localStorage.setItem(KEY, JSON.stringify(arr));
+/** Looks up an invite by token. Returns null if not found, expired, or already accepted. */
+export async function getInvite(token: string): Promise<PendingInvite | null> {
+  try {
+    const res = await fetch(`/api/invite/lookup?token=${encodeURIComponent(token)}`);
+    if (!res.ok) return null;
+    const json = await res.json() as { invite?: PendingInvite | null };
+    return json.invite ?? null;
+  } catch {
+    return null;
+  }
 }
 
-export function storeInvite(
-  data: Omit<PendingInvite, 'token' | 'createdAt' | 'expiresAt' | 'accepted'>,
-): PendingInvite {
-  const now    = Date.now();
-  const invite: PendingInvite = {
-    ...data,
-    token:     crypto.randomUUID(),
-    createdAt: now,
-    expiresAt: now + TTL,
-    accepted:  false,
-  };
-  save([...load(), invite]);
-  return invite;
-}
-
-/** Returns the invite if the token is valid, unexpired, and not yet accepted. */
-export function getInvite(token: string): PendingInvite | null {
-  const found = load().find(i => i.token === token);
-  if (!found)               return null;
-  if (found.accepted)       return null;
-  if (found.expiresAt < Date.now()) return null;
-  return found;
-}
-
-/** Marks the invite as accepted so the link cannot be reused. */
-export function consumeInvite(token: string): void {
-  const arr = load().map(i => i.token === token ? { ...i, accepted: true } : i);
-  save(arr);
+/**
+ * Marks the invite as accepted. The actual DB update happens inside
+ * /api/invite/accept when the token is included in the payload, so
+ * this function is a no-op kept for call-site compatibility.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function consumeInvite(_token: string): void {
+  // Handled server-side in /api/invite/accept
 }

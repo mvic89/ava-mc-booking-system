@@ -92,7 +92,8 @@ export async function getInvoices(): Promise<Invoice[]> {
   try {
     const res = await fetch(`/api/invoice/list?dealershipId=${encodeURIComponent(dealershipId)}`);
     if (!res.ok) {
-      console.error('[invoices] getInvoices HTTP', res.status);
+      const body = await res.json().catch(() => ({})) as { error?: string };
+      console.error('[invoices] getInvoices HTTP', res.status, body.error ?? '');
       return [];
     }
     const json = await res.json() as { invoices?: unknown[] };

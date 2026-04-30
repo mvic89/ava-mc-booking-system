@@ -9,7 +9,7 @@ import Sidebar from '@/components/Sidebar';
 import { getDealershipId } from '@/lib/tenant';
 import { getCustomers, type Customer } from '@/lib/customers';
 import {
-  getWorkOrders, type WorkOrder,
+  getWorkOrders, getTechnicians, type WorkOrder, type Technician,
   WO_STATUS_COLORS, PRIORITY_COLORS,
 } from '@/lib/service';
 
@@ -179,6 +179,9 @@ function NewOrderContent() {
     assignedTech: '', mileage: '', laborRate: 850,
   });
 
+  // technicians
+  const [technicians, setTechnicians] = useState<Technician[]>([]);
+
   // customer search
   const [customers,       setCustomers]       = useState<Customer[]>([]);
   const [custSearch,      setCustSearch]      = useState('');
@@ -218,6 +221,7 @@ function NewOrderContent() {
   useEffect(() => {
     if (!localStorage.getItem('user')) { router.push('/auth/login'); return; }
     getCustomers().then(setCustomers);
+    getTechnicians().then(setTechnicians);
     loadTodaysOrders();
 
     const cName = params.get('customerName');
@@ -580,13 +584,18 @@ function NewOrderContent() {
 
                   <Field label={t('newOrder.fields.technician')}>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">👷</span>
-                      <input
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">👷</span>
+                      <select
                         value={form.assignedTech}
                         onChange={e => setForm(f => ({ ...f, assignedTech: e.target.value }))}
-                        className={inp + ' pl-9'}
-                        placeholder={t('newOrder.fields.technicianPlaceholder')}
-                      />
+                        className={inp + ' pl-9 appearance-none'}
+                      >
+                        <option value="">{t('newOrder.fields.technicianPlaceholder')}</option>
+                        {technicians.map(tech => (
+                          <option key={tech.id} value={tech.name}>{tech.name}</option>
+                        ))}
+                      </select>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none">▼</span>
                     </div>
                   </Field>
                 </SectionCard>

@@ -196,6 +196,17 @@ export async function getWorkOrders(): Promise<WorkOrder[]> {
   return json.orders ?? [];
 }
 
+export interface Technician {
+  id: string; name: string; email: string; role: string;
+}
+
+export async function getTechnicians(): Promise<Technician[]> {
+  const res = await fetch(`/api/service/technicians?${dealerParam()}`);
+  if (!res.ok) return [];
+  const json = await res.json();
+  return json.technicians ?? [];
+}
+
 export async function getWorkOrder(id: number): Promise<{
   order: WorkOrder | null;
   tasks: WorkOrderTask[];

@@ -4,6 +4,7 @@
 
 export type Role =
   | 'admin'
+  | 'platform_admin'
   | 'sales_manager'
   | 'sales'
   | 'accountant'
@@ -29,26 +30,41 @@ export type Permission =
 // ─── Matrix ───────────────────────────────────────────────────────────────────
 
 const MATRIX: Record<Role, Permission[]> = {
+  // Platform owner — manages all dealerships, no dealership context
+  platform_admin: [
+    'dashboard', 'leads', 'customers', 'invoices', 'inventory',
+    'documents', 'settings', 'billing', 'audit_log', 'analytics',
+    'accounting', 'branches', 'performance', 'service_module',
+  ],
+  // Dealership owner / full access
   admin: [
     'dashboard', 'leads', 'customers', 'invoices', 'inventory',
     'documents', 'settings', 'billing', 'audit_log', 'analytics',
     'accounting', 'branches', 'performance', 'service_module',
   ],
+  // Sales team lead — everything sales + reporting, no admin settings
   sales_manager: [
     'dashboard', 'leads', 'customers', 'invoices',
     'inventory', 'analytics', 'performance',
   ],
+  // Salesperson
   sales: [
     'dashboard', 'leads', 'customers', 'invoices', 'inventory',
   ],
+  // Finance / bookkeeping
   accountant: [
-    'dashboard', 'invoices', 'accounting', 'analytics',
+    'dashboard', 'customers', 'invoices', 'accounting', 'analytics',
   ],
+  // Workshop technician — full core visibility + service
   technician: [
     'dashboard', 'inventory', 'documents', 'service_module',
   ],
+  // Note: technician sees all Core nav items (offer, purchase orders, etc.)
+  // Those routes are not permission-gated so sidebar visibility is sufficient.
+  // Service adviser / service desk — all core + service + customer-facing
   service: [
-    'dashboard', 'inventory', 'documents', 'service_module',
+    'dashboard', 'leads', 'customers', 'invoices', 'inventory',
+    'documents', 'service_module',
   ],
 };
 

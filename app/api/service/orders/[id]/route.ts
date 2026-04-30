@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { notify } from '@/lib/notify';
+import { sendServiceEmail, vehicleReadyMessage } from '@/lib/serviceEmail';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function sb() { return getSupabaseAdmin() as any; }
@@ -73,6 +74,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const notif = statusNotifs[body.status];
     if (notif) {
       notify({ dealershipId, type: 'system', ...notif, href: `/service/orders/${id}` });
+    }
+
+    // Auto-email customer when vehicle is ready for pickup
+    if (body.status === 'ready' && data.customer_phone) {
+      const { data: dealer } = await sb()
+        .from('dealerships').select('name').eq('id', dealershipId).maybeSingle();
+      const dealerName = dealer?.name ?? 'Verkstaden';
+      const customerEmail = body.customerEmail ?? data.customer_email ?? null;
+      if (customerEmail) {
+        const { subject, message } = vehicleReadyMessage(data.customer_name, data.vehicle_name, data.plate, dealerName);
+        sendServiceEmail({ dealershipId, customerId: data.customer_id, recipientName: data.customer_name, recipientEmail: customerEmail, subject, message });
+      }
     }
 
     return NextResponse.json({ order: data });

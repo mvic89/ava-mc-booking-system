@@ -230,7 +230,9 @@
       "core": "CORE",
       "sales": "SALES",
       "admin": "ADMIN"
-    }
+    },
+    "serviceVehicles": "Vehicle History",
+    "serviceComms": "Communications"
   },
   "login": {
     "title": "Welcome Back",
@@ -2194,6 +2196,59 @@
         "confirmBtn": "Cash received — Confirm",
         "confirmed": "✓ Cash received"
       }
+    },
+    "vehicles": {
+      "title": "Vehicle History",
+      "subtitle": "Full service timeline per motorcycle — searchable by registration or VIN",
+      "searchPlaceholder": "Search reg. number, VIN or model...",
+      "searchBtn": "Search",
+      "totalVehicles": "vehicles on record",
+      "viewHistory": "View history",
+      "orders": "Work orders",
+      "spent": "total",
+      "lastService": "Last service",
+      "unknownModel": "Unknown model",
+      "empty": "No vehicles found",
+      "emptyHint": "Create a work order to see vehicles here",
+      "statsOrders": "Work orders",
+      "statsSpent": "Total spent",
+      "statsFirstSeen": "First visit",
+      "statsLastSeen": "Last visit",
+      "workOrder": "Work Order",
+      "jobDesc": "Job description",
+      "labor": "Labour",
+      "parts": "Parts",
+      "total": "Total",
+      "completedOn": "Completed on",
+      "noOrders": "No work orders found for this vehicle"
+    },
+    "comms": {
+      "title": "Customer Communication",
+      "subtitle": "Send messages and view automated status updates to customers",
+      "compose": "New message",
+      "newMessage": "New message",
+      "searchCustomer": "Search customer",
+      "searchPlaceholder": "Name, email or phone...",
+      "recipientName": "Recipient",
+      "namePlaceholder": "Recipient's name",
+      "email": "Email address",
+      "phone": "Phone number",
+      "subject": "Subject",
+      "subjectPlaceholder": "Enter subject...",
+      "message": "Message",
+      "messagePlaceholder": "Write your message here...",
+      "cancel": "Cancel",
+      "send": "Send",
+      "sending": "Sending...",
+      "sent": "Message sent!",
+      "sendError": "Could not send message",
+      "log": "Message log",
+      "messages": "messages",
+      "empty": "No messages sent yet",
+      "auto": "Auto",
+      "autoTitle": "Automated status messages are enabled",
+      "autoDesc": "Customers automatically receive an email when their booking is confirmed and when their vehicle is ready for pickup — provided an email address is on file.",
+      "paymentNote": "Payment emails (e.g. bank transfer instructions) can be found on each lead in the Sales pipeline."
     }
   },
   "settingsUsers": {

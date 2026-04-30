@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { notify } from '@/lib/notify';
+import { sendServiceEmail, bookingConfirmedMessage } from '@/lib/serviceEmail';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function sb() { return getSupabaseAdmin() as any; }
@@ -56,6 +57,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         message: `${data.customer_name} · ${data.vehicle_name} · ${new Date(data.scheduled_at).toLocaleDateString('sv-SE')}`,
         href:    `/service/bookings/${id}`,
       });
+
+      // Auto-email the customer
+      const customerEmail = body.customerEmail ?? data.customer_email ?? null;
+      if (customerEmail) {
+        const { data: dealer } = await sb()
+          .from('dealerships').select('name').eq('id', dealershipId).maybeSingle();
+        const dealerName = dealer?.name ?? 'Verkstaden';
+        const { subject, message } = bookingConfirmedMessage(data.customer_name, data.vehicle_name, data.scheduled_at, dealerName);
+        sendServiceEmail({ dealershipId, customerId: data.customer_id, recipientName: data.customer_name, recipientEmail: customerEmail, subject, message });
+      }
     }
 
     return NextResponse.json({ booking: data });

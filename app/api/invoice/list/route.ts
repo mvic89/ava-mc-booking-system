@@ -10,11 +10,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ invoices: [] });
   }
 
+  try {
   const { data, error } = await sb()
     .from('invoices')
     .select('*')
     .eq('dealership_id', dealershipId)
-    .order('issue_date', { ascending: false });
+    .order('created_at', { ascending: false });
 
   if (error) {
     console.error('[api/invoice/list]', error.message);
@@ -70,4 +71,8 @@ export async function GET(req: NextRequest) {
   }));
 
   return NextResponse.json({ invoices: enriched });
+  } catch (err) {
+    console.error('[api/invoice/list] unexpected error:', err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
 }

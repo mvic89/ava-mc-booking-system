@@ -96,7 +96,7 @@ export default function AccountingPage() {
     const raw = localStorage.getItem('user');
     if (!raw) { router.replace('/auth/login'); return; }
     const u = JSON.parse(raw);
-    if (u.role !== 'admin') {
+    if (u.role !== 'admin' && u.role !== 'accountant') {
       toast.error(t('adminOnly'));
       router.replace('/dashboard');
       return;

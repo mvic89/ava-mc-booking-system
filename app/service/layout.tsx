@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-const ALLOWED_ROLES = ['admin', 'service', 'platform_admin'];
+const ALLOWED_ROLES = ['admin', 'service', 'technician', 'platform_admin'];
 
 export default function ServiceLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
