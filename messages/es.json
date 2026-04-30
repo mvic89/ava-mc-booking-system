@@ -1218,7 +1218,7 @@
     "colInvoice": "Factura",
     "colDate": "Fecha",
     "colCustomer": "Cliente",
-    "colVehicle": "Vehículo",
+    "colVehicle": "Comprado",
     "colAgreement": "Contrato",
     "colMethod": "Pago",
     "colAmount": "Importe",
@@ -1243,7 +1243,12 @@
     "printVat": "IVA 25%",
     "printTotal": "Total con IVA",
     "printStatus": "Estado",
-    "printFooter": "{dealerName} • Org.nr {orgNr} • {city} • {email}"
+    "printFooter": "{dealerName} • Org.nr {orgNr} • {city} • {email}",
+    "typeVehicle": "Moto",
+    "typeService": "Servicio",
+    "typeAccessories": "Accesorios",
+    "typeSpareParts": "Repuestos",
+    "typeVehicleExtras": "Moto + accesorios"
   },
   "invite": {
     "title": "Ha sido invitado",
@@ -1468,7 +1473,727 @@
       "scheduling": "Menos tiempo en programación manual",
       "history": "Historial de servicio siempre accesible"
     },
-    "features": "Lo que viene"
+    "features": "Lo que viene",
+    "common": {
+      "loading": "Cargando...",
+      "loadingBookings": "Cargando reservas...",
+      "loadingOrders": "Cargando órdenes de trabajo...",
+      "noVehicle": "Vehículo no especificado",
+      "notAssigned": "No asignado",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "open": "Abrir",
+      "back": "← Volver",
+      "all": "Todos",
+      "at": "a las",
+      "booking": "reserva"
+    },
+    "status": {
+      "created": "Creado",
+      "in_progress": "En progreso",
+      "waiting_parts": "Esperando piezas",
+      "ready": "Listo",
+      "completed": "Completado",
+      "invoiced": "Facturado"
+    },
+    "bookingStatus": {
+      "booked": "Reservado",
+      "confirmed": "Confirmado",
+      "checked_in": "Registrado",
+      "in_progress": "En progreso",
+      "ready": "Listo",
+      "completed": "Completado",
+      "cancelled": "Cancelado"
+    },
+    "serviceTypes": {
+      "maintenance": "Servicio / Mantenimiento",
+      "repair": "Reparación",
+      "inspection": "Inspección",
+      "recall": "Recall",
+      "other": "Otro"
+    },
+    "priority": {
+      "low": "Baja",
+      "normal": "Normal",
+      "high": "Alta",
+      "urgent": "Urgente"
+    },
+    "partStatus": {
+      "needed": "Faltante",
+      "reserved": "Reservado",
+      "ordered": "Pedido",
+      "received": "Recibido",
+      "used": "Usado"
+    },
+    "dashboard": {
+      "title": "Servicio & Taller",
+      "subtitle": "Órdenes de trabajo, reservas y tiempo del técnico en tiempo real",
+      "newBooking": "+ Nueva reserva",
+      "newOrder": "+ Nueva orden de trabajo",
+      "kpi": {
+        "todayBookings": "Reservas de hoy",
+        "activeOrders": "Órdenes de trabajo activas",
+        "waitingParts": "Esperando piezas",
+        "doneToday": "Completados hoy",
+        "noBookings": "Sin reservas hoy",
+        "noOrders": "Sin pedidos activos",
+        "allGood": "Todo en stock",
+        "noDone": "Ninguno completado hoy"
+      },
+      "schedule": {
+        "title": "Programa de hoy",
+        "viewAll": "Todos →",
+        "noBookings": "No hay reservas hoy"
+      },
+      "orders": {
+        "title": "Órdenes de trabajo activas",
+        "viewAll": "Todos →",
+        "noOrders": "No hay órdenes de trabajo activas",
+        "createOrder": "Crear orden de trabajo →",
+        "ongoing": "{count} en progreso"
+      },
+      "pickup": {
+        "title": "✅ Listo para recoger ({count})"
+      },
+      "stats": {
+        "earned": "Total ganado",
+        "pending": "Valor pendiente",
+        "readyPickup": "Listo para recoger"
+      }
+    },
+    "bookings": {
+      "title": "Reservas de servicio",
+      "newBooking": "+ Nueva reserva",
+      "searchPlaceholder": "Buscar cliente, vehículo, matrícula...",
+      "total": "{count} reservas en total",
+      "loading": "Cargando reservas...",
+      "noResults": "No se encontraron reservas",
+      "createFirst": "Crear una reserva →",
+      "headers": {
+        "customer": "Cliente / Vehículo",
+        "type": "Tipo",
+        "dateTime": "Fecha & Hora",
+        "technician": "Técnico",
+        "status": "Estado"
+      },
+      "tabs": {
+        "all": "Todos",
+        "booked": "Reservado",
+        "confirmed": "Confirmado",
+        "checked_in": "Registrado",
+        "in_progress": "En progreso",
+        "ready": "Listo",
+        "completed": "Completado"
+      },
+      "actions": {
+        "confirm": "Confirmar",
+        "toOrder": "→ Orden de trabajo",
+        "open": "Abrir",
+        "openWorkOrder": "Abrir orden de trabajo"
+      },
+      "toasts": {
+        "confirmed": "Reserva confirmada",
+        "orderCreated": "¡Orden de trabajo creada!",
+        "orderError": "No se pudo crear la orden de trabajo"
+      }
+    },
+    "bookingDetail": {
+      "loading": "Cargando...",
+      "notFound": "Reserva no encontrada",
+      "sections": {
+        "customer": "Cliente",
+        "vehicle": "Vehículo",
+        "appointment": "Cita",
+        "service": "Solicitud de servicio"
+      },
+      "fields": {
+        "name": "Nombre",
+        "phone": "Teléfono",
+        "email": "Correo",
+        "model": "Modelo",
+        "regNr": "Matrícula",
+        "vin": "VIN",
+        "date": "Fecha",
+        "time": "Hora",
+        "duration": "Duración",
+        "technician": "Técnico",
+        "type": "Tipo",
+        "description": "Descripción",
+        "notes": "Notas internas"
+      },
+      "values": {
+        "minutes": "{n} minutos",
+        "notAssigned": "No asignado"
+      },
+      "actions": {
+        "createOrder": "Crear orden de trabajo",
+        "openOrder": "Abrir orden de trabajo #{id}"
+      },
+      "statusFlow": {
+        "confirmBooking": "Confirmar reserva",
+        "checkIn": "Registrar cliente",
+        "startService": "Iniciar servicio",
+        "markReady": "Marcar listo",
+        "complete": "Completar"
+      },
+      "toasts": {
+        "orderCreated": "¡Orden de trabajo creada!",
+        "orderError": "No se pudo crear la orden de trabajo"
+      }
+    },
+    "newBooking": {
+      "title": "Nueva reserva de servicio",
+      "sections": {
+        "customer": "Cliente",
+        "vehicle": "Vehículo",
+        "serviceInfo": "Detalles del servicio"
+      },
+      "fields": {
+        "searchCustomer": "Buscar cliente existente",
+        "searchPlaceholder": "Nombre, teléfono o correo...",
+        "name": "Nombre",
+        "namePlaceholder": "Nombre Apellido",
+        "phone": "Teléfono",
+        "email": "Correo",
+        "serviceType": "Tipo de servicio",
+        "description": "Descripción del problema / Solicitud",
+        "descriptionPlaceholder": "Describa el problema o lo que se debe realizar...",
+        "date": "Fecha",
+        "time": "Hora",
+        "duration": "Duración (min)",
+        "technician": "Técnico asignado",
+        "technicianPlaceholder": "Nombre del técnico",
+        "notes": "Notas internas",
+        "notesPlaceholder": "Visible solo internamente..."
+      },
+      "vehicle": {
+        "noHistory": "No se encontraron vehículos anteriores para este cliente. Buscar por matrícula:",
+        "walkIn": "Ingrese el número de matrícula — toda la información del vehículo se obtiene automáticamente.",
+        "select": "Seleccionar vehículo",
+        "selectPlaceholder": "– Seleccionar vehículo –",
+        "regLookup": "+ Buscar otra matrícula",
+        "purchasedHere": "(comprado aquí)",
+        "serviced": "(revisado)",
+        "found": "✓ Vehículo encontrado",
+        "regNr": "Matrícula",
+        "model": "Modelo",
+        "vin": "VIN",
+        "color": "Color",
+        "fuel": "Combustible",
+        "engine": "Motor",
+        "odometer": "Odómetro",
+        "nextInspection": "Próxima inspección",
+        "status": "Estado",
+        "registered": "Registrado",
+        "regPlaceholder": "ABC123 o VIN...",
+        "searchBtn": "Buscar",
+        "notFound": "Vehículo no encontrado. Verifique la matrícula e intente nuevamente.",
+        "lookupFailed": "Búsqueda fallida. Intente nuevamente."
+      },
+      "actions": {
+        "cancel": "Cancelar",
+        "submit": "Crear reserva",
+        "submitting": "Guardando..."
+      },
+      "toasts": {
+        "created": "¡Reserva creada!",
+        "error": "No se pudo crear la reserva",
+        "noDealership": "No se encontró concesionario",
+        "noDate": "Seleccione una fecha"
+      },
+      "subtitle": "Complete los detalles y guarde la reserva",
+      "preview": {
+        "heading": "Vista previa",
+        "subtitle": "Nueva reserva",
+        "vehicle": "Vehículo",
+        "service": "Servicio",
+        "date": "Fecha",
+        "time": "Hora",
+        "technician": "Técnico",
+        "matter": "Asunto",
+        "empty": "Complete el formulario para ver una vista previa"
+      },
+      "schedule": {
+        "title": "Agenda de hoy",
+        "count": "{n} reservas",
+        "empty": "Sin reservas hoy",
+        "viewAll": "Ver todas las reservas"
+      }
+    },
+    "orders": {
+      "title": "Órdenes de trabajo",
+      "total": "{count} en total",
+      "newOrder": "+ Nueva orden de trabajo",
+      "searchPlaceholder": "Buscar OT#, cliente, matrícula...",
+      "loading": "Cargando órdenes de trabajo...",
+      "noResults": "No se encontraron órdenes de trabajo",
+      "createFirst": "Crear orden de trabajo →",
+      "noVehicle": "Vehículo no especificado",
+      "tabs": {
+        "all": "Todos",
+        "created": "Creado",
+        "in_progress": "En progreso",
+        "waiting_parts": "Esperando piezas",
+        "ready": "Listo",
+        "completed": "Completado",
+        "invoiced": "Facturado"
+      },
+      "card": {
+        "technician": "Técnico",
+        "total": "Total",
+        "notAssigned": "No asignado"
+      }
+    },
+    "newOrder": {
+      "title": "Nueva orden de trabajo",
+      "subtitle": "Walk-in o sin reserva previa",
+      "sections": {
+        "customer": "Cliente",
+        "vehicle": "Vehículo",
+        "jobInfo": "Detalles del trabajo"
+      },
+      "fields": {
+        "searchCustomer": "Buscar cliente existente",
+        "searchPlaceholder": "Nombre o teléfono...",
+        "name": "Nombre",
+        "phone": "Teléfono",
+        "description": "Descripción del problema / Solicitud",
+        "descriptionPlaceholder": "Describa lo que se debe realizar...",
+        "priority": "Prioridad",
+        "laborRate": "Tarifa por hora (€/h)",
+        "technician": "Técnico asignado",
+        "technicianPlaceholder": "Nombre del técnico",
+        "model": "Vehículo / Modelo",
+        "modelPlaceholder": "Honda CB500F 2022",
+        "regNr": "Matrícula",
+        "regNrPlaceholder": "ABC123",
+        "vin": "VIN",
+        "vinPlaceholder": "Opcional",
+        "odometer": "Odómetro (km)",
+        "vehicleSelect": "Seleccionar vehículo",
+        "vehicleSelectPlaceholder": "– Seleccionar vehículo –",
+        "vehicleOther": "Otro vehículo / No en el sistema",
+        "noVehicleHistory": "No se encontraron vehículos anteriores para este cliente.",
+        "purchasedHere": "(comprado aquí)",
+        "serviced": "(revisado)",
+        "namePlaceholder": "Nombre del cliente"
+      },
+      "vehicle": {
+        "regPlaceholder": "ABC123 o VIN...",
+        "searchBtn": "Buscar",
+        "found": "✓ Vehículo encontrado",
+        "color": "Color",
+        "fuel": "Combustible",
+        "engine": "Motor",
+        "odometer": "Odómetro",
+        "nextInspection": "Próxima inspección",
+        "status": "Estado",
+        "registered": "Registrado",
+        "notFound": "Vehículo no encontrado. Verifique la matrícula e intente nuevamente.",
+        "lookupFailed": "Búsqueda fallida. Intente nuevamente."
+      },
+      "actions": {
+        "cancel": "Cancelar",
+        "submit": "Crear orden de trabajo",
+        "submitting": "Creando..."
+      },
+      "toasts": {
+        "created": "¡Orden de trabajo creada!",
+        "error": "No se pudo crear la orden de trabajo",
+        "noDealership": "No se encontró concesionario"
+      },
+      "preview": {
+        "title": "Vista previa",
+        "orderNumber": "Número de orden",
+        "pending": "Asignado al crear",
+        "statusNew": "Nueva",
+        "emptyHint": "Complete el formulario para ver una vista previa de la orden de trabajo",
+        "customer": "Cliente",
+        "vehicle": "Vehículo",
+        "description": "Descripción del trabajo",
+        "priorityLabel": "Prioridad",
+        "technicianLabel": "Técnico",
+        "laborRateLabel": "Tarifa por hora",
+        "notSet": "–",
+        "unassigned": "Sin asignar"
+      },
+      "todaysOrders": {
+        "title": "Órdenes de trabajo de hoy",
+        "empty": "No hay órdenes de trabajo activas hoy",
+        "viewAll": "Ver todas las órdenes de trabajo"
+      }
+    },
+    "orderDetail": {
+      "loading": "Cargando...",
+      "notFound": "Orden de trabajo no encontrada",
+      "tabs": {
+        "items": "Artículos & Precios ({count})",
+        "time": "Tiempo ({count})",
+        "notes": "Notas",
+        "details": "Detalles"
+      },
+      "statusActions": {
+        "startWork": "Iniciar trabajo",
+        "markReady": "Marcar listo para recoger",
+        "partsReceived": "Piezas recibidas → Iniciar",
+        "completeAndInvoice": "Completar & Facturar",
+        "waitingParts": "⚠ Esperando piezas",
+        "createPO": "📦 Crear orden de compra",
+        "payInvoice": "💳 Pagar {id}",
+        "goToPayment": "💳 Ir al pago — {id}"
+      },
+      "po": {
+        "title": "Crear orden de compra para {count} artículos faltantes",
+        "vendor": "Proveedor",
+        "vendorPlaceholder": "Ej. Mekonomen, Biltema...",
+        "create": "Crear OC",
+        "creating": "Creando...",
+        "cancel": "Cancelar"
+      },
+      "items": {
+        "type": "Tipo",
+        "name": "Denominación",
+        "artNr": "Ref.",
+        "qty": "Cant.",
+        "unitPrice": "Precio unit.",
+        "total": "Total",
+        "status": "Estado",
+        "emptyTitle": "Sin líneas aún",
+        "emptySubtitle": "Agregue piezas de repuesto, mano de obra u otros cargos a continuación",
+        "labor": "Mano de obra",
+        "part": "Pieza",
+        "subtotal": "Subtotal (sin IVA)",
+        "vat": "IVA 25%",
+        "grandTotal": "Total a pagar",
+        "partActions": "Estado del stock — acciones",
+        "markOrdered": "Marcar pedido",
+        "markReceived": "Recibido",
+        "markUsed": "Usado"
+      },
+      "taskStatus": {
+        "done": "Completado",
+        "in_progress": "En progreso",
+        "pending": "No iniciado"
+      },
+      "addLine": {
+        "label": "Agregar línea:",
+        "part": "🔧 Pieza de repuesto",
+        "labor": "⏱ Mano de obra",
+        "other": "📋 Otro",
+        "artNr": "Ref.",
+        "artNrPlaceholder": "Opcional",
+        "nameLabelLabor": "Operación de trabajo",
+        "nameLabelPart": "Pieza / Denominación",
+        "nameLabelOther": "Descripción",
+        "namePlaceholderPart": "Buscar en inventario o escribir texto libre...",
+        "namePlaceholderLabor": "Ej. Cambio de aceite, Revisión de frenos",
+        "namePlaceholderOther": "Descripción",
+        "hours": "Horas",
+        "hourRate": "Tarifa horaria (€)",
+        "qty": "Cant.",
+        "unitPrice": "Precio unit. (€)",
+        "addBtn": "+ Agregar",
+        "inStock": "✓ {count} en stock — reservado automáticamente",
+        "outOfStock": "⚠ Sin stock — se requiere orden de compra",
+        "hintPart": "Busque por nombre o ref. para encontrar piezas en el inventario. Si hay stock, se reservará automáticamente.",
+        "hintLabor": "Deje la tarifa horaria en blanco para usar la tarifa de la orden de trabajo ({rate} €/h).",
+        "accessory": "Accesorio",
+        "sparePart": "Pieza de repuesto",
+        "stockLabel": "{count} en stock",
+        "outOfStockLabel": "Sin stock"
+      },
+      "time": {
+        "checkInTitle": "Registrar técnico",
+        "techPlaceholder": "Nombre del técnico",
+        "checkInBtn": "Registrar",
+        "activeEntry": "⏱ {name} está registrado",
+        "since": "Desde",
+        "checkOut": "Desregistrar",
+        "noEntries": "Sin registros de tiempo aún",
+        "header": "Registro de tiempo",
+        "totalLabel": "Total:",
+        "ongoing": "En progreso..."
+      },
+      "notes": {
+        "title": "Notas internas",
+        "placeholder": "Notas internas, comunicación con el cliente, observaciones técnicas...",
+        "save": "Guardar notas"
+      },
+      "details": {
+        "customer": "Cliente",
+        "vehicle": "Vehículo",
+        "matter": "Solicitud",
+        "timestamps": "Marcas de tiempo",
+        "name": "Nombre",
+        "phone": "Teléfono",
+        "model": "Modelo",
+        "regNr": "Matrícula",
+        "vin": "VIN",
+        "odometer": "Odómetro",
+        "noDescription": "Sin descripción",
+        "created": "Creado",
+        "started": "Iniciado",
+        "completed": "Completado",
+        "laborRate": "Tarifa horaria",
+        "openProfile": "Abrir perfil del cliente →"
+      },
+      "toasts": {
+        "laborAdded": "Línea de mano de obra agregada",
+        "partError": "No se pudo agregar",
+        "orderCreated": "Orden de compra {id} creada",
+        "poError": "Error al crear OC",
+        "completedRedirect": "¡Completado! Abriendo pago...",
+        "completeError": "Error al completar",
+        "notesSaved": "Notas guardadas",
+        "checkedOut": "Desregistrado",
+        "noTechName": "Ingrese el nombre del técnico"
+      }
+    },
+    "purchaseOrders": {
+      "title": "📦 Órdenes de compra — Servicio",
+      "subtitle": "Repuestos y accesorios pedidos a proveedores externos",
+      "loading": "Cargando órdenes de compra...",
+      "noOrders": "Ninguna orden de compra todavía",
+      "noOrdersHint": "Las órdenes de compra se crean automáticamente desde las órdenes de trabajo cuando faltan piezas en stock.",
+      "status": {
+        "Draft": "Borrador",
+        "Ordered": "Pedido",
+        "Partial": "Parcialmente recibido",
+        "Reviewed": "Recibido",
+        "Cancelled": "Cancelado"
+      },
+      "table": {
+        "order": "Orden de compra / OT",
+        "vendor": "Proveedor",
+        "items": "Artículos",
+        "eta": "Entrega (ETA)",
+        "total": "Total",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "progress": {
+        "draft": "Borrador",
+        "ordered": "Pedido",
+        "partial": "Parcial",
+        "reviewed": "Revisado"
+      },
+      "actions": {
+        "send": "📧 Enviar",
+        "receive": "📦 Recibir",
+        "done": "✓ Listo"
+      },
+      "send": {
+        "title": "Enviar al proveedor",
+        "emailLabel": "Email del proveedor (opcional)",
+        "emailPlaceholder": "info@proveedor.es",
+        "sendEmail": "Enviar por email",
+        "sendEmailDesc": "Abre tu cliente de email con el pedido prellenado",
+        "print": "Imprimir / Guardar PDF",
+        "printDesc": "Enviar manualmente por correo o portal de proveedor",
+        "markOrdered": "Marcar como pedido",
+        "markOrderedDesc": "Ya he pedido manualmente",
+        "total": "Total",
+        "toastOrdered": "marcado como pedido",
+        "toastError": "No se pudo actualizar el estado"
+      },
+      "receive": {
+        "title": "Recibir mercancía",
+        "instruction": "Marque los artículos que llegaron con la entrega:",
+        "allReceived": "Todos los artículos ya recibidos",
+        "selectAll": "Seleccionar todo",
+        "clear": "Limpiar",
+        "cancel": "Cancelar",
+        "saving": "Guardando...",
+        "confirmBtn": "Confirmar recepción ({n})",
+        "toastOk": "artículo(s) recibido(s)",
+        "toastSelect": "Seleccione al menos un artículo",
+        "toastError": "Error"
+      },
+      "eta": {
+        "set": "Establecer ETA",
+        "tooltip": "Clic para establecer fecha de entrega"
+      },
+      "workOrder": "OT-{id}",
+      "itemsCount": "{count} artículos",
+      "noEta": "Sin ETA",
+      "titleShort": "Órdenes de compra",
+      "section": "Compras",
+      "noResults": "Sin resultados",
+      "backToService": "← Volver a la vista de servicio",
+      "searchPlaceholder": "Buscar OC, proveedor, artículo...",
+      "howItWorks": {
+        "title": "Cómo funciona",
+        "steps": [
+          {
+            "title": "Pieza añadida a OT",
+            "desc": "Sin stock → estado \"Necesario\""
+          },
+          {
+            "title": "Orden de compra creada",
+            "desc": "Desde la OT → proveedor seleccionado"
+          },
+          {
+            "title": "Enviada al proveedor",
+            "desc": "Por email o portal de proveedor"
+          },
+          {
+            "title": "Mercancía recibida → aviso",
+            "desc": "OT se reanuda automáticamente"
+          }
+        ]
+      },
+      "stats": {
+        "total": "Total",
+        "active": "Pedidos activos",
+        "waiting": "Pendiente de pedido",
+        "done": "Completados"
+      },
+      "tabs": {
+        "all": "Todos",
+        "Draft": "Borrador",
+        "Ordered": "Pedido",
+        "Partial": "Parcial",
+        "Reviewed": "Recibido",
+        "Cancelled": "Cancelado"
+      },
+      "subTable": {
+        "article": "Artículo",
+        "artNo": "Ref.",
+        "qty": "Cant.",
+        "unitPrice": "Precio unitario",
+        "total": "Total",
+        "status": "Estado"
+      },
+      "itemStatus": {
+        "received": "✓ Recibido",
+        "pending": "· Pendiente"
+      },
+      "noItems": "Sin artículos registrados",
+      "notesLabel": "Nota:",
+      "itemsReceived": "{r}/{t} recibidos"
+    },
+    "payment": {
+      "loading": "Cargando factura...",
+      "notFound": "Orden de trabajo no encontrada",
+      "breadcrumb": "Pago",
+      "title": "Factura de servicio — Pago",
+      "backToOrder": "← Volver a la orden de trabajo",
+      "methods": {
+        "swish": "Swish",
+        "card": "Tarjeta / Sin contacto",
+        "bank_transfer": "Transferencia bancaria",
+        "klarna": "Klarna",
+        "cash": "Efectivo"
+      },
+      "success": {
+        "title": "¡Pago confirmado!",
+        "invoices": "Facturas",
+        "backBtn": "Volver a OT →",
+        "invoice": "Factura",
+        "amount": "Importe",
+        "method": "Método",
+        "paid": "Pagado"
+      },
+      "summary": {
+        "title": "Resumen de facturación",
+        "labour": "Mano de obra",
+        "parts": "Repuestos y accesorios",
+        "labourTotal": "Total mano de obra",
+        "partsTotal": "Total repuestos",
+        "totalLabel": "Total a pagar (IVA incluido)",
+        "kr": "kr",
+        "saving": "Guardando...",
+        "vatLine": "del cual IVA (20%)",
+        "net": "neto",
+        "invoiceLabel": "Factura",
+        "vehicle": "Vehículo"
+      },
+      "methodSelect": "Seleccionar método de pago",
+      "swish": {
+        "amountLabel": "Importe a cobrar",
+        "ref": "Ref:",
+        "merchantNum": "Número de comercio Swish",
+        "notConfigured": "Número Swish no configurado.",
+        "configureLink": "Añádelo en",
+        "configureWhere": "Ajustes → Perfil",
+        "sendRequest": "Enviar solicitud de pago al cliente",
+        "phonePlaceholder": "+34612345678",
+        "sendBtn": "Enviar solicitud",
+        "hint": "El cliente recibe una notificación Swish y aprueba el pago.",
+        "waiting": "Esperando el pago del cliente",
+        "waitHint": "Pida al cliente que abra Swish y envíe",
+        "withRef": "con referencia",
+        "polls": "comprobaciones · Req-ID:",
+        "confirmBtn": "✓ Confirmar — pago recibido",
+        "cancelBtn": "✕ Cancelar",
+        "confirmed": "✅ Pago Swish confirmado",
+        "received": "recibido · Ref:",
+        "failed": "Pago fallido",
+        "retry": "Reintentar",
+        "errorPhone": "Introduzca número de teléfono",
+        "errorDeclined": "Swish rechazado:"
+      },
+      "card": {
+        "title": "Pago sin contacto y con tarjeta",
+        "contactless": "Sin contacto",
+        "terminalId": "Nets AXEPT · ID terminal:",
+        "ready": "LISTO",
+        "approved": "APROBADO",
+        "declined": "RECHAZADO",
+        "active": "ACTIVO",
+        "tapHint": "Sin contacto — acerque la tarjeta al terminal",
+        "tapSub": "Sin contacto · Chip & PIN · Banda magnética — todas las tarjetas aceptadas",
+        "screenTitle": "Pantalla terminal",
+        "amountLabel": "Importe a pagar",
+        "sendBtn": "Enviar importe al terminal →",
+        "waitSent": "Importe enviado — esperando al cliente…",
+        "waitTap": "Cliente: acerque, inserte o pase la tarjeta",
+        "authorising": "Autorizando con la red de tarjetas…",
+        "confirmed": "✅ Pago con tarjeta aprobado",
+        "authCode": "Código auth",
+        "amount": "Importe",
+        "transaction": "Transacción",
+        "errorTitle": "❌ Tarjeta rechazada",
+        "errorHint": "Pida al cliente que pruebe otra tarjeta o método de pago.",
+        "retry": "Reintentar"
+      },
+      "bank": {
+        "title": "Instrucciones de pago",
+        "bankgiro": "Bankgiro",
+        "iban": "IBAN",
+        "bic": "BIC/SWIFT",
+        "message": "Concepto",
+        "amount": "Importe",
+        "hint": "Indique al cliente que use el número de factura",
+        "hintEnd": "como referencia",
+        "confirmBtn": "Confirmar transferencia recibida",
+        "confirmed": "✓ Confirmado"
+      },
+      "klarna": {
+        "title": "Klarna — Pagar ahora / después / en cuotas",
+        "subtitle": "El cliente introduce sus datos directamente en el widget de Klarna",
+        "confirmed": "CONFIRMADO",
+        "creatingSession": "Creando sesión Klarna…",
+        "loadingSdk": "Cargando Klarna SDK…",
+        "selectPlan": "Elegir plan de pago",
+        "payNow": "Pagar ahora",
+        "payLater": "Pagar en 30 días",
+        "payOverTime": "Pagar en cuotas",
+        "authorising": "Autorizando…",
+        "placingOrder": "Creando pedido…",
+        "authoriseBtn": "Autorizar pago Klarna",
+        "paymentConfirmed": "✅ Pago Klarna confirmado",
+        "orderId": "ID pedido:",
+        "errorTitle": "Error Klarna",
+        "errorDeclined": "Autorización Klarna rechazada. Pida al cliente que reintente.",
+        "errorShow": "Klarna no puede mostrar esta opción. Pruebe otra."
+      },
+      "cash": {
+        "label": "Pago en efectivo",
+        "confirmBtn": "Efectivo recibido — Confirmar",
+        "confirmed": "✓ Efectivo recibido"
+      }
+    }
   },
   "settingsUsers": {
     "title": "Usuarios y Permisos",

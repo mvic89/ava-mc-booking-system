@@ -23,6 +23,9 @@ const TYPE_ICONS: Record<AppNotification['type'], string> = {
   payment:   '💳',
   customer:  '👤',
   system:    '⚙',
+  info:      'ℹ',
+  warning:   '⚠',
+  success:   '✓',
 };
 
 export default function NotificationBell() {

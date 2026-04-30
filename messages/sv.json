@@ -1219,7 +1219,7 @@
     "colInvoice": "Faktura",
     "colDate": "Datum",
     "colCustomer": "Kund",
-    "colVehicle": "Fordon",
+    "colVehicle": "Köpt",
     "colAgreement": "Avtal",
     "colMethod": "Betalning",
     "colAmount": "Belopp",
@@ -1244,7 +1244,12 @@
     "printVat": "Moms 25%",
     "printTotal": "Totalt inkl. moms",
     "printStatus": "Status",
-    "printFooter": "{dealerName} • Org.nr {orgNr} • {city} • {email}"
+    "printFooter": "{dealerName} • Org.nr {orgNr} • {city} • {email}",
+    "typeVehicle": "Motorcykel",
+    "typeService": "Service",
+    "typeAccessories": "Tillbehör",
+    "typeSpareParts": "Reservdelar",
+    "typeVehicleExtras": "Motorcykel + tillbehör"
   },
   "invite": {
     "title": "Du har blivit inbjuden",
@@ -1469,7 +1474,727 @@
       "scheduling": "Mindre tid på manuell schemaläggning",
       "history": "Servicehistorik alltid tillgänglig"
     },
-    "features": "Det som kommer"
+    "features": "Det som kommer",
+    "common": {
+      "loading": "Laddar...",
+      "loadingBookings": "Laddar bokningar...",
+      "loadingOrders": "Laddar arbetsorder...",
+      "noVehicle": "Fordon ej angett",
+      "notAssigned": "Ej tilldelad",
+      "cancel": "Avbryt",
+      "save": "Spara",
+      "open": "Öppna",
+      "back": "← Tillbaka",
+      "all": "Alla",
+      "at": "kl.",
+      "booking": "bokning"
+    },
+    "status": {
+      "created": "Skapad",
+      "in_progress": "Pågår",
+      "waiting_parts": "Väntar på delar",
+      "ready": "Klar",
+      "completed": "Slutförd",
+      "invoiced": "Fakturerad"
+    },
+    "bookingStatus": {
+      "booked": "Bokad",
+      "confirmed": "Bekräftad",
+      "checked_in": "Incheckad",
+      "in_progress": "Pågår",
+      "ready": "Redo",
+      "completed": "Slutförd",
+      "cancelled": "Avbokad"
+    },
+    "serviceTypes": {
+      "maintenance": "Service / Underhåll",
+      "repair": "Reparation",
+      "inspection": "Besiktning",
+      "recall": "Återkallelse",
+      "other": "Övrigt"
+    },
+    "priority": {
+      "low": "Låg",
+      "normal": "Normal",
+      "high": "Hög",
+      "urgent": "Akut"
+    },
+    "partStatus": {
+      "needed": "Saknas",
+      "reserved": "Reserverad",
+      "ordered": "Beställd",
+      "received": "Mottagen",
+      "used": "Förbrukad"
+    },
+    "dashboard": {
+      "title": "Service & Verkstad",
+      "subtitle": "Arbetsorder, bokningar och teknikertid i realtid",
+      "newBooking": "+ Ny bokning",
+      "newOrder": "+ Ny arbetsorder",
+      "kpi": {
+        "todayBookings": "Dagens bokningar",
+        "activeOrders": "Aktiva arbetsorder",
+        "waitingParts": "Väntar på delar",
+        "doneToday": "Klara idag",
+        "noBookings": "Inga bokningar idag",
+        "noOrders": "Inga aktiva ordrar",
+        "allGood": "Allt är i lager",
+        "noDone": "Ingen klar idag"
+      },
+      "schedule": {
+        "title": "Dagens schema",
+        "viewAll": "Alla →",
+        "noBookings": "Inga bokningar idag"
+      },
+      "orders": {
+        "title": "Aktiva arbetsorder",
+        "viewAll": "Alla →",
+        "noOrders": "Inga aktiva arbetsorder",
+        "createOrder": "Skapa arbetsorder →",
+        "ongoing": "{count} pågående"
+      },
+      "pickup": {
+        "title": "✅ Klara för upphämtning ({count})"
+      },
+      "stats": {
+        "earned": "Intjänat (totalt)",
+        "pending": "Pågående värde",
+        "readyPickup": "Redo hämtning"
+      }
+    },
+    "bookings": {
+      "title": "Servicebokningar",
+      "newBooking": "+ Ny bokning",
+      "searchPlaceholder": "Sök kund, fordon, reg.nr...",
+      "total": "{count} bokningar totalt",
+      "loading": "Laddar bokningar...",
+      "noResults": "Inga bokningar hittades",
+      "createFirst": "Skapa en bokning →",
+      "headers": {
+        "customer": "Kund / Fordon",
+        "type": "Typ",
+        "dateTime": "Datum & Tid",
+        "technician": "Tekniker",
+        "status": "Status"
+      },
+      "tabs": {
+        "all": "Alla",
+        "booked": "Bokad",
+        "confirmed": "Bekräftad",
+        "checked_in": "Incheckad",
+        "in_progress": "Pågår",
+        "ready": "Redo",
+        "completed": "Slutförd"
+      },
+      "actions": {
+        "confirm": "Bekräfta",
+        "toOrder": "→ Arbetsorder",
+        "open": "Öppna",
+        "openWorkOrder": "Öppna arbetsorder"
+      },
+      "toasts": {
+        "confirmed": "Bokning bekräftad",
+        "orderCreated": "Arbetsorder skapad!",
+        "orderError": "Kunde inte skapa arbetsorder"
+      }
+    },
+    "bookingDetail": {
+      "loading": "Laddar...",
+      "notFound": "Bokning hittades inte",
+      "sections": {
+        "customer": "Kund",
+        "vehicle": "Fordon",
+        "appointment": "Tidbokning",
+        "service": "Serviceärende"
+      },
+      "fields": {
+        "name": "Namn",
+        "phone": "Telefon",
+        "email": "E-post",
+        "model": "Modell",
+        "regNr": "Reg.nr",
+        "vin": "VIN",
+        "date": "Datum",
+        "time": "Tid",
+        "duration": "Varaktighet",
+        "technician": "Tekniker",
+        "type": "Typ",
+        "description": "Beskrivning",
+        "notes": "Interna anteckningar"
+      },
+      "values": {
+        "minutes": "{n} minuter",
+        "notAssigned": "Ej tilldelad"
+      },
+      "actions": {
+        "createOrder": "Skapa arbetsorder",
+        "openOrder": "Öppna arbetsorder #{id}"
+      },
+      "statusFlow": {
+        "confirmBooking": "Bekräfta bokning",
+        "checkIn": "Checka in kund",
+        "startService": "Starta service",
+        "markReady": "Markera redo",
+        "complete": "Slutför"
+      },
+      "toasts": {
+        "orderCreated": "Arbetsorder skapad!",
+        "orderError": "Kunde inte skapa arbetsorder"
+      }
+    },
+    "newBooking": {
+      "title": "Ny servicebokning",
+      "sections": {
+        "customer": "Kund",
+        "vehicle": "Fordon",
+        "serviceInfo": "Serviceuppgifter"
+      },
+      "fields": {
+        "searchCustomer": "Sök befintlig kund",
+        "searchPlaceholder": "Namn, telefon eller e-post...",
+        "name": "Namn",
+        "namePlaceholder": "Förnamn Efternamn",
+        "phone": "Telefon",
+        "email": "E-post",
+        "serviceType": "Typ av service",
+        "description": "Felbeskrivning / Ärende",
+        "descriptionPlaceholder": "Beskriv problemet eller vad som ska utföras...",
+        "date": "Datum",
+        "time": "Tid",
+        "duration": "Varaktighet (min)",
+        "technician": "Tilldelad tekniker",
+        "technicianPlaceholder": "Teknikerens namn",
+        "notes": "Interna anteckningar",
+        "notesPlaceholder": "Synlig enbart internt..."
+      },
+      "vehicle": {
+        "noHistory": "Inga tidigare fordon hittade för denna kund. Sök på registreringsnummer:",
+        "walkIn": "Ange registreringsnumret — all fordonsinformation hämtas automatiskt.",
+        "select": "Välj fordon",
+        "selectPlaceholder": "– Välj fordon –",
+        "regLookup": "+ Sök på annat reg.nr",
+        "purchasedHere": "(köpt här)",
+        "serviced": "(servicad)",
+        "found": "✓ Fordon hittad",
+        "regNr": "Reg.nr",
+        "model": "Modell",
+        "vin": "VIN",
+        "color": "Färg",
+        "fuel": "Drivmedel",
+        "engine": "Motor",
+        "odometer": "Mätarst.",
+        "nextInspection": "Nästa besikt.",
+        "status": "Status",
+        "registered": "Registrerad",
+        "regPlaceholder": "ABC123 eller VIN...",
+        "searchBtn": "Sök",
+        "notFound": "Fordonet hittades inte. Kontrollera reg.nr och försök igen.",
+        "lookupFailed": "Uppslaget misslyckades. Försök igen."
+      },
+      "actions": {
+        "cancel": "Avbryt",
+        "submit": "Skapa bokning",
+        "submitting": "Sparar..."
+      },
+      "toasts": {
+        "created": "Bokning skapad!",
+        "error": "Kunde inte skapa bokning",
+        "noDealership": "Ingen dealership hittad",
+        "noDate": "Välj datum"
+      },
+      "subtitle": "Fyll i uppgifterna och spara bokningen till databasen",
+      "preview": {
+        "heading": "Förhandsgranskning",
+        "subtitle": "Ny bokning",
+        "vehicle": "Fordon",
+        "service": "Tjänst",
+        "date": "Datum",
+        "time": "Tid",
+        "technician": "Tekniker",
+        "matter": "Ärende",
+        "empty": "Fyll i formuläret för att se en förhandsgranskning"
+      },
+      "schedule": {
+        "title": "Dagens schema",
+        "count": "{n} bokningar",
+        "empty": "Inga bokningar idag",
+        "viewAll": "Visa alla bokningar"
+      }
+    },
+    "orders": {
+      "title": "Arbetsorder",
+      "total": "{count} totalt",
+      "newOrder": "+ Ny arbetsorder",
+      "searchPlaceholder": "Sök AO-nr, kund, reg.nr...",
+      "loading": "Laddar arbetsorder...",
+      "noResults": "Inga arbetsorder hittades",
+      "createFirst": "Skapa arbetsorder →",
+      "noVehicle": "Fordon ej angett",
+      "tabs": {
+        "all": "Alla",
+        "created": "Skapad",
+        "in_progress": "Pågår",
+        "waiting_parts": "Väntar delar",
+        "ready": "Redo",
+        "completed": "Slutförd",
+        "invoiced": "Fakturerad"
+      },
+      "card": {
+        "technician": "Tekniker",
+        "total": "Totalt",
+        "notAssigned": "Ej tilldelad"
+      }
+    },
+    "newOrder": {
+      "title": "Ny arbetsorder",
+      "subtitle": "Walk-in eller utan föregående bokning",
+      "sections": {
+        "customer": "Kund",
+        "vehicle": "Fordon",
+        "jobInfo": "Arbetsuppgift"
+      },
+      "fields": {
+        "searchCustomer": "Sök befintlig kund",
+        "searchPlaceholder": "Namn eller telefon...",
+        "name": "Namn",
+        "phone": "Telefon",
+        "description": "Felbeskrivning / Ärende",
+        "descriptionPlaceholder": "Beskriv vad som ska utföras...",
+        "priority": "Prioritet",
+        "laborRate": "Timtaxa (kr/tim)",
+        "technician": "Tilldelad tekniker",
+        "technicianPlaceholder": "Teknikerns namn",
+        "model": "Fordon / Modell",
+        "modelPlaceholder": "Honda CB500F 2022",
+        "regNr": "Reg.nr",
+        "regNrPlaceholder": "ABC123",
+        "vin": "VIN",
+        "vinPlaceholder": "Valfritt",
+        "odometer": "Mätarställning (km)",
+        "vehicleSelect": "Välj fordon",
+        "vehicleSelectPlaceholder": "– Välj fordon –",
+        "vehicleOther": "Annat fordon / Ej i systemet",
+        "noVehicleHistory": "Inga tidigare fordon hittade för denna kund.",
+        "purchasedHere": "(köpt här)",
+        "serviced": "(servicad)",
+        "namePlaceholder": "Kundens namn"
+      },
+      "vehicle": {
+        "regPlaceholder": "ABC123 eller VIN...",
+        "searchBtn": "Sök",
+        "found": "✓ Fordon hittad",
+        "color": "Färg",
+        "fuel": "Drivmedel",
+        "engine": "Motor",
+        "odometer": "Mätarst.",
+        "nextInspection": "Nästa besikt.",
+        "status": "Status",
+        "registered": "Registrerad",
+        "notFound": "Fordonet hittades inte. Kontrollera reg.nr och försök igen.",
+        "lookupFailed": "Uppslaget misslyckades. Försök igen."
+      },
+      "actions": {
+        "cancel": "Avbryt",
+        "submit": "Skapa arbetsorder",
+        "submitting": "Skapar..."
+      },
+      "toasts": {
+        "created": "Arbetsorder skapad!",
+        "error": "Kunde inte skapa arbetsorder",
+        "noDealership": "Ingen dealership hittad"
+      },
+      "preview": {
+        "title": "Förhandsgranskning",
+        "orderNumber": "Ordernummer",
+        "pending": "Tilldelas vid skapande",
+        "statusNew": "Ny",
+        "emptyHint": "Fyll i formuläret för att se en förhandsgranskning av arbetsordern",
+        "customer": "Kund",
+        "vehicle": "Fordon",
+        "description": "Ärende",
+        "priorityLabel": "Prioritet",
+        "technicianLabel": "Tekniker",
+        "laborRateLabel": "Timtaxa",
+        "notSet": "–",
+        "unassigned": "Ej tilldelad"
+      },
+      "todaysOrders": {
+        "title": "Dagens arbetsorder",
+        "empty": "Inga aktiva arbetsorder idag",
+        "viewAll": "Visa alla arbetsorder"
+      }
+    },
+    "orderDetail": {
+      "loading": "Laddar...",
+      "notFound": "Arbetsorder hittades inte",
+      "tabs": {
+        "items": "Artiklar & Priser ({count})",
+        "time": "Tid ({count})",
+        "notes": "Anteckningar",
+        "details": "Detaljer"
+      },
+      "statusActions": {
+        "startWork": "Starta arbete",
+        "markReady": "Markera klar för hämtning",
+        "partsReceived": "Delar mottagna → Starta",
+        "completeAndInvoice": "Slutför & Fakturera",
+        "waitingParts": "⚠ Väntar på delar",
+        "createPO": "📦 Skapa inköpsorder",
+        "payInvoice": "💳 Betala {id}",
+        "goToPayment": "💳 Gå till betalning — {id}"
+      },
+      "po": {
+        "title": "Skapa inköpsorder för {count} saknade artiklar",
+        "vendor": "Leverantör",
+        "vendorPlaceholder": "Ex. Mekonomen, Biltema...",
+        "create": "Skapa IO",
+        "creating": "Skapar...",
+        "cancel": "Avbryt"
+      },
+      "items": {
+        "type": "Typ",
+        "name": "Benämning",
+        "artNr": "Art.nr",
+        "qty": "Antal",
+        "unitPrice": "À-pris",
+        "total": "Totalt",
+        "status": "Status",
+        "emptyTitle": "Inga rader ännu",
+        "emptySubtitle": "Lägg till reservdelar, arbete eller övriga avgifter nedan",
+        "labor": "Arbete",
+        "part": "Del",
+        "subtotal": "Delsumma (exkl. moms)",
+        "vat": "Moms 25%",
+        "grandTotal": "Totalt att betala",
+        "partActions": "Lagerstatus — åtgärder",
+        "markOrdered": "Markera beställd",
+        "markReceived": "Mottagen",
+        "markUsed": "Förbrukad"
+      },
+      "taskStatus": {
+        "done": "Klar",
+        "in_progress": "Pågår",
+        "pending": "Ej startad"
+      },
+      "addLine": {
+        "label": "Lägg till rad:",
+        "part": "🔧 Reservdel",
+        "labor": "⏱ Arbete",
+        "other": "📋 Övrigt",
+        "artNr": "Art.nr",
+        "artNrPlaceholder": "Valfritt",
+        "nameLabelLabor": "Arbetsmoment",
+        "nameLabelPart": "Reservdel / Benämning",
+        "nameLabelOther": "Beskrivning",
+        "namePlaceholderPart": "Sök i lagret eller skriv fritext...",
+        "namePlaceholderLabor": "Ex. Oljebyte, Bromsrenovering",
+        "namePlaceholderOther": "Beskrivning",
+        "hours": "Timmar",
+        "hourRate": "Timpris (kr)",
+        "qty": "Antal",
+        "unitPrice": "Styckpris (kr)",
+        "addBtn": "+ Lägg till",
+        "inStock": "✓ {count} st i lager — reserveras automatiskt",
+        "outOfStock": "⚠ Ej i lager — inköpsorder krävs",
+        "hintPart": "Sök på namn eller art.nr för att hitta delar i lagret. Finns delen i lager reserveras den automatiskt.",
+        "hintLabor": "Lämna timpris tomt för att använda arbetsorderns timtaxa ({rate} kr/tim).",
+        "accessory": "Tillbehör",
+        "sparePart": "Reservdel",
+        "stockLabel": "{count} i lager",
+        "outOfStockLabel": "Slut"
+      },
+      "time": {
+        "checkInTitle": "Checka in tekniker",
+        "techPlaceholder": "Teknikernamn",
+        "checkInBtn": "Checka in",
+        "activeEntry": "⏱ {name} är incheckad",
+        "since": "Sedan",
+        "checkOut": "Checka ut",
+        "noEntries": "Ingen tidregistrering ännu",
+        "header": "Tidregistrering",
+        "totalLabel": "Totalt:",
+        "ongoing": "Pågår..."
+      },
+      "notes": {
+        "title": "Interna anteckningar",
+        "placeholder": "Interna anteckningar, kommunikation med kund, tekniska observationer...",
+        "save": "Spara anteckningar"
+      },
+      "details": {
+        "customer": "Kund",
+        "vehicle": "Fordon",
+        "matter": "Ärende",
+        "timestamps": "Tidpunkter",
+        "name": "Namn",
+        "phone": "Telefon",
+        "model": "Modell",
+        "regNr": "Reg.nr",
+        "vin": "VIN",
+        "odometer": "Km-ställn.",
+        "noDescription": "Ingen beskrivning",
+        "created": "Skapad",
+        "started": "Startad",
+        "completed": "Slutförd",
+        "laborRate": "Timtaxa",
+        "openProfile": "Öppna kundprofil →"
+      },
+      "toasts": {
+        "laborAdded": "Arbetsrad tillagd",
+        "partError": "Kunde inte lägga till",
+        "orderCreated": "Inköpsorder {id} skapad",
+        "poError": "Fel vid skapande av IO",
+        "completedRedirect": "Slutförd! Öppnar betalning...",
+        "completeError": "Fel vid slutförande",
+        "notesSaved": "Anteckningar sparade",
+        "checkedOut": "Utcheckad",
+        "noTechName": "Ange teknikernamn"
+      }
+    },
+    "purchaseOrders": {
+      "title": "📦 Inköpsordrar — Service",
+      "subtitle": "Reservdelar och tillbehör beställda från externa leverantörer",
+      "loading": "Laddar inköpsordrar...",
+      "noOrders": "Inga inköpsordrar ännu",
+      "noOrdersHint": "Inköpsordrar skapas automatiskt från arbetsordrar när reservdelar saknas i lager. Gå till en arbetsorder och klicka \"Skapa inköpsorder\" för de delar som behöver beställas.",
+      "status": {
+        "Draft": "Utkast",
+        "Ordered": "Beställd",
+        "Partial": "Del-mottagen",
+        "Reviewed": "Mottagen",
+        "Cancelled": "Avbruten"
+      },
+      "table": {
+        "order": "Inköpsorder / AO",
+        "vendor": "Leverantör",
+        "items": "Artiklar",
+        "eta": "Leverans (ETA)",
+        "total": "Summa",
+        "status": "Status",
+        "actions": "Åtgärder"
+      },
+      "progress": {
+        "draft": "Utkast",
+        "ordered": "Beställd",
+        "partial": "Delvis",
+        "reviewed": "Granskad"
+      },
+      "actions": {
+        "send": "📧 Skicka",
+        "receive": "📦 Mottag",
+        "done": "✓ Klart"
+      },
+      "send": {
+        "title": "Skicka till leverantör",
+        "emailLabel": "Leverantörens e-post (valfritt)",
+        "emailPlaceholder": "info@leverantor.se",
+        "sendEmail": "Skicka via e-post",
+        "sendEmailDesc": "Öppnar din e-postklient med PO förifyllt",
+        "print": "Skriv ut / Spara PDF",
+        "printDesc": "Skicka manuellt via post eller leverantörsportal",
+        "markOrdered": "Markera som beställd",
+        "markOrderedDesc": "Jag har redan beställt manuellt",
+        "total": "Totalt",
+        "toastOrdered": "markerad som beställd",
+        "toastError": "Kunde inte uppdatera status"
+      },
+      "receive": {
+        "title": "Mottag gods",
+        "instruction": "Bocka i de artiklar som kom med leveransen:",
+        "allReceived": "Alla artiklar redan mottagna",
+        "selectAll": "Välj alla",
+        "clear": "Rensa",
+        "cancel": "Avbryt",
+        "saving": "Sparar...",
+        "confirmBtn": "Bekräfta mottagning ({n})",
+        "toastOk": "artikel(ar) mottagna",
+        "toastSelect": "Välj minst en artikel",
+        "toastError": "Fel"
+      },
+      "eta": {
+        "set": "Ange ETA",
+        "tooltip": "Klicka för att ange leveransdatum"
+      },
+      "workOrder": "AO-{id}",
+      "itemsCount": "{count} artiklar",
+      "noEta": "Inget ETA",
+      "titleShort": "Inköpsordrar",
+      "section": "Inköp",
+      "noResults": "Inga träffar",
+      "backToService": "← Tillbaka till serviceöversikt",
+      "searchPlaceholder": "Sök PO, leverantör, artikel...",
+      "howItWorks": {
+        "title": "Så fungerar det",
+        "steps": [
+          {
+            "title": "Reservdel läggs till AO",
+            "desc": "Inte i lager → status \"Behövs\""
+          },
+          {
+            "title": "Inköpsorder skapas",
+            "desc": "Från arbetsorderan → leverantör väljs"
+          },
+          {
+            "title": "Skickas till leverantör",
+            "desc": "Via e-post eller leverantörsportal"
+          },
+          {
+            "title": "Gods mottas → notis",
+            "desc": "AO återupptas automatiskt"
+          }
+        ]
+      },
+      "stats": {
+        "total": "Totalt",
+        "active": "Aktiva beställningar",
+        "waiting": "Väntar på beställning",
+        "done": "Klara"
+      },
+      "tabs": {
+        "all": "Alla",
+        "Draft": "Utkast",
+        "Ordered": "Beställda",
+        "Partial": "Del-mottagna",
+        "Reviewed": "Mottagna",
+        "Cancelled": "Avbrutna"
+      },
+      "subTable": {
+        "article": "Artikel",
+        "artNo": "Art.nr",
+        "qty": "Antal",
+        "unitPrice": "À-pris",
+        "total": "Summa",
+        "status": "Status"
+      },
+      "itemStatus": {
+        "received": "✓ Mottagen",
+        "pending": "· Inväntas"
+      },
+      "noItems": "Inga artiklar registrerade",
+      "notesLabel": "Notering:",
+      "itemsReceived": "{r}/{t} mottagna"
+    },
+    "payment": {
+      "loading": "Laddar faktura...",
+      "notFound": "Arbetsorder hittades inte",
+      "breadcrumb": "Betalning",
+      "title": "Servicefaktura — Betalning",
+      "backToOrder": "← Tillbaka till arbetsorder",
+      "methods": {
+        "swish": "Swish",
+        "card": "Kort / Blipp",
+        "bank_transfer": "Banköverföring",
+        "klarna": "Klarna",
+        "cash": "Kontant"
+      },
+      "success": {
+        "title": "Betalning bekräftad!",
+        "invoices": "Fakturor",
+        "backBtn": "Tillbaka till AO →",
+        "invoice": "Faktura",
+        "amount": "Belopp",
+        "method": "Metod",
+        "paid": "Betalad"
+      },
+      "summary": {
+        "title": "Faktureringsunderlag",
+        "labour": "Arbete",
+        "parts": "Reservdelar & tillbehör",
+        "labourTotal": "Summa arbete",
+        "partsTotal": "Summa delar",
+        "totalLabel": "Totalt att betala (inkl. moms)",
+        "kr": "kr",
+        "saving": "Sparar...",
+        "vatLine": "varav moms (20%)",
+        "net": "netto",
+        "invoiceLabel": "Faktura",
+        "vehicle": "Fordon"
+      },
+      "methodSelect": "Välj betalmetod",
+      "swish": {
+        "amountLabel": "Belopp att ta emot",
+        "ref": "Ref:",
+        "merchantNum": "Swish Handelsnummer",
+        "notConfigured": "Swish-nummer ej konfigurerat.",
+        "configureLink": "Lägg till det i",
+        "configureWhere": "Inställningar → Profil",
+        "sendRequest": "Skicka betalningsbegäran till kunden",
+        "phonePlaceholder": "+46701234567 eller 07XXXXXXXX",
+        "sendBtn": "Skicka begäran",
+        "hint": "Kunden får en Swish-pushnotis och godkänner betalningen.",
+        "waiting": "Väntar på kundens betalning",
+        "waitHint": "Be kunden öppna Swish och skicka",
+        "withRef": "med referens",
+        "polls": "kontroller · Req-ID:",
+        "confirmBtn": "✓ Bekräfta — betalningen kom in",
+        "cancelBtn": "✕ Avbryt",
+        "confirmed": "✅ Swish-betalning bekräftad",
+        "received": "mottaget · Ref:",
+        "failed": "Betalning misslyckades",
+        "retry": "Försök igen",
+        "errorPhone": "Ange telefonnummer",
+        "errorDeclined": "Swish nekad:"
+      },
+      "card": {
+        "title": "Blipp & Kortbetalning",
+        "contactless": "Kontaktlös",
+        "terminalId": "Nets AXEPT · Terminal ID:",
+        "ready": "REDO",
+        "approved": "GODKÄND",
+        "declined": "NEKAD",
+        "active": "AKTIV",
+        "tapHint": "Blipp — håll kortet nära terminalen",
+        "tapSub": "Kontaktlös · Chip & PIN · Magnetremsa — alla kort accepteras",
+        "screenTitle": "Terminal Screen",
+        "amountLabel": "Belopp att betala",
+        "sendBtn": "Skicka belopp till terminal — aktivera blipp →",
+        "waitSent": "Belopp skickat — väntar på kunden…",
+        "waitTap": "Kunden: blippa, sätt i eller dra kortet",
+        "authorising": "Auktoriserar med kortnätverket…",
+        "confirmed": "✅ Kortbetalning godkänd",
+        "authCode": "Auth code",
+        "amount": "Belopp",
+        "transaction": "Transaktion",
+        "errorTitle": "❌ Kort nekat",
+        "errorHint": "Be kunden prova ett annat kort eller en annan betalningsmetod.",
+        "retry": "Försök igen"
+      },
+      "bank": {
+        "title": "Betalningsinstruktioner",
+        "bankgiro": "Bankgiro",
+        "iban": "IBAN",
+        "bic": "BIC/SWIFT",
+        "message": "Meddelande",
+        "amount": "Belopp",
+        "hint": "Meddela kunden att ange fakturanumret",
+        "hintEnd": "som referens",
+        "confirmBtn": "Bekräfta banköverföring mottagen",
+        "confirmed": "✓ Bekräftad"
+      },
+      "klarna": {
+        "title": "Klarna — Betala nu / senare / delbetalning",
+        "subtitle": "Kunden fyller i uppgifter direkt i Klarna-widgeten",
+        "confirmed": "BEKRÄFTAD",
+        "creatingSession": "Skapar Klarna-session…",
+        "loadingSdk": "Laddar Klarna SDK…",
+        "selectPlan": "Välj betalplan",
+        "payNow": "Betala nu",
+        "payLater": "Betala om 30 dagar",
+        "payOverTime": "Dela upp",
+        "authorising": "Auktoriserar…",
+        "placingOrder": "Skapar order…",
+        "authoriseBtn": "Auktorisera Klarna-betalning",
+        "paymentConfirmed": "✅ Klarna-betalning bekräftad",
+        "orderId": "Order-ID:",
+        "errorTitle": "Klarna-fel",
+        "errorDeclined": "Klarna-auktorisering nekades. Be kunden försöka igen.",
+        "errorShow": "Klarna kan inte visa detta alternativ. Prova ett annat."
+      },
+      "cash": {
+        "label": "Kontant betalning",
+        "confirmBtn": "Kontant mottagen — Bekräfta",
+        "confirmed": "✓ Kontant mottagen"
+      }
+    }
   },
   "settingsUsers": {
     "title": "Användare & Behörigheter",

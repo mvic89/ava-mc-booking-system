@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
-import { getInvoices, updateInvoicePaymentMethod, type Invoice } from '@/lib/invoices';
+import { getInvoices, updateInvoicePaymentMethod, markInvoicePaidById, type Invoice } from '@/lib/invoices';
 import { useAutoRefresh } from '@/lib/realtime';
 import { getDealerInfo } from '@/lib/dealer';
 
@@ -13,9 +13,78 @@ import { getDealerInfo } from '@/lib/dealer';
 
 function openInvoicePrintWindow(inv: Invoice, labels: Record<string, string>) {
   const dealer = getDealerInfo();
-  const fmt = (n: number) => n.toLocaleString('sv-SE');
+  const fmt = (n: number) => n.toLocaleString('sv-SE', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   const fmtDate = (iso: string) =>
     new Date(iso).toLocaleDateString('sv-SE', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  // ── Determine purchase type ──────────────────────────────────────────────────
+  const isService  = inv.id.startsWith('SRV-');
+  const hasParts   = (inv.parts?.length ?? 0) > 0;
+  const rawVehicle = inv.vehicle ?? '';
+  const isAccOnly  = rawVehicle.startsWith('Tillbehör:') || rawVehicle.startsWith('Accessories:');
+  const hasVehicle = rawVehicle && rawVehicle !== '—' && !isAccOnly;
+
+  // Meta label for the "what was bought" block
+  let purchaseTypeLabel: string;
+  if (isService)               purchaseTypeLabel = labels.typeService;
+  else if (isAccOnly)          purchaseTypeLabel = labels.typeAccessories;
+  else if (!hasVehicle && hasParts) purchaseTypeLabel = labels.typeSpareParts;
+  else if (hasVehicle && hasParts)  purchaseTypeLabel = labels.typeVehicleExtras;
+  else                              purchaseTypeLabel = labels.typeVehicle;
+
+  // The display value for the meta "what" block
+  const purchaseDisplay = hasVehicle
+    ? rawVehicle
+    : hasParts
+      ? (inv.parts ?? []).map(p => `${p.name} ×${p.quantity}`).join(', ')
+      : rawVehicle || '—';
+
+  // ── Build line items ─────────────────────────────────────────────────────────
+  let itemRows = '';
+
+  if (hasVehicle) {
+    // Vehicle row — cost is the net minus any parts costs
+    const partsCost = (inv.parts ?? []).reduce((s, p) => s + p.total_cost, 0);
+    const vehicleCost = inv.netAmount - partsCost;
+    itemRows += `
+      <tr>
+        <td>
+          <strong>${labels.typeVehicle}</strong> — ${rawVehicle}
+          ${inv.agreementRef ? `<br><span style="font-size:11px;color:#64748b">${inv.agreementRef}</span>` : ''}
+        </td>
+        <td style="text-align:right">${fmt(vehicleCost > 0 ? vehicleCost : inv.netAmount)} kr</td>
+      </tr>`;
+  }
+
+  if (isService && !hasParts && !hasVehicle) {
+    itemRows += `
+      <tr>
+        <td><strong>${labels.typeService}</strong>${inv.agreementRef ? ` — ${inv.agreementRef}` : ''}</td>
+        <td style="text-align:right">${fmt(inv.netAmount)} kr</td>
+      </tr>`;
+  }
+
+  if (hasParts) {
+    for (const part of (inv.parts ?? [])) {
+      itemRows += `
+        <tr>
+          <td>
+            <span style="font-size:11px;background:#f1f5f9;padding:1px 6px;border-radius:4px;margin-right:6px">×${part.quantity}</span>
+            ${part.name}
+            ${part.part_number ? `<span style="font-size:10px;color:#94a3b8;margin-left:6px">(${part.part_number})</span>` : ''}
+          </td>
+          <td style="text-align:right">${fmt(part.total_cost)} kr</td>
+        </tr>`;
+    }
+  }
+
+  if (!itemRows) {
+    itemRows = `
+      <tr>
+        <td>${purchaseTypeLabel}${inv.agreementRef ? ` — ${inv.agreementRef}` : ''}</td>
+        <td style="text-align:right">${fmt(inv.netAmount)} kr</td>
+      </tr>`;
+  }
 
   const html = `<!DOCTYPE html>
 <html lang="sv">
@@ -27,7 +96,6 @@ function openInvoicePrintWindow(inv: Invoice, labels: Record<string, string>) {
     body{font-family:'Helvetica Neue',Arial,sans-serif;color:#1a2a42;background:#fff;padding:40px}
     .header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #FF6B2C;padding-bottom:24px;margin-bottom:32px}
     .logo{font-size:24px;font-weight:900;color:#FF6B2C;letter-spacing:-0.5px}
-    .logo span{color:#0b1524}
     .inv-num{text-align:right}
     .inv-num h1{font-size:18px;font-weight:800;color:#0b1524}
     .inv-num p{font-size:13px;color:#64748b;margin-top:4px}
@@ -68,30 +136,27 @@ function openInvoicePrintWindow(inv: Invoice, labels: Record<string, string>) {
     </div>
     <div class="meta-block">
       <h3>${labels.agreement}</h3>
-      <p>${inv.agreementRef}</p>
+      <p>${inv.agreementRef || '—'}</p>
     </div>
     <div class="meta-block">
-      <h3>${labels.vehicle}</h3>
-      <p>${inv.vehicle}</p>
+      <h3>${purchaseTypeLabel}</h3>
+      <p>${purchaseDisplay}</p>
     </div>
     <div class="meta-block">
       <h3>${labels.method}</h3>
-      <p>${inv.paymentMethod}</p>
+      <p>${inv.paymentMethod || '—'}</p>
     </div>
   </div>
 
   <table>
     <thead>
       <tr>
-        <th style="width:60%">${labels.desc}</th>
+        <th style="width:65%">${purchaseTypeLabel}</th>
         <th style="text-align:right">${labels.amount}</th>
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <td>${labels.desc} — ${inv.vehicle}<br><span style="font-size:11px;color:#64748b">${inv.agreementRef}</span></td>
-        <td style="text-align:right">${fmt(inv.netAmount)} kr</td>
-      </tr>
+      ${itemRows}
     </tbody>
   </table>
 
@@ -119,6 +184,38 @@ function openInvoicePrintWindow(inv: Invoice, labels: Record<string, string>) {
   setTimeout(() => win.print(), 400);
 }
 
+// ─── Purchase type classifier ─────────────────────────────────────────────────
+
+interface PurchaseClass {
+  label:    string;
+  icon:     string;
+  badgeCls: string;
+}
+
+function classifyInvoice(inv: Invoice): PurchaseClass {
+  const isService  = inv.id.startsWith('SRV-');
+  const hasParts   = (inv.parts?.length ?? 0) > 0;
+  const rawVehicle = inv.vehicle ?? '';
+  const isAccOnly  = rawVehicle.startsWith('Tillbehör:') || rawVehicle.startsWith('Accessories:');
+  const hasVehicle = rawVehicle && rawVehicle !== '—' && !isAccOnly;
+
+  if (isService && hasParts && hasVehicle)
+    return { label: 'Service + reservdelar', icon: '🛠️', badgeCls: 'bg-teal-100 text-teal-700' };
+  if (isService)
+    return { label: 'Service',               icon: '🛠️', badgeCls: 'bg-teal-100 text-teal-700' };
+  if (isAccOnly && hasParts)
+    return { label: 'Tillbehör',             icon: '🧰', badgeCls: 'bg-orange-100 text-orange-700' };
+  if (isAccOnly)
+    return { label: 'Tillbehör',             icon: '🧰', badgeCls: 'bg-orange-100 text-orange-700' };
+  if (!hasVehicle && hasParts)
+    return { label: 'Reservdelar/Tillbehör', icon: '🔧', badgeCls: 'bg-blue-100 text-blue-700' };
+  if (hasVehicle && hasParts)
+    return { label: 'Motorcykel + tillbehör',icon: '🏍️', badgeCls: 'bg-slate-100 text-slate-600' };
+  if (hasVehicle)
+    return { label: 'Motorcykel',            icon: '🏍️', badgeCls: 'bg-slate-100 text-slate-600' };
+  return   { label: '—',                     icon: '',    badgeCls: '' };
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 type FilterTab = 'all' | 'paid' | 'pending';
@@ -133,6 +230,11 @@ export default function InvoicesPage() {
   const [editingPmId, setEditingPmId] = useState<string | null>(null);
   const [editingPmVal, setEditingPmVal] = useState('');
   const pmInputRef = useRef<HTMLSelectElement>(null);
+
+  // Pay-now inline state
+  const [payingId,  setPayingId]  = useState<string | null>(null);
+  const [payMethod, setPayMethod] = useState('Kort');
+  const [paying,    setPaying]    = useState(false);
 
   useEffect(() => {
     const raw = localStorage.getItem('user');
@@ -182,21 +284,26 @@ export default function InvoicesPage() {
 
   const _d = getDealerInfo();
   const printLabels = {
-    title:      t('printTitle'),
-    issued:     t('printIssued'),
-    paid:       t('printPaid'),
-    method:     t('printMethod'),
-    customer:   t('printCustomer'),
-    vehicle:    t('printVehicle'),
-    agreement:  t('printAgreement'),
-    desc:       t('printDesc'),
-    net:        t('printNet'),
-    vat:        t('printVat'),
-    total:      t('printTotal'),
-    amount:     t('colAmount'),
-    badgePaid:  t('badgePaid'),
-    badgePending: t('badgePending'),
-    footer:     t('printFooter', { dealerName: _d.name, orgNr: _d.orgNr, city: _d.city, email: _d.email }),
+    title:             t('printTitle'),
+    issued:            t('printIssued'),
+    paid:              t('printPaid'),
+    method:            t('printMethod'),
+    customer:          t('printCustomer'),
+    vehicle:           t('printVehicle'),
+    agreement:         t('printAgreement'),
+    desc:              t('printDesc'),
+    net:               t('printNet'),
+    vat:               t('printVat'),
+    total:             t('printTotal'),
+    amount:            t('colAmount'),
+    badgePaid:         t('badgePaid'),
+    badgePending:      t('badgePending'),
+    footer:            t('printFooter', { dealerName: _d.name, orgNr: _d.orgNr, city: _d.city, email: _d.email }),
+    typeVehicle:       t('typeVehicle'),
+    typeService:       t('typeService'),
+    typeAccessories:   t('typeAccessories'),
+    typeSpareParts:    t('typeSpareParts'),
+    typeVehicleExtras: t('typeVehicleExtras'),
   };
 
   const fmtDate = (iso: string) =>
@@ -352,10 +459,43 @@ export default function InvoicesPage() {
                           {inv.customerName}
                         </td>
 
-                        {/* Vehicle */}
-                        <td className="px-4 py-3 text-slate-600 max-w-[180px] truncate">
-                          {inv.vehicle}
-                        </td>
+                        {/* Purchase type + items */}
+                        {(() => {
+                          const cls = classifyInvoice(inv);
+                          const hasParts   = (inv.parts?.length ?? 0) > 0;
+                          const isAccOnly  = (inv.vehicle ?? '').startsWith('Tillbehör:') || (inv.vehicle ?? '').startsWith('Accessories:');
+                          const showVehicle = inv.vehicle && inv.vehicle !== '—' && !isAccOnly && !inv.id.startsWith('SRV-');
+                          const first = inv.parts?.[0];
+                          const rest  = (inv.parts?.length ?? 0) - 1;
+                          return (
+                            <td className="px-4 py-3 max-w-52">
+                              {cls.label !== '—' && (
+                                <span className={`inline-flex items-center gap-1 px-1.5 py-px rounded text-[9px] font-bold mb-1 ${cls.badgeCls}`}>
+                                  {cls.icon} {cls.label}
+                                </span>
+                              )}
+                              {showVehicle && (
+                                <p className="truncate text-slate-700 font-medium text-xs">{inv.vehicle}</p>
+                              )}
+                              {hasParts && first && (
+                                <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                                  <span className="inline-block px-1.5 py-px rounded text-[9px] font-bold bg-purple-100 text-purple-700 shrink-0">
+                                    ×{first.quantity}
+                                  </span>
+                                  <span className="text-[10px] text-slate-500 truncate max-w-28">{first.name}</span>
+                                  {rest > 0 && (
+                                    <span className="inline-block px-1.5 py-px rounded-full text-[9px] font-bold bg-slate-100 text-slate-500 shrink-0 whitespace-nowrap">
+                                      +{rest} fler
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                              {cls.label === '—' && (
+                                <span className="text-slate-300 text-xs">—</span>
+                              )}
+                            </td>
+                          );
+                        })()}
 
                         {/* Payment method */}
                         <td className="px-4 py-3 whitespace-nowrap">
@@ -410,17 +550,60 @@ export default function InvoicesPage() {
                           </span>
                         </td>
 
-                        {/* Print button */}
+                        {/* Actions */}
                         <td className="px-4 py-3">
-                          <button
-                            onClick={() => openInvoicePrintWindow(inv, printLabels)}
-                            className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-semibold text-slate-600 border border-slate-200 rounded-lg hover:border-[#FF6B2C]/40 hover:text-[#FF6B2C] hover:bg-[#FF6B2C]/5 transition-all"
-                          >
-                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                            </svg>
-                            {t('printBtn')}
-                          </button>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {/* Mark as paid — pending invoices only */}
+                            {inv.status === 'pending' && (
+                              payingId === inv.id ? (
+                                <div className="flex items-center gap-1">
+                                  <select
+                                    value={payMethod}
+                                    onChange={e => setPayMethod(e.target.value)}
+                                    className="text-xs border border-[#FF6B2C]/60 rounded px-1.5 py-0.5 bg-white text-slate-700 focus:outline-none"
+                                  >
+                                    {['Kort','Swish','Kontant','Faktura','Klarna','Svea','Resurs','Santander','BankID Pay','Walley','Stripe'].map(m => (
+                                      <option key={m} value={m}>{m}</option>
+                                    ))}
+                                  </select>
+                                  <button
+                                    disabled={paying}
+                                    onClick={async () => {
+                                      setPaying(true);
+                                      await markInvoicePaidById(inv.id, payMethod);
+                                      setInvoices(prev => prev.map(i => i.id === inv.id
+                                        ? { ...i, status: 'paid', paymentMethod: payMethod, paidDate: new Date().toISOString() }
+                                        : i
+                                      ));
+                                      setPayingId(null);
+                                      setPaying(false);
+                                      toast.success(`${inv.id} markerad som betald`);
+                                    }}
+                                    className="text-[10px] px-1.5 py-0.5 bg-emerald-600 text-white rounded font-semibold hover:bg-emerald-700 disabled:opacity-50"
+                                  >
+                                    {paying ? '...' : '✓'}
+                                  </button>
+                                  <button onClick={() => setPayingId(null)} className="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded hover:bg-slate-200">✕</button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => { setPayingId(inv.id); setPayMethod(inv.paymentMethod || 'Kort'); }}
+                                  className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-semibold text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-50 transition-all"
+                                >
+                                  ✓ Markera betald
+                                </button>
+                              )
+                            )}
+                            <button
+                              onClick={() => openInvoicePrintWindow(inv, printLabels)}
+                              className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-semibold text-slate-600 border border-slate-200 rounded-lg hover:border-[#FF6B2C]/40 hover:text-[#FF6B2C] hover:bg-[#FF6B2C]/5 transition-all"
+                            >
+                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                              </svg>
+                              {t('printBtn')}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

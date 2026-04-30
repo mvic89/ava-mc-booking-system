@@ -35,5 +35,9 @@
       "/Users/andrewkalumba/Documents/2026internship/ava-mc-booking-system/app/api/offers",
       "/Users/andrewkalumba/Documents/2026internship/ava-mc-booking-system/app/sales/leads/[id]"
     ]
-  }
+  },
+  "env": {
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "64000"
+  },
+  "skipDangerousModePermissionPrompt": true
 }

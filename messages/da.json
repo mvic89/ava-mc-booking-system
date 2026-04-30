@@ -1218,7 +1218,7 @@
     "colInvoice": "Faktura",
     "colDate": "Dato",
     "colCustomer": "Kunde",
-    "colVehicle": "Køretøj",
+    "colVehicle": "Købt",
     "colAgreement": "Aftale",
     "colMethod": "Betaling",
     "colAmount": "Beløb",
@@ -1243,7 +1243,12 @@
     "printVat": "Moms 25%",
     "printTotal": "Total inkl. moms",
     "printStatus": "Status",
-    "printFooter": "{dealerName} • Org.nr {orgNr} • {city} • {email}"
+    "printFooter": "{dealerName} • Org.nr {orgNr} • {city} • {email}",
+    "typeVehicle": "Motorcykel",
+    "typeService": "Service",
+    "typeAccessories": "Tilbehør",
+    "typeSpareParts": "Reservedele",
+    "typeVehicleExtras": "Motorcykel + tilbehør"
   },
   "invite": {
     "title": "Du er blevet inviteret",
@@ -1468,7 +1473,727 @@
       "scheduling": "Mindre tid på manuel planlægning",
       "history": "Servicehistorik altid tilgængelig"
     },
-    "features": "Hvad der kommer"
+    "features": "Hvad der kommer",
+    "common": {
+      "loading": "Indlæser...",
+      "loadingBookings": "Indlæser bookinger...",
+      "loadingOrders": "Indlæser arbejdsordrer...",
+      "noVehicle": "Køretøj ikke angivet",
+      "notAssigned": "Ikke tildelt",
+      "cancel": "Annuller",
+      "save": "Gem",
+      "open": "Åbn",
+      "back": "← Tilbage",
+      "all": "Alle",
+      "at": "kl.",
+      "booking": "booking"
+    },
+    "status": {
+      "created": "Oprettet",
+      "in_progress": "I gang",
+      "waiting_parts": "Venter på dele",
+      "ready": "Klar",
+      "completed": "Afsluttet",
+      "invoiced": "Faktureret"
+    },
+    "bookingStatus": {
+      "booked": "Booket",
+      "confirmed": "Bekræftet",
+      "checked_in": "Checket ind",
+      "in_progress": "I gang",
+      "ready": "Klar",
+      "completed": "Afsluttet",
+      "cancelled": "Aflyst"
+    },
+    "serviceTypes": {
+      "maintenance": "Service / Vedligeholdelse",
+      "repair": "Reparation",
+      "inspection": "Syn",
+      "recall": "Tilbagekaldelse",
+      "other": "Andet"
+    },
+    "priority": {
+      "low": "Lav",
+      "normal": "Normal",
+      "high": "Høj",
+      "urgent": "Akut"
+    },
+    "partStatus": {
+      "needed": "Mangler",
+      "reserved": "Reserveret",
+      "ordered": "Bestilt",
+      "received": "Modtaget",
+      "used": "Brugt"
+    },
+    "dashboard": {
+      "title": "Service & Værksted",
+      "subtitle": "Arbejdsordrer, bookinger og teknikertid i realtid",
+      "newBooking": "+ Ny booking",
+      "newOrder": "+ Ny arbejdsordre",
+      "kpi": {
+        "todayBookings": "Dagens bookinger",
+        "activeOrders": "Aktive arbejdsordrer",
+        "waitingParts": "Venter på dele",
+        "doneToday": "Færdig i dag",
+        "noBookings": "Ingen bookinger i dag",
+        "noOrders": "Ingen aktive ordrer",
+        "allGood": "Alt er på lager",
+        "noDone": "Ingen færdig i dag"
+      },
+      "schedule": {
+        "title": "Dagens program",
+        "viewAll": "Alle →",
+        "noBookings": "Ingen bookinger i dag"
+      },
+      "orders": {
+        "title": "Aktive arbejdsordrer",
+        "viewAll": "Alle →",
+        "noOrders": "Ingen aktive arbejdsordrer",
+        "createOrder": "Opret arbejdsordre →",
+        "ongoing": "{count} igangværende"
+      },
+      "pickup": {
+        "title": "✅ Klar til afhentning ({count})"
+      },
+      "stats": {
+        "earned": "Samlet optjent",
+        "pending": "Igangværende",
+        "readyPickup": "Klar til afhentning"
+      }
+    },
+    "bookings": {
+      "title": "Servicebookinger",
+      "newBooking": "+ Ny booking",
+      "searchPlaceholder": "Søg kunde, køretøj, reg.nr...",
+      "total": "{count} bookinger i alt",
+      "loading": "Indlæser bookinger...",
+      "noResults": "Ingen bookinger fundet",
+      "createFirst": "Opret en booking →",
+      "headers": {
+        "customer": "Kunde / Køretøj",
+        "type": "Type",
+        "dateTime": "Dato & Tid",
+        "technician": "Tekniker",
+        "status": "Status"
+      },
+      "tabs": {
+        "all": "Alle",
+        "booked": "Booket",
+        "confirmed": "Bekræftet",
+        "checked_in": "Checket ind",
+        "in_progress": "I gang",
+        "ready": "Klar",
+        "completed": "Afsluttet"
+      },
+      "actions": {
+        "confirm": "Bekræft",
+        "toOrder": "→ Arbejdsordre",
+        "open": "Åbn",
+        "openWorkOrder": "Åbn arbejdsordre"
+      },
+      "toasts": {
+        "confirmed": "Booking bekræftet",
+        "orderCreated": "Arbejdsordre oprettet!",
+        "orderError": "Kunne ikke oprette arbejdsordre"
+      }
+    },
+    "bookingDetail": {
+      "loading": "Indlæser...",
+      "notFound": "Booking ikke fundet",
+      "sections": {
+        "customer": "Kunde",
+        "vehicle": "Køretøj",
+        "appointment": "Aftale",
+        "service": "Servicesag"
+      },
+      "fields": {
+        "name": "Navn",
+        "phone": "Telefon",
+        "email": "E-mail",
+        "model": "Model",
+        "regNr": "Reg.nr",
+        "vin": "VIN",
+        "date": "Dato",
+        "time": "Tid",
+        "duration": "Varighed",
+        "technician": "Tekniker",
+        "type": "Type",
+        "description": "Beskrivelse",
+        "notes": "Interne noter"
+      },
+      "values": {
+        "minutes": "{n} minutter",
+        "notAssigned": "Ikke tildelt"
+      },
+      "actions": {
+        "createOrder": "Opret arbejdsordre",
+        "openOrder": "Åbn arbejdsordre #{id}"
+      },
+      "statusFlow": {
+        "confirmBooking": "Bekræft booking",
+        "checkIn": "Check ind kunde",
+        "startService": "Start service",
+        "markReady": "Markér klar",
+        "complete": "Afslut"
+      },
+      "toasts": {
+        "orderCreated": "Arbejdsordre oprettet!",
+        "orderError": "Kunne ikke oprette arbejdsordre"
+      }
+    },
+    "newBooking": {
+      "title": "Ny servicebooking",
+      "sections": {
+        "customer": "Kunde",
+        "vehicle": "Køretøj",
+        "serviceInfo": "Serviceoplysninger"
+      },
+      "fields": {
+        "searchCustomer": "Søg eksisterende kunde",
+        "searchPlaceholder": "Navn, telefon eller e-mail...",
+        "name": "Navn",
+        "namePlaceholder": "Fornavn Efternavn",
+        "phone": "Telefon",
+        "email": "E-mail",
+        "serviceType": "Type service",
+        "description": "Fejlbeskrivelse / Sag",
+        "descriptionPlaceholder": "Beskriv problemet eller hvad der skal udføres...",
+        "date": "Dato",
+        "time": "Tid",
+        "duration": "Varighed (min)",
+        "technician": "Tildelt tekniker",
+        "technicianPlaceholder": "Teknikerens navn",
+        "notes": "Interne noter",
+        "notesPlaceholder": "Synlig kun internt..."
+      },
+      "vehicle": {
+        "noHistory": "Ingen tidligere køretøjer fundet for denne kunde. Søg på registreringsnummer:",
+        "walkIn": "Angiv registreringsnummeret — alle køretøjsoplysninger hentes automatisk.",
+        "select": "Vælg køretøj",
+        "selectPlaceholder": "– Vælg køretøj –",
+        "regLookup": "+ Søg på andet reg.nr",
+        "purchasedHere": "(købt her)",
+        "serviced": "(serviceret)",
+        "found": "✓ Køretøj fundet",
+        "regNr": "Reg.nr",
+        "model": "Model",
+        "vin": "VIN",
+        "color": "Farve",
+        "fuel": "Brændstof",
+        "engine": "Motor",
+        "odometer": "Kilometertæller",
+        "nextInspection": "Næste syn",
+        "status": "Status",
+        "registered": "Registreret",
+        "regPlaceholder": "ABC123 eller VIN...",
+        "searchBtn": "Søg",
+        "notFound": "Køretøjet blev ikke fundet. Kontroller reg.nr og prøv igen.",
+        "lookupFailed": "Opslag mislykkedes. Prøv igen."
+      },
+      "actions": {
+        "cancel": "Annuller",
+        "submit": "Opret booking",
+        "submitting": "Gemmer..."
+      },
+      "toasts": {
+        "created": "Booking oprettet!",
+        "error": "Kunne ikke oprette booking",
+        "noDealership": "Ingen forhandler fundet",
+        "noDate": "Vælg dato"
+      },
+      "subtitle": "Udfyld detaljerne og gem bestillingen",
+      "preview": {
+        "heading": "Forhåndsvisning",
+        "subtitle": "Ny booking",
+        "vehicle": "Køretøj",
+        "service": "Service",
+        "date": "Dato",
+        "time": "Tid",
+        "technician": "Tekniker",
+        "matter": "Sag",
+        "empty": "Udfyld formularen for at se en forhåndsvisning"
+      },
+      "schedule": {
+        "title": "Dagens skema",
+        "count": "{n} bookinger",
+        "empty": "Ingen bookinger i dag",
+        "viewAll": "Se alle bookinger"
+      }
+    },
+    "orders": {
+      "title": "Arbejdsordrer",
+      "total": "{count} i alt",
+      "newOrder": "+ Ny arbejdsordre",
+      "searchPlaceholder": "Søg AO-nr, kunde, reg.nr...",
+      "loading": "Indlæser arbejdsordrer...",
+      "noResults": "Ingen arbejdsordrer fundet",
+      "createFirst": "Opret arbejdsordre →",
+      "noVehicle": "Køretøj ikke angivet",
+      "tabs": {
+        "all": "Alle",
+        "created": "Oprettet",
+        "in_progress": "I gang",
+        "waiting_parts": "Venter dele",
+        "ready": "Klar",
+        "completed": "Afsluttet",
+        "invoiced": "Faktureret"
+      },
+      "card": {
+        "technician": "Tekniker",
+        "total": "I alt",
+        "notAssigned": "Ikke tildelt"
+      }
+    },
+    "newOrder": {
+      "title": "Ny arbejdsordre",
+      "subtitle": "Walk-in eller uden forudgående booking",
+      "sections": {
+        "customer": "Kunde",
+        "vehicle": "Køretøj",
+        "jobInfo": "Arbejdsopgave"
+      },
+      "fields": {
+        "searchCustomer": "Søg eksisterende kunde",
+        "searchPlaceholder": "Navn eller telefon...",
+        "name": "Navn",
+        "phone": "Telefon",
+        "description": "Fejlbeskrivelse / Sag",
+        "descriptionPlaceholder": "Beskriv hvad der skal udføres...",
+        "priority": "Prioritet",
+        "laborRate": "Timepris (kr/t)",
+        "technician": "Tildelt tekniker",
+        "technicianPlaceholder": "Teknikerens navn",
+        "model": "Køretøj / Model",
+        "modelPlaceholder": "Honda CB500F 2022",
+        "regNr": "Reg.nr",
+        "regNrPlaceholder": "ABC123",
+        "vin": "VIN",
+        "vinPlaceholder": "Valgfrit",
+        "odometer": "Kilometertæller (km)",
+        "vehicleSelect": "Vælg køretøj",
+        "vehicleSelectPlaceholder": "– Vælg køretøj –",
+        "vehicleOther": "Andet køretøj / Ikke i systemet",
+        "noVehicleHistory": "Ingen tidligere køretøjer fundet for denne kunde.",
+        "purchasedHere": "(købt her)",
+        "serviced": "(serviceret)",
+        "namePlaceholder": "Kundens navn"
+      },
+      "vehicle": {
+        "regPlaceholder": "ABC123 eller VIN...",
+        "searchBtn": "Søg",
+        "found": "✓ Køretøj fundet",
+        "color": "Farve",
+        "fuel": "Brændstof",
+        "engine": "Motor",
+        "odometer": "Kilometertæller",
+        "nextInspection": "Næste syn",
+        "status": "Status",
+        "registered": "Registreret",
+        "notFound": "Køretøjet blev ikke fundet. Kontroller reg.nr og prøv igen.",
+        "lookupFailed": "Opslag mislykkedes. Prøv igen."
+      },
+      "actions": {
+        "cancel": "Annuller",
+        "submit": "Opret arbejdsordre",
+        "submitting": "Opretter..."
+      },
+      "toasts": {
+        "created": "Arbejdsordre oprettet!",
+        "error": "Kunne ikke oprette arbejdsordre",
+        "noDealership": "Ingen forhandler fundet"
+      },
+      "preview": {
+        "title": "Forhåndsvisning",
+        "orderNumber": "Ordrenummer",
+        "pending": "Tildeles ved oprettelse",
+        "statusNew": "Ny",
+        "emptyHint": "Udfyld formularen for at se en forhåndsvisning af arbejdsordren",
+        "customer": "Kunde",
+        "vehicle": "Køretøj",
+        "description": "Jobbeskrivelse",
+        "priorityLabel": "Prioritet",
+        "technicianLabel": "Tekniker",
+        "laborRateLabel": "Timepris",
+        "notSet": "–",
+        "unassigned": "Ikke tildelt"
+      },
+      "todaysOrders": {
+        "title": "Dagens arbejdsordrer",
+        "empty": "Ingen aktive arbejdsordrer i dag",
+        "viewAll": "Se alle arbejdsordrer"
+      }
+    },
+    "orderDetail": {
+      "loading": "Indlæser...",
+      "notFound": "Arbejdsordre ikke fundet",
+      "tabs": {
+        "items": "Artikler & Priser ({count})",
+        "time": "Tid ({count})",
+        "notes": "Noter",
+        "details": "Detaljer"
+      },
+      "statusActions": {
+        "startWork": "Start arbejde",
+        "markReady": "Markér klar til afhentning",
+        "partsReceived": "Dele modtaget → Start",
+        "completeAndInvoice": "Afslut & Fakturer",
+        "waitingParts": "⚠ Venter på dele",
+        "createPO": "📦 Opret indkøbsordre",
+        "payInvoice": "💳 Betal {id}",
+        "goToPayment": "💳 Gå til betaling — {id}"
+      },
+      "po": {
+        "title": "Opret indkøbsordre for {count} manglende artikler",
+        "vendor": "Leverandør",
+        "vendorPlaceholder": "F.eks. Mekonomen, Biltema...",
+        "create": "Opret IO",
+        "creating": "Opretter...",
+        "cancel": "Annuller"
+      },
+      "items": {
+        "type": "Type",
+        "name": "Betegnelse",
+        "artNr": "Art.nr",
+        "qty": "Antal",
+        "unitPrice": "Enhedspris",
+        "total": "I alt",
+        "status": "Status",
+        "emptyTitle": "Ingen rækker endnu",
+        "emptySubtitle": "Tilføj reservedele, arbejde eller andre gebyrer nedenfor",
+        "labor": "Arbejde",
+        "part": "Del",
+        "subtotal": "Delsum (ekskl. moms)",
+        "vat": "Moms 25%",
+        "grandTotal": "I alt at betale",
+        "partActions": "Lagerstatus — handlinger",
+        "markOrdered": "Markér bestilt",
+        "markReceived": "Modtaget",
+        "markUsed": "Brugt"
+      },
+      "taskStatus": {
+        "done": "Færdig",
+        "in_progress": "I gang",
+        "pending": "Ikke startet"
+      },
+      "addLine": {
+        "label": "Tilføj række:",
+        "part": "🔧 Reservedel",
+        "labor": "⏱ Arbejde",
+        "other": "📋 Andet",
+        "artNr": "Art.nr",
+        "artNrPlaceholder": "Valgfrit",
+        "nameLabelLabor": "Arbejdsproces",
+        "nameLabelPart": "Reservedel / Betegnelse",
+        "nameLabelOther": "Beskrivelse",
+        "namePlaceholderPart": "Søg i lageret eller skriv fritekst...",
+        "namePlaceholderLabor": "F.eks. Olieskift, Bremserenovering",
+        "namePlaceholderOther": "Beskrivelse",
+        "hours": "Timer",
+        "hourRate": "Timepris (kr)",
+        "qty": "Antal",
+        "unitPrice": "Stykpris (kr)",
+        "addBtn": "+ Tilføj",
+        "inStock": "✓ {count} stk på lager — reserveres automatisk",
+        "outOfStock": "⚠ Ikke på lager — indkøbsordre påkrævet",
+        "hintPart": "Søg på navn eller art.nr for at finde dele på lageret. Findes delen på lager reserveres den automatisk.",
+        "hintLabor": "Lad timepris stå tomt for at bruge arbejdsordrens timepris ({rate} kr/t).",
+        "accessory": "Tilbehør",
+        "sparePart": "Reservedel",
+        "stockLabel": "{count} på lager",
+        "outOfStockLabel": "Udsolgt"
+      },
+      "time": {
+        "checkInTitle": "Check ind tekniker",
+        "techPlaceholder": "Tekniker navn",
+        "checkInBtn": "Check ind",
+        "activeEntry": "⏱ {name} er checket ind",
+        "since": "Siden",
+        "checkOut": "Check ud",
+        "noEntries": "Ingen tidsregistrering endnu",
+        "header": "Tidsregistrering",
+        "totalLabel": "I alt:",
+        "ongoing": "I gang..."
+      },
+      "notes": {
+        "title": "Interne noter",
+        "placeholder": "Interne noter, kundekommunikation, tekniske observationer...",
+        "save": "Gem noter"
+      },
+      "details": {
+        "customer": "Kunde",
+        "vehicle": "Køretøj",
+        "matter": "Sag",
+        "timestamps": "Tidspunkter",
+        "name": "Navn",
+        "phone": "Telefon",
+        "model": "Model",
+        "regNr": "Reg.nr",
+        "vin": "VIN",
+        "odometer": "Kilometertæller",
+        "noDescription": "Ingen beskrivelse",
+        "created": "Oprettet",
+        "started": "Startet",
+        "completed": "Afsluttet",
+        "laborRate": "Timepris",
+        "openProfile": "Åbn kundeprofil →"
+      },
+      "toasts": {
+        "laborAdded": "Arbejdsrække tilføjet",
+        "partError": "Kunne ikke tilføje",
+        "orderCreated": "Indkøbsordre {id} oprettet",
+        "poError": "Fejl ved oprettelse af IO",
+        "completedRedirect": "Afsluttet! Åbner betaling...",
+        "completeError": "Fejl ved afslutning",
+        "notesSaved": "Noter gemt",
+        "checkedOut": "Checket ud",
+        "noTechName": "Angiv tekniker navn"
+      }
+    },
+    "purchaseOrders": {
+      "title": "📦 Indkøbsordrer — Service",
+      "subtitle": "Reservedele og tilbehør bestilt fra eksterne leverandører",
+      "loading": "Indlæser indkøbsordrer...",
+      "noOrders": "Ingen indkøbsordrer endnu",
+      "noOrdersHint": "Indkøbsordrer oprettes automatisk fra arbejdsordrer, når reservedele mangler på lager.",
+      "status": {
+        "Draft": "Kladde",
+        "Ordered": "Bestilt",
+        "Partial": "Del-modtaget",
+        "Reviewed": "Modtaget",
+        "Cancelled": "Annulleret"
+      },
+      "table": {
+        "order": "Indkøbsordre / AO",
+        "vendor": "Leverandør",
+        "items": "Artikler",
+        "eta": "Levering (ETA)",
+        "total": "Total",
+        "status": "Status",
+        "actions": "Handlinger"
+      },
+      "progress": {
+        "draft": "Kladde",
+        "ordered": "Bestilt",
+        "partial": "Delvis",
+        "reviewed": "Gennemgået"
+      },
+      "actions": {
+        "send": "📧 Send",
+        "receive": "📦 Modtag",
+        "done": "✓ Færdig"
+      },
+      "send": {
+        "title": "Send til leverandør",
+        "emailLabel": "Leverandørens e-mail (valgfrit)",
+        "emailPlaceholder": "info@leverandor.dk",
+        "sendEmail": "Send via e-mail",
+        "sendEmailDesc": "Åbner din e-mailklient med PO udfyldt",
+        "print": "Udskriv / Gem PDF",
+        "printDesc": "Send manuelt via post eller leverandørportal",
+        "markOrdered": "Marker som bestilt",
+        "markOrderedDesc": "Jeg har allerede bestilt manuelt",
+        "total": "I alt",
+        "toastOrdered": "markeret som bestilt",
+        "toastError": "Kunne ikke opdatere status"
+      },
+      "receive": {
+        "title": "Modtag varer",
+        "instruction": "Sæt kryds ved de artikler, der kom med leveringen:",
+        "allReceived": "Alle artikler allerede modtaget",
+        "selectAll": "Vælg alle",
+        "clear": "Ryd",
+        "cancel": "Annuller",
+        "saving": "Gemmer...",
+        "confirmBtn": "Bekræft modtagelse ({n})",
+        "toastOk": "artikel(er) modtaget",
+        "toastSelect": "Vælg mindst én artikel",
+        "toastError": "Fejl"
+      },
+      "eta": {
+        "set": "Angiv ETA",
+        "tooltip": "Klik for at angive leveringsdato"
+      },
+      "workOrder": "AO-{id}",
+      "itemsCount": "{count} artikler",
+      "noEta": "Ingen ETA",
+      "titleShort": "Indkøbsordrer",
+      "section": "Indkøb",
+      "noResults": "Ingen resultater",
+      "backToService": "← Tilbage til serviceoversigt",
+      "searchPlaceholder": "Søg PO, leverandør, artikel...",
+      "howItWorks": {
+        "title": "Sådan fungerer det",
+        "steps": [
+          {
+            "title": "Reservedel tilføjes AO",
+            "desc": "Ikke på lager → status \"Nødvendig\""
+          },
+          {
+            "title": "Indkøbsordre oprettes",
+            "desc": "Fra arbejdsordren → leverandør vælges"
+          },
+          {
+            "title": "Sendes til leverandør",
+            "desc": "Via e-mail eller leverandørportal"
+          },
+          {
+            "title": "Varer modtages → besked",
+            "desc": "AO genoptages automatisk"
+          }
+        ]
+      },
+      "stats": {
+        "total": "I alt",
+        "active": "Aktive bestillinger",
+        "waiting": "Afventer bestilling",
+        "done": "Færdige"
+      },
+      "tabs": {
+        "all": "Alle",
+        "Draft": "Kladde",
+        "Ordered": "Bestilt",
+        "Partial": "Del-modtaget",
+        "Reviewed": "Modtaget",
+        "Cancelled": "Annulleret"
+      },
+      "subTable": {
+        "article": "Artikel",
+        "artNo": "Art.nr",
+        "qty": "Antal",
+        "unitPrice": "Enhedspris",
+        "total": "Total",
+        "status": "Status"
+      },
+      "itemStatus": {
+        "received": "✓ Modtaget",
+        "pending": "· Afventes"
+      },
+      "noItems": "Ingen artikler registreret",
+      "notesLabel": "Bemærkning:",
+      "itemsReceived": "{r}/{t} modtaget"
+    },
+    "payment": {
+      "loading": "Indlæser faktura...",
+      "notFound": "Arbejdsordre ikke fundet",
+      "breadcrumb": "Betaling",
+      "title": "Servicefaktura — Betaling",
+      "backToOrder": "← Tilbage til arbejdsordre",
+      "methods": {
+        "swish": "MobilePay/Swish",
+        "card": "Kort / Kontaktløs",
+        "bank_transfer": "Bankoverførsel",
+        "klarna": "Klarna",
+        "cash": "Kontant"
+      },
+      "success": {
+        "title": "Betaling bekræftet!",
+        "invoices": "Fakturaer",
+        "backBtn": "Tilbage til AO →",
+        "invoice": "Faktura",
+        "amount": "Beløb",
+        "method": "Metode",
+        "paid": "Betalt"
+      },
+      "summary": {
+        "title": "Faktureringsgrundlag",
+        "labour": "Arbejde",
+        "parts": "Reservedele & tilbehør",
+        "labourTotal": "Sum arbejde",
+        "partsTotal": "Sum dele",
+        "totalLabel": "Total at betale (inkl. moms)",
+        "kr": "kr",
+        "saving": "Gemmer...",
+        "vatLine": "heraf moms (20%)",
+        "net": "netto",
+        "invoiceLabel": "Faktura",
+        "vehicle": "Køretøj"
+      },
+      "methodSelect": "Vælg betalingsmetode",
+      "swish": {
+        "amountLabel": "Beløb at modtage",
+        "ref": "Ref:",
+        "merchantNum": "Swish handelsnummer",
+        "notConfigured": "Swish-nummer ikke konfigureret.",
+        "configureLink": "Tilføj det i",
+        "configureWhere": "Indstillinger → Profil",
+        "sendRequest": "Send betalingsanmodning til kunde",
+        "phonePlaceholder": "+4550123456",
+        "sendBtn": "Send anmodning",
+        "hint": "Kunden modtager en Swish-notifikation og godkender betalingen.",
+        "waiting": "Venter på kundens betaling",
+        "waitHint": "Bed kunden åbne Swish og sende",
+        "withRef": "med reference",
+        "polls": "tjek · Req-ID:",
+        "confirmBtn": "✓ Bekræft — betaling modtaget",
+        "cancelBtn": "✕ Annuller",
+        "confirmed": "✅ Swish-betaling bekræftet",
+        "received": "modtaget · Ref:",
+        "failed": "Betaling mislykkedes",
+        "retry": "Prøv igen",
+        "errorPhone": "Angiv telefonnummer",
+        "errorDeclined": "Swish afvist:"
+      },
+      "card": {
+        "title": "Kontaktløs & kortbetaling",
+        "contactless": "Kontaktløs",
+        "terminalId": "Nets AXEPT · Terminal ID:",
+        "ready": "KLAR",
+        "approved": "GODKENDT",
+        "declined": "AFVIST",
+        "active": "AKTIV",
+        "tapHint": "Kontaktløs — hold kortet tæt på terminalen",
+        "tapSub": "Kontaktløs · Chip & PIN · Magnetstribe — alle kort accepteres",
+        "screenTitle": "Terminalskærm",
+        "amountLabel": "Beløb at betale",
+        "sendBtn": "Send beløb til terminal →",
+        "waitSent": "Beløb sendt — venter på kunden…",
+        "waitTap": "Kunden: tap, indsæt eller træk kortet",
+        "authorising": "Autoriserer med kortnetværket…",
+        "confirmed": "✅ Kortbetaling godkendt",
+        "authCode": "Auth-kode",
+        "amount": "Beløb",
+        "transaction": "Transaktion",
+        "errorTitle": "❌ Kort afvist",
+        "errorHint": "Bed kunden prøve et andet kort eller betalingsmetode.",
+        "retry": "Prøv igen"
+      },
+      "bank": {
+        "title": "Betalingsinstruktioner",
+        "bankgiro": "Bankgiro",
+        "iban": "IBAN",
+        "bic": "BIC/SWIFT",
+        "message": "Besked",
+        "amount": "Beløb",
+        "hint": "Meddel kunden at angive fakturanummeret",
+        "hintEnd": "som reference",
+        "confirmBtn": "Bekræft bankoverførsel modtaget",
+        "confirmed": "✓ Bekræftet"
+      },
+      "klarna": {
+        "title": "Klarna — Betal nu / senere / afdrag",
+        "subtitle": "Kunden udfylder oplysninger direkte i Klarna-widgetten",
+        "confirmed": "BEKRÆFTET",
+        "creatingSession": "Opretter Klarna-session…",
+        "loadingSdk": "Indlæser Klarna SDK…",
+        "selectPlan": "Vælg betalingsplan",
+        "payNow": "Betal nu",
+        "payLater": "Betal om 30 dage",
+        "payOverTime": "Del op",
+        "authorising": "Autoriserer…",
+        "placingOrder": "Opretter ordre…",
+        "authoriseBtn": "Autoriser Klarna-betaling",
+        "paymentConfirmed": "✅ Klarna-betaling bekræftet",
+        "orderId": "Ordre-ID:",
+        "errorTitle": "Klarna-fejl",
+        "errorDeclined": "Klarna-autorisering afvist. Bed kunden prøve igen.",
+        "errorShow": "Klarna kan ikke vise denne mulighed. Prøv en anden."
+      },
+      "cash": {
+        "label": "Kontant betaling",
+        "confirmBtn": "Kontant modtaget — Bekræft",
+        "confirmed": "✓ Kontant modtaget"
+      }
+    }
   },
   "settingsUsers": {
     "title": "Brugere & Tilladelser",

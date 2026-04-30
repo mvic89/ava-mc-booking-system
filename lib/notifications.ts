@@ -1,7 +1,7 @@
 // ─── Notification store ───────────────────────────────────────────────────────
 // Pure localStorage + CustomEvent bus — no server required.
 
-export type NotifType = 'lead' | 'agreement' | 'payment' | 'customer' | 'system';
+export type NotifType = 'lead' | 'agreement' | 'payment' | 'customer' | 'system' | 'info' | 'warning' | 'success';
 
 export interface AppNotification {
   id:        string;

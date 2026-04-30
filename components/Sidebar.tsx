@@ -199,7 +199,7 @@ export default function Sidebar() {
         { icon: '📧', label: t('navigation.invoices'),     href: '/invoices',     roles: ['admin', 'sales', 'service'] },
         { icon: '❌', label: t('navigation.cancellations'),href: '/cancellations',roles: ['admin', 'sales'] },
         { icon: '🛡️', label: t('navigation.warranties'),   href: '/warranties',   roles: ['admin', 'sales', 'service'] },
-        { icon: '🔧', label: t('navigation.service'),      href: '/service',      roles: ['admin', 'sales', 'service'] },
+        { icon: '🔧', label: t('navigation.service'),      href: '/service',      roles: ['admin', 'service'] },
       ],
     },
     {

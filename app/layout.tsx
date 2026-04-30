@@ -21,6 +21,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "BikeMeNow — Dealership Platform",
   description: "SaaS dealership management platform for motorcycle dealers in Sweden",
+  icons: {
+    icon:    '/BikeMeNow_logo_test.png',
+    apple:   '/BikeMeNow_logo_test.png',
+    shortcut:'/BikeMeNow_logo_test.png',
+  },
 };
 
 export default async function RootLayout({
