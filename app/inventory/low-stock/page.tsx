@@ -6,13 +6,43 @@ import { useInventory } from '@/context/InventoryContext'
 import { supabase } from '@/lib/supabase'
 import { getDealershipId, getDealershipTag } from '@/lib/tenant'
 import { CreatePOModal, FlatInventoryItem } from '@/components/CreatePOModal'
-import { POLineItem, POStatus, PurchaseOrder, LowStockAlert } from '@/utils/types'
+import { POLineItem, POStatus, PurchaseOrder, LowStockAlert, POPlacementOutcome } from '@/utils/types'
 import Sidebar from '@/components/Sidebar'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function poIdToRefNo(poId: string): string {
     return poId.replace(/^PO-/, 'REF-')
+}
+
+function businessDaysSince(isoDate: string): number {
+    const start = new Date(isoDate)
+    const now   = new Date()
+    let days = 0
+    const cur = new Date(start)
+    while (cur < now) {
+        cur.setDate(cur.getDate() + 1)
+        const dow = cur.getDay()
+        if (dow !== 0 && dow !== 6) days++
+    }
+    return days
+}
+
+function timeAgo(isoDate: string): string {
+    const days = Math.floor((Date.now() - new Date(isoDate).getTime()) / 86_400_000)
+    if (days < 1)   return 'today'
+    if (days === 1) return 'yesterday'
+    if (days < 30)  return `${days}d ago`
+    const months = Math.floor(days / 30)
+    if (months < 12) return `${months}mo ago`
+    return `${Math.floor(months / 12)}yr ago`
+}
+
+const PLACEMENT_OUTCOME_LABEL: Record<POPlacementOutcome, { label: string; color: string }> = {
+    confirmed:     { label: 'All confirmed',    color: 'bg-green-100 text-green-700'  },
+    backordered:   { label: 'Items backordered', color: 'bg-amber-100 text-amber-700' },
+    credit_blocked:{ label: 'Credit hold',       color: 'bg-red-100 text-red-700'     },
+    substituted:   { label: 'Items substituted', color: 'bg-blue-100 text-blue-700'   },
 }
 
 async function generateNextPOId(tag: string): Promise<string> {
@@ -60,12 +90,20 @@ export default function InventoryLowStockPage() {
     const [nextPOId,        setNextPOId]        = useState('')
     const [dealerSuppliers, setDealerSuppliers] = useState<string[]>([])
     const [vendorEmails,    setVendorEmails]    = useState<Record<string, string>>({})
+    const [vendorMOQs,      setVendorMOQs]      = useState<Record<string, number>>({})
     const [openPOs,         setOpenPOs]         = useState<PurchaseOrder[]>([])
     const [supplierFilter,  setSupplierFilter]  = useState('')
 
-    // "Mark as Ordered" inline form — which vendor's form is open + the ref input value
-    const [orderingVendor,  setOrderingVendor]  = useState<string | null>(null)
-    const [portalOrderRef,  setPortalOrderRef]  = useState('')
+    // inventoryId → { date, qty, poId } from last *received* PO — shows "last ordered" context
+    const [lastOrderedMap,  setLastOrderedMap]  = useState<Record<string, { date: string; qty: number; poId: string }>>({})
+
+    // "Mark as Ordered" inline form state
+    const [orderingVendor,     setOrderingVendor]     = useState<string | null>(null)
+    const [portalOrderRef,     setPortalOrderRef]     = useState('')
+    const [portalOutcome,      setPortalOutcome]      = useState<POPlacementOutcome>('confirmed')
+    const [portalNotes,        setPortalNotes]        = useState('')
+    const [backorderedItemIds, setBackorderedItemIds] = useState<Set<string>>(new Set())
+    const [backorderedETA,     setBackorderedETA]     = useState('')
 
     // Stores the vendor + ONLY the items to pre-fill when the CreatePO modal opens.
     const [modalConfig, setModalConfig] = useState<{
@@ -90,7 +128,7 @@ export default function InventoryLowStockPage() {
 
         supabase
             .from('vendors')
-            .select('name, email')
+            .select('name, email, moq')
             .eq('dealership_id', id)
             .eq('is_manual', true)
             .order('name')
@@ -98,8 +136,13 @@ export default function InventoryLowStockPage() {
                 if (data) {
                     setDealerSuppliers(data.map((r) => r.name))
                     const emailMap: Record<string, string> = {}
-                    data.forEach((r) => { if (r.email) emailMap[r.name] = r.email })
+                    const moqMap:   Record<string, number> = {}
+                    data.forEach((r) => {
+                        if (r.email) emailMap[r.name] = r.email
+                        if (r.moq)   moqMap[r.name]   = r.moq
+                    })
                     setVendorEmails(emailMap)
+                    setVendorMOQs(moqMap)
                 }
             })
 
@@ -124,6 +167,9 @@ export default function InventoryLowStockPage() {
                 notes:            po.notes ?? undefined,
                 supplierOrderRef: po.supplier_order_ref ?? undefined,
                 placedAt:         po.placed_at ?? undefined,
+                placementOutcome: po.placement_outcome ?? undefined,
+                placementNotes:   po.placement_notes ?? undefined,
+                approvalStatus:   po.approval_status ?? undefined,
                 items: (items ?? [])
                     .filter((li) => li.po_id === po.id)
                     .map((li) => ({
@@ -138,7 +184,39 @@ export default function InventoryLowStockPage() {
             }))
             setOpenPOs(mapped)
         }
+
+        async function loadReceivedHistory() {
+            // Fetch received POs to build "last ordered" context per inventory item
+            const { data: receivedOrders } = await supabase
+                .from('purchase_orders')
+                .select('id, date')
+                .eq('dealership_id', id!)
+                .eq('status', 'Received')
+                .order('date', { ascending: false })
+            if (!receivedOrders || receivedOrders.length === 0) return
+            const poIds = receivedOrders.map((o) => o.id)
+            const { data: lineItems } = await supabase
+                .from('po_line_items')
+                .select('po_id, inventory_id, order_qty')
+                .in('po_id', poIds)
+            if (!lineItems) return
+            // Build map: inventoryId → most recent received PO line
+            const dateById: Record<string, string> = {}
+            receivedOrders.forEach((o) => { dateById[o.id] = o.date })
+            const map: Record<string, { date: string; qty: number; poId: string }> = {}
+            for (const li of lineItems) {
+                const date = dateById[li.po_id]
+                if (!date || !li.inventory_id) continue
+                const existing = map[li.inventory_id]
+                if (!existing || date > existing.date) {
+                    map[li.inventory_id] = { date, qty: li.order_qty, poId: li.po_id }
+                }
+            }
+            setLastOrderedMap(map)
+        }
+
         loadOpenPOs()
+        loadReceivedHistory()
     }, [])
 
     const allInventoryItems = useMemo<FlatInventoryItem[]>(() => [
@@ -173,8 +251,8 @@ export default function InventoryLowStockPage() {
         [lowStockAlerts, dealerSuppliers],
     )
 
-    const visibleGroups = supplierFilter
-        ? supplierGroups.filter((g) => g.vendor === supplierFilter)
+    const visibleGroups = supplierFilter.trim()
+        ? supplierGroups.filter((g) => g.vendor.toLowerCase().includes(supplierFilter.trim().toLowerCase()))
         : supplierGroups
 
     // ── PO handlers ───────────────────────────────────────────────────────────
@@ -266,23 +344,32 @@ export default function InventoryLowStockPage() {
 
     // ── Mark a PO as placed on the supplier portal ─────────────────────────────
 
-    async function handleMarkAsOrdered(poId: string, orderRef: string) {
+    async function handleMarkAsOrdered(poId: string, orderRef: string, outcome: POPlacementOutcome, notes: string) {
         const dealershipId = getDealershipId()
         const placedAt     = new Date().toISOString()
         setOpenPOs((prev) =>
             prev.map((p) =>
                 p.id === poId
-                    ? { ...p, status: 'Sent', supplierOrderRef: orderRef || undefined, placedAt }
+                    ? { ...p, status: 'Sent', supplierOrderRef: orderRef || undefined, placedAt, placementOutcome: outcome, placementNotes: notes || undefined }
                     : p,
             ),
         )
         setOrderingVendor(null)
         setPortalOrderRef('')
+        setPortalOutcome('confirmed')
+        setPortalNotes('')
         if (dealershipId) {
-            await supabase
+            const { error } = await supabase
                 .from('purchase_orders')
-                .update({ status: 'Sent', supplier_order_ref: orderRef || null, placed_at: placedAt })
+                .update({
+                    status:             'Sent',
+                    supplier_order_ref: orderRef || null,
+                    placed_at:          placedAt,
+                    placement_outcome:  outcome,
+                    placement_notes:    notes || null,
+                })
                 .eq('id', poId)
+            if (error) console.error('[Low Stock] Mark ordered update failed:', error.message, error.details)
         }
     }
 
@@ -359,22 +446,30 @@ export default function InventoryLowStockPage() {
                         })}
                     </div>
 
-                    {/* Supplier filter */}
-                    <select
-                        value={supplierFilter}
-                        onChange={(e) => setSupplierFilter(e.target.value)}
-                        className="text-xs border border-slate-200 rounded-lg bg-white px-3 py-1.5 text-slate-600 focus:outline-none focus:ring-1 focus:ring-[#FF6B2C]/40"
-                    >
-                        <option value="">All suppliers</option>
-                        {allSuppliers.map((s) => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                    {supplierFilter && (
-                        <button
-                            onClick={() => setSupplierFilter('')}
-                            className="text-xs text-slate-400 hover:text-slate-600 underline"
-                        >
-                            clear
-                        </button>
+                    {/* Supplier search filter */}
+                    <div className="relative flex items-center">
+                        <span className="absolute left-2.5 text-slate-400 text-xs pointer-events-none">🔍</span>
+                        <input
+                            type="text"
+                            placeholder="Filter by supplier…"
+                            value={supplierFilter}
+                            onChange={(e) => setSupplierFilter(e.target.value)}
+                            className="pl-7 pr-8 py-1.5 text-xs border border-slate-200 rounded-lg bg-white text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#FF6B2C]/40 w-44"
+                        />
+                        {supplierFilter && (
+                            <button
+                                onClick={() => setSupplierFilter('')}
+                                className="absolute right-2 text-slate-400 hover:text-slate-600 text-xs font-bold"
+                                title="Clear filter"
+                            >
+                                ✕
+                            </button>
+                        )}
+                    </div>
+                    {supplierFilter.trim() && (
+                        <span className="text-xs text-slate-500">
+                            {visibleGroups.length} supplier{visibleGroups.length !== 1 ? 's' : ''} found
+                        </span>
                     )}
                 </div>
 
@@ -455,7 +550,15 @@ export default function InventoryLowStockPage() {
                                 ? 'bg-teal-100 text-teal-700'
                                 : 'bg-slate-100 text-slate-600'
 
-                            const vendorEmail = vendorEmails[group.vendor]
+                            const followUpNeeded = existingOpenPO?.placedAt
+                                ? businessDaysSince(existingOpenPO.placedAt) >= 5 && existingOpenPO.status === 'Sent'
+                                : false
+                            const daysWaiting = existingOpenPO?.placedAt
+                                ? businessDaysSince(existingOpenPO.placedAt)
+                                : 0
+
+                            const vendorEmail    = vendorEmails[group.vendor]
+                            const vendorMOQ      = vendorMOQs[group.vendor]
                             const isOrderingThis = orderingVendor === group.vendor
 
                             return (
@@ -477,14 +580,29 @@ export default function InventoryLowStockPage() {
                                                         <p className="text-sm font-bold text-slate-800 truncate">
                                                             {group.vendor}
                                                         </p>
-                                                        {allCovered && (
+                                                        {allCovered && !followUpNeeded && (
                                                             <span className="text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full shrink-0 uppercase tracking-wide">
                                                                 Order in progress
                                                             </span>
                                                         )}
-                                                        {someCovered && (
+                                                        {someCovered && !followUpNeeded && (
                                                             <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full shrink-0 uppercase tracking-wide">
                                                                 Partially ordered
+                                                            </span>
+                                                        )}
+                                                        {followUpNeeded && (
+                                                            <span className="text-[10px] font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-full shrink-0 uppercase tracking-wide animate-pulse">
+                                                                ⚠ Follow up — {daysWaiting}d waiting
+                                                            </span>
+                                                        )}
+                                                        {existingOpenPO?.placementOutcome && (
+                                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 uppercase tracking-wide ${PLACEMENT_OUTCOME_LABEL[existingOpenPO.placementOutcome].color}`}>
+                                                                {PLACEMENT_OUTCOME_LABEL[existingOpenPO.placementOutcome].label}
+                                                            </span>
+                                                        )}
+                                                        {existingOpenPO?.approvalStatus === 'pending_approval' && (
+                                                            <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full shrink-0 uppercase tracking-wide">
+                                                                🔐 Pending approval
                                                             </span>
                                                         )}
                                                     </div>
@@ -595,32 +713,174 @@ export default function InventoryLowStockPage() {
                                             </div>
                                         </div>
 
-                                        {/* ── "Mark as Ordered" inline form ── */}
+                                        {/* ── "Placed on Portal" inline form — full outcome capture ── */}
                                         {isOrderingThis && existingOpenPO && (
-                                            <div className="mt-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-xs font-semibold text-green-800 mb-1">
-                                                        Confirm order placed on supplier portal
-                                                    </p>
+                                            <div className="mt-3 bg-green-50 border border-green-200 rounded-xl px-4 py-4 space-y-3">
+                                                <p className="text-xs font-semibold text-green-800">
+                                                    Confirm order placed on supplier portal
+                                                    <span className="ml-1.5 font-normal text-green-700">
+                                                        — Ref No. <span className="font-mono font-bold">{existingOpenPO.refNo ?? poIdToRefNo(existingOpenPO.id)}</span>
+                                                    </span>
+                                                </p>
+
+                                                {/* Outcome radio */}
+                                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                                    {([ 'confirmed', 'backordered', 'credit_blocked', 'substituted'] as POPlacementOutcome[]).map((opt) => (
+                                                        <label
+                                                            key={opt}
+                                                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer text-xs font-semibold transition-colors ${
+                                                                portalOutcome === opt
+                                                                    ? 'bg-green-600 border-green-600 text-white'
+                                                                    : 'bg-white border-green-200 text-slate-600 hover:border-green-400'
+                                                            }`}
+                                                        >
+                                                            <input
+                                                                type="radio"
+                                                                name={`outcome-${group.vendor}`}
+                                                                value={opt}
+                                                                checked={portalOutcome === opt}
+                                                                onChange={() => setPortalOutcome(opt)}
+                                                                className="sr-only"
+                                                            />
+                                                            {PLACEMENT_OUTCOME_LABEL[opt].label}
+                                                        </label>
+                                                    ))}
+                                                </div>
+
+                                                <div className="flex flex-col sm:flex-row gap-2">
                                                     <input
                                                         type="text"
                                                         placeholder="Supplier's portal order / confirmation number (optional)"
                                                         value={portalOrderRef}
                                                         onChange={(e) => setPortalOrderRef(e.target.value)}
-                                                        className="w-full text-xs border border-green-300 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-green-400 placeholder-slate-300"
+                                                        className="flex-1 text-xs border border-green-300 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-green-400 placeholder-slate-300"
                                                         autoFocus
                                                     />
-                                                    <p className="text-[10px] text-green-600 mt-1 italic">
-                                                        This marks the PO as <strong>Sent</strong> and records when the order was placed.
-                                                        Use Ref No. <span className="font-mono font-bold">{existingOpenPO.refNo ?? poIdToRefNo(existingOpenPO.id)}</span> on the supplier portal.
-                                                    </p>
                                                 </div>
-                                                <button
-                                                    onClick={() => handleMarkAsOrdered(existingOpenPO.id, portalOrderRef)}
-                                                    className="shrink-0 bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors"
-                                                >
-                                                    ✓ Confirm Order Placed
-                                                </button>
+
+                                                {/* Backordered: item checklist + new ETA */}
+                                                {portalOutcome === 'backordered' && (
+                                                    <div className="space-y-2">
+                                                        <p className="text-[10px] uppercase tracking-wider text-green-700 font-semibold">
+                                                            Select backordered items:
+                                                        </p>
+                                                        <div className="space-y-0.5 max-h-40 overflow-y-auto rounded-lg border border-green-200 bg-white px-2 py-1">
+                                                            {(existingOpenPO.items.length > 0 ? existingOpenPO.items : group.items.map(({ item, qty }) => ({
+                                                                inventoryId:   item.id,
+                                                                name:          item.name,
+                                                                articleNumber: item.articleNumber,
+                                                                orderQty:      qty,
+                                                                unitCost:      item.cost,
+                                                                lineTotal:     qty * item.cost,
+                                                                size:          item.size,
+                                                            }))).map((li) => (
+                                                                <label
+                                                                    key={`${li.inventoryId}-${li.size ?? ''}`}
+                                                                    className="flex items-start gap-2.5 px-1.5 py-2 rounded-md hover:bg-green-50 cursor-pointer"
+                                                                >
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={backorderedItemIds.has(`${li.inventoryId}|${li.size ?? ''}`)}
+                                                                        onChange={(e) => {
+                                                                            const key = `${li.inventoryId}|${li.size ?? ''}`
+                                                                            setBackorderedItemIds((prev) => {
+                                                                                const next = new Set(prev)
+                                                                                if (e.target.checked) next.add(key)
+                                                                                else next.delete(key)
+                                                                                return next
+                                                                            })
+                                                                        }}
+                                                                        className="w-3.5 h-3.5 accent-green-600 shrink-0 mt-0.5"
+                                                                    />
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="text-xs font-semibold text-gray-800 leading-tight truncate">{li.name}</div>
+                                                                        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                                                            <span className="font-mono text-[10px] text-gray-400">{li.articleNumber}</span>
+                                                                            {li.size && (
+                                                                                <span className="text-[10px] font-bold text-orange-600 bg-orange-50 border border-orange-200 rounded px-1.5 py-0.5">
+                                                                                    {li.size}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                    <span className="text-xs font-bold text-gray-600 tabular-nums shrink-0 mt-0.5">×{li.orderQty}</span>
+                                                                </label>
+                                                            ))}
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[10px] text-green-700 font-semibold uppercase tracking-wider whitespace-nowrap">New ETA:</span>
+                                                            <input
+                                                                type="date"
+                                                                value={backorderedETA}
+                                                                onChange={(e) => setBackorderedETA(e.target.value)}
+                                                                className="text-xs border border-green-300 rounded-lg px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-green-400"
+                                                            />
+                                                            <span className="text-[10px] text-gray-400 italic">optional</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Credit blocked / substituted: free-text notes */}
+                                                {(portalOutcome === 'credit_blocked' || portalOutcome === 'substituted') && (
+                                                    <textarea
+                                                        placeholder={
+                                                            portalOutcome === 'credit_blocked'
+                                                                ? 'What did the supplier say? Credit limit / outstanding invoice?'
+                                                                : 'Which items were substituted? New article numbers?'
+                                                        }
+                                                        value={portalNotes}
+                                                        onChange={(e) => setPortalNotes(e.target.value)}
+                                                        rows={2}
+                                                        className="w-full text-xs border border-green-300 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-green-400 placeholder-slate-300 resize-none"
+                                                    />
+                                                )}
+
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => {
+                                                            let compiledNotes = portalNotes
+                                                            if (portalOutcome === 'backordered') {
+                                                                const allItems = existingOpenPO.items.length > 0
+                                                                    ? existingOpenPO.items
+                                                                    : group.items.map(({ item, qty }) => ({
+                                                                        inventoryId: item.id, name: item.name,
+                                                                        articleNumber: item.articleNumber, orderQty: qty,
+                                                                        unitCost: item.cost, lineTotal: qty * item.cost, size: item.size,
+                                                                    }))
+                                                                const selected = allItems.filter((li) =>
+                                                                    backorderedItemIds.has(`${li.inventoryId}|${li.size ?? ''}`)
+                                                                )
+                                                                const itemsText = selected.length > 0
+                                                                    ? selected.map((li) => {
+                                                                        const sizePart = li.size ? ` [${li.size}]` : ''
+                                                                        return `${li.name}${sizePart} (${li.articleNumber}) ×${li.orderQty}`
+                                                                    }).join(', ')
+                                                                    : 'Items not specified'
+                                                                const etaText = backorderedETA ? `. New ETA: ${backorderedETA}` : ''
+                                                                compiledNotes = `Backordered: ${itemsText}${etaText}`
+                                                            }
+                                                            handleMarkAsOrdered(existingOpenPO.id, portalOrderRef, portalOutcome, compiledNotes)
+                                                            setBackorderedItemIds(new Set())
+                                                            setBackorderedETA('')
+                                                        }}
+                                                        className="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors"
+                                                    >
+                                                        ✓ Confirm Order Placed
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            setOrderingVendor(null)
+                                                            setPortalOrderRef('')
+                                                            setPortalOutcome('confirmed')
+                                                            setPortalNotes('')
+                                                            setBackorderedItemIds(new Set())
+                                                            setBackorderedETA('')
+                                                        }}
+                                                        className="bg-white border border-green-200 text-slate-600 text-xs font-semibold px-3 py-2 rounded-lg hover:bg-green-50 transition-colors"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </div>
                                             </div>
                                         )}
                                     </div>
@@ -633,13 +893,21 @@ export default function InventoryLowStockPage() {
                                                 <th className="px-4 py-2">Item</th>
                                                 <th className="px-4 py-2 hidden md:table-cell">Article No.</th>
                                                 <th className="px-4 py-2 text-center">Stock</th>
-                                                <th className="px-4 py-2 text-center">Reorder Qty</th>
+                                                <th className="px-4 py-2 text-center">
+                                                    Reorder Qty
+                                                    {vendorMOQ && (
+                                                        <span className="ml-1 text-[9px] text-slate-400 normal-case tracking-normal">(MOQ {vendorMOQ})</span>
+                                                    )}
+                                                </th>
+                                                <th className="px-4 py-2 hidden lg:table-cell">Last Ordered</th>
                                                 <th className="px-4 py-2 hidden sm:table-cell">Location</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-50">
                                             {group.alerts.map((alert) => {
-                                                const inPO = coveredInventoryIds.has(alert.inventoryId)
+                                                const inPO      = coveredInventoryIds.has(alert.inventoryId)
+                                                const lastOrder = lastOrderedMap[alert.inventoryId]
+                                                const moqShort  = vendorMOQ && alert.reorderQty < vendorMOQ
                                                 return (
                                                     <tr key={alert.inventoryId} className={`hover:bg-slate-50/60 transition-colors ${inPO ? 'opacity-60' : ''}`}>
                                                         <td className="px-4 py-2.5 text-center text-sm">
@@ -655,6 +923,11 @@ export default function InventoryLowStockPage() {
                                                                         In PO
                                                                     </span>
                                                                 )}
+                                                                {moqShort && !inPO && (
+                                                                    <span className="text-[9px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded uppercase tracking-wide" title="Reorder qty below supplier MOQ">
+                                                                        Below MOQ
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                             <p className="text-slate-400">{alert.brand}</p>
                                                         </td>
@@ -665,8 +938,23 @@ export default function InventoryLowStockPage() {
                                                             <span className="text-red-600 font-bold">{alert.currentStock}</span>
                                                             <span className="text-slate-400 ml-1">left</span>
                                                         </td>
-                                                        <td className="px-4 py-2.5 text-center text-slate-500">
-                                                            {alert.reorderQty}
+                                                        <td className="px-4 py-2.5 text-center">
+                                                            <span className={moqShort && !inPO ? 'text-red-600 font-bold' : 'text-slate-500'}>
+                                                                {alert.reorderQty}
+                                                            </span>
+                                                            {moqShort && !inPO && vendorMOQ && (
+                                                                <span className="block text-[9px] text-red-400">min {vendorMOQ}</span>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-4 py-2.5 hidden lg:table-cell">
+                                                            {lastOrder ? (
+                                                                <div>
+                                                                    <span className="text-slate-600 font-medium">{timeAgo(lastOrder.date)}</span>
+                                                                    <span className="text-slate-400 ml-1">· ×{lastOrder.qty}</span>
+                                                                </div>
+                                                            ) : (
+                                                                <span className="text-slate-300 italic text-[10px]">No history</span>
+                                                            )}
                                                         </td>
                                                         <td className="px-4 py-2.5 hidden sm:table-cell">
                                                             {alert.location ? (
@@ -701,6 +989,7 @@ export default function InventoryLowStockPage() {
                     onClose={() => setModalConfig(null)}
                     defaultVendor={modalConfig.vendor}
                     defaultItems={modalConfig.items}
+                    vendorMOQ={vendorMOQs[modalConfig.vendor]}
                 />
             )}
         </div>

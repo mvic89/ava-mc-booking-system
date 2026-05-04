@@ -161,9 +161,13 @@ export interface SalesInvoice {
     items: SalesInvoiceItem[]
 }
 
+export type POApprovalStatus = 'pending_approval' | 'approved' | 'rejected'
+
+export type POPlacementOutcome = 'confirmed' | 'backordered' | 'credit_blocked' | 'substituted'
+
 export interface PurchaseOrder {
     id: string;
-    refNo?: string;          // REF-TAG-YEAR-NNN — what the supplier sees on their portal
+    refNo?: string;              // REF-TAG-YEAR-NNN — what the supplier sees on their portal
     vendor: string;
     date: string;
     eta: string;
@@ -171,6 +175,10 @@ export interface PurchaseOrder {
     items: POLineItem[];
     totalCost: number;
     notes?: string;
-    supplierOrderRef?: string; // order/confirmation number given by the supplier's portal
-    placedAt?: string;         // ISO timestamp — when user confirmed "placed on portal"
+    supplierOrderRef?: string;   // order/confirmation number given by the supplier's portal
+    placedAt?: string;           // ISO timestamp — when user confirmed "placed on portal"
+    placementOutcome?: POPlacementOutcome;  // what happened at the supplier portal
+    placementNotes?: string;     // free-text about backorder items, substitutes, etc.
+    approvalStatus?: POApprovalStatus;      // only set when total exceeds approval threshold
+    approvalNote?: string;       // reason when rejected
 }

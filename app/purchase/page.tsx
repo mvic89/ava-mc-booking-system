@@ -7,13 +7,34 @@ import { supabase }       from '@/lib/supabase'
 import { getDealershipId, getDealershipTag } from '@/lib/tenant'
 import { vendorDetails }  from '@/data/vendors'
 import { POModal, STATUS_STYLE, formatCurrency, qtyKey, VendorItem } from '@/components/POModal'
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function businessDaysSince(isoDate: string): number {
+    const start = new Date(isoDate)
+    const now   = new Date()
+    let days = 0
+    const cur = new Date(start)
+    while (cur < now) {
+        cur.setDate(cur.getDate() + 1)
+        const dow = cur.getDay()
+        if (dow !== 0 && dow !== 6) days++
+    }
+    return days
+}
 import { CreatePOModal, FlatInventoryItem } from '@/components/CreatePOModal'
 import { ImportPOModal } from '@/components/ImportPOModal'
-import { POLineItem, POStatus, PurchaseOrder } from '@/utils/types'
+import { POLineItem, POStatus, POApprovalStatus, POPlacementOutcome, PurchaseOrder } from '@/utils/types'
 import Sidebar from '@/components/Sidebar'
 import Link from 'next/link'
 
 const ALL_STATUSES: POStatus[] = ['Draft', 'Reviewed', 'Sent', 'Received']
+
+const APPROVAL_STYLE: Record<POApprovalStatus, { badge: string; label: string }> = {
+    pending_approval: { badge: 'bg-amber-100 text-amber-700 border border-amber-300',  label: '🔐 Pending Approval' },
+    approved:         { badge: 'bg-green-100 text-green-700 border border-green-300',   label: '✓ Approved'         },
+    rejected:         { badge: 'bg-red-100 text-red-700 border border-red-300',         label: '✗ Rejected'         },
+}
 
 // ─── PO number generator ──────────────────────────────────────────────────────
 // Queries Supabase directly so the ID is always based on the true DB count,
@@ -88,6 +109,8 @@ export default function PurchasePage() {
     const [poEtaOverrides,    setPoEtaOverrides]    = useState<Record<string, string>>({})
     const [dealerSuppliers,   setDealerSuppliers]   = useState<string[]>([])
     const [supplierEmails,    setSupplierEmails]    = useState<Record<string, string>>({})
+    const [vendorMOQs,        setVendorMOQs]        = useState<Record<string, number>>({})
+    const [approvalThreshold, setApprovalThreshold] = useState<number | undefined>(undefined)
 
     // Fetch POs from Supabase on mount; also load status overrides for auto-POs
     useEffect(() => {
@@ -116,6 +139,10 @@ export default function PurchasePage() {
                 notes:            po.notes ?? undefined,
                 supplierOrderRef: po.supplier_order_ref ?? undefined,
                 placedAt:         po.placed_at ?? undefined,
+                placementOutcome: po.placement_outcome ?? undefined,
+                placementNotes:   po.placement_notes ?? undefined,
+                approvalStatus:   po.approval_status as POApprovalStatus ?? undefined,
+                approvalNote:     po.approval_note ?? undefined,
                 items: (items ?? [])
                     .filter((li) => li.po_id === po.id)
                     .map((li) => ({
@@ -136,20 +163,39 @@ export default function PurchasePage() {
             if (!dealershipId) return
             const { data } = await supabase
                 .from('vendors')
-                .select('name, email')
+                .select('name, email, moq')
                 .eq('dealership_id', dealershipId)
                 .eq('is_manual', true)
                 .order('name')
             if (data) {
                 setDealerSuppliers(data.map((r) => r.name))
                 const emailMap: Record<string, string> = {}
-                data.forEach((r) => { if (r.email) emailMap[r.name] = r.email })
+                const moqMap:   Record<string, number> = {}
+                data.forEach((r) => {
+                    if (r.email) emailMap[r.name] = r.email
+                    if (r.moq)   moqMap[r.name]   = r.moq
+                })
                 setSupplierEmails(emailMap)
+                setVendorMOQs(moqMap)
+            }
+        }
+
+        async function loadApprovalThreshold() {
+            const dealershipId = getDealershipId()
+            if (!dealershipId) return
+            const { data } = await supabase
+                .from('dealership_settings')
+                .select('po_approval_threshold')
+                .eq('dealership_id', dealershipId)
+                .single()
+            if (data?.po_approval_threshold) {
+                setApprovalThreshold(Number(data.po_approval_threshold))
             }
         }
 
         loadHistoricalPOs()
         loadSuppliers()
+        loadApprovalThreshold()
     }, [])
 
     const userIds = useMemo(() => new Set(userPOs.map((p) => p.id)), [userPOs])
@@ -231,14 +277,16 @@ export default function PurchasePage() {
         generateNextPOId(tag).then(setNextPOId)
         // Persist to Supabase
         const { error: poErr } = await supabase.from('purchase_orders').insert({
-            id:            poToSave.id,
-            vendor:        poToSave.vendor,
-            date:          poToSave.date,
-            eta:           poToSave.eta,
-            status:        poToSave.status,
-            total_cost:    poToSave.totalCost,
-            notes:         poToSave.notes ?? null,
-            dealership_id: dealershipId,
+            id:              poToSave.id,
+            vendor:          poToSave.vendor,
+            date:            poToSave.date,
+            eta:             poToSave.eta,
+            status:          poToSave.status,
+            total_cost:      poToSave.totalCost,
+            notes:           poToSave.notes           ?? null,
+            approval_status: poToSave.approvalStatus  ?? null,
+            approval_note:   poToSave.approvalNote    ?? null,
+            dealership_id:   dealershipId,
         })
         if (poErr) {
             console.error('[PO save] purchase_orders insert failed:', poErr.message)
@@ -354,24 +402,52 @@ export default function PurchasePage() {
         }
     }
 
-    async function handleMarkOrdered(poId: string, orderRef: string) {
+    async function handleMarkOrdered(poId: string, orderRef: string, outcome: POPlacementOutcome, notes: string) {
         const dealershipId = getDealershipId()
         const placedAt     = new Date().toISOString()
         setPoStatusOverrides((prev) => ({ ...prev, [poId]: 'Sent' }))
-        // Merge supplierOrderRef + placedAt into the PO via historicalPOs override
         setHistoricalPOs((prev) =>
             prev.map((p) =>
                 p.id === poId
-                    ? { ...p, status: 'Sent', supplierOrderRef: orderRef || undefined, placedAt }
+                    ? { ...p, status: 'Sent', supplierOrderRef: orderRef || undefined, placedAt, placementOutcome: outcome || undefined, placementNotes: notes || undefined }
                     : p,
             ),
         )
         setSelectedPO(null)
         if (dealershipId) {
-            await supabase
+            const { error } = await supabase
                 .from('purchase_orders')
-                .update({ status: 'Sent', supplier_order_ref: orderRef || null, placed_at: placedAt })
+                .update({
+                    status:             'Sent',
+                    supplier_order_ref: orderRef || null,
+                    placed_at:          placedAt,
+                    placement_outcome:  outcome || null,
+                    placement_notes:    notes  || null,
+                })
                 .eq('id', poId)
+            if (error) console.error('[Purchase] Mark ordered update failed:', error.message, error.details)
+        }
+    }
+
+    async function handleApprove(poId: string) {
+        const dealershipId = getDealershipId()
+        const patch = { approvalStatus: 'approved' as POApprovalStatus }
+        setHistoricalPOs((prev) => prev.map((p) => p.id === poId ? { ...p, ...patch } : p))
+        setUserPOs((prev)       => prev.map((p) => p.id === poId ? { ...p, ...patch } : p))
+        setSelectedPO((prev)    => prev?.id === poId ? { ...prev, ...patch } : prev)
+        if (dealershipId) {
+            await supabase.from('purchase_orders').update({ approval_status: 'approved' }).eq('id', poId)
+        }
+    }
+
+    async function handleReject(poId: string, note: string) {
+        const dealershipId = getDealershipId()
+        const patch = { approvalStatus: 'rejected' as POApprovalStatus, approvalNote: note }
+        setHistoricalPOs((prev) => prev.map((p) => p.id === poId ? { ...p, ...patch } : p))
+        setUserPOs((prev)       => prev.map((p) => p.id === poId ? { ...p, ...patch } : p))
+        setSelectedPO((prev)    => prev?.id === poId ? { ...prev, ...patch } : prev)
+        if (dealershipId) {
+            await supabase.from('purchase_orders').update({ approval_status: 'rejected', approval_note: note || null }).eq('id', poId)
         }
     }
 
@@ -485,15 +561,30 @@ export default function PurchasePage() {
         },
         {
             label: 'Status',
-            defaultWidth: 120,
+            defaultWidth: 160,
             cell: po => {
                 const displayStatus = poStatusOverrides[po.id] ?? po.status
-                const style = STATUS_STYLE[displayStatus] ?? STATUS_STYLE['Draft']
+                const style         = STATUS_STYLE[displayStatus] ?? STATUS_STYLE['Draft']
+                const chaserDays    = po.placedAt && displayStatus === 'Sent' ? businessDaysSince(po.placedAt) : 0
+                const needsChaser   = chaserDays >= 5
+                const approvalSt    = po.approvalStatus
                 return (
-                    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${style.badge}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
-                        {displayStatus}
-                    </span>
+                    <div className="flex flex-col gap-1">
+                        <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${style.badge}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
+                            {displayStatus}
+                        </span>
+                        {needsChaser && (
+                            <span className="inline-flex items-center text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full animate-pulse">
+                                ⚠ Follow up — {chaserDays}d
+                            </span>
+                        )}
+                        {approvalSt && (
+                            <span className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full ${APPROVAL_STYLE[approvalSt].badge}`}>
+                                {APPROVAL_STYLE[approvalSt].label}
+                            </span>
+                        )}
+                    </div>
                 )
             },
         },
@@ -666,6 +757,8 @@ export default function PurchasePage() {
                     onSave={handleSavePO}
                     onAddToExisting={handleAddToExistingPO}
                     onClose={() => setShowCreatePO(false)}
+                    approvalThreshold={approvalThreshold}
+                    vendorMOQMap={vendorMOQs}
                 />
             )}
 
@@ -680,6 +773,8 @@ export default function PurchasePage() {
                     onSent={() => handleSentPO(selectedPO.id)}
                     onReviewed={(items, eta) => handleReviewedPO(selectedPO.id, items, eta)}
                     onMarkOrdered={handleMarkOrdered}
+                    onApprove={handleApprove}
+                    onReject={handleReject}
                     vendorItems={selectedVendorItems}
                     freeShippingThreshold={vendorDetails[selectedPO.vendor]?.freeShippingThreshold}
                     vendorEmailOverride={supplierEmails[selectedPO.vendor]}

@@ -4,6 +4,21 @@ import { useState, useMemo } from 'react'
 import { formatCurrency } from '@/components/POModal'
 import { PurchaseOrder, POLineItem } from '@/utils/types'
 
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function businessDaysSince(isoDate: string): number {
+    const start = new Date(isoDate)
+    const now   = new Date()
+    let days = 0
+    const cur = new Date(start)
+    while (cur < now) {
+        cur.setDate(cur.getDate() + 1)
+        const dow = cur.getDay()
+        if (dow !== 0 && dow !== 6) days++
+    }
+    return days
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 // Flat item shape passed in from the page (derived from all inventory categories)
@@ -55,24 +70,37 @@ export function CreatePOModal({
     onClose,
     defaultVendor,
     defaultItems,
+    freeShippingThreshold,
+    vendorMOQ: vendorMOQProp,
+    vendorMOQMap,
+    approvalThreshold,
 }: {
-    nextPOId:          string
-    allInventoryItems: FlatInventoryItem[]
-    suppliers:         string[]
-    openPOs:           PurchaseOrder[]
-    onSave:            (po: PurchaseOrder) => void
-    onAddToExisting:   (poId: string, newItems: POLineItem[], newEta?: string) => void
-    onClose:           () => void
-    /** Pre-select and lock the supplier (used when opening from a low-stock alert) */
-    defaultVendor?:    string
-    /** Pre-populate line items (used when opening from a low-stock alert) */
-    defaultItems?:     Array<{ item: FlatInventoryItem; qty: number }>
+    nextPOId:              string
+    allInventoryItems:     FlatInventoryItem[]
+    suppliers:             string[]
+    openPOs:               PurchaseOrder[]
+    onSave:                (po: PurchaseOrder) => void
+    onAddToExisting:       (poId: string, newItems: POLineItem[], newEta?: string) => void
+    onClose:               () => void
+    defaultVendor?:        string
+    defaultItems?:         Array<{ item: FlatInventoryItem; qty: number }>
+    /** Vendor's free-shipping order value — shows a progress bar */
+    freeShippingThreshold?: number
+    /** Supplier's minimum order quantity per line — shows warning when below */
+    vendorMOQ?:            number
+    /** Map of vendor → MOQ — used when the user picks the vendor inside the modal */
+    vendorMOQMap?:         Record<string, number>
+    /** PO totals above this value require manager approval before saving */
+    approvalThreshold?:    number
 }) {
     const todayStr   = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
     const allVendors = useMemo(() => [...suppliers].sort(), [suppliers])
 
     const [vendorSearch,  setVendorSearch]  = useState(defaultVendor ?? '')
     const [vendor,        setVendor]        = useState(defaultVendor ?? '')
+
+    // Resolve MOQ: explicit prop takes priority; map lookup used when user picks vendor inside modal
+    const vendorMOQ = vendorMOQProp ?? (vendor ? vendorMOQMap?.[vendor] : undefined)
     const [vendorOpen,    setVendorOpen]    = useState(false)
     const [rows,          setRows]          = useState<DraftRow[]>(() => {
         if (defaultItems && defaultItems.length > 0) {
@@ -152,10 +180,18 @@ export function CreatePOModal({
         setRows((prev) => (prev.length > 1 ? prev.filter((r) => r.rowId !== rowId) : prev))
     }
 
-    const grandTotal = rows.reduce((s, r) => s + (r.selectedItem ? r.qty * r.selectedItem.cost : 0), 0)
-    const canSubmit  = vendor.trim() !== '' && rows.some((r) => r.selectedItem && r.qty > 0)
-    // If there's an open PO and the user hasn't chosen yet, block submit until they decide
+    const grandTotal    = rows.reduce((s, r) => s + (r.selectedItem ? r.qty * r.selectedItem.cost : 0), 0)
+    const canSubmit     = vendor.trim() !== '' && rows.some((r) => r.selectedItem && r.qty > 0)
     const needsDecision = !!existingOpenPO && addMode === null
+
+    // Approval gate: when total exceeds threshold, show confirm step before saving
+    const needsApproval   = !!approvalThreshold && grandTotal >= approvalThreshold && addMode !== 'existing'
+    const [showApproval,  setShowApproval]  = useState(false)
+
+    // MOQ warnings per row
+    const moqViolations = vendorMOQ
+        ? rows.filter((r) => r.selectedItem && r.qty < vendorMOQ).map((r) => r.rowId)
+        : []
 
     function buildItems(): POLineItem[] {
         return rows
@@ -179,7 +215,6 @@ export function CreatePOModal({
             : '—'
 
         if (addMode === 'existing' && existingOpenPO) {
-            // Check for conflicts: same inventoryId AND same size (or both have no size)
             const conflicts: ConflictItem[] = []
             for (const newItem of items) {
                 const existing = existingOpenPO.items.find(
@@ -187,27 +222,29 @@ export function CreatePOModal({
                         ex.inventoryId === newItem.inventoryId &&
                         (ex.size ?? '') === (newItem.size ?? ''),
                 )
-                if (existing) {
-                    conflicts.push({ newItem, existingItem: existing, action: 'merge' })
-                }
+                if (existing) conflicts.push({ newItem, existingItem: existing, action: 'merge' })
             }
             if (conflicts.length > 0) {
-                // Show conflict resolution step before saving
                 setConflictResolutions(conflicts)
                 setConflictStep(true)
                 return
             }
-            // No conflicts — add directly
             onAddToExisting(existingOpenPO.id, items, etaStr !== '—' ? etaStr : undefined)
         } else {
+            // Show approval gate if total exceeds threshold
+            if (needsApproval && !showApproval) {
+                setShowApproval(true)
+                return
+            }
             const po: PurchaseOrder = {
-                id:        nextPOId,
-                vendor:    vendor.trim(),
-                date:      todayStr,
-                eta:       etaStr,
-                status:    'Draft',
+                id:             nextPOId,
+                vendor:         vendor.trim(),
+                date:           todayStr,
+                eta:            etaStr,
+                status:         'Draft',
                 items,
-                totalCost: items.reduce((s, i) => s + i.lineTotal, 0),
+                totalCost:      items.reduce((s, i) => s + i.lineTotal, 0),
+                ...(needsApproval ? { approvalStatus: 'pending_approval' } : {}),
             }
             onSave(po)
         }
@@ -645,17 +682,26 @@ export function CreatePOModal({
                                                 {/* Qty */}
                                                 <td className="px-4 py-3 text-center">
                                                     {row.selectedItem ? (
-                                                        <input
-                                                            type="number"
-                                                            min={1}
-                                                            value={row.qty}
-                                                            onChange={(e) =>
-                                                                updateRow(row.rowId, {
-                                                                    qty: Math.max(1, parseInt(e.target.value) || 1),
-                                                                })
-                                                            }
-                                                            className="w-20 px-2 py-1.5 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-400 text-center"
-                                                        />
+                                                        <div className="flex flex-col items-center gap-0.5">
+                                                            <input
+                                                                type="number"
+                                                                min={1}
+                                                                value={row.qty}
+                                                                onChange={(e) =>
+                                                                    updateRow(row.rowId, {
+                                                                        qty: Math.max(1, parseInt(e.target.value) || 1),
+                                                                    })
+                                                                }
+                                                                className={`w-20 px-2 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 text-center ${
+                                                                    moqViolations.includes(row.rowId)
+                                                                        ? 'border-red-300 bg-red-50 text-red-700'
+                                                                        : 'border-gray-200 bg-gray-50'
+                                                                }`}
+                                                            />
+                                                            {moqViolations.includes(row.rowId) && vendorMOQ && (
+                                                                <span className="text-[9px] text-red-500 font-semibold">Min {vendorMOQ}</span>
+                                                            )}
+                                                        </div>
                                                     ) : (
                                                         <span className="text-gray-300 text-sm">—</span>
                                                     )}
@@ -712,6 +758,76 @@ export function CreatePOModal({
                             Add Item
                         </button>
                     </div>
+
+                    {/* ── MOQ warning ── */}
+                    {moqViolations.length > 0 && (
+                        <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                            <span className="text-red-500 text-base shrink-0 mt-0.5">⚠</span>
+                            <div className="text-sm text-red-800">
+                                <span className="font-semibold">Below supplier minimum order quantity — </span>
+                                {moqViolations.length} line item{moqViolations.length !== 1 ? 's' : ''}{' '}
+                                {moqViolations.length === 1 ? 'has' : 'have'} a qty below the supplier minimum of{' '}
+                                <span className="font-semibold">{vendorMOQ}</span> units.
+                                The supplier portal may reject these lines or auto-adjust the quantity.
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ── Free shipping progress bar ── */}
+                    {freeShippingThreshold != null && grandTotal > 0 && addMode !== 'existing' && (
+                        <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 space-y-1.5">
+                            <div className="flex items-center justify-between text-xs">
+                                <span className="text-slate-500 font-medium">
+                                    {grandTotal >= freeShippingThreshold
+                                        ? '🎉 Free shipping unlocked'
+                                        : `${formatCurrency(freeShippingThreshold - grandTotal)} more for free shipping`}
+                                </span>
+                                <span className="font-mono text-slate-600 font-semibold">
+                                    {formatCurrency(grandTotal)} / {formatCurrency(freeShippingThreshold)}
+                                </span>
+                            </div>
+                            <div className="w-full bg-slate-200 rounded-full h-2">
+                                <div
+                                    className={`h-2 rounded-full transition-all ${
+                                        grandTotal >= freeShippingThreshold ? 'bg-green-500' : 'bg-orange-400'
+                                    }`}
+                                    style={{ width: `${Math.min(100, (grandTotal / freeShippingThreshold) * 100)}%` }}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ── Approval gate warning ── */}
+                    {showApproval && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-4 space-y-3">
+                            <div className="flex items-start gap-3">
+                                <span className="text-amber-500 text-xl shrink-0">🔐</span>
+                                <div>
+                                    <p className="text-sm font-bold text-amber-800">Manager approval required</p>
+                                    <p className="text-xs text-amber-700 mt-0.5">
+                                        This PO total of <span className="font-bold">{formatCurrency(grandTotal)}</span> exceeds
+                                        the approval threshold of <span className="font-bold">{formatCurrency(approvalThreshold!)}</span>.
+                                        It will be saved as <span className="font-bold">Pending Approval</span> — a manager must
+                                        approve before the order can be placed on the supplier portal.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleSubmit}
+                                    className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold rounded-lg transition-colors"
+                                >
+                                    Submit for Approval
+                                </button>
+                                <button
+                                    onClick={() => setShowApproval(false)}
+                                    className="px-4 py-2 bg-white border border-amber-200 text-amber-800 text-sm font-semibold rounded-lg hover:bg-amber-50 transition-colors"
+                                >
+                                    Go Back &amp; Edit
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>}
 
                 {/* Footer — hidden during conflict step (it has its own footer) */}
