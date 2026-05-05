@@ -141,11 +141,16 @@ export function CreatePOModal({
         [vendor, allInventoryItems],
     )
 
-    // Find any open PO for the selected supplier
+    // Only Draft/Reviewed POs can accept new items — Sent/Received are locked
     const existingOpenPO = useMemo(() => {
         if (!vendor) return null
-        const openStatuses = new Set(['Draft', 'Reviewed', 'Sent'])
-        return openPOs.find((p) => p.vendor === vendor && openStatuses.has(p.status)) ?? null
+        return openPOs.find((p) => p.vendor === vendor && (p.status === 'Draft' || p.status === 'Reviewed')) ?? null
+    }, [vendor, openPOs])
+
+    // Sent PO for same vendor — shown as an info note, not as an add-to target
+    const existingSentPO = useMemo(() => {
+        if (!vendor) return null
+        return openPOs.find((p) => p.vendor === vendor && p.status === 'Sent') ?? null
     }, [vendor, openPOs])
 
     const filteredVendors = vendorSearch
@@ -501,6 +506,17 @@ export function CreatePOModal({
                             />
                         </div>
                     </div>
+
+                    {/* ── Sent PO info note — can't add to it, just inform ── */}
+                    {existingSentPO && !existingOpenPO && (
+                        <div className="flex items-center gap-2.5 rounded-xl border border-purple-200 bg-purple-50 px-4 py-2.5 text-xs text-purple-700">
+                            <span className="shrink-0">🔒</span>
+                            <span>
+                                <span className="font-mono font-semibold">{existingSentPO.id}</span>
+                                {' '}is already <span className="font-semibold">Sent</span> — a new PO will be created for these items.
+                            </span>
+                        </div>
+                    )}
 
                     {/* ── Open PO decision banner ─────────────────────────────────────── */}
                     {existingOpenPO && addMode === null && (

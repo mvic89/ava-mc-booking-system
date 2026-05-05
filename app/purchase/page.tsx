@@ -24,7 +24,7 @@ function businessDaysSince(isoDate: string): number {
 }
 import { CreatePOModal, FlatInventoryItem } from '@/components/CreatePOModal'
 import { ImportPOModal } from '@/components/ImportPOModal'
-import { POLineItem, POStatus, POApprovalStatus, POPlacementOutcome, PurchaseOrder } from '@/utils/types'
+import { POLineItem, POLineItemStatus, POStatus, POApprovalStatus, POPlacementOutcome, PurchaseOrder, SupplierClaim } from '@/utils/types'
 import Sidebar from '@/components/Sidebar'
 import Link from 'next/link'
 
@@ -141,18 +141,25 @@ export default function PurchasePage() {
                 placedAt:         po.placed_at ?? undefined,
                 placementOutcome: po.placement_outcome ?? undefined,
                 placementNotes:   po.placement_notes ?? undefined,
-                approvalStatus:   po.approval_status as POApprovalStatus ?? undefined,
-                approvalNote:     po.approval_note ?? undefined,
+                approvalStatus:    po.approval_status as POApprovalStatus ?? undefined,
+                approvalNote:      po.approval_note ?? undefined,
+                supplierConfirmed: po.supplier_confirmed ?? undefined,
+                confirmedAt:       po.confirmed_at ?? undefined,
                 items: (items ?? [])
                     .filter((li) => li.po_id === po.id)
                     .map((li) => ({
-                        inventoryId:   li.inventory_id,
-                        name:          li.name,
-                        articleNumber: li.article_number,
-                        orderQty:      li.order_qty,
-                        unitCost:      Number(li.unit_cost),
-                        lineTotal:     Number(li.line_total),
-                        ...(li.size ? { size: li.size } : {}),
+                        inventoryId:    li.inventory_id,
+                        name:           li.name,
+                        articleNumber:  li.article_number,
+                        orderQty:       li.order_qty,
+                        unitCost:       Number(li.unit_cost),
+                        lineTotal:      Number(li.line_total),
+                        ...(li.size           ? { size:           li.size }                      : {}),
+                        ...(li.status         ? { status:         li.status as POLineItemStatus } : {}),
+                        ...(li.received_qty   ? { receivedQty:    li.received_qty }               : {}),
+                        ...(li.damaged_qty    ? { damagedQty:     li.damaged_qty }                : {}),
+                        ...(li.backordered_eta? { backorderedETA: li.backordered_eta }            : {}),
+                        ...(li.line_notes     ? { lineNotes:      li.line_notes }                 : {}),
                     })),
             }))
             setHistoricalPOs(mapped)
@@ -402,15 +409,32 @@ export default function PurchasePage() {
         }
     }
 
-    async function handleMarkOrdered(poId: string, orderRef: string, outcome: POPlacementOutcome, notes: string) {
+    async function handleMarkOrdered(
+        poId: string,
+        orderRef: string,
+        outcome: POPlacementOutcome,
+        notes: string,
+        lineStatuses: Array<{ inventoryId: string; size?: string; status: POLineItemStatus; backorderedETA?: string }>,
+    ) {
         const dealershipId = getDealershipId()
         const placedAt     = new Date().toISOString()
         setPoStatusOverrides((prev) => ({ ...prev, [poId]: 'Sent' }))
         setHistoricalPOs((prev) =>
             prev.map((p) =>
-                p.id === poId
-                    ? { ...p, status: 'Sent', supplierOrderRef: orderRef || undefined, placedAt, placementOutcome: outcome || undefined, placementNotes: notes || undefined }
-                    : p,
+                p.id !== poId ? p : {
+                    ...p,
+                    status:           'Sent',
+                    supplierOrderRef: orderRef || undefined,
+                    placedAt,
+                    placementOutcome: outcome || undefined,
+                    placementNotes:   notes || undefined,
+                    items: p.items.map((li) => {
+                        const ls = lineStatuses.find(
+                            (s) => s.inventoryId === li.inventoryId && (s.size ?? '') === (li.size ?? '')
+                        )
+                        return ls ? { ...li, status: ls.status, backorderedETA: ls.backorderedETA } : li
+                    }),
+                }
             ),
         )
         setSelectedPO(null)
@@ -426,6 +450,117 @@ export default function PurchasePage() {
                 })
                 .eq('id', poId)
             if (error) console.error('[Purchase] Mark ordered update failed:', error.message, error.details)
+            // Save per-line statuses
+            for (const ls of lineStatuses) {
+                const q = supabase
+                    .from('po_line_items')
+                    .update({ status: ls.status, backordered_eta: ls.backorderedETA ?? null })
+                    .eq('po_id', poId)
+                    .eq('inventory_id', ls.inventoryId)
+                const { error: liErr } = await (ls.size ? q.eq('size', ls.size) : q.is('size', null))
+                if (liErr) console.error('[Purchase] Line status update failed:', liErr.message)
+            }
+        }
+    }
+
+    async function handleReceiveGoods(
+        poId: string,
+        receipts: Array<{ inventoryId: string; size?: string; receivedQty: number; damagedQty: number }>,
+    ): Promise<SupplierClaim[]> {
+        const dealershipId = getDealershipId()
+        const po           = allPOsResolved.find((p) => p.id === poId)
+        const claims: SupplierClaim[] = []
+
+        for (const r of receipts) {
+            const li = po?.items.find(
+                (l) => l.inventoryId === r.inventoryId && (l.size ?? '') === (r.size ?? '')
+            )
+            const outstanding   = li ? li.orderQty - (li.receivedQty ?? 0) : r.receivedQty
+            const newStatus: POLineItemStatus =
+                r.receivedQty === 0         ? 'backordered' :
+                r.damagedQty  > 0           ? 'damaged'     :
+                r.receivedQty >= outstanding ? 'received'    :
+                'pending'
+
+            if (dealershipId) {
+                const q = supabase
+                    .from('po_line_items')
+                    .update({ received_qty: r.receivedQty, damaged_qty: r.damagedQty, status: newStatus })
+                    .eq('po_id', poId)
+                    .eq('inventory_id', r.inventoryId)
+                const { error } = await (r.size ? q.eq('size', r.size) : q.is('size', null))
+                if (error) console.error('[Purchase] Receive goods update failed:', error.message)
+            }
+
+            if (r.damagedQty > 0 && dealershipId && li && po) {
+                const claimId  = `CLM-${poId}-${li.articleNumber}${r.size ? `-${r.size}` : ''}`
+                const claimRow = {
+                    id:             claimId,
+                    po_id:          poId,
+                    vendor:         po.vendor,
+                    inventory_id:   r.inventoryId,
+                    item_name:      li.name,
+                    article_number: li.articleNumber,
+                    size:           r.size ?? null,
+                    claim_type:     'damaged',
+                    claimed_qty:    r.damagedQty,
+                    status:         'open',
+                    created_at:     new Date().toISOString(),
+                    dealership_id:  dealershipId,
+                }
+                const { error } = await supabase.from('supplier_claims').insert(claimRow)
+                if (error) console.error('[Purchase] Supplier claim insert failed:', error.message)
+                else claims.push({
+                    id: claimId, poId, vendor: po.vendor,
+                    inventoryId: r.inventoryId, itemName: li.name,
+                    articleNumber: li.articleNumber, size: r.size,
+                    claimType: 'damaged', claimedQty: r.damagedQty,
+                    status: 'open', createdAt: claimRow.created_at, dealershipId,
+                })
+            }
+        }
+
+        // Optimistic update — update line statuses in historicalPOs
+        setHistoricalPOs((prev) =>
+            prev.map((p) => {
+                if (p.id !== poId) return p
+                const updatedItems = p.items.map((li) => {
+                    const r = receipts.find(
+                        (r) => r.inventoryId === li.inventoryId && (r.size ?? '') === (li.size ?? '')
+                    )
+                    if (!r) return li
+                    const outstanding   = li.orderQty - (li.receivedQty ?? 0)
+                    const newStatus: POLineItemStatus =
+                        r.receivedQty === 0         ? 'backordered' :
+                        r.damagedQty  > 0           ? 'damaged'     :
+                        r.receivedQty >= outstanding ? 'received'    :
+                        'pending'
+                    return { ...li, receivedQty: r.receivedQty, damagedQty: r.damagedQty, status: newStatus }
+                })
+                const allDone = updatedItems.every((li) => li.status === 'received' || li.status === 'damaged')
+                if (allDone) {
+                    setPoStatusOverrides((ov) => ({ ...ov, [poId]: 'Received' }))
+                    if (dealershipId) supabase.from('purchase_orders').update({ status: 'Received' }).eq('id', poId).then(() => {})
+                }
+                return { ...p, items: updatedItems }
+            })
+        )
+
+        return claims
+    }
+
+    async function handleMarkSupplierConfirmed(poId: string) {
+        const dealershipId = getDealershipId()
+        const confirmedAt  = new Date().toISOString()
+        const patch = { supplierConfirmed: true as const, confirmedAt }
+        setHistoricalPOs((prev) => prev.map((p) => p.id === poId ? { ...p, ...patch } : p))
+        setSelectedPO((prev)    => prev?.id === poId ? { ...prev, ...patch } : prev)
+        if (dealershipId) {
+            const { error } = await supabase
+                .from('purchase_orders')
+                .update({ supplier_confirmed: true, confirmed_at: confirmedAt })
+                .eq('id', poId)
+            if (error) console.error('[Purchase] Mark supplier confirmed failed:', error.message)
         }
     }
 
@@ -775,6 +910,8 @@ export default function PurchasePage() {
                     onMarkOrdered={handleMarkOrdered}
                     onApprove={handleApprove}
                     onReject={handleReject}
+                    onReceiveGoods={handleReceiveGoods}
+                    onMarkSupplierConfirmed={handleMarkSupplierConfirmed}
                     vendorItems={selectedVendorItems}
                     freeShippingThreshold={vendorDetails[selectedPO.vendor]?.freeShippingThreshold}
                     vendorEmailOverride={supplierEmails[selectedPO.vendor]}

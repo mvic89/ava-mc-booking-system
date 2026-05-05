@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { vendorDetails } from '@/data/vendors'
 import { getDealershipProfile, getDealershipId } from '@/lib/tenant'
-import { POLineItem, POStatus, POApprovalStatus, POPlacementOutcome, PurchaseOrder } from '@/utils/types'
+import { POLineItem, POLineItemStatus, POStatus, POApprovalStatus, POPlacementOutcome, PurchaseOrder, SupplierClaim } from '@/utils/types'
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
@@ -46,6 +46,14 @@ const PLACEMENT_BADGE: Record<POPlacementOutcome, string> = {
     substituted:    'bg-blue-50 text-blue-700 border border-blue-200',
 }
 
+const LINE_STATUS_STYLE: Record<POLineItemStatus, { badge: string; label: string }> = {
+    pending:     { badge: 'bg-gray-100 text-gray-500 border border-gray-200',        label: 'Pending'      },
+    confirmed:   { badge: 'bg-green-100 text-green-700 border border-green-200',     label: '✓ Confirmed'  },
+    backordered: { badge: 'bg-amber-100 text-amber-700 border border-amber-300',     label: '⏳ Backordered'},
+    received:    { badge: 'bg-emerald-100 text-emerald-700 border border-emerald-200', label: '✓ Received' },
+    damaged:     { badge: 'bg-red-100 text-red-700 border border-red-200',           label: '⚠ Damaged'    },
+}
+
 // Vendor item shape passed from the page
 export interface VendorItem {
     id: string
@@ -68,6 +76,8 @@ export function POModal({
     onMarkOrdered,
     onApprove,
     onReject,
+    onReceiveGoods,
+    onMarkSupplierConfirmed,
     vendorItems = [],
     zIndex = 'z-50',
     freeShippingThreshold,
@@ -81,9 +91,22 @@ export function POModal({
     onSent?: () => void
     onReviewed?: (items: POLineItem[], eta: string) => void
     /** Called when user confirms "I've placed this order on the supplier portal" */
-    onMarkOrdered?: (poId: string, orderRef: string, outcome: POPlacementOutcome, notes: string) => void
+    onMarkOrdered?: (
+        poId: string,
+        orderRef: string,
+        outcome: POPlacementOutcome,
+        notes: string,
+        lineStatuses: Array<{ inventoryId: string; size?: string; status: POLineItemStatus; backorderedETA?: string }>
+    ) => void
     onApprove?: (poId: string) => void
     onReject?: (poId: string, note: string) => void
+    /** Called when user logs physical receipt of goods — per-line received + damaged qtys */
+    onReceiveGoods?: (
+        poId: string,
+        receipts: Array<{ inventoryId: string; size?: string; receivedQty: number; damagedQty: number }>
+    ) => Promise<SupplierClaim[]>
+    /** Called when supplier confirmation email / call received */
+    onMarkSupplierConfirmed?: (poId: string) => void
     vendorItems?: VendorItem[]
     zIndex?: string
     freeShippingThreshold?: number
@@ -125,6 +148,16 @@ export function POModal({
     const [rejectMode, setRejectMode] = useState(false)
     const [rejectNote, setRejectNote] = useState('')
 
+    // Receive Goods mode
+    const [receiveMode,   setReceiveMode]   = useState(false)
+    const [receiveQtys,   setReceiveQtys]   = useState<Record<string, number>>({})
+    const [damagedQtys,   setDamagedQtys]   = useState<Record<string, number>>({})
+    const [receiveResult, setReceiveResult] = useState<SupplierClaim[]>([])
+    const [receiveSaving, setReceiveSaving] = useState(false)
+
+    // Supplier confirmed banner dismiss
+    const [confirmingSupplier, setConfirmingSupplier] = useState(false)
+
     const style       = STATUS_STYLE[po.status] ?? STATUS_STYLE['Draft']
     const vendor      = vendorDetails[po.vendor]
     // Prefer Supabase email (passed from parent); fall back to static vendorDetails
@@ -144,13 +177,50 @@ export function POModal({
     const grandTotal = displayItems.reduce((s, li) => s + li.lineTotal, 0)
 
     // ── Backordered item highlighting ───────────────────────────────────────
-    // Parse article numbers from stored placement_notes string:
-    // "Backordered: Item A (ART-001) ×5, Item B [XL] (ART-002) ×2. New ETA: ..."
+    // Prefer per-line status from DB; fall back to parsing placement_notes text.
     const backorderedArticleNos: Set<string> = (() => {
-        if (po.placementOutcome !== 'backordered' || !po.placementNotes) return new Set()
+        if (po.placementOutcome !== 'backordered') return new Set()
+        // If lines already have status set, use those — no need to parse notes
+        if (po.items.some((li) => li.status)) {
+            return new Set(po.items.filter((li) => li.status === 'backordered').map((li) => li.articleNumber))
+        }
+        if (!po.placementNotes) return new Set()
         const matches = [...po.placementNotes.matchAll(/\(([^)]+)\)/g)]
         return new Set(matches.map((m) => m[1].trim()))
     })()
+
+    // ── Receive Goods helpers ───────────────────────────────────────────────
+
+    function lineKey(li: { inventoryId: string; size?: string }) {
+        return `${li.inventoryId}|${li.size ?? ''}`
+    }
+
+    function enterReceiveMode() {
+        const qtys: Record<string, number> = {}
+        const dmg:  Record<string, number> = {}
+        displayItems.forEach((li) => {
+            const outstanding = li.orderQty - (li.receivedQty ?? 0)
+            qtys[lineKey(li)] = Math.max(0, outstanding)
+            dmg[lineKey(li)]  = 0
+        })
+        setReceiveQtys(qtys)
+        setDamagedQtys(dmg)
+        setReceiveMode(true)
+    }
+
+    async function handleConfirmReceipt() {
+        setReceiveSaving(true)
+        const receipts = displayItems.map((li) => ({
+            inventoryId: li.inventoryId,
+            size:        li.size,
+            receivedQty: receiveQtys[lineKey(li)] ?? 0,
+            damagedQty:  damagedQtys[lineKey(li)]  ?? 0,
+        }))
+        const claims = await onReceiveGoods?.(po.id, receipts) ?? []
+        setReceiveResult(claims)
+        setReceiveSaving(false)
+        setReceiveMode(false)
+    }
 
     // ── Review mode helpers ─────────────────────────────────────────────────
 
@@ -556,6 +626,34 @@ export function POModal({
                                 {po.placementNotes}
                             </div>
                         )}
+
+                        {/* Supplier confirmation status — Gap 3: sent-but-unconfirmed window */}
+                        {po.status === 'Sent' && (
+                            po.supplierConfirmed ? (
+                                <div className="mt-3 flex items-center gap-2 text-xs text-emerald-700 font-semibold bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                                    <span>✓</span>
+                                    <span>Supplier confirmed</span>
+                                    {po.confirmedAt && (
+                                        <span className="font-normal text-emerald-600">
+                                            — {new Date(po.confirmedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                        </span>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="mt-3 flex items-center justify-between gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                                    <span className="text-xs text-amber-700 font-semibold">⏳ Awaiting supplier confirmation</span>
+                                    {onMarkSupplierConfirmed && (
+                                        <button
+                                            onClick={() => { setConfirmingSupplier(true); onMarkSupplierConfirmed(po.id) }}
+                                            disabled={confirmingSupplier}
+                                            className="text-[10px] font-bold bg-amber-600 hover:bg-amber-700 disabled:opacity-60 text-white px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap"
+                                        >
+                                            {confirmingSupplier ? 'Saving…' : '✓ Mark Confirmed'}
+                                        </button>
+                                    )}
+                                </div>
+                            )
+                        )}
                     </div>
 
                     {/* Free shipping caution */}
@@ -598,6 +696,11 @@ export function POModal({
                                     Editing — changes apply to the exported PDF
                                 </div>
                             )}
+                            {receiveMode && (
+                                <div className="text-[10px] text-teal-600 font-semibold animate-pulse">
+                                    Receive Mode — enter qty received per line
+                                </div>
+                            )}
                         </div>
 
                         <div className="rounded-xl border border-gray-200 overflow-hidden">
@@ -608,8 +711,17 @@ export function POModal({
                                         <th className="px-4 py-2.5 font-semibold">Item Name</th>
                                         <th className="px-4 py-2.5 text-center font-semibold">Size</th>
                                         <th className="px-4 py-2.5 text-center font-semibold">Order Qty</th>
-                                        <th className="px-4 py-2.5 text-right font-semibold">Unit Cost</th>
-                                        <th className="px-4 py-2.5 text-right font-semibold">Line Total</th>
+                                        {receiveMode ? (
+                                            <>
+                                                <th className="px-4 py-2.5 text-center font-semibold text-teal-600">Received</th>
+                                                <th className="px-4 py-2.5 text-center font-semibold text-red-500">Damaged</th>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <th className="px-4 py-2.5 text-right font-semibold">Unit Cost</th>
+                                                <th className="px-4 py-2.5 text-right font-semibold">Line Total</th>
+                                            </>
+                                        )}
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
@@ -621,7 +733,11 @@ export function POModal({
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center gap-2 flex-wrap">
                                                     <span className={`text-sm ${isBackordered ? 'font-bold text-gray-900' : 'font-semibold text-gray-800'}`}>{li.name}</span>
-                                                    {isBackordered && (
+                                                    {li.status ? (
+                                                        <span className={`inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-full ${LINE_STATUS_STYLE[li.status].badge}`}>
+                                                            {LINE_STATUS_STYLE[li.status].label}
+                                                        </span>
+                                                    ) : isBackordered && (
                                                         <span className="inline-flex items-center text-[10px] font-bold text-amber-700 bg-amber-100 border border-amber-300 px-1.5 py-0.5 rounded-full">
                                                             ⏳ Backordered
                                                         </span>
@@ -652,12 +768,60 @@ export function POModal({
                                                     </div>
                                                 )}
                                             </td>
-                                            <td className={`px-4 py-3 text-right text-sm ${isBackordered ? 'font-bold text-gray-900' : 'text-gray-600'}`}>{formatCurrency(li.unitCost)}</td>
-                                            <td className={`px-4 py-3 text-right text-sm ${isBackordered ? 'font-bold text-gray-900' : 'font-semibold text-gray-800'}`}>{formatCurrency(li.lineTotal)}</td>
+                                            {receiveMode ? (
+                                                <>
+                                                    <td className="px-4 py-3 text-center">
+                                                        <div className="flex items-center justify-center gap-1">
+                                                            <button
+                                                                onClick={() => { const k = lineKey(li); setReceiveQtys((p) => ({ ...p, [k]: Math.max(0, (p[k] ?? 0) - 1) })) }}
+                                                                className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold flex items-center justify-center text-xs"
+                                                            >−</button>
+                                                            <input
+                                                                type="number"
+                                                                min={0}
+                                                                max={li.orderQty}
+                                                                value={receiveQtys[lineKey(li)] ?? 0}
+                                                                onChange={(e) => { const k = lineKey(li); setReceiveQtys((p) => ({ ...p, [k]: Math.max(0, Math.min(li.orderQty, Number(e.target.value))) })) }}
+                                                                className="w-10 text-center text-xs font-bold border border-teal-200 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-teal-400"
+                                                            />
+                                                            <button
+                                                                onClick={() => { const k = lineKey(li); setReceiveQtys((p) => ({ ...p, [k]: Math.min(li.orderQty, (p[k] ?? 0) + 1) })) }}
+                                                                className="w-5 h-5 rounded bg-teal-100 hover:bg-teal-200 text-teal-600 font-bold flex items-center justify-center text-xs"
+                                                            >+</button>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center">
+                                                        <div className="flex items-center justify-center gap-1">
+                                                            <button
+                                                                onClick={() => { const k = lineKey(li); setDamagedQtys((p) => ({ ...p, [k]: Math.max(0, (p[k] ?? 0) - 1) })) }}
+                                                                className="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold flex items-center justify-center text-xs"
+                                                            >−</button>
+                                                            <input
+                                                                type="number"
+                                                                min={0}
+                                                                max={receiveQtys[lineKey(li)] ?? 0}
+                                                                value={damagedQtys[lineKey(li)] ?? 0}
+                                                                onChange={(e) => { const k = lineKey(li); const rq = receiveQtys[k] ?? 0; setDamagedQtys((p) => ({ ...p, [k]: Math.max(0, Math.min(rq, Number(e.target.value))) })) }}
+                                                                className="w-10 text-center text-xs font-bold border border-red-200 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-red-400"
+                                                            />
+                                                            <button
+                                                                onClick={() => { const k = lineKey(li); const rq = receiveQtys[k] ?? 0; setDamagedQtys((p) => ({ ...p, [k]: Math.min(rq, (p[k] ?? 0) + 1) })) }}
+                                                                className="w-5 h-5 rounded bg-red-100 hover:bg-red-200 text-red-600 font-bold flex items-center justify-center text-xs"
+                                                            >+</button>
+                                                        </div>
+                                                    </td>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <td className={`px-4 py-3 text-right text-sm ${isBackordered ? 'font-bold text-gray-900' : 'text-gray-600'}`}>{formatCurrency(li.unitCost)}</td>
+                                                    <td className={`px-4 py-3 text-right text-sm ${isBackordered ? 'font-bold text-gray-900' : 'font-semibold text-gray-800'}`}>{formatCurrency(li.lineTotal)}</td>
+                                                </>
+                                            )}
                                         </tr>
                                         )
                                     })}
                                 </tbody>
+                                {!receiveMode && (
                                 <tfoot>
                                     <tr className="border-t-2 border-gray-200 bg-gray-50">
                                         <td colSpan={5} className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-gray-500">
@@ -668,6 +832,7 @@ export function POModal({
                                         </td>
                                     </tr>
                                 </tfoot>
+                                )}
                             </table>
                         </div>
 
@@ -725,6 +890,22 @@ export function POModal({
 
                 {/* ── Footer ──────────────────────────────────────────────── */}
                 <div className="px-7 py-4 border-t border-gray-100 shrink-0">
+                    {/* Receive result — claims created after goods receipt */}
+                    {receiveResult.length > 0 && (
+                        <div className="mb-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                            <p className="text-xs font-bold text-amber-800 mb-1">
+                                ⚠ {receiveResult.length} supplier claim{receiveResult.length > 1 ? 's' : ''} created for damaged goods
+                            </p>
+                            <div className="space-y-0.5">
+                                {receiveResult.map((claim) => (
+                                    <div key={claim.id} className="text-xs text-amber-700">
+                                        • {claim.itemName}{claim.size ? ` [${claim.size}]` : ''} — {claim.claimedQty} unit{claim.claimedQty > 1 ? 's' : ''} damaged
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Email status feedback */}
                     {emailStatus !== 'idle' && (
                         <div className={`mb-3 text-sm font-medium rounded-lg px-4 py-2 ${
@@ -864,7 +1045,17 @@ export function POModal({
                                             const etaText = backorderedETA ? `. New ETA: ${backorderedETA}` : ''
                                             compiledNotes = `Backordered: ${itemsText}${etaText}`
                                         }
-                                        onMarkOrdered?.(po.id, portalOrderRefInput, portalOutcome, compiledNotes)
+                                        const lineStatuses = displayItems.map((li) => {
+                                            const key = `${li.inventoryId}|${li.size ?? ''}`
+                                            const isBackorderedLine = portalOutcome === 'backordered' && backorderedItemIds.has(key)
+                                            return {
+                                                inventoryId: li.inventoryId,
+                                                size:        li.size,
+                                                status:      (isBackorderedLine ? 'backordered' : portalOutcome === 'confirmed' ? 'confirmed' : 'pending') as POLineItemStatus,
+                                                backorderedETA: isBackorderedLine && backorderedETA ? backorderedETA : undefined,
+                                            }
+                                        })
+                                        onMarkOrdered?.(po.id, portalOrderRefInput, portalOutcome, compiledNotes, lineStatuses)
                                         setMarkOrderedOpen(false)
                                         setPortalOrderRefInput('')
                                         setPortalOutcome('confirmed')
@@ -950,7 +1141,31 @@ export function POModal({
                     )}
 
                     <div className="flex items-center justify-between gap-3">
-                        {reviewMode ? (
+                        {receiveMode ? (
+                            /* ── Receive mode footer ── */
+                            <>
+                                <button
+                                    onClick={() => setReceiveMode(false)}
+                                    className="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg transition-colors"
+                                >
+                                    ✕ Cancel
+                                </button>
+                                <button
+                                    onClick={handleConfirmReceipt}
+                                    disabled={receiveSaving}
+                                    className="px-5 py-2 bg-teal-500 hover:bg-teal-600 disabled:opacity-60 text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-2"
+                                >
+                                    {receiveSaving ? (
+                                        <>
+                                            <span className="inline-block w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            Saving…
+                                        </>
+                                    ) : (
+                                        '✓ Confirm Receipt'
+                                    )}
+                                </button>
+                            </>
+                        ) : reviewMode ? (
                             /* ── Review mode footer ── */
                             <>
                                 <button
@@ -979,9 +1194,19 @@ export function POModal({
 
                                 <div className="flex items-center gap-2 flex-wrap justify-end">
                                     {isSent ? (
-                                        <span className="text-xs font-semibold text-purple-600 flex items-center gap-1.5 px-3 py-2 bg-purple-50 rounded-lg border border-purple-200">
-                                            🔒 {po.status} — view only
-                                        </span>
+                                        <>
+                                            <span className="text-xs font-semibold text-purple-600 flex items-center gap-1.5 px-3 py-2 bg-purple-50 rounded-lg border border-purple-200">
+                                                🔒 {po.status} — view only
+                                            </span>
+                                            {po.status === 'Sent' && onReceiveGoods && (
+                                                <button
+                                                    onClick={enterReceiveMode}
+                                                    className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-1.5"
+                                                >
+                                                    📦 Receive Goods
+                                                </button>
+                                            )}
+                                        </>
                                     ) : (
                                         <>
                                             {/* Show "Mark as Ordered" only for Draft/Reviewed POs not yet placed */}

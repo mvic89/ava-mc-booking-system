@@ -76,6 +76,9 @@ export interface LowStockAlert {
 
 // ─── Purchase Order Types ─────────────────────────────────────────────────────
 
+/** Per-line lifecycle status — tracks each line independently through the procurement cycle */
+export type POLineItemStatus = 'pending' | 'confirmed' | 'backordered' | 'received' | 'damaged'
+
 export interface POLineItem {
     inventoryId: string;
     name: string;
@@ -83,7 +86,13 @@ export interface POLineItem {
     orderQty: number;
     unitCost: number;
     lineTotal: number;
-    size?: string;  // e.g. 'XS' | 'S' | 'M' | 'L' | 'XL' — for sized accessories
+    size?: string;           // e.g. 'XS' | 'S' | 'M' | 'L' | 'XL' — for sized accessories
+    // Per-line lifecycle tracking
+    status?: POLineItemStatus;
+    backorderedETA?: string; // ISO date — supplier's promised date for backordered items
+    receivedQty?: number;    // quantity physically received and counted at goods receipt
+    damagedQty?: number;     // quantity received but damaged — triggers supplier claim
+    lineNotes?: string;
 }
 
 export type POStatus = 'Draft' | 'Reviewed' | 'Sent' | 'Received';
@@ -167,7 +176,7 @@ export type POPlacementOutcome = 'confirmed' | 'backordered' | 'credit_blocked' 
 
 export interface PurchaseOrder {
     id: string;
-    refNo?: string;              // REF-TAG-YEAR-NNN — what the supplier sees on their portal
+    refNo?: string;                  // REF-TAG-YEAR-NNN — what the supplier sees on their portal
     vendor: string;
     date: string;
     eta: string;
@@ -175,10 +184,36 @@ export interface PurchaseOrder {
     items: POLineItem[];
     totalCost: number;
     notes?: string;
-    supplierOrderRef?: string;   // order/confirmation number given by the supplier's portal
-    placedAt?: string;           // ISO timestamp — when user confirmed "placed on portal"
-    placementOutcome?: POPlacementOutcome;  // what happened at the supplier portal
-    placementNotes?: string;     // free-text about backorder items, substitutes, etc.
-    approvalStatus?: POApprovalStatus;      // only set when total exceeds approval threshold
-    approvalNote?: string;       // reason when rejected
+    supplierOrderRef?: string;       // order/confirmation number given by the supplier's portal
+    placedAt?: string;               // ISO timestamp — when user confirmed "placed on portal"
+    placementOutcome?: POPlacementOutcome;
+    placementNotes?: string;
+    approvalStatus?: POApprovalStatus;
+    approvalNote?: string;
+    // Supplier confirmation — between portal placement and arrival of confirmation email
+    supplierConfirmed?: boolean;
+    confirmedAt?: string;            // ISO timestamp when supplier confirmed the order
+}
+
+// ─── Supplier Claim Types ─────────────────────────────────────────────────────
+
+export type SupplierClaimType   = 'damaged' | 'short_delivered' | 'wrong_item'
+export type SupplierClaimStatus = 'open' | 'submitted' | 'resolved' | 'credited'
+
+export interface SupplierClaim {
+    id: string
+    poId: string
+    vendor: string
+    inventoryId?: string
+    itemName: string
+    articleNumber?: string
+    size?: string
+    claimType: SupplierClaimType
+    claimedQty: number
+    claimedAmount?: number
+    status: SupplierClaimStatus
+    description?: string
+    createdAt: string
+    resolvedAt?: string
+    dealershipId: string
 }
