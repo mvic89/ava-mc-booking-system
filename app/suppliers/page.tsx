@@ -164,7 +164,7 @@ function SupplierPOListModal({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SuppliersPage() {
-    const { autoPOs, motorcycles, spareParts, accessories } = useInventory()
+    const { motorcycles, spareParts, accessories } = useInventory()
     // SKU counts per supplier (computed from inventory, not used to auto-generate rows)
     const inventoryItems = useMemo(
         () => [...motorcycles, ...spareParts, ...accessories],
@@ -184,12 +184,11 @@ export default function SuppliersPage() {
     const [dbDealershipName,  setDbDealershipName]  = useState<string | null>(null)
 
     const allPOs = useMemo<PurchaseOrder[]>(
-        () => [...autoPOs, ...historicalPOs].map((po) =>
+        () => historicalPOs.map((po) =>
             poStatusOverrides[po.id] ? { ...po, status: poStatusOverrides[po.id] } : po
         ),
-        [autoPOs, poStatusOverrides],
+        [poStatusOverrides],
     )
-    const autoIds = useMemo(() => new Set(autoPOs.map((p) => p.id)), [autoPOs])
 
     // Suppliers only come from Supabase (imported or manually added — never auto-generated)
     const suppliers = useMemo<SupplierRow[]>(() => {
@@ -661,7 +660,7 @@ export default function SuppliersPage() {
                 <SupplierPOListModal
                     supplier={poListSupplier}
                     pos={supplierPOs}
-                    autoIds={autoIds}
+                    autoIds={new Set<string>()}
                     onSelectPO={(po) => setSelectedPO(po)}
                     onClose={() => setPoListSupplier(null)}
                 />
@@ -671,7 +670,7 @@ export default function SuppliersPage() {
             {selectedPO && (
                 <POModal
                     po={selectedPO}
-                    isAuto={autoIds.has(selectedPO.id)}
+                    isAuto={false}
                     qtyOverrides={qtyOverrides}
                     onAdjust={handleAdjust}
                     onClose={() => setSelectedPO(null)}

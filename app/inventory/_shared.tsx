@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
+import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useInventory } from '@/context/InventoryContext'
 import { Motorcycle, SparePart, Accessory, BaseInventoryItem, InventoryCategory } from '@/utils/types'
@@ -578,10 +579,11 @@ async function downloadInventoryPDF(data: BaseInventoryItem[], tabName: string) 
 
 // ─── Tab config ───────────────────────────────────────────────────────────────
 
-const TABS: { id: InventoryCategory; label: string; icon: string; href: string }[] = [
+const TABS: { id: InventoryCategory | 'lowStock'; label: string; icon: string; href: string }[] = [
     { id: 'motorcycles', label: 'Motorcycles', icon: '🏍️', href: '/inventory/motorcycles' },
     { id: 'spareParts',  label: 'Spare Parts',  icon: '🔧', href: '/inventory/spare-parts'  },
     { id: 'accessories', label: 'Accessories',  icon: '🪖', href: '/inventory/accessories'  },
+    { id: 'lowStock',    label: 'Low Stock',    icon: '⚠',  href: '/inventory/low-stock'   },
 ]
 
 // ─── Main shared page component ───────────────────────────────────────────────
@@ -623,7 +625,8 @@ const fIn  = fSel
 // ─── Main shared page component ───────────────────────────────────────────────
 
 export function InventoryPageContent({ category }: { category: InventoryCategory }) {
-    const { motorcycles, spareParts, accessories, updateStock, toggleListing, deleteItem, autoPOs } = useInventory()
+    const { motorcycles, spareParts, accessories, updateStock, toggleListing, deleteItem, lowStockAlerts } = useInventory()
+    const pathname = usePathname()
 
     const [search,          setSearch         ] = useState('')
     const [showAddModal,    setShowAddModal    ] = useState(false)
@@ -721,7 +724,7 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
         ? [...new Set((accessories as Accessory[]).map(a => a.size).filter(Boolean) as string[])].sort()
         : []
 
-    const pendingPOs  = autoPOs.filter(p => p.status === 'Draft').length
+    const pendingPOs  = lowStockAlerts.length
     const tabLabel    = TABS.find(t => t.id === category)?.label ?? ''
 
     return (
@@ -740,9 +743,9 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
                     </div>
                     <div className="flex items-center gap-2">
                         {pendingPOs > 0 && (
-                            <span className="flex items-center gap-1 text-xs font-semibold bg-amber-50 border border-amber-200 text-amber-700 px-2.5 py-1 rounded-full">
-                                ⚠️ {pendingPOs} PO{pendingPOs > 1 ? 's' : ''} pending
-                            </span>
+                            <Link href="/inventory/low-stock" className="flex items-center gap-1 text-xs font-semibold bg-amber-50 border border-amber-200 text-amber-700 px-2.5 py-1 rounded-full hover:bg-amber-100 transition-colors">
+                                ⚠ {pendingPOs} Low Stock
+                            </Link>
                         )}
                         <button
                             onClick={() => setShowImportModal(true)}
@@ -812,8 +815,13 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
                 <div className="flex items-center gap-2 flex-wrap">
                     <div className="flex gap-0.5 bg-slate-100 p-0.5 rounded-lg w-fit">
                         {TABS.map((tab) => {
-                            const count = tab.id === 'motorcycles' ? motorcycles.length : tab.id === 'spareParts' ? spareParts.length : accessories.length
-                            const isActive = tab.id === category
+                            const count = tab.id === 'motorcycles' ? motorcycles.length
+                                : tab.id === 'spareParts'  ? spareParts.length
+                                : tab.id === 'accessories' ? accessories.length
+                                : lowStockAlerts.length
+                            const isActive = tab.id === 'lowStock'
+                                ? !!pathname?.endsWith('low-stock')
+                                : tab.id === category
                             return (
                                 <Link
                                     key={tab.id}
@@ -822,7 +830,11 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
                                 >
                                     <span>{tab.icon}</span>
                                     <span>{tab.label}</span>
-                                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${isActive ? 'bg-[#FF6B2C]/10 text-[#FF6B2C]' : 'bg-slate-200 text-slate-500'}`}>{count}</span>
+                                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
+                                        isActive ? 'bg-[#FF6B2C]/10 text-[#FF6B2C]'
+                                        : tab.id === 'lowStock' && count > 0 ? 'bg-amber-100 text-amber-700'
+                                        : 'bg-slate-200 text-slate-500'
+                                    }`}>{count}</span>
                                 </Link>
                             )
                         })}

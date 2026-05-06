@@ -7,12 +7,34 @@ import { supabase }       from '@/lib/supabase'
 import { getDealershipId, getDealershipTag } from '@/lib/tenant'
 import { vendorDetails }  from '@/data/vendors'
 import { POModal, STATUS_STYLE, formatCurrency, qtyKey, VendorItem } from '@/components/POModal'
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function businessDaysSince(isoDate: string): number {
+    const start = new Date(isoDate)
+    const now   = new Date()
+    let days = 0
+    const cur = new Date(start)
+    while (cur < now) {
+        cur.setDate(cur.getDate() + 1)
+        const dow = cur.getDay()
+        if (dow !== 0 && dow !== 6) days++
+    }
+    return days
+}
 import { CreatePOModal, FlatInventoryItem } from '@/components/CreatePOModal'
 import { ImportPOModal } from '@/components/ImportPOModal'
-import { POLineItem, POStatus, PurchaseOrder } from '@/utils/types'
+import { POLineItem, POLineItemStatus, POStatus, POApprovalStatus, POPlacementOutcome, PurchaseOrder, SupplierClaim } from '@/utils/types'
 import Sidebar from '@/components/Sidebar'
+import Link from 'next/link'
 
 const ALL_STATUSES: POStatus[] = ['Draft', 'Reviewed', 'Sent', 'Received']
+
+const APPROVAL_STYLE: Record<POApprovalStatus, { badge: string; label: string }> = {
+    pending_approval: { badge: 'bg-amber-100 text-amber-700 border border-amber-300',  label: '🔐 Pending Approval' },
+    approved:         { badge: 'bg-green-100 text-green-700 border border-green-300',   label: '✓ Approved'         },
+    rejected:         { badge: 'bg-red-100 text-red-700 border border-red-300',         label: '✗ Rejected'         },
+}
 
 // ─── PO number generator ──────────────────────────────────────────────────────
 // Queries Supabase directly so the ID is always based on the true DB count,
@@ -62,74 +84,20 @@ function SummaryCards({ allPOs, filtered }: { allPOs: PurchaseOrder[]; filtered:
     )
 }
 
-// ─── Auto-PO info banner ──────────────────────────────────────────────────────
-
-function AutoPOBanner({ autoPOs, allInventoryCount }: { autoPOs: PurchaseOrder[]; allInventoryCount: number }) {
-    const [open, setOpen] = useState(false)
-
-    const draft = autoPOs.filter((p) => p.status === 'Draft')
-
-    if (autoPOs.length === 0) {
-        return (
-            <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-5 flex items-center gap-2 text-sm text-green-700">
-                <span>✅</span>
-                <span>All {allInventoryCount} inventory items are above their reorder points — no POs needed right now.</span>
-            </div>
-        )
-    }
-
-    return (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl mb-5 overflow-hidden">
-            <button
-                onClick={() => setOpen((p) => !p)}
-                className="w-full flex items-center justify-between px-4 py-3 text-left"
-            >
-                <div className="flex items-center gap-3 text-sm text-amber-800 font-medium">
-                    <span>⚡</span>
-                    <span>
-                        {autoPOs.length} auto-generated PO{autoPOs.length > 1 ? 's' : ''} from low-stock inventory
-                    </span>
-                </div>
-                <span className="text-amber-500 text-xs shrink-0 ml-4">{open ? '▲ hide' : '▼ show'}</span>
-            </button>
-
-            {open && (
-                <div className="border-t border-amber-200 px-4 pb-4 pt-3 space-y-2">
-                    <p className="text-xs text-amber-700 mb-3">
-                        These POs are auto-generated and update live when inventory stock changes.
-                    </p>
-                    {draft.map((po) => (
-                        <div
-                            key={po.id}
-                            className="rounded-lg border border-gray-200 bg-white px-3 py-2 flex items-start justify-between gap-4 text-xs"
-                        >
-                            <div>
-                                <span className="font-mono font-bold text-gray-700">{po.id}</span>
-                                <span className="mx-2 text-gray-400">·</span>
-                                <span className="font-medium text-gray-700">{po.vendor}</span>
-                                <span className="mx-2 text-gray-400">·</span>
-                                <span className="text-gray-500">{po.items.length} item{po.items.length > 1 ? 's' : ''}</span>
-                            </div>
-                            <div className="shrink-0 text-right">
-                                <div className="font-bold text-gray-800">{formatCurrency(po.totalCost)}</div>
-                                <div className="mt-0.5 font-semibold text-gray-400">{po.status}</div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
-    )
+// Each PO's Ref No is derived by swapping the "PO-" prefix for "REF-".
+// This keeps them obviously paired: PO-AVA-2026-001 ↔ REF-AVA-2026-001.
+function poIdToRefNo(poId: string): string {
+    return poId.replace(/^PO-/, 'REF-')
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function PurchasePage() {
-    const { autoPOs, motorcycles, spareParts, accessories } = useInventory()
-    const allInventoryCount = motorcycles.length + spareParts.length + accessories.length
+    const { lowStockAlerts, motorcycles, spareParts, accessories } = useInventory()
 
     const [activeStatus,      setActiveStatus]      = useState<POStatus | 'All'>('All')
     const [search,            setSearch]            = useState('')
+    const [supplierFilter,    setSupplierFilter]    = useState('')
     const [selectedPO,        setSelectedPO]        = useState<PurchaseOrder | null>(null)
     const [qtyOverrides,      setQtyOverrides]      = useState<Record<string, number>>({})
     const [showCreatePO,      setShowCreatePO]      = useState(false)
@@ -141,6 +109,8 @@ export default function PurchasePage() {
     const [poEtaOverrides,    setPoEtaOverrides]    = useState<Record<string, string>>({})
     const [dealerSuppliers,   setDealerSuppliers]   = useState<string[]>([])
     const [supplierEmails,    setSupplierEmails]    = useState<Record<string, string>>({})
+    const [vendorMOQs,        setVendorMOQs]        = useState<Record<string, number>>({})
+    const [approvalThreshold, setApprovalThreshold] = useState<number | undefined>(undefined)
 
     // Fetch POs from Supabase on mount; also load status overrides for auto-POs
     useEffect(() => {
@@ -159,23 +129,37 @@ export default function PurchasePage() {
             orders.forEach((po) => { overrides[po.id] = po.status as POStatus })
             setPoStatusOverrides(overrides)
             const mapped: PurchaseOrder[] = orders.map((po) => ({
-                id:        po.id,
-                vendor:    po.vendor,
-                date:      po.date,
-                eta:       po.eta,
-                status:    po.status as POStatus,
-                totalCost: Number(po.total_cost),
-                notes:     po.notes ?? undefined,
+                id:               po.id,
+                refNo:            poIdToRefNo(po.id),
+                vendor:           po.vendor,
+                date:             po.date,
+                eta:              po.eta,
+                status:           po.status as POStatus,
+                totalCost:        Number(po.total_cost),
+                notes:            po.notes ?? undefined,
+                supplierOrderRef: po.supplier_order_ref ?? undefined,
+                placedAt:         po.placed_at ?? undefined,
+                placementOutcome: po.placement_outcome ?? undefined,
+                placementNotes:   po.placement_notes ?? undefined,
+                approvalStatus:    po.approval_status as POApprovalStatus ?? undefined,
+                approvalNote:      po.approval_note ?? undefined,
+                supplierConfirmed: po.supplier_confirmed ?? undefined,
+                confirmedAt:       po.confirmed_at ?? undefined,
                 items: (items ?? [])
                     .filter((li) => li.po_id === po.id)
                     .map((li) => ({
-                        inventoryId:   li.inventory_id,
-                        name:          li.name,
-                        articleNumber: li.article_number,
-                        orderQty:      li.order_qty,
-                        unitCost:      Number(li.unit_cost),
-                        lineTotal:     Number(li.line_total),
-                        ...(li.size ? { size: li.size } : {}),
+                        inventoryId:    li.inventory_id,
+                        name:           li.name,
+                        articleNumber:  li.article_number,
+                        orderQty:       li.order_qty,
+                        unitCost:       Number(li.unit_cost),
+                        lineTotal:      Number(li.line_total),
+                        ...(li.size           ? { size:           li.size }                      : {}),
+                        ...(li.status         ? { status:         li.status as POLineItemStatus } : {}),
+                        ...(li.received_qty   ? { receivedQty:    li.received_qty }               : {}),
+                        ...(li.damaged_qty    ? { damagedQty:     li.damaged_qty }                : {}),
+                        ...(li.backordered_eta? { backorderedETA: li.backordered_eta }            : {}),
+                        ...(li.line_notes     ? { lineNotes:      li.line_notes }                 : {}),
                     })),
             }))
             setHistoricalPOs(mapped)
@@ -186,28 +170,46 @@ export default function PurchasePage() {
             if (!dealershipId) return
             const { data } = await supabase
                 .from('vendors')
-                .select('name, email')
+                .select('name, email, moq')
                 .eq('dealership_id', dealershipId)
                 .eq('is_manual', true)
                 .order('name')
             if (data) {
                 setDealerSuppliers(data.map((r) => r.name))
                 const emailMap: Record<string, string> = {}
-                data.forEach((r) => { if (r.email) emailMap[r.name] = r.email })
+                const moqMap:   Record<string, number> = {}
+                data.forEach((r) => {
+                    if (r.email) emailMap[r.name] = r.email
+                    if (r.moq)   moqMap[r.name]   = r.moq
+                })
                 setSupplierEmails(emailMap)
+                setVendorMOQs(moqMap)
+            }
+        }
+
+        async function loadApprovalThreshold() {
+            const dealershipId = getDealershipId()
+            if (!dealershipId) return
+            const { data } = await supabase
+                .from('dealership_settings')
+                .select('po_approval_threshold')
+                .eq('dealership_id', dealershipId)
+                .single()
+            if (data?.po_approval_threshold) {
+                setApprovalThreshold(Number(data.po_approval_threshold))
             }
         }
 
         loadHistoricalPOs()
         loadSuppliers()
+        loadApprovalThreshold()
     }, [])
 
-    const autoIds = useMemo(() => new Set(autoPOs.map((p) => p.id)), [autoPOs])
     const userIds = useMemo(() => new Set(userPOs.map((p) => p.id)), [userPOs])
-    // Deduplicate: auto-POs and user-created POs (optimistic) take priority over DB-loaded copies
+    // user-created POs (optimistic) take priority over DB-loaded copies
     const allPOs  = useMemo<PurchaseOrder[]>(
-        () => [...autoPOs, ...userPOs, ...historicalPOs.filter((p) => !autoIds.has(p.id) && !userIds.has(p.id))],
-        [autoPOs, userPOs, historicalPOs, autoIds, userIds],
+        () => [...userPOs, ...historicalPOs.filter((p) => !userIds.has(p.id))],
+        [userPOs, historicalPOs, userIds],
     )
 
     const allPOsResolved = useMemo<PurchaseOrder[]>(
@@ -239,7 +241,8 @@ export default function PurchasePage() {
     }, [allPOsResolved])
 
     const filtered = useMemo(() => allPOsResolved.filter((po) => {
-        const matchStatus = activeStatus === 'All' || po.status === activeStatus
+        const matchStatus   = activeStatus === 'All' || po.status === activeStatus
+        const matchSupplier = !supplierFilter || po.vendor === supplierFilter
         const q = search.toLowerCase()
         const matchSearch =
             !q ||
@@ -251,8 +254,8 @@ export default function PurchasePage() {
                     li.articleNumber.toLowerCase().includes(q) ||
                     li.inventoryId.toLowerCase().includes(q)
             )
-        return matchStatus && matchSearch
-    }), [allPOsResolved, activeStatus, search])
+        return matchStatus && matchSupplier && matchSearch
+    }), [allPOsResolved, activeStatus, supplierFilter, search])
 
     function handleAdjust(poId: string, inventoryId: string, delta: number) {
         const key = qtyKey(poId, inventoryId)
@@ -270,24 +273,27 @@ export default function PurchasePage() {
             console.error('[PO save] No dealershipId in localStorage — cannot save')
             return
         }
-        // Generate a fresh ID from DB right before saving to avoid collisions
+        // Generate a fresh PO ID and its paired Ref No from DB to avoid collisions
         const tag = getDealershipTag()
         const freshId = await generateNextPOId(tag)
-        const poToSave = { ...po, id: freshId }
+        const refNo   = poIdToRefNo(freshId)
+        const poToSave = { ...po, id: freshId, refNo }
         // Optimistic update
         setUserPOs((prev) => [poToSave, ...prev])
         // Refresh next ID for the next PO
         generateNextPOId(tag).then(setNextPOId)
         // Persist to Supabase
         const { error: poErr } = await supabase.from('purchase_orders').insert({
-            id:            poToSave.id,
-            vendor:        poToSave.vendor,
-            date:          poToSave.date,
-            eta:           poToSave.eta,
-            status:        poToSave.status,
-            total_cost:    poToSave.totalCost,
-            notes:         poToSave.notes ?? null,
-            dealership_id: dealershipId,
+            id:              poToSave.id,
+            vendor:          poToSave.vendor,
+            date:            poToSave.date,
+            eta:             poToSave.eta,
+            status:          poToSave.status,
+            total_cost:      poToSave.totalCost,
+            notes:           poToSave.notes           ?? null,
+            approval_status: poToSave.approvalStatus  ?? null,
+            approval_note:   poToSave.approvalNote    ?? null,
+            dealership_id:   dealershipId,
         })
         if (poErr) {
             console.error('[PO save] purchase_orders insert failed:', poErr.message)
@@ -403,6 +409,183 @@ export default function PurchasePage() {
         }
     }
 
+    async function handleMarkOrdered(
+        poId: string,
+        orderRef: string,
+        outcome: POPlacementOutcome,
+        notes: string,
+        lineStatuses: Array<{ inventoryId: string; size?: string; status: POLineItemStatus; backorderedETA?: string }>,
+    ) {
+        const dealershipId = getDealershipId()
+        const placedAt     = new Date().toISOString()
+        setPoStatusOverrides((prev) => ({ ...prev, [poId]: 'Sent' }))
+        setHistoricalPOs((prev) =>
+            prev.map((p) =>
+                p.id !== poId ? p : {
+                    ...p,
+                    status:           'Sent',
+                    supplierOrderRef: orderRef || undefined,
+                    placedAt,
+                    placementOutcome: outcome || undefined,
+                    placementNotes:   notes || undefined,
+                    items: p.items.map((li) => {
+                        const ls = lineStatuses.find(
+                            (s) => s.inventoryId === li.inventoryId && (s.size ?? '') === (li.size ?? '')
+                        )
+                        return ls ? { ...li, status: ls.status, backorderedETA: ls.backorderedETA } : li
+                    }),
+                }
+            ),
+        )
+        setSelectedPO(null)
+        if (dealershipId) {
+            const { error } = await supabase
+                .from('purchase_orders')
+                .update({
+                    status:             'Sent',
+                    supplier_order_ref: orderRef || null,
+                    placed_at:          placedAt,
+                    placement_outcome:  outcome || null,
+                    placement_notes:    notes  || null,
+                })
+                .eq('id', poId)
+            if (error) console.error('[Purchase] Mark ordered update failed:', error.message, error.details)
+            // Save per-line statuses
+            for (const ls of lineStatuses) {
+                const q = supabase
+                    .from('po_line_items')
+                    .update({ status: ls.status, backordered_eta: ls.backorderedETA ?? null })
+                    .eq('po_id', poId)
+                    .eq('inventory_id', ls.inventoryId)
+                const { error: liErr } = await (ls.size ? q.eq('size', ls.size) : q.is('size', null))
+                if (liErr) console.error('[Purchase] Line status update failed:', liErr.message)
+            }
+        }
+    }
+
+    async function handleReceiveGoods(
+        poId: string,
+        receipts: Array<{ inventoryId: string; size?: string; receivedQty: number; damagedQty: number }>,
+    ): Promise<SupplierClaim[]> {
+        const dealershipId = getDealershipId()
+        const po           = allPOsResolved.find((p) => p.id === poId)
+        const claims: SupplierClaim[] = []
+
+        for (const r of receipts) {
+            const li = po?.items.find(
+                (l) => l.inventoryId === r.inventoryId && (l.size ?? '') === (r.size ?? '')
+            )
+            const outstanding   = li ? li.orderQty - (li.receivedQty ?? 0) : r.receivedQty
+            const newStatus: POLineItemStatus =
+                r.receivedQty === 0         ? 'backordered' :
+                r.damagedQty  > 0           ? 'damaged'     :
+                r.receivedQty >= outstanding ? 'received'    :
+                'pending'
+
+            if (dealershipId) {
+                const q = supabase
+                    .from('po_line_items')
+                    .update({ received_qty: r.receivedQty, damaged_qty: r.damagedQty, status: newStatus })
+                    .eq('po_id', poId)
+                    .eq('inventory_id', r.inventoryId)
+                const { error } = await (r.size ? q.eq('size', r.size) : q.is('size', null))
+                if (error) console.error('[Purchase] Receive goods update failed:', error.message)
+            }
+
+            if (r.damagedQty > 0 && dealershipId && li && po) {
+                const claimId  = `CLM-${poId}-${li.articleNumber}${r.size ? `-${r.size}` : ''}`
+                const claimRow = {
+                    id:             claimId,
+                    po_id:          poId,
+                    vendor:         po.vendor,
+                    inventory_id:   r.inventoryId,
+                    item_name:      li.name,
+                    article_number: li.articleNumber,
+                    size:           r.size ?? null,
+                    claim_type:     'damaged',
+                    claimed_qty:    r.damagedQty,
+                    status:         'open',
+                    created_at:     new Date().toISOString(),
+                    dealership_id:  dealershipId,
+                }
+                const { error } = await supabase.from('supplier_claims').insert(claimRow)
+                if (error) console.error('[Purchase] Supplier claim insert failed:', error.message)
+                else claims.push({
+                    id: claimId, poId, vendor: po.vendor,
+                    inventoryId: r.inventoryId, itemName: li.name,
+                    articleNumber: li.articleNumber, size: r.size,
+                    claimType: 'damaged', claimedQty: r.damagedQty,
+                    status: 'open', createdAt: claimRow.created_at, dealershipId,
+                })
+            }
+        }
+
+        // Optimistic update — update line statuses in historicalPOs
+        setHistoricalPOs((prev) =>
+            prev.map((p) => {
+                if (p.id !== poId) return p
+                const updatedItems = p.items.map((li) => {
+                    const r = receipts.find(
+                        (r) => r.inventoryId === li.inventoryId && (r.size ?? '') === (li.size ?? '')
+                    )
+                    if (!r) return li
+                    const outstanding   = li.orderQty - (li.receivedQty ?? 0)
+                    const newStatus: POLineItemStatus =
+                        r.receivedQty === 0         ? 'backordered' :
+                        r.damagedQty  > 0           ? 'damaged'     :
+                        r.receivedQty >= outstanding ? 'received'    :
+                        'pending'
+                    return { ...li, receivedQty: r.receivedQty, damagedQty: r.damagedQty, status: newStatus }
+                })
+                const allDone = updatedItems.every((li) => li.status === 'received' || li.status === 'damaged')
+                if (allDone) {
+                    setPoStatusOverrides((ov) => ({ ...ov, [poId]: 'Received' }))
+                    if (dealershipId) supabase.from('purchase_orders').update({ status: 'Received' }).eq('id', poId).then(() => {})
+                }
+                return { ...p, items: updatedItems }
+            })
+        )
+
+        return claims
+    }
+
+    async function handleMarkSupplierConfirmed(poId: string) {
+        const dealershipId = getDealershipId()
+        const confirmedAt  = new Date().toISOString()
+        const patch = { supplierConfirmed: true as const, confirmedAt }
+        setHistoricalPOs((prev) => prev.map((p) => p.id === poId ? { ...p, ...patch } : p))
+        setSelectedPO((prev)    => prev?.id === poId ? { ...prev, ...patch } : prev)
+        if (dealershipId) {
+            const { error } = await supabase
+                .from('purchase_orders')
+                .update({ supplier_confirmed: true, confirmed_at: confirmedAt })
+                .eq('id', poId)
+            if (error) console.error('[Purchase] Mark supplier confirmed failed:', error.message)
+        }
+    }
+
+    async function handleApprove(poId: string) {
+        const dealershipId = getDealershipId()
+        const patch = { approvalStatus: 'approved' as POApprovalStatus }
+        setHistoricalPOs((prev) => prev.map((p) => p.id === poId ? { ...p, ...patch } : p))
+        setUserPOs((prev)       => prev.map((p) => p.id === poId ? { ...p, ...patch } : p))
+        setSelectedPO((prev)    => prev?.id === poId ? { ...prev, ...patch } : prev)
+        if (dealershipId) {
+            await supabase.from('purchase_orders').update({ approval_status: 'approved' }).eq('id', poId)
+        }
+    }
+
+    async function handleReject(poId: string, note: string) {
+        const dealershipId = getDealershipId()
+        const patch = { approvalStatus: 'rejected' as POApprovalStatus, approvalNote: note }
+        setHistoricalPOs((prev) => prev.map((p) => p.id === poId ? { ...p, ...patch } : p))
+        setUserPOs((prev)       => prev.map((p) => p.id === poId ? { ...p, ...patch } : p))
+        setSelectedPO((prev)    => prev?.id === poId ? { ...prev, ...patch } : prev)
+        if (dealershipId) {
+            await supabase.from('purchase_orders').update({ approval_status: 'rejected', approval_note: note || null }).eq('id', poId)
+        }
+    }
+
     async function handleReviewedPO(poId: string, items: POLineItem[], eta: string) {
         const dealershipId = getDealershipId()
         setPoStatusOverrides((prev) => ({ ...prev, [poId]: 'Reviewed' }))
@@ -459,15 +642,22 @@ export default function PurchasePage() {
     const poCols = useMemo<ColDef<PurchaseOrder>[]>(() => [
         {
             label: 'PO Number',
-            defaultWidth: 180,
+            defaultWidth: 170,
             cell: po => (
-                <div className="flex items-center gap-1.5">
-                    <span className="font-mono text-sm font-semibold text-gray-800">{po.id}</span>
-                    {autoIds.has(po.id) && (
-                        <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-semibold">AUTO</span>
-                    )}
-                </div>
+                <span className="font-mono text-sm font-semibold text-gray-800">{po.id}</span>
             ),
+        },
+        {
+            label: 'Ref No.',
+            defaultWidth: 170,
+            cell: po => {
+                const ref = po.refNo ?? poIdToRefNo(po.id)
+                return (
+                    <span className="font-mono text-sm font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
+                        {ref}
+                    </span>
+                )
+            },
         },
         {
             label: 'Vendor',
@@ -506,19 +696,34 @@ export default function PurchasePage() {
         },
         {
             label: 'Status',
-            defaultWidth: 120,
+            defaultWidth: 160,
             cell: po => {
                 const displayStatus = poStatusOverrides[po.id] ?? po.status
-                const style = STATUS_STYLE[displayStatus] ?? STATUS_STYLE['Draft']
+                const style         = STATUS_STYLE[displayStatus] ?? STATUS_STYLE['Draft']
+                const chaserDays    = po.placedAt && displayStatus === 'Sent' ? businessDaysSince(po.placedAt) : 0
+                const needsChaser   = chaserDays >= 5
+                const approvalSt    = po.approvalStatus
                 return (
-                    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${style.badge}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
-                        {displayStatus}
-                    </span>
+                    <div className="flex flex-col gap-1">
+                        <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${style.badge}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
+                            {displayStatus}
+                        </span>
+                        {needsChaser && (
+                            <span className="inline-flex items-center text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full animate-pulse">
+                                ⚠ Follow up — {chaserDays}d
+                            </span>
+                        )}
+                        {approvalSt && (
+                            <span className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full ${APPROVAL_STYLE[approvalSt].badge}`}>
+                                {APPROVAL_STYLE[approvalSt].label}
+                            </span>
+                        )}
+                    </div>
                 )
             },
         },
-    ], [autoIds, qtyOverrides, poStatusOverrides])
+    ], [qtyOverrides, poStatusOverrides])
 
     const poDefaultWidths = useMemo(() => poCols.map(c => c.defaultWidth), [poCols])
 
@@ -542,15 +747,33 @@ export default function PurchasePage() {
             </div>
 
             {/* Page body */}
-            <div className="flex-1 min-h-0 p-6 flex flex-col">
-                <div className="flex items-center justify-between mb-5 shrink-0">
+            <div className="flex-1 min-h-0 p-6 flex flex-col overflow-y-auto">
+                {/* Page header */}
+                <div className="flex items-start justify-between mb-5 shrink-0 gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Purchase Orders</h1>
+                        <h1 className="text-2xl font-bold text-gray-900">Procurement</h1>
                         <p className="text-sm text-gray-400 mt-0.5">
-                            Click any row to open the full PO. Auto POs update live with inventory stock.
+                            Low stock alert → Create PO → system assigns Ref No. → use Ref No. on supplier portal.
                         </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
+                        {/* Supplier filter — applies to both alerts and PO table */}
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-xs text-gray-500 font-medium whitespace-nowrap">Filter supplier:</span>
+                            <select
+                                value={supplierFilter}
+                                onChange={e => setSupplierFilter(e.target.value)}
+                                className="text-sm border border-gray-200 rounded-lg bg-gray-50 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                            >
+                                <option value="">All suppliers</option>
+                                {[...new Set([
+                                    ...allPOs.map(p => p.vendor),
+                                    ...dealerSuppliers,
+                                ])].sort().map(s => (
+                                    <option key={s} value={s}>{s}</option>
+                                ))}
+                            </select>
+                        </div>
                         <button
                             onClick={() => setShowImportPO(true)}
                             className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
@@ -566,8 +789,30 @@ export default function PurchasePage() {
                     </div>
                 </div>
 
+                {/* Low stock banner */}
+                {lowStockAlerts.length > 0 && (
+                    <Link
+                        href="/inventory/low-stock"
+                        className="shrink-0 mb-4 flex items-center justify-between gap-4 bg-amber-50 border border-amber-200 hover:bg-amber-100 rounded-xl px-4 py-3 transition-colors group"
+                    >
+                        <div className="flex items-center gap-3">
+                            <span className="text-lg">⚠</span>
+                            <div>
+                                <span className="text-sm font-semibold text-amber-800">
+                                    {lowStockAlerts.length} item{lowStockAlerts.length !== 1 ? 's' : ''} below reorder level
+                                </span>
+                                <span className="text-xs text-amber-600 ml-2 hidden sm:inline">
+                                    — click to view and create POs
+                                </span>
+                            </div>
+                        </div>
+                        <span className="text-amber-600 text-sm font-medium group-hover:translate-x-0.5 transition-transform shrink-0">
+                            View Low Stock →
+                        </span>
+                    </Link>
+                )}
+
                 <div className="shrink-0"><SummaryCards allPOs={allPOsResolved} filtered={filtered} /></div>
-                <div className="shrink-0"><AutoPOBanner autoPOs={autoPOs} allInventoryCount={allInventoryCount} /></div>
 
                 {/* Status tabs */}
                 <div className="flex gap-1 overflow-x-auto mb-4 pb-1 shrink-0">
@@ -647,6 +892,8 @@ export default function PurchasePage() {
                     onSave={handleSavePO}
                     onAddToExisting={handleAddToExistingPO}
                     onClose={() => setShowCreatePO(false)}
+                    approvalThreshold={approvalThreshold}
+                    vendorMOQMap={vendorMOQs}
                 />
             )}
 
@@ -654,12 +901,17 @@ export default function PurchasePage() {
             {selectedPO && (
                 <POModal
                     po={{ ...selectedPO, status: poStatusOverrides[selectedPO.id] ?? selectedPO.status }}
-                    isAuto={autoIds.has(selectedPO.id)}
+                    isAuto={false}
                     qtyOverrides={qtyOverrides}
                     onAdjust={handleAdjust}
                     onClose={() => setSelectedPO(null)}
                     onSent={() => handleSentPO(selectedPO.id)}
                     onReviewed={(items, eta) => handleReviewedPO(selectedPO.id, items, eta)}
+                    onMarkOrdered={handleMarkOrdered}
+                    onApprove={handleApprove}
+                    onReject={handleReject}
+                    onReceiveGoods={handleReceiveGoods}
+                    onMarkSupplierConfirmed={handleMarkSupplierConfirmed}
                     vendorItems={selectedVendorItems}
                     freeShippingThreshold={vendorDetails[selectedPO.vendor]?.freeShippingThreshold}
                     vendorEmailOverride={supplierEmails[selectedPO.vendor]}
