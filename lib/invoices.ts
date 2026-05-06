@@ -88,20 +88,13 @@ async function nextInvoiceId(_dealershipId: string): Promise<string> {
 export async function getInvoices(): Promise<Invoice[]> {
   const dealershipId = getDealershipId();
   if (!dealershipId) return [];
-  // Use the server-side route so the service-role key bypasses RLS on the invoices table.
-  try {
-    const res = await fetch(`/api/invoice/list?dealershipId=${encodeURIComponent(dealershipId)}`);
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({})) as { error?: string };
-      console.error('[invoices] getInvoices HTTP', res.status, body.error ?? '');
-      return [];
-    }
-    const json = await res.json() as { invoices?: unknown[] };
-    return (json.invoices ?? []).map((r) => mapDbToInvoice(r as Record<string, unknown>));
-  } catch (err) {
-    console.error('[invoices] getInvoices:', err);
-    return [];
-  }
+  const { data, error } = await db()
+    .from('invoices')
+    .select('*')
+    .eq('dealership_id', dealershipId)
+    .order('issue_date', { ascending: false });
+  if (error) { console.error('[invoices] getInvoices:', error.message); return []; }
+  return (data ?? []).map((r: Record<string, unknown>) => mapDbToInvoice(r));
 }
 
 /** Fetch all invoices for a specific customer (by customer_id FK). */
