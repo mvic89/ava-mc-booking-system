@@ -216,54 +216,32 @@ export default function CustomersPage() {
             </div>
           </div>
 
-          {/* KPI cards */}
-          <div className="px-6 md:px-10 pb-5 grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="bg-[#f5f7fa] rounded-2xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('stats.totalCustomers')}</span>
-                <span className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-base">👥</span>
-              </div>
-              <div className="text-2xl font-bold text-slate-900">{customers.length}</div>
-              <div className="text-xs text-slate-400 mt-1">{totalValue > 0 ? `${(totalValue / 1000).toFixed(0)}k kr totalt värde` : 'Inga köp ännu'}</div>
+          {/* Compact stat strip */}
+          <div className="px-6 md:px-10 pb-4 flex items-center gap-1 flex-wrap">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-100">
+              <span className="text-sm">👥</span>
+              <span className="text-sm font-bold text-slate-900">{customers.length}</span>
+              <span className="text-xs text-slate-400">{t('stats.totalCustomers')}</span>
+              {totalValue > 0 && <span className="text-xs text-slate-300">· {(totalValue / 1000).toFixed(0)}k kr</span>}
             </div>
-
-            <div className="bg-[#f5f7fa] rounded-2xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('stats.bankidVerified')}</span>
-                <span className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-base">🔐</span>
-              </div>
-              <div className="text-2xl font-bold text-[#235971]">{bankidCount}</div>
-              <div className="flex items-center gap-1.5 mt-1.5">
-                <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#235971] rounded-full" style={{ width: `${bankidPct}%` }} />
-                </div>
-                <span className="text-xs text-slate-400 shrink-0">{bankidPct}%</span>
-              </div>
+            <span className="text-slate-200 mx-1">·</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-100">
+              <span className="text-sm">🔐</span>
+              <span className="text-sm font-bold text-[#235971]">{bankidCount}</span>
+              <span className="text-xs text-slate-400">BankID</span>
+              <span className="text-xs text-slate-300">({bankidPct}%)</span>
             </div>
-
-            <div className="bg-[#f5f7fa] rounded-2xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('stats.protected')}</span>
-                <span className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-base">🛡️</span>
-              </div>
-              <div className="text-2xl font-bold text-amber-600">{protectedCount}</div>
-              <div className="text-xs text-slate-400 mt-1">Sekretessmarkerade</div>
+            <span className="text-slate-200 mx-1">·</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-100">
+              <span className="text-sm">🛡️</span>
+              <span className="text-sm font-bold text-amber-600">{protectedCount}</span>
+              <span className="text-xs text-slate-400">{t('stats.protected')}</span>
             </div>
-
-            <div className="bg-[#f5f7fa] rounded-2xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('stats.unverified')}</span>
-                <span className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-base">⚠️</span>
-              </div>
-              <div className="text-2xl font-bold text-[#FF6B2C]">{unverifiedCount}</div>
-              <div className="flex items-center gap-1.5 mt-1.5">
-                <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#FF6B2C] rounded-full" style={{ width: customers.length > 0 ? `${Math.round((unverifiedCount / customers.length) * 100)}%` : '0%' }} />
-                </div>
-                <span className="text-xs text-slate-400 shrink-0">
-                  {customers.length > 0 ? `${Math.round((unverifiedCount / customers.length) * 100)}%` : '—'}
-                </span>
-              </div>
+            <span className="text-slate-200 mx-1">·</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-100">
+              <span className="text-sm">⚠️</span>
+              <span className="text-sm font-bold text-[#FF6B2C]">{unverifiedCount}</span>
+              <span className="text-xs text-slate-400">{t('stats.unverified')}</span>
             </div>
           </div>
         </div>{/* end header */}
@@ -324,7 +302,7 @@ export default function CustomersPage() {
 
             {/* Table */}
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[960px]">
+              <table className="w-full min-w-240">
                 <thead>
                   <tr className="bg-slate-50/80 border-b border-slate-100">
                     <th className="w-10 px-4 py-3.5">

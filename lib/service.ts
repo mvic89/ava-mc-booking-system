@@ -207,6 +207,14 @@ export async function getTechnicians(): Promise<Technician[]> {
   return json.technicians ?? [];
 }
 
+export async function deleteWorkOrder(id: number): Promise<void> {
+  const res = await fetch(`/api/service/orders/${id}?${dealerParam()}`, { method: 'DELETE' });
+  if (!res.ok) {
+    const json = await res.json().catch(() => ({}));
+    throw new Error((json as { error?: string }).error ?? 'Delete failed');
+  }
+}
+
 export async function getWorkOrder(id: number): Promise<{
   order: WorkOrder | null;
   tasks: WorkOrderTask[];

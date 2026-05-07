@@ -205,6 +205,7 @@
     "purchaseinvoices": "Købsfakturaer",
     "salesPipeline": "Salgspipeline",
     "pipeline": "Pipeline",
+    "counterSale": "Butikssalg",
     "calendar": "Kalender",
     "tasks": "Opgaver",
     "customers": "Kunder",
@@ -223,8 +224,12 @@
     "groups": {
       "core": "KERNE",
       "sales": "SALG",
+      "service": "SERVICE",
       "admin": "ADMIN"
     },
+    "bookingCalendar": "Aftalekalender",
+    "serviceBookings": "Bookinger",
+    "serviceOrders": "Arbejdsordrer",
     "reservations": "Reservationer",
     "tradeIns": "Byttebiler",
     "cancellations": "Aflysninger",
@@ -232,7 +237,9 @@
     "nps": "NPS & Tilfredshed",
     "commissions": "Provisioner",
     "serviceVehicles": "Køretøjshistorik",
-    "serviceComms": "Kundekommunikation"
+    "serviceComms": "Kundekommunikation",
+    "scheduling": "Teknikerkalender",
+    "serviceReminders": "Servicepåmindelser"
   },
   "login": {
     "title": "Velkommen tilbage",
@@ -1842,7 +1849,8 @@
         "waitingParts": "⚠ Venter på dele",
         "createPO": "📦 Opret indkøbsordre",
         "payInvoice": "💳 Betal {id}",
-        "goToPayment": "💳 Gå til betaling — {id}"
+        "goToPayment": "💳 Gå til betaling — {id}",
+        "alreadyPaid": "Allerede betalt"
       },
       "po": {
         "title": "Opret indkøbsordre for {count} manglende artikler",
@@ -1870,7 +1878,8 @@
         "partActions": "Lagerstatus — handlinger",
         "markOrdered": "Markér bestilt",
         "markReceived": "Modtaget",
-        "markUsed": "Brugt"
+        "markUsed": "Brugt",
+        "remove": "Fjern linje"
       },
       "taskStatus": {
         "done": "Færdig",
@@ -1948,7 +1957,8 @@
         "completeError": "Fejl ved afslutning",
         "notesSaved": "Noter gemt",
         "checkedOut": "Checket ud",
-        "noTechName": "Angiv tekniker navn"
+        "noTechName": "Angiv tekniker navn",
+        "lineRemoved": "Linje fjernet"
       }
     },
     "purchaseOrders": {
@@ -2105,7 +2115,7 @@
         "totalLabel": "Total at betale (inkl. moms)",
         "kr": "kr",
         "saving": "Gemmer...",
-        "vatLine": "heraf moms (20%)",
+        "vatLine": "heraf moms (25%)",
         "net": "netto",
         "invoiceLabel": "Faktura",
         "vehicle": "Køretøj"
@@ -3162,7 +3172,7 @@
       "address": "Address",
       "contact": "Contact details",
       "banking": "Banking details",
-      "sms": "SMS (Twilio)",
+      "sms": "SMS (Vonage)",
       "notifEmails": "Notification Emails",
       "cover": "Cover image — Dashboard background",
       "logo": "Logo"
@@ -3193,12 +3203,6 @@
       "ibanHint": "International bank account number",
       "bic": "BIC / SWIFT",
       "bicHint": "Bank identifier code",
-      "twilioSid": "Account SID",
-      "twilioSidHint": "Starts with AC…",
-      "twilioToken": "Auth Token",
-      "twilioTokenHint": "Secret — never share with customers",
-      "twilioFrom": "Sender number",
-      "twilioFromHint": "E.164 format, e.g. +46701234567",
       "deliveryEmail": "Delivery Note Email",
       "deliveryEmailHint": "Receives email when a delivery note arrives.",
       "invoiceEmail": "Invoice Email",
@@ -3528,6 +3532,179 @@
       "reactivateError": "Kunne ikke genaktivere lead",
       "closedLost": "Lead lukket som tabt",
       "closeError": "Kunne ikke lukke lead"
+    }
+  },
+  "counterSale": {
+    "breadcrumb": "Salg",
+    "title": "🛒 Butikssalg",
+    "subtitle": "Sælg tilbehør & udstyr direkte — uden pipeline",
+    "viewReceipts": "Se alle kvitteringer →",
+    "searchTitle": "Søg artikel",
+    "searchHint": "↩ Enter tilføjer",
+    "searchPlaceholder": "Hjelm, jakke, handsker, artikelnummer…",
+    "inStock": "{n} på lager",
+    "outOfStock": "Ikke på lager",
+    "noResults": "Ingen artikler for \"{q}\" — tjek stavning eller artikelnummer",
+    "cartTitle": "Indkøbskurv",
+    "clearAll": "Ryd alle",
+    "cartEmpty": "Indkøbskurven er tom",
+    "cartEmptyHint": "Søg og tilføj artikler ovenfor",
+    "colItem": "Artikel",
+    "colQty": "Ant",
+    "colPrice": "Pris",
+    "addDiscount": "+ rabat",
+    "lineDiscount": "−{pct}% rabat",
+    "discountOn": "Rabat på {name}",
+    "noDiscount": "Ingen",
+    "saving": "Du sparer {amount} på denne linje",
+    "addOrderDiscount": "+ Tilføj ordrerabat",
+    "orderDiscount": "Ordrerabat",
+    "removeDiscount": "Fjern",
+    "originalPrice": "Ordinær pris",
+    "subtotal": "Delsum",
+    "subtotalAfter": "Delsum (efter artikelrabatter)",
+    "net": "Netto (ekskl. moms)",
+    "vat25": "Moms 25%",
+    "totalToPay": "Totalt at betale",
+    "perUnit": "/ stk",
+    "notesTitle": "Notat (valgfrit)",
+    "notesPlaceholder": "Intern note om salget…",
+    "customerTitle": "Kunde",
+    "customerSearch": "Søg eksisterende kunde…",
+    "walkIn": "eller tilfældig kunde",
+    "walkInName": "Navn (valgfrit)",
+    "paymentTitle": "Betalingsmetode",
+    "payCard": "Kort",
+    "payCash": "Kontant",
+    "paySwish": "Swish",
+    "items": "{count, plural, =1 {# artikel} other {# artikler}}",
+    "netSuffix": "netto",
+    "totalSaving": "Samlet besparelse",
+    "toPay": "At betale",
+    "addItems": "Tilføj artikler",
+    "complete": "Gennemfør — {amount}",
+    "creating": "Opretter kvittering…",
+    "receiptTitle": "Kvittering {id}",
+    "receiptCustomer": "Kunde",
+    "receiptColItem": "Artikel",
+    "receiptColQty": "Ant",
+    "receiptColTotal": "Sum",
+    "receiptOrderDiscount": "Ordrerabat",
+    "receiptNet": "Netto (ekskl. moms)",
+    "receiptVat": "Moms 25%",
+    "receiptTotal": "Total",
+    "receiptPayment": "Betalingsmetode",
+    "receiptNote": "Notat: ",
+    "receiptThanks": "Tak for dit køb!",
+    "print": "Udskriv",
+    "newSale": "Nyt salg",
+    "toastAddItems": "Tilføj mindst én artikel",
+    "toastNotLoggedIn": "Ikke logget ind",
+    "toastError": "Noget gikk galt"
+  },
+  "reminders": {
+    "title": "Servicepåmindelser",
+    "subtitle": "Automatiske påmindelser når køretøjer er klar til service",
+    "addReminder": "Ny påmindelse",
+    "confirmDelete": "Er du sikker på, at du vil slette denne påmindelse?",
+    "month": "mdr",
+    "months": "mdr",
+    "lastSent": "Sidst sendt",
+    "daysOverdue": "dage forsinket",
+    "daysLeft": "dage tilbage",
+    "today": "I dag",
+    "stats": {
+      "total": "I alt",
+      "overdue": "Forsinkede",
+      "dueSoon": "Snart"
+    },
+    "filter": {
+      "all": "Alle",
+      "active": "Aktive",
+      "paused": "Sat på pause",
+      "overdue": "Forsinkede",
+      "soon": "Inden for 7 dage"
+    },
+    "col": {
+      "customer": "Kunde",
+      "vehicle": "Køretøj",
+      "interval": "Interval",
+      "lastService": "Seneste service",
+      "nextReminder": "Næste påmindelse"
+    },
+    "actions": {
+      "edit": "Rediger",
+      "pause": "Pause",
+      "resume": "Genoptag",
+      "delete": "Slet"
+    },
+    "empty": {
+      "title": "Ingen påmindelser",
+      "subtitle": "Opret din første servicepåmindelse for at holde kunder informeret"
+    },
+    "toasts": {
+      "created": "Påmindelse oprettet",
+      "updated": "Påmindelse opdateret",
+      "deleted": "Påmindelse slettet",
+      "paused": "Påmindelse sat på pause",
+      "resumed": "Påmindelse genoptaget",
+      "error": "Noget gik galt"
+    },
+    "form": {
+      "title": "Ny servicepåmindelse",
+      "customerName": "Kundenavn",
+      "customerEmail": "E-mail",
+      "customerPhone": "Telefon",
+      "vehicleName": "Køretøj",
+      "plate": "Nummerplade",
+      "vin": "VIN-nummer",
+      "interval": "Serviceinterval",
+      "month": "måned",
+      "months": "måneder",
+      "lastServiceAt": "Seneste servicedato",
+      "nextWillBe": "Næste påmindelse",
+      "notes": "Notater",
+      "notesPlaceholder": "Type service, kundepræferencer...",
+      "save": "Gem påmindelse",
+      "saving": "Gemmer...",
+      "cancel": "Annuller"
+    },
+    "cronInfo": {
+      "title": "Automatiske e-mails sendes kl. 08:00 hver dag",
+      "body": "Systemet tjekker dagligt, om nogen køretøjer er klar til service og sender automatisk e-mail til kunden op til 7 dage i forvejen. Når en arbejdsordre afsluttes, opdateres påmindelsen automatisk."
+    }
+  },
+  "scheduling": {
+    "title": "Teknikerkalender",
+    "subtitle": "Planlæg og fordel arbejde mellem teknikere",
+    "view": {
+      "day": "Dag",
+      "week": "Uge"
+    },
+    "today": "I dag",
+    "newBooking": "Ny booking",
+    "backlog": "Arbejdsordrer",
+    "backlogTitle": "Åbne arbejdsordrer",
+    "backlogSubtitle": "Aktive, ikke afsluttede",
+    "noOpenOrders": "Ingen åbne arbejdsordrer",
+    "viewAllOrders": "Vis alle ordrer",
+    "unassigned": "Ikke tildelt",
+    "bookingsCount": "bookinger",
+    "noTechnicians": "Ingen aktive teknikere fundet",
+    "capacity": "belagt",
+    "legend": "Forklaring",
+    "nowLine": "Nu",
+    "statusUpdated": "Status opdateret",
+    "statusError": "Kunne ikke opdatere status",
+    "modal": {
+      "tech": "Tekniker",
+      "type": "Type",
+      "description": "Beskrivelse",
+      "notes": "Notater",
+      "changeStatus": "Skift status",
+      "viewWorkOrder": "Vis arbejdsordre",
+      "editBooking": "Rediger booking",
+      "unassigned": "Ikke tildelt"
     }
   }
 }

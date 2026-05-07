@@ -77,18 +77,75 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
 
     // Auto-email customer when vehicle is ready for pickup
-    if (body.status === 'ready' && data.customer_phone) {
-      const { data: dealer } = await sb()
-        .from('dealerships').select('name').eq('id', dealershipId).maybeSingle();
-      const dealerName = dealer?.name ?? 'Verkstaden';
-      const customerEmail = body.customerEmail ?? data.customer_email ?? null;
+    if (body.status === 'ready') {
+      // customer_email is not stored on work_orders — look it up from customers table
+      let customerEmail: string | null = data.customer_email ?? null;
+      if (!customerEmail && data.customer_id) {
+        const { data: cust } = await sb()
+          .from('customers').select('email').eq('id', data.customer_id).maybeSingle();
+        customerEmail = cust?.email ?? null;
+      }
       if (customerEmail) {
+        const { data: dealer } = await sb()
+          .from('dealerships').select('name').eq('id', dealershipId).maybeSingle();
+        const dealerName = dealer?.name ?? 'Verkstaden';
         const { subject, message } = vehicleReadyMessage(data.customer_name, data.vehicle_name, data.plate, dealerName);
         sendServiceEmail({ dealershipId, customerId: data.customer_id, recipientName: data.customer_name, recipientEmail: customerEmail, subject, message });
       }
     }
 
     return NextResponse.json({ order: data });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
+}
+
+// DELETE /api/service/orders/[id]?dealershipId=…
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const dealershipId = req.nextUrl.searchParams.get('dealershipId');
+    if (!dealershipId) return NextResponse.json({ error: 'dealershipId required' }, { status: 400 });
+
+    // Restore stock for any parts that were reserved from inventory
+    const { data: parts } = await sb()
+      .from('work_order_parts')
+      .select('part_number, name, quantity, status')
+      .eq('work_order_id', Number(id));
+
+    if (parts?.length) {
+      const reserved = (parts as { part_number: string; name: string; quantity: number; status: string }[])
+        .filter(p => ['reserved', 'used'].includes(p.status));
+
+      for (const p of reserved) {
+        for (const table of ['spare_parts', 'accessories'] as const) {
+          const q = p.part_number
+            ? sb().from(table).select('id, stock').eq('dealership_id', dealershipId).ilike('article_number', p.part_number).maybeSingle()
+            : sb().from(table).select('id, stock').eq('dealership_id', dealershipId).ilike('name', p.name).maybeSingle();
+          const { data: inv } = await q;
+          if (inv) {
+            await sb().from(table).update({ stock: (inv.stock ?? 0) + p.quantity }).eq('id', inv.id);
+            break;
+          }
+        }
+      }
+    }
+
+    // Remove related rows first to avoid FK constraint errors
+    await Promise.all([
+      sb().from('work_order_tasks').delete().eq('work_order_id', Number(id)),
+      sb().from('work_order_parts').delete().eq('work_order_id', Number(id)),
+      sb().from('tech_time_entries').delete().eq('work_order_id', Number(id)),
+    ]);
+
+    const { error } = await sb()
+      .from('work_orders')
+      .delete()
+      .eq('id', Number(id))
+      .eq('dealership_id', dealershipId);
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true });
   } catch (err: unknown) {
     return NextResponse.json({ error: String(err) }, { status: 500 });
   }

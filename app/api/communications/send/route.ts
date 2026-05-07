@@ -6,16 +6,13 @@ import nodemailer from 'nodemailer';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
 interface DealershipRow {
-  name:               string;
-  smtp_user:          string | null;
-  smtp_pass:          string | null;
-  smtp_host:          string | null;
-  smtp_port:          number | null;
-  admin_email:        string | null;
-  email:              string | null;
-  twilio_account_sid: string | null;
-  twilio_auth_token:  string | null;
-  twilio_from_number: string | null;
+  name:        string;
+  smtp_user:   string | null;
+  smtp_pass:   string | null;
+  smtp_host:   string | null;
+  smtp_port:   number | null;
+  admin_email: string | null;
+  email:       string | null;
 }
 
 function buildEmailHtml(subject: string, body: string, dealershipName: string): string {
@@ -98,21 +95,21 @@ async function sendEmail(dealer: DealershipRow, to: string, subject: string, bod
   }
 }
 
-async function sendSms(dealer: DealershipRow, to: string, body: string): Promise<void> {
-  const { twilio_account_sid: sid, twilio_auth_token: token, twilio_from_number: from } = dealer;
-  if (!sid || !token || !from) throw new Error('Twilio not configured');
-  const url = `https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`;
-  const res = await fetch(url, {
+async function sendSms(_dealer: DealershipRow, to: string, body: string): Promise<void> {
+  const apiKey    = process.env.VONAGE_API_KEY;
+  const apiSecret = process.env.VONAGE_API_SECRET;
+  const from      = process.env.VONAGE_FROM ?? 'BikeMeNow';
+  if (!apiKey || !apiSecret) throw new Error('Vonage not configured');
+
+  const res = await fetch('https://rest.nexmo.com/sms/json', {
     method:  'POST',
-    headers: {
-      'Content-Type':  'application/x-www-form-urlencoded',
-      Authorization:   `Basic ${Buffer.from(`${sid}:${token}`).toString('base64')}`,
-    },
-    body: new URLSearchParams({ From: from, To: to, Body: body }).toString(),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ api_key: apiKey, api_secret: apiSecret, from, to, text: body }),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({})) as { message?: string };
-    throw new Error(err.message ?? `Twilio ${res.status}`);
+  const json = await res.json() as { messages?: { status: string; 'error-text'?: string }[] };
+  const msg  = json.messages?.[0];
+  if (!msg || msg.status !== '0') {
+    throw new Error(msg?.['error-text'] ?? `Vonage error status ${msg?.status ?? 'unknown'}`);
   }
 }
 
@@ -145,7 +142,7 @@ export async function POST(req: NextRequest) {
   const sb = getSupabaseAdmin() as any;
   const { data: dealer, error: dErr } = await sb
     .from('dealerships')
-    .select('name,smtp_user,smtp_pass,smtp_host,smtp_port,admin_email,email,twilio_account_sid,twilio_auth_token,twilio_from_number')
+    .select('name,smtp_user,smtp_pass,smtp_host,smtp_port,admin_email,email')
     .eq('id', body.dealershipId)
     .maybeSingle();
 

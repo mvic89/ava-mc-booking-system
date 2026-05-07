@@ -45,7 +45,7 @@ const CATEGORY_META: Record<string, { label: string; icon: string; desc: string 
   registry:      { label: 'Fordonsregister', icon: '🚗', desc: 'Transportstyrelsen — fordonsuppgifter och digitalt ägarbyte' },
   marketplace:   { label: 'Annonsering',     icon: '📢', desc: 'Blocket — publicera och ta bort fordonsannonser automatiskt' },
   insurance:     { label: 'Försäkring',      icon: '🛡', desc: 'MC-försäkring direkt i kassan — offerter och direktbindning' },
-  communication: { label: 'Kommunikation',   icon: '✉️', desc: 'E-post (SMTP/Gmail) och SMS (Twilio) — notiser till handläggare vid nya leads, betalningar och avtal' },
+  communication: { label: 'Kommunikation',   icon: '✉️', desc: 'E-post (SMTP/Gmail) — notiser till handläggare vid nya leads, betalningar och avtal. SMS skickas via BikeMeNows delade Vonage-konto.' },
   crm:           { label: 'CRM',             icon: '🤝', desc: 'Kundrelationshantering och leadspårning' },
 };
 
@@ -58,10 +58,7 @@ const COMM_BODY_KEY: Record<string, string> = {
   SMTP_HOST:          'smtpHost',
   SMTP_PORT:          'smtpPort',
   ADMIN_EMAIL:        'adminEmail',
-  TWILIO_ACCOUNT_SID: 'twilioAccountSid',
-  TWILIO_AUTH_TOKEN:  'twilioAuthToken',
-  TWILIO_FROM_NUMBER: 'twilioFromNumber',
-  ADMIN_PHONE:        'adminPhone',
+  ADMIN_PHONE: 'adminPhone',
 };
 
 function FieldStatusPip({ status }: { status: FieldStatus }) {
@@ -126,9 +123,8 @@ export default function IntegrationsSettingsPage() {
         fetch(`/api/notifications/config?dealershipId=${encodeURIComponent(dealershipId)}`)
           .then(r => r.ok ? r.json() : null)
           .then((cfg: {
-            smtpOk: boolean; twilioOk: boolean;
+            smtpOk: boolean; vonageSmsOk?: boolean;
             smtpUser?: string; smtpPass?: string; smtpHost?: string; smtpPort?: number | null;
-            twilioAccountSid?: string; twilioAuthToken?: string; twilioFromNumber?: string;
             adminEmail?: string; adminPhone?: string;
           } | null) => {
             if (!cfg) return;
@@ -142,26 +138,11 @@ export default function IntegrationsSettingsPage() {
                   },
                   credentials: {
                     ...next.smtp.credentials,
-                    ...(cfg.smtpUser       ? { SMTP_USER:   cfg.smtpUser }                       : {}),
-                    ...(cfg.smtpPass       ? { SMTP_PASS:   cfg.smtpPass }                       : {}),
-                    ...(cfg.smtpHost       ? { SMTP_HOST:   cfg.smtpHost }                       : {}),
-                    ...(cfg.smtpPort       ? { SMTP_PORT:   String(cfg.smtpPort) }               : {}),
-                    ...(cfg.adminEmail     ? { ADMIN_EMAIL: cfg.adminEmail }                     : {}),
-                  },
-                };
-              }
-              if (next.twilio) {
-                const twilioStatus = cfg.twilioOk ? 'configured' : 'empty';
-                next.twilio = { ...next.twilio,
-                  fieldStatus: {
-                    TWILIO_ACCOUNT_SID: twilioStatus, TWILIO_AUTH_TOKEN: twilioStatus, TWILIO_FROM_NUMBER: twilioStatus, ADMIN_PHONE: twilioStatus,
-                  },
-                  credentials: {
-                    ...next.twilio.credentials,
-                    ...(cfg.twilioAccountSid ? { TWILIO_ACCOUNT_SID:  cfg.twilioAccountSid } : {}),
-                    ...(cfg.twilioAuthToken  ? { TWILIO_AUTH_TOKEN:   cfg.twilioAuthToken }  : {}),
-                    ...(cfg.twilioFromNumber ? { TWILIO_FROM_NUMBER:  cfg.twilioFromNumber } : {}),
-                    ...(cfg.adminPhone       ? { ADMIN_PHONE:         cfg.adminPhone }       : {}),
+                    ...(cfg.smtpUser   ? { SMTP_USER:   cfg.smtpUser }           : {}),
+                    ...(cfg.smtpPass   ? { SMTP_PASS:   cfg.smtpPass }           : {}),
+                    ...(cfg.smtpHost   ? { SMTP_HOST:   cfg.smtpHost }           : {}),
+                    ...(cfg.smtpPort   ? { SMTP_PORT:   String(cfg.smtpPort) }   : {}),
+                    ...(cfg.adminEmail ? { ADMIN_EMAIL: cfg.adminEmail }         : {}),
                   },
                 };
               }
@@ -316,7 +297,7 @@ export default function IntegrationsSettingsPage() {
     }
   }
 
-  // Save SMTP or Twilio credentials to Supabase via /api/notifications/config
+  // Save SMTP credentials to Supabase via /api/notifications/config
   async function saveCommIntegration(integrationId: string) {
     if (!supabaseDealershipId) { toast.error('Dealership ID not found — log in again'); return; }
     setSavingComm(prev => ({ ...prev, [integrationId]: true }));
@@ -333,21 +314,17 @@ export default function IntegrationsSettingsPage() {
         body:    JSON.stringify(body),
       });
       if (!res.ok) throw new Error('Save failed');
-      // Refresh comm statuses
-      const cfg = await fetch(`/api/notifications/config?dealershipId=${encodeURIComponent(supabaseDealershipId)}`).then(r => r.json()) as { smtpOk: boolean; twilioOk: boolean };
+      // Refresh SMTP status
+      const cfg = await fetch(`/api/notifications/config?dealershipId=${encodeURIComponent(supabaseDealershipId)}`).then(r => r.json()) as { smtpOk: boolean };
       setIntegrationStates(prev => {
         const next = { ...prev };
         if (next.smtp) {
           const s = cfg.smtpOk ? 'configured' : 'empty';
           next.smtp = { ...next.smtp, fieldStatus: { SMTP_USER: s, SMTP_PASS: s, SMTP_HOST: s, SMTP_PORT: s, ADMIN_EMAIL: s } };
         }
-        if (next.twilio) {
-          const s = cfg.twilioOk ? 'configured' : 'empty';
-          next.twilio = { ...next.twilio, fieldStatus: { TWILIO_ACCOUNT_SID: s, TWILIO_AUTH_TOKEN: s, TWILIO_FROM_NUMBER: s, ADMIN_PHONE: s } };
-        }
         return next;
       });
-      toast.success(`${integrationId === 'smtp' ? 'E-post' : 'SMS'}-konfiguration sparad`);
+      toast.success('E-postkonfiguration sparad');
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Kunde inte spara');
     }

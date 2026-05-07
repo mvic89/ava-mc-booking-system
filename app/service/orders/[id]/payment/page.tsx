@@ -45,12 +45,12 @@ function InfoRow({ label, value, highlight }: { label: string; value: string; hi
 
 type TFunc = ReturnType<typeof useTranslations<'service'>>;
 
-function SwishFlow({ amount, invoiceId, customerPhone, onPaid, t }: {
-  amount: number; invoiceId: string; customerPhone: string; onPaid: () => void; t: TFunc;
+function SwishFlow({ amount, invoiceId, payRef, customerPhone, onPaid, t }: {
+  amount: number; invoiceId: string; payRef: string; customerPhone: string; onPaid: () => void; t: TFunc;
 }) {
   const dealerInfo  = getDealerInfo();
   const swishNumber = dealerInfo.swish;
-  const paymentRef  = invoiceId;
+  const paymentRef  = invoiceId || payRef;
   const [phone,    setPhone]    = useState(customerPhone ?? '');
   const [step,     setStep]     = useState<'idle' | 'waiting' | 'done' | 'fail'>('idle');
   const [reqId,    setReqId]    = useState('');
@@ -64,11 +64,11 @@ function SwishFlow({ amount, invoiceId, customerPhone, onPaid, t }: {
       const res = await fetch('/api/swish/payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: normalised, amount, message: `Serviceorder ${invoiceId}`, payerAlias: normalised, orderId: invoiceId }),
+        body: JSON.stringify({ phone: normalised, amount, message: `Serviceorder ${paymentRef}`, payerAlias: normalised, orderId: paymentRef }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      setReqId(data.id ?? '');
+      setReqId(data.paymentId ?? data.id ?? '');
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Swish error');
       setStep('fail');
@@ -521,7 +521,7 @@ function KlarnaFlow({ amount, invoiceId, onPaid, t }: { amount: number; invoiceI
               </button>
             ))}
           </div>
-          <div id="klarna-payments-container" className="min-h-[80px]" />
+          <div id="klarna-payments-container" className="min-h-20" />
           {(flowStatus === 'widget_ready' || flowStatus === 'authorizing' || flowStatus === 'placing') && (
             <button onClick={authorize} disabled={flowStatus !== 'widget_ready'}
               className="w-full py-3 rounded-xl font-bold text-sm text-white transition-colors disabled:opacity-50"
@@ -588,6 +588,7 @@ function ServicePaymentContent({ id }: { id: string }) {
   const [amountSaving, setAmountSaving]= useState(false);
   const [method,       setMethod]      = useState<Method>('swish');
   const [step,         setStep]        = useState<FlowStep>('idle');
+  const [isPaid,       setIsPaid]      = useState(false);
   const [loading,      setLoading]     = useState(true);
   const dealershipId = getDealershipId() ?? '';
 
@@ -604,12 +605,26 @@ function ServicePaymentContent({ id }: { id: string }) {
     (async () => {
       const { order: o, tasks: tk, parts: p } = await getWorkOrder(Number(id));
       setOrder(o); setTasks(tk); setParts(p);
+
+      // Compute gross from tasks + parts — same formula as the Items tab
+      if (o) {
+        const freshNet =
+          (tk ?? []).reduce((s, t) => {
+            const hrs = t.actual_hrs > 0 ? t.actual_hrs : t.estimated_hrs;
+            return s + hrs * (o.labor_rate ?? 850);
+          }, 0) +
+          (p ?? []).reduce((s, pt) => s + pt.total_cost, 0);
+        const freshGross = Math.round(freshNet * 1.25 * 100) / 100;
+        setAmountInput(String(freshGross));
+      }
+
       if (invoiceId && dealershipId) {
         const res = await fetch(`/api/invoice/by-id?id=${encodeURIComponent(invoiceId)}&dealershipId=${encodeURIComponent(dealershipId)}`);
         if (res.ok) {
           const json = await res.json() as { invoice: InvoiceRow };
           setInvoice(json.invoice ?? null);
-          setAmountInput(String(json.invoice?.total_amount ?? 0));
+          // Invoice already paid — show success screen immediately
+          if (json.invoice?.status === 'paid') setStep('success');
         }
       }
       setLoading(false);
@@ -630,12 +645,22 @@ function ServicePaymentContent({ id }: { id: string }) {
   }, [invoiceId, dealershipId]);
 
   const handlePaid = useCallback(async () => {
-    if (!invoiceId) return;
-    await saveAmount(amountInput);
-    await markInvoicePaidById(invoiceId, METHODS.find(m => m.id === method)?.label ?? method);
+    setIsPaid(true);  // lock UI immediately — no second payment possible
+    if (invoiceId) {
+      await saveAmount(amountInput);
+      await markInvoicePaidById(invoiceId, METHODS.find(m => m.id === method)?.label ?? method);
+      toast.success(`${invoiceId} ${t('payment.success.paid')}!`);
+    }
+    // Mark work order as invoiced (best-effort — never blocks the success screen)
+    if (dealershipId) {
+      fetch(`/api/service/orders/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dealershipId, status: 'invoiced' }),
+      }).catch(() => {});
+    }
     setStep('success');
-    toast.success(`${invoiceId} ${t('payment.success.paid')}!`);
-  }, [invoiceId, method, amountInput, saveAmount, t, METHODS]);
+  }, [invoiceId, method, amountInput, saveAmount, t, METHODS, id, dealershipId]);
 
   if (loading || !order) return (
     <div className="flex min-h-screen bg-[#f5f7fa]"><Sidebar />
@@ -645,8 +670,8 @@ function ServicePaymentContent({ id }: { id: string }) {
     </div>
   );
 
-  const totalAmount = parseFloat(amountInput.replace(',', '.')) || invoice?.total_amount || order.total_cost || 0;
-  const vatAmount   = Math.round(totalAmount * 0.2 * 100) / 100;
+  const totalAmount = parseFloat(amountInput.replace(',', '.')) || invoice?.total_amount || 0;
+  const vatAmount   = Math.round(totalAmount * 0.2 * 100) / 100;   // VAT back-calc: gross * 0.2 = 25% on net
   const netAmount   = Math.round((totalAmount - vatAmount) * 100) / 100;
 
   if (step === 'success') {
@@ -811,11 +836,13 @@ function ServicePaymentContent({ id }: { id: string }) {
               <div className="bg-white rounded-2xl border border-slate-100 p-5">
                 <h2 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">{t('payment.methodSelect')}</h2>
 
-                {/* Method tabs */}
+                {/* Method tabs — locked once payment is confirmed */}
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-6">
                   {METHODS.map(m => (
-                    <button key={m.id} onClick={() => setMethod(m.id)}
-                      className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all text-center ${
+                    <button key={m.id}
+                      onClick={() => { if (!isPaid) setMethod(m.id); }}
+                      disabled={isPaid}
+                      className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all text-center disabled:opacity-50 disabled:cursor-not-allowed ${
                         method === m.id ? 'border-[#FF6B2C] bg-[#FF6B2C]/5' : 'border-slate-100 hover:border-slate-300'
                       }`}>
                       <span className="text-xl">{m.icon}</span>
@@ -826,7 +853,7 @@ function ServicePaymentContent({ id }: { id: string }) {
 
                 {/* Payment flow */}
                 {method === 'swish' && (
-                  <SwishFlow amount={totalAmount} invoiceId={invoiceId} customerPhone={order.customer_phone ?? ''} onPaid={handlePaid} t={t} />
+                  <SwishFlow amount={totalAmount} invoiceId={invoiceId} payRef={`AO-${id}`} customerPhone={order.customer_phone ?? ''} onPaid={handlePaid} t={t} />
                 )}
                 {method === 'card' && (
                   <CardFlow amount={totalAmount} onPaid={handlePaid} t={t} />

@@ -205,6 +205,7 @@
     "purchaseinvoices": "فواتير الشراء",
     "salesPipeline": "خط المبيعات",
     "pipeline": "خط الأنابيب",
+    "counterSale": "مبيعات المتجر",
     "calendar": "التقويم",
     "tasks": "المهام",
     "customers": "العملاء",
@@ -223,8 +224,12 @@
     "groups": {
       "core": "الأساسي",
       "sales": "المبيعات",
+      "service": "الخدمة",
       "admin": "الإدارة"
     },
+    "bookingCalendar": "تقويم المواعيد",
+    "serviceBookings": "الحجوزات",
+    "serviceOrders": "أوامر العمل",
     "reservations": "الحجوزات",
     "tradeIns": "المقايضات",
     "cancellations": "الإلغاءات",
@@ -232,7 +237,9 @@
     "nps": "NPS والرضا",
     "commissions": "العمولات",
     "serviceVehicles": "تاريخ المركبات",
-    "serviceComms": "التواصل مع العملاء"
+    "serviceComms": "التواصل مع العملاء",
+    "scheduling": "تقويم الفنيين",
+    "serviceReminders": "تذكيرات الصيانة"
   },
   "login": {
     "title": "مرحباً بعودتك",
@@ -1842,7 +1849,8 @@
         "waitingParts": "⚠ في انتظار القطع",
         "createPO": "📦 إنشاء أمر شراء",
         "payInvoice": "💳 دفع {id}",
-        "goToPayment": "💳 الانتقال إلى الدفع — {id}"
+        "goToPayment": "💳 الانتقال إلى الدفع — {id}",
+        "alreadyPaid": "مدفوع بالفعل"
       },
       "po": {
         "title": "إنشاء أمر شراء لـ {count} مقالة مفقودة",
@@ -1870,7 +1878,8 @@
         "partActions": "حالة المخزون — إجراءات",
         "markOrdered": "تعليم مطلوب",
         "markReceived": "مستلم",
-        "markUsed": "مُستخدَم"
+        "markUsed": "مُستخدَم",
+        "remove": "إزالة السطر"
       },
       "taskStatus": {
         "done": "مكتمل",
@@ -1948,7 +1957,8 @@
         "completeError": "خطأ في الإتمام",
         "notesSaved": "تم حفظ الملاحظات",
         "checkedOut": "تم تسجيل المغادرة",
-        "noTechName": "أدخل اسم الفني"
+        "noTechName": "أدخل اسم الفني",
+        "lineRemoved": "تم حذف السطر"
       }
     },
     "purchaseOrders": {
@@ -2105,7 +2115,7 @@
         "totalLabel": "الإجمالي للدفع (شامل الضريبة)",
         "kr": "كرونة",
         "saving": "جارٍ الحفظ...",
-        "vatLine": "منها ضريبة القيمة المضافة (20%)",
+        "vatLine": "منها ضريبة القيمة المضافة (25%)",
         "net": "صافي",
         "invoiceLabel": "الفاتورة",
         "vehicle": "المركبة"
@@ -3162,7 +3172,7 @@
       "address": "Address",
       "contact": "Contact details",
       "banking": "Banking details",
-      "sms": "SMS (Twilio)",
+      "sms": "SMS (Vonage)",
       "notifEmails": "Notification Emails",
       "cover": "Cover image — Dashboard background",
       "logo": "Logo"
@@ -3193,12 +3203,6 @@
       "ibanHint": "International bank account number",
       "bic": "BIC / SWIFT",
       "bicHint": "Bank identifier code",
-      "twilioSid": "Account SID",
-      "twilioSidHint": "Starts with AC…",
-      "twilioToken": "Auth Token",
-      "twilioTokenHint": "Secret — never share with customers",
-      "twilioFrom": "Sender number",
-      "twilioFromHint": "E.164 format, e.g. +46701234567",
       "deliveryEmail": "Delivery Note Email",
       "deliveryEmailHint": "Receives email when a delivery note arrives.",
       "invoiceEmail": "Invoice Email",
@@ -3528,6 +3532,179 @@
       "reactivateError": "تعذر إعادة التفعيل",
       "closedLost": "تم إغلاق العميل كخسارة",
       "closeError": "تعذر إغلاق العميل"
+    }
+  },
+  "counterSale": {
+    "breadcrumb": "المبيعات",
+    "title": "🛒 مبيعات المتجر",
+    "subtitle": "بيع الملحقات والمعدات مباشرةً — بدون خط أنابيب",
+    "viewReceipts": "عرض جميع الإيصالات →",
+    "searchTitle": "بحث عن منتج",
+    "searchHint": "↩ Enter للإضافة",
+    "searchPlaceholder": "خوذة، جاكيت، قفازات، رقم القطعة…",
+    "inStock": "{n} في المخزون",
+    "outOfStock": "غير متوفر",
+    "noResults": "لا توجد منتجات لـ \"{q}\" — تحقق من الإملاء أو رقم القطعة",
+    "cartTitle": "سلة التسوق",
+    "clearAll": "مسح الكل",
+    "cartEmpty": "سلة التسوق فارغة",
+    "cartEmptyHint": "ابحث وأضف المنتجات أعلاه",
+    "colItem": "المنتج",
+    "colQty": "الكمية",
+    "colPrice": "السعر",
+    "addDiscount": "+ خصم",
+    "lineDiscount": "−{pct}% خصم",
+    "discountOn": "خصم على {name}",
+    "noDiscount": "لا خصم",
+    "saving": "توفر {amount} على هذا الصف",
+    "addOrderDiscount": "+ إضافة خصم على الطلب",
+    "orderDiscount": "خصم الطلب",
+    "removeDiscount": "إزالة",
+    "originalPrice": "السعر الأصلي",
+    "subtotal": "المجموع الفرعي",
+    "subtotalAfter": "المجموع الفرعي (بعد خصومات المنتجات)",
+    "net": "صافي (بدون ضريبة)",
+    "vat25": "ضريبة القيمة المضافة 25%",
+    "totalToPay": "الإجمالي للدفع",
+    "perUnit": "/ قطعة",
+    "notesTitle": "ملاحظة (اختياري)",
+    "notesPlaceholder": "ملاحظة داخلية حول البيع…",
+    "customerTitle": "العميل",
+    "customerSearch": "البحث عن عميل موجود…",
+    "walkIn": "أو عميل عابر",
+    "walkInName": "الاسم (اختياري)",
+    "paymentTitle": "طريقة الدفع",
+    "payCard": "بطاقة",
+    "payCash": "نقداً",
+    "paySwish": "Swish",
+    "items": "{count, plural, =1 {# منتج} other {# منتجات}}",
+    "netSuffix": "صافي",
+    "totalSaving": "إجمالي التوفير",
+    "toPay": "للدفع",
+    "addItems": "إضافة منتجات",
+    "complete": "إتمام — {amount}",
+    "creating": "جارٍ إنشاء الإيصال…",
+    "receiptTitle": "إيصال {id}",
+    "receiptCustomer": "العميل",
+    "receiptColItem": "المنتج",
+    "receiptColQty": "الكمية",
+    "receiptColTotal": "المجموع",
+    "receiptOrderDiscount": "خصم الطلب",
+    "receiptNet": "صافي (بدون ضريبة)",
+    "receiptVat": "ضريبة القيمة المضافة 25%",
+    "receiptTotal": "الإجمالي",
+    "receiptPayment": "طريقة الدفع",
+    "receiptNote": "ملاحظة: ",
+    "receiptThanks": "شكراً على شرائك!",
+    "print": "طباعة",
+    "newSale": "بيع جديد",
+    "toastAddItems": "أضف منتجاً واحداً على الأقل",
+    "toastNotLoggedIn": "غير مسجل الدخول",
+    "toastError": "حدث خطأ ما"
+  },
+  "reminders": {
+    "title": "تذكيرات الصيانة",
+    "subtitle": "تذكيرات تلقائية عند اقتراب موعد صيانة المركبات",
+    "addReminder": "تذكير جديد",
+    "confirmDelete": "هل أنت متأكد من حذف هذا التذكير؟",
+    "month": "شهر",
+    "months": "أشهر",
+    "lastSent": "آخر إرسال",
+    "daysOverdue": "أيام متأخرة",
+    "daysLeft": "أيام متبقية",
+    "today": "اليوم",
+    "stats": {
+      "total": "الإجمالي",
+      "overdue": "المتأخرة",
+      "dueSoon": "قريباً"
+    },
+    "filter": {
+      "all": "الكل",
+      "active": "نشط",
+      "paused": "موقوف",
+      "overdue": "متأخر",
+      "soon": "خلال 7 أيام"
+    },
+    "col": {
+      "customer": "العميل",
+      "vehicle": "المركبة",
+      "interval": "الفترة",
+      "lastService": "آخر صيانة",
+      "nextReminder": "التذكير القادم"
+    },
+    "actions": {
+      "edit": "تعديل",
+      "pause": "إيقاف",
+      "resume": "استئناف",
+      "delete": "حذف"
+    },
+    "empty": {
+      "title": "لا توجد تذكيرات",
+      "subtitle": "أنشئ أول تذكير صيانة لإبقاء العملاء على علم"
+    },
+    "toasts": {
+      "created": "تم إنشاء التذكير",
+      "updated": "تم تحديث التذكير",
+      "deleted": "تم حذف التذكير",
+      "paused": "تم إيقاف التذكير",
+      "resumed": "تم استئناف التذكير",
+      "error": "حدث خطأ ما"
+    },
+    "form": {
+      "title": "تذكير صيانة جديد",
+      "customerName": "اسم العميل",
+      "customerEmail": "البريد الإلكتروني",
+      "customerPhone": "الهاتف",
+      "vehicleName": "المركبة",
+      "plate": "رقم اللوحة",
+      "vin": "رقم VIN",
+      "interval": "فترة الصيانة",
+      "month": "شهر",
+      "months": "أشهر",
+      "lastServiceAt": "تاريخ آخر صيانة",
+      "nextWillBe": "التذكير القادم",
+      "notes": "ملاحظات",
+      "notesPlaceholder": "نوع الصيانة، تفضيلات العميل...",
+      "save": "حفظ التذكير",
+      "saving": "جارٍ الحفظ...",
+      "cancel": "إلغاء"
+    },
+    "cronInfo": {
+      "title": "إرسال تلقائي كل يوم الساعة 08:00",
+      "body": "يفحص النظام يومياً المركبات المستحقة للصيانة ويرسل بريداً إلكترونياً للعميل قبل 7 أيام. عند إتمام أمر عمل، يتحدث التذكير تلقائياً."
+    }
+  },
+  "scheduling": {
+    "title": "تقويم الفنيين",
+    "subtitle": "تخطيط وتوزيع العمل بين الفنيين",
+    "view": {
+      "day": "يوم",
+      "week": "أسبوع"
+    },
+    "today": "اليوم",
+    "newBooking": "حجز جديد",
+    "backlog": "أوامر العمل",
+    "backlogTitle": "أوامر العمل المفتوحة",
+    "backlogSubtitle": "نشطة، غير مكتملة",
+    "noOpenOrders": "لا توجد أوامر عمل مفتوحة",
+    "viewAllOrders": "عرض جميع الأوامر",
+    "unassigned": "غير مُعيَّن",
+    "bookingsCount": "حجوزات",
+    "noTechnicians": "لم يتم العثور على فنيين نشطين",
+    "capacity": "محجوز",
+    "legend": "مفتاح الرموز",
+    "nowLine": "الآن",
+    "statusUpdated": "تم تحديث الحالة",
+    "statusError": "تعذر تحديث الحالة",
+    "modal": {
+      "tech": "الفني",
+      "type": "النوع",
+      "description": "الوصف",
+      "notes": "ملاحظات",
+      "changeStatus": "تغيير الحالة",
+      "viewWorkOrder": "عرض أمر العمل",
+      "editBooking": "تعديل الحجز",
+      "unassigned": "غير مُعيَّن"
     }
   }
 }

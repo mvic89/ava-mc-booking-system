@@ -15,6 +15,8 @@ import {
   WO_STATUS_COLORS,
   PRIORITY_COLORS,
 } from '@/lib/service';
+import { useAutoRefresh } from '@/lib/realtime';
+import { searchOperations, type ServiceOperation } from '@/lib/service-operations';
 
 type Tab = 'items' | 'time' | 'notes' | 'details';
 type LineType = 'labor' | 'part' | 'other';
@@ -56,10 +58,14 @@ function AddLineForm({ onAdd, laborRate, disabled, dealershipId, t }: {
   const [qty,         setQty]         = useState('1');
   const [unitPrice,   setUnitPrice]   = useState('');
   const [hrs,         setHrs]         = useState('');
-  const [saving,      setSaving]      = useState(false);
-  const [suggestions, setSuggestions] = useState<InvSuggestion[]>([]);
-  const [showSug,     setShowSug]     = useState(false);
-  const [stockInfo,   setStockInfo]   = useState<{ stock: number; inStock: boolean } | null>(null);
+  const [saving,          setSaving]          = useState(false);
+  const [suggestions,     setSuggestions]     = useState<InvSuggestion[]>([]);
+  const [showSug,         setShowSug]         = useState(false);
+  const [stockInfo,       setStockInfo]       = useState<{ stock: number; inStock: boolean } | null>(null);
+  const [showLaborPicker, setShowLaborPicker] = useState(false);
+  const [laborSearch,     setLaborSearch]     = useState('');
+
+  const laborOps = showLaborPicker ? searchOperations(laborSearch) : [];
 
   useEffect(() => {
     if (type !== 'part') { setSuggestions([]); return; }
@@ -85,6 +91,12 @@ function AddLineForm({ onAdd, laborRate, disabled, dealershipId, t }: {
     setShowSug(false);
   }
 
+  function selectLaborOp(op: ServiceOperation) {
+    setName(op.name);
+    setShowLaborPicker(false);
+    setLaborSearch('');
+  }
+
   async function handleAdd() {
     if (!name.trim()) { toast.error(t('orderDetail.toasts.partError')); return; }
     setSaving(true);
@@ -93,7 +105,7 @@ function AddLineForm({ onAdd, laborRate, disabled, dealershipId, t }: {
     const hrsNum   = parseFloat(hrs.replace(',', '.')) || 0;
     await onAdd(type, name.trim(), qtyNum, priceNum, partNumber.trim() || undefined, hrsNum || undefined);
     setName(''); setPartNumber(''); setQty('1'); setUnitPrice(''); setHrs('');
-    setStockInfo(null); setSuggestions([]);
+    setStockInfo(null); setSuggestions([]); setLaborSearch(''); setShowLaborPicker(false);
     setSaving(false);
   }
 
@@ -137,43 +149,99 @@ function AddLineForm({ onAdd, laborRate, disabled, dealershipId, t }: {
 
         <div className={`relative ${type === 'part' ? 'md:col-span-4' : 'md:col-span-6'}`}>
           <label className="block text-[10px] text-slate-400 mb-1">{nameLabel}</label>
-          <input value={name}
-            onChange={e => { setName(e.target.value); setStockInfo(null); }}
-            onFocus={() => suggestions.length > 0 && setShowSug(true)}
-            onBlur={() => setTimeout(() => setShowSug(false), 150)}
-            placeholder={namePlaceholder}
-            className={inp} />
 
-          {showSug && suggestions.length > 0 && (
-            <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden">
-              {suggestions.map(s => (
-                <button key={`${s.item_type}-${s.id}`} type="button"
-                  onMouseDown={() => selectSuggestion(s)}
-                  className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-orange-50 text-left border-b border-slate-50 last:border-0">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-semibold text-slate-800 truncate">{s.name}</span>
-                      <span className={`shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                        s.item_type === 'accessory' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {s.item_type === 'accessory' ? t('orderDetail.addLine.accessory') : t('orderDetail.addLine.sparePart')}
-                      </span>
+          {/* Labor: combobox trigger — only opens on explicit click */}
+          {type === 'labor' ? (
+            <div className="relative">
+              <button type="button"
+                onClick={() => { setShowLaborPicker(v => !v); setLaborSearch(''); }}
+                className={`${inp} flex items-center justify-between text-left ${name ? 'text-slate-800' : 'text-slate-400'}`}>
+                <span className="truncate">{name || namePlaceholder}</span>
+                <svg className={`w-4 h-4 shrink-0 ml-2 text-slate-400 transition-transform ${showLaborPicker ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {showLaborPicker && (
+                <>
+                  {/* Backdrop to close on outside click */}
+                  <div className="fixed inset-0 z-40" onClick={() => setShowLaborPicker(false)} />
+                  <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden">
+                    {/* Search input inside picker */}
+                    <div className="p-2 border-b border-slate-100">
+                      <input autoFocus
+                        value={laborSearch}
+                        onChange={e => setLaborSearch(e.target.value)}
+                        placeholder="Sök åtgärd…"
+                        className="w-full px-3 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6B2C]/30"
+                      />
                     </div>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      {s.article_number && <span className="text-[10px] text-slate-400 font-mono">{s.article_number}</span>}
-                      {s.size && <span className="text-[10px] text-slate-400">· {s.size}</span>}
-                      {s.category && <span className="text-[10px] text-slate-400">· {s.category}</span>}
+                    <div className="max-h-64 overflow-y-auto">
+                      {laborOps.reduce((acc: string[], op) => acc.includes(op.category) ? acc : [...acc, op.category], []).map(cat => (
+                        <div key={cat}>
+                          <div className="px-3 py-1.5 bg-slate-50 border-b border-slate-100">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{cat}</span>
+                          </div>
+                          {laborOps.filter(op => op.category === cat).map(op => (
+                            <button key={op.id} type="button"
+                              onClick={() => selectLaborOp(op)}
+                              className="w-full flex items-center justify-between px-3 py-2.5 text-sm hover:bg-orange-50 text-left border-b border-slate-50 last:border-0">
+                              <span className="font-medium text-slate-800">{op.name}</span>
+                              <span className="text-[10px] text-slate-400 ml-3 shrink-0">{op.nameEn}</span>
+                            </button>
+                          ))}
+                        </div>
+                      ))}
+                      {laborOps.length === 0 && (
+                        <p className="px-3 py-4 text-sm text-slate-400 text-center">Inga träffar</p>
+                      )}
                     </div>
                   </div>
-                  <div className="text-right shrink-0 ml-3">
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${s.stock > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
-                      {s.stock > 0 ? t('orderDetail.addLine.stockLabel', { count: s.stock }) : t('orderDetail.addLine.outOfStockLabel')}
-                    </span>
-                    <div className="text-[10px] text-slate-500 mt-0.5">{(s.selling_price || s.cost || 0).toLocaleString('sv-SE')} kr</div>
-                  </div>
-                </button>
-              ))}
+                </>
+              )}
             </div>
+          ) : (
+            /* Parts / Other: plain text input with autocomplete */
+            <>
+              <input value={name}
+                onChange={e => { setName(e.target.value); setStockInfo(null); }}
+                onFocus={() => { if (suggestions.length > 0) setShowSug(true); }}
+                onBlur={() => { setTimeout(() => setShowSug(false), 150); }}
+                placeholder={namePlaceholder}
+                className={inp} />
+
+              {showSug && suggestions.length > 0 && (
+                <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-64 overflow-y-auto">
+                  {suggestions.map(s => (
+                    <button key={`${s.item_type}-${s.id}`} type="button"
+                      onMouseDown={() => selectSuggestion(s)}
+                      className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-orange-50 text-left border-b border-slate-50 last:border-0">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-semibold text-slate-800 truncate">{s.name}</span>
+                          <span className={`shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                            s.item_type === 'accessory' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                          }`}>
+                            {s.item_type === 'accessory' ? t('orderDetail.addLine.accessory') : t('orderDetail.addLine.sparePart')}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {s.article_number && <span className="text-[10px] text-slate-400 font-mono">{s.article_number}</span>}
+                          {s.size && <span className="text-[10px] text-slate-400">· {s.size}</span>}
+                          {s.category && <span className="text-[10px] text-slate-400">· {s.category}</span>}
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0 ml-3">
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${s.stock > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
+                          {s.stock > 0 ? t('orderDetail.addLine.stockLabel', { count: s.stock }) : t('orderDetail.addLine.outOfStockLabel')}
+                        </span>
+                        <div className="text-[10px] text-slate-500 mt-0.5">{(s.selling_price || s.cost || 0).toLocaleString('sv-SE')} kr</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -232,20 +300,23 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
   const router  = useRouter();
   const t = useTranslations('service');
 
-  const [order,      setOrder]      = useState<WorkOrder | null>(null);
-  const [tasks,      setTasks]      = useState<WorkOrderTask[]>([]);
-  const [parts,      setParts]      = useState<WorkOrderPart[]>([]);
-  const [timeLog,    setTimeLog]    = useState<TimeEntry[]>([]);
-  const [tab,        setTab]        = useState<Tab>('items');
-  const [loading,    setLoading]    = useState(true);
-  const [updating,   setUpdating]   = useState(false);
-  const [notes,      setNotes]      = useState('');
-  const [notesDirty, setNotesDirty] = useState(false);
-  const [timeTech,   setTimeTech]   = useState('');
-  const [clockingIn, setClockingIn] = useState(false);
-  const [showPOForm, setShowPOForm] = useState(false);
-  const [poVendor,   setPoVendor]   = useState('');
-  const [creatingPO, setCreatingPO] = useState(false);
+  const [order,        setOrder]        = useState<WorkOrder | null>(null);
+  const [tasks,        setTasks]        = useState<WorkOrderTask[]>([]);
+  const [parts,        setParts]        = useState<WorkOrderPart[]>([]);
+  const [timeLog,      setTimeLog]      = useState<TimeEntry[]>([]);
+  const [invoicePaid,  setInvoicePaid]  = useState(false);
+  const [tab,          setTab]          = useState<Tab>('items');
+  const [loading,      setLoading]      = useState(true);
+  const [updating,     setUpdating]     = useState(false);
+  const [notes,        setNotes]        = useState('');
+  const [notesDirty,   setNotesDirty]   = useState(false);
+  const [timeTech,       setTimeTech]       = useState('');
+  const [clockingIn,     setClockingIn]     = useState(false);
+  const [techList,       setTechList]       = useState<string[]>([]);
+  const [showTechPicker, setShowTechPicker] = useState(false);
+  const [showPOForm,     setShowPOForm]     = useState(false);
+  const [poVendor,     setPoVendor]     = useState('');
+  const [creatingPO,   setCreatingPO]   = useState(false);
 
   // Status actions built from translations (inside component so t() is available)
   const STATUS_ACTIONS: Partial<Record<WorkOrderStatus, { next: WorkOrderStatus; label: string; color: string }>> = {
@@ -268,13 +339,38 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
     setParts(data.parts);
     setTimeLog(data.time);
     if (data.order) setNotes(data.order.internal_notes ?? '');
+    // Check if the linked invoice has already been paid
+    if (data.order?.invoice_id) {
+      const res = await fetch(`/api/invoice/by-id?id=${encodeURIComponent(data.order.invoice_id)}&dealershipId=${encodeURIComponent(dealershipId)}`);
+      if (res.ok) {
+        const j = await res.json() as { invoice?: { status: string } };
+        setInvoicePaid(j.invoice?.status === 'paid');
+      }
+    }
     setLoading(false);
   }, [id]);
 
   useEffect(() => {
     if (!localStorage.getItem('user')) { router.push('/auth/login'); return; }
     load();
+    // Pre-fill tech name from logged-in user + load workshop tech list
+    try {
+      const u = JSON.parse(localStorage.getItem('user') ?? '{}') as { givenName?: string; name?: string };
+      const myName = u.givenName || u.name || '';
+      if (myName) setTimeTech(myName);
+    } catch { /* ignore */ }
+    const did_ = getDealershipId();
+    if (did_) {
+      fetch(`/api/service/technicians?dealershipId=${encodeURIComponent(did_)}`)
+        .then(r => r.json())
+        .then((j: { technicians?: { name: string }[] }) => {
+          setTechList((j.technicians ?? []).map(tc => tc.name).filter(Boolean));
+        })
+        .catch(() => {});
+    }
   }, [load, router]);
+
+  useAutoRefresh(() => { void load(); });
 
   const did = () => getDealershipId() ?? '';
 
@@ -338,7 +434,51 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
       const { order: u } = await res.json();
       setOrder(u);
       toast.success(t(`status.${action.next}` as Parameters<typeof t>[0]));
+
+      // Auto clock-in when work starts
+      if (action.next === 'in_progress') {
+        const storedUser = JSON.parse(localStorage.getItem('user') ?? '{}') as { givenName?: string; name?: string };
+        const techName = order.assigned_tech || storedUser.givenName || storedUser.name || '';
+        if (techName) {
+          const cr = await fetch('/api/service/time', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ dealershipId: did(), workOrderId: Number(id), techName }),
+          });
+          if (cr.ok) {
+            toast.success(`${techName} ${t('orderDetail.time.checkInBtn').toLowerCase()}`);
+          } else {
+            const j = await cr.json() as { error?: string };
+            if (j.error && !j.error.toLowerCase().includes('redan')) toast.error(j.error);
+          }
+        }
+      }
+
+      // Auto clock-out all open entries when marked ready
+      if (action.next === 'ready') {
+        const openEntries = timeLog.filter(e => !e.clocked_out_at);
+        await Promise.all(openEntries.map(e =>
+          fetch('/api/service/time', {
+            method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ dealershipId: did(), entryId: e.id }),
+          })
+        ));
+        if (openEntries.length > 0) toast.success(t('orderDetail.toasts.checkedOut'));
+      }
+
+      load();
     }
+  }
+
+  async function deleteLine(line: typeof allLines[number]) {
+    if (line.type === 'labor') {
+      const taskId = (line.raw as WorkOrderTask).id;
+      await fetch(`/api/service/orders/${id}/tasks?taskId=${taskId}&dealershipId=${did()}`, { method: 'DELETE' });
+    } else {
+      const partId = (line.raw as WorkOrderPart).id;
+      await fetch(`/api/service/orders/${id}/parts?partId=${partId}&dealershipId=${did()}`, { method: 'DELETE' });
+    }
+    toast.success(t('orderDetail.toasts.lineRemoved'));
+    load();
   }
 
   async function updatePartStatus(partId: number, status: string) {
@@ -442,7 +582,7 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
   const allLines = [...laborLines, ...partLines];
 
   const subtotal   = allLines.reduce((s, l) => s + l.total, 0);
-  const vat        = Math.round(subtotal * 0.2 * 100) / 100;
+  const vat        = Math.round(subtotal * 0.25 * 100) / 100;   // 25% Swedish VAT on net
   const grandTotal = Math.round((subtotal + vat) * 100) / 100;
   const fmt        = (n: number) => `${n.toLocaleString('sv-SE')} kr`;
 
@@ -511,10 +651,14 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
                 </button>
               )}
               {order.invoice_id && (
-                <Link href={`/service/orders/${id}/payment?invoiceId=${order.invoice_id}`}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition-colors">
-                  {t('orderDetail.statusActions.payInvoice', { id: order.invoice_id })}
-                </Link>
+                invoicePaid
+                  ? <span className="px-4 py-2 rounded-xl bg-emerald-100 text-emerald-700 text-sm font-bold flex items-center gap-1.5">
+                      ✅ {order.invoice_id} — {t('orderDetail.statusActions.alreadyPaid')}
+                    </span>
+                  : <Link href={`/service/orders/${id}/payment?invoiceId=${order.invoice_id}`}
+                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition-colors">
+                      {t('orderDetail.statusActions.payInvoice', { id: order.invoice_id })}
+                    </Link>
               )}
             </div>
           </div>
@@ -573,12 +717,12 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
                 {/* Table header */}
                 <div className="grid grid-cols-12 gap-2 px-5 py-3 bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                   <div className="col-span-1">{t('orderDetail.items.type')}</div>
-                  <div className="col-span-4">{t('orderDetail.items.name')}</div>
+                  <div className="col-span-3">{t('orderDetail.items.name')}</div>
                   <div className="col-span-1 text-right">{t('orderDetail.items.artNr')}</div>
                   <div className="col-span-1 text-right">{t('orderDetail.items.qty')}</div>
                   <div className="col-span-2 text-right">{t('orderDetail.items.unitPrice')}</div>
                   <div className="col-span-2 text-right">{t('orderDetail.items.total')}</div>
-                  <div className="col-span-1 text-right">{t('orderDetail.items.status')}</div>
+                  <div className="col-span-2 text-right">{t('orderDetail.items.status')}</div>
                 </div>
 
                 {allLines.length === 0 && (
@@ -591,7 +735,7 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
 
                 {allLines.map((line, i) => (
                   <div key={line.id}
-                    className={`grid grid-cols-12 gap-2 px-5 py-3.5 items-center ${i > 0 ? 'border-t border-slate-50' : ''}`}>
+                    className={`group grid grid-cols-12 gap-2 px-5 py-3.5 items-center ${i > 0 ? 'border-t border-slate-50' : ''} ${!isLocked ? 'hover:bg-red-50/30' : ''}`}>
                     <div className="col-span-1">
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
                         line.type === 'labor' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'
@@ -599,8 +743,8 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
                         {line.type === 'labor' ? t('orderDetail.items.labor') : t('orderDetail.items.part')}
                       </span>
                     </div>
-                    <div className="col-span-4">
-                      <p className="text-sm font-semibold text-slate-900">{line.name}</p>
+                    <div className="col-span-3">
+                      <p className="text-sm font-semibold text-slate-900 truncate">{line.name}</p>
                     </div>
                     <div className="col-span-1 text-right">
                       {line.type === 'part' && (line as { partNumber?: string }).partNumber ? (
@@ -616,7 +760,7 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
                     <div className="col-span-2 text-right">
                       <span className="text-sm font-bold text-slate-900">{fmt(line.total)}</span>
                     </div>
-                    <div className="col-span-1 text-right">
+                    <div className="col-span-2 text-right flex items-center justify-end gap-1.5">
                       {line.type === 'part' && (
                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${PART_STATUS_COLORS[(line.raw as WorkOrderPart).status]}`}>
                           {partStatusLabel((line.raw as WorkOrderPart).status)}
@@ -634,6 +778,15 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
                             ? t('orderDetail.taskStatus.in_progress')
                             : t('orderDetail.taskStatus.pending')}
                         </span>
+                      )}
+                      {!isLocked && (
+                        <button
+                          onClick={() => deleteLine(line)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity w-5 h-5 rounded-full bg-red-100 hover:bg-red-500 text-red-500 hover:text-white flex items-center justify-center text-[10px] font-bold shrink-0"
+                          title={t('orderDetail.items.remove')}
+                        >
+                          ×
+                        </button>
                       )}
                     </div>
                   </div>
@@ -697,10 +850,15 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
 
               {isLocked && order.invoice_id && (
                 <div className="flex justify-center">
-                  <Link href={`/service/orders/${id}/payment?invoiceId=${order.invoice_id}`}
-                    className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-colors">
-                    {t('orderDetail.statusActions.goToPayment', { id: order.invoice_id })}
-                  </Link>
+                  {invoicePaid
+                    ? <div className="px-6 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold flex items-center gap-2">
+                        ✅ {order.invoice_id} — {t('orderDetail.statusActions.alreadyPaid')}
+                      </div>
+                    : <Link href={`/service/orders/${id}/payment?invoiceId=${order.invoice_id}`}
+                        className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-colors">
+                        {t('orderDetail.statusActions.goToPayment', { id: order.invoice_id })}
+                      </Link>
+                  }
                 </div>
               )}
             </div>
@@ -713,8 +871,42 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
                 <div className="bg-white rounded-2xl border border-slate-100 p-5">
                   <h3 className="text-xs font-bold text-slate-600 mb-3">{t('orderDetail.time.checkInTitle')}</h3>
                   <div className="flex gap-3">
-                    <input value={timeTech} onChange={e => setTimeTech(e.target.value)}
-                      placeholder={t('orderDetail.time.techPlaceholder')} className={`flex-1 ${inp}`} />
+                    <div className="relative flex-1">
+                      {/* Show combobox trigger only when there are techs to choose from */}
+                      {techList.length > 0 ? (
+                        <>
+                          <button type="button"
+                            onClick={() => setShowTechPicker(v => !v)}
+                            className={`w-full flex items-center justify-between px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B2C]/30 bg-white text-left ${timeTech ? 'text-slate-800' : 'text-slate-400'}`}>
+                            <span className="truncate">{timeTech || t('orderDetail.time.techPlaceholder')}</span>
+                            <svg className={`w-4 h-4 shrink-0 ml-2 text-slate-400 transition-transform ${showTechPicker ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                          {showTechPicker && (
+                            <>
+                              <div className="fixed inset-0 z-40" onClick={() => setShowTechPicker(false)} />
+                              <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden">
+                                {techList.map(name => (
+                                  <button key={name} type="button"
+                                    onClick={() => { setTimeTech(name); setShowTechPicker(false); }}
+                                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left border-b border-slate-50 last:border-0 hover:bg-orange-50 transition-colors ${timeTech === name ? 'bg-orange-50 font-semibold text-[#FF6B2C]' : 'text-slate-800'}`}>
+                                    <span className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 shrink-0">
+                                      {name.charAt(0).toUpperCase()}
+                                    </span>
+                                    {name}
+                                  </button>
+                                ))}
+                              </div>
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <input value={timeTech} onChange={e => setTimeTech(e.target.value)}
+                          placeholder={t('orderDetail.time.techPlaceholder')}
+                          className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#FF6B2C]/30 bg-white" />
+                      )}
+                    </div>
                     <button onClick={clockIn} disabled={clockingIn}
                       className="px-4 py-2 rounded-xl bg-[#FF6B2C] hover:bg-[#e55a1f] text-white text-sm font-bold disabled:opacity-50">
                       {clockingIn ? '...' : t('orderDetail.time.checkInBtn')}

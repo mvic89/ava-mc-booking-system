@@ -170,7 +170,13 @@ export default function VehicleHistoryDetailPage({ params }: { params: Promise<{
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <div className="text-4xl mb-3">⚠️</div>
               <p className="text-slate-700 dark:text-slate-200 font-semibold mb-1">Failed to load history</p>
-              <p className="text-sm text-slate-400">{error}</p>
+              <p className="text-sm text-slate-400 font-mono bg-red-50 px-3 py-2 rounded-xl mt-1">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-4 px-4 py-2 rounded-xl bg-[#FF6B2C] text-white text-sm font-bold"
+              >
+                Retry
+              </button>
             </div>
 
           ) : orders.length === 0 ? (
@@ -197,7 +203,7 @@ export default function VehicleHistoryDetailPage({ params }: { params: Promise<{
               {/* Timeline */}
               <div className="relative">
                 {/* Vertical line */}
-                <div className="absolute left-[19px] top-5 bottom-5 w-0.5 bg-gradient-to-b from-[#FF6B2C] via-slate-200 to-slate-100 dark:via-slate-700 dark:to-slate-800" />
+                <div className="absolute left-4.75 top-5 bottom-5 w-0.5 bg-linear-to-b from-[#FF6B2C] via-slate-200 to-slate-100 dark:via-slate-700 dark:to-slate-800" />
 
                 <div className="space-y-5">
                   {orders.map((o, i) => {

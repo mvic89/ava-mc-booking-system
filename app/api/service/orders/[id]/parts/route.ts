@@ -117,6 +117,29 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 }
 
+// DELETE /api/service/orders/[id]/parts?partId=…&dealershipId=…
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const partId       = req.nextUrl.searchParams.get('partId');
+    const dealershipId = req.nextUrl.searchParams.get('dealershipId');
+    if (!partId || !dealershipId) return NextResponse.json({ error: 'partId and dealershipId required' }, { status: 400 });
+
+    const { error } = await sb()
+      .from('work_order_parts')
+      .delete()
+      .eq('id', Number(partId))
+      .eq('work_order_id', Number(id));
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    await recomputePartsCost(id, dealershipId);
+    return NextResponse.json({ success: true });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
+}
+
 async function recomputePartsCost(orderId: string, dealershipId: string) {
   const [{ data: parts }, { data: wo }] = await Promise.all([
     sb().from('work_order_parts').select('total_cost').eq('work_order_id', Number(orderId)),

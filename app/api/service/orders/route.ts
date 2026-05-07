@@ -30,13 +30,21 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const {
-      dealershipId, bookingId, customerId, customerName, customerPhone,
+      dealershipId, bookingId, customerId, customerName, customerPhone, customerEmail,
       vehicleId, vehicleName, plate, vin,
       description, priority, assignedTech, mileage, laborRate,
     } = body;
 
     if (!dealershipId) {
       return NextResponse.json({ error: 'dealershipId required' }, { status: 400 });
+    }
+
+    // Resolve customer email: use provided value, or look up from customers table
+    let resolvedEmail: string | null = customerEmail ?? null;
+    if (!resolvedEmail && customerId) {
+      const { data: cust } = await sb()
+        .from('customers').select('email').eq('id', customerId).maybeSingle();
+      resolvedEmail = cust?.email ?? null;
     }
 
     const { data, error } = await sb()
@@ -47,6 +55,7 @@ export async function POST(req: NextRequest) {
         customer_id:    customerId ?? null,
         customer_name:  customerName ?? '',
         customer_phone: customerPhone ?? '',
+        customer_email: resolvedEmail,
         vehicle_id:     vehicleId ?? null,
         vehicle_name:   vehicleName ?? '',
         plate:          plate ?? '',

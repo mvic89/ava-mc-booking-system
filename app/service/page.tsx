@@ -13,6 +13,7 @@ import {
   WO_STATUS_COLORS, PRIORITY_COLORS,
 } from '@/lib/service';
 import { getInvoices, type Invoice } from '@/lib/invoices';
+import { useAutoRefresh } from '@/lib/realtime';
 
 function fmt(iso: string) {
   return new Date(iso).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
@@ -62,25 +63,38 @@ export default function ServiceDashboard() {
     return () => clearInterval(iv);
   }, [router, load]);
 
+  useAutoRefresh(() => { void load(); });
+
   const todayBookings  = bookings.filter(b => b.scheduled_at.startsWith(today) && b.status !== 'cancelled');
   const activeOrders   = orders.filter(o => !['completed', 'invoiced'].includes(o.status));
   const waitingParts   = orders.filter(o => o.status === 'waiting_parts');
   const doneToday      = orders.filter(o => o.completed_at?.startsWith(today));
   const readyOrders    = orders.filter(o => o.status === 'ready');
-  // Revenue from paid SRV- invoices (Supabase invoices table — authoritative)
-  const revenue        = srvInvoices
-    .filter(inv => inv.status === 'paid')
-    .reduce((s, inv) => s + inv.totalAmount, 0);
-  // Pending: unpaid SRV- invoices + active work order costs not yet invoiced
-  const invoicedOrderIds = new Set(
-    srvInvoices.map(inv => inv.agreementRef).filter(Boolean)
+
+  // Revenue: paid SRV- invoices (authoritative) + completed/invoiced orders with no invoice
+  // (the latter covers orders completed before the invoice-creation bug was fixed)
+  const srvPaidInvoiceIds = new Set(
+    srvInvoices.filter(inv => inv.status === 'paid').map(inv => inv.id)
   );
-  const pendingRevenue = srvInvoices
-    .filter(inv => inv.status === 'pending')
-    .reduce((s, inv) => s + inv.totalAmount, 0)
+  const revenue =
+    srvInvoices
+      .filter(inv => inv.status === 'paid')
+      .reduce((s, inv) => s + inv.totalAmount, 0)
+    + orders
+      .filter(o => ['completed', 'invoiced'].includes(o.status) && !o.invoice_id && (o.total_cost ?? 0) > 0)
+      .reduce((s, o) => s + Math.round((o.total_cost ?? 0) * 1.25 * 100) / 100, 0);
+
+  // Pending: unpaid SRV- invoices + active work orders with costs not yet invoiced
+  const srvPendingIds = new Set(srvInvoices.map(inv => inv.id));
+  const pendingRevenue =
+    srvInvoices
+      .filter(inv => inv.status === 'pending')
+      .reduce((s, inv) => s + inv.totalAmount, 0)
     + activeOrders
-      .filter(o => !invoicedOrderIds.has(String(o.id)))
-      .reduce((s, o) => s + (o.total_cost ?? 0), 0);
+      .filter(o => !o.invoice_id && (o.total_cost ?? 0) > 0)
+      .reduce((s, o) => s + Math.round((o.total_cost ?? 0) * 1.25 * 100) / 100, 0);
+
+  void srvPaidInvoiceIds; void srvPendingIds; // suppress unused-var lint
   const avgDuration    = todayBookings.length
     ? Math.round(todayBookings.reduce((s, b) => s + b.duration_min, 0) / todayBookings.length)
     : 0;
@@ -120,7 +134,9 @@ export default function ServiceDashboard() {
     {
       label: t('dashboard.kpi.doneToday'),
       value: doneToday.length,
-      sub: revenue > 0 ? krFmt(revenue) + ' totalt intjänat' : t('dashboard.kpi.noDone'),
+      sub: doneToday.length > 0
+        ? krFmt(Math.round(doneToday.reduce((s, o) => s + (o.total_cost ?? 0) * 1.25, 0) * 100) / 100) + ' idag'
+        : t('dashboard.kpi.noDone'),
       icon: '✅',
       href: '/service/orders?status=completed',
     },

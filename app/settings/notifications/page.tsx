@@ -45,7 +45,7 @@ export default function NotificationsSettingsPage() {
   const [adminPhone, setAdminPhone] = useState('');
   const [savingPhone, setSavingPhone] = useState(false);
   const [smtpOk, setSmtpOk]     = useState<boolean | null>(null);
-  const [twilioOk, setTwilioOk] = useState<boolean | null>(null);
+  const [vonageSmsOk, setVonageSmsOk] = useState<boolean | null>(null);
   const [adminEmail, setAdminEmail] = useState('');
 
   // ─── Event definitions ────────────────────────────────────────────────────
@@ -85,10 +85,10 @@ export default function NotificationsSettingsPage() {
     if (did) {
       fetch(`/api/notifications/config?dealershipId=${encodeURIComponent(did)}`)
         .then(r => r.ok ? r.json() : null)
-        .then((data: { smtpOk: boolean; twilioOk: boolean; adminPhone: string | null; adminEmail: string | null } | null) => {
+        .then((data: { smtpOk: boolean; vonageSmsOk?: boolean; adminPhone: string | null; adminEmail: string | null } | null) => {
           if (!data) return;
           setSmtpOk(data.smtpOk);
-          setTwilioOk(data.twilioOk);
+          setVonageSmsOk(data.vonageSmsOk ?? false);
           if (data.adminPhone) setAdminPhone(data.adminPhone);
           if (data.adminEmail) setAdminEmail(data.adminEmail);
         })
@@ -264,8 +264,8 @@ export default function NotificationsSettingsPage() {
                   <span className="text-lg">📱</span>
                   <p className="text-sm font-bold text-slate-900">{t('channels.sms.label')}</p>
                 </div>
-                {twilioOk === true  && <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">✓ Konfigurerad</span>}
-                {twilioOk === false && <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">Ej konfigurerad</span>}
+                {vonageSmsOk === true  && <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">✓ Vonage aktiv</span>}
+                {vonageSmsOk === false && <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">Vonage ej konfigurerad</span>}
               </div>
               <p className="text-xs text-slate-400 leading-relaxed mb-3">{t('channels.sms.note')}</p>
 
@@ -291,7 +291,7 @@ export default function NotificationsSettingsPage() {
                 href="/settings/integrations"
                 className="block w-full py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:border-[#FF6B2C]/40 hover:bg-orange-50 transition-all text-center"
               >
-                {twilioOk ? '✏️ Ändra SMS-inställningar →' : '⚙️ Konfigurera SMS (Twilio) →'}
+                {vonageSmsOk ? '✓ SMS via BikeMeNow Vonage' : '⚠️ Vonage-nycklar saknas i servermiljön'}
               </Link>
             </div>
 

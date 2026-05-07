@@ -5,8 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import Sidebar from '@/components/Sidebar';
+import { toast } from 'sonner';
 import {
-  getWorkOrders, type WorkOrder, type WorkOrderStatus,
+  getWorkOrders, deleteWorkOrder, type WorkOrder, type WorkOrderStatus,
   WO_STATUS_COLORS, PRIORITY_COLORS,
 } from '@/lib/service';
 
@@ -25,12 +26,28 @@ function WorkOrdersContent() {
     { key: 'invoiced',      label: t('orders.tabs.invoiced') },
   ];
 
-  const [orders,  setOrders]  = useState<WorkOrder[]>([]);
-  const [ready,   setReady]   = useState(false);
-  const [tab,     setTab]     = useState<WorkOrderStatus | 'all'>(
+  const [orders,    setOrders]    = useState<WorkOrder[]>([]);
+  const [ready,     setReady]     = useState(false);
+  const [tab,       setTab]       = useState<WorkOrderStatus | 'all'>(
     (params.get('status') as WorkOrderStatus) || 'all'
   );
-  const [search,  setSearch]  = useState('');
+  const [search,    setSearch]    = useState('');
+  const [confirmId, setConfirmId] = useState<number | null>(null);
+  const [deleting,  setDeleting]  = useState(false);
+
+  async function handleDelete(id: number) {
+    setDeleting(true);
+    try {
+      await deleteWorkOrder(id);
+      setOrders(prev => prev.filter(o => o.id !== id));
+      setConfirmId(null);
+      toast.success(`AO-${id} raderad`);
+    } catch {
+      toast.error('Kunde inte radera arbetsorder');
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   useEffect(() => {
     if (!localStorage.getItem('user')) { router.push('/auth/login'); return; }
@@ -123,42 +140,74 @@ function WorkOrdersContent() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {filtered.map(o => (
-                <Link key={o.id} href={`/service/orders/${o.id}`} className="bg-white rounded-2xl border border-slate-100 p-5 hover:border-slate-200 hover:shadow-sm transition-all group">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-400">AO-{o.id}</p>
-                      <p className="text-sm font-bold text-slate-900 mt-0.5">{o.customer_name || '—'}</p>
+                <div key={o.id} className="relative bg-white rounded-2xl border border-slate-100 hover:border-slate-200 hover:shadow-sm transition-all group">
+                  <Link href={`/service/orders/${o.id}`} className="block p-5">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <p className="text-[10px] font-bold text-slate-400">AO-{o.id}</p>
+                        <p className="text-sm font-bold text-slate-900 mt-0.5">{o.customer_name || '—'}</p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1 pr-6">
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${WO_STATUS_COLORS[o.status]}`}>
+                          {woStatusLabel(o.status)}
+                        </span>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${PRIORITY_COLORS[o.priority]}`}>
+                          {priorityLabel(o.priority)}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${WO_STATUS_COLORS[o.status]}`}>
-                        {woStatusLabel(o.status)}
-                      </span>
-                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${PRIORITY_COLORS[o.priority]}`}>
-                        {priorityLabel(o.priority)}
-                      </span>
-                    </div>
-                  </div>
 
-                  <p className="text-xs text-slate-500 truncate mb-1">{o.vehicle_name || t('orders.noVehicle')}{o.plate ? ` · ${o.plate}` : ''}</p>
-                  {o.description && (
-                    <p className="text-[11px] text-slate-400 line-clamp-2 mb-3">{o.description}</p>
+                    <p className="text-xs text-slate-500 truncate mb-1">{o.vehicle_name || t('orders.noVehicle')}{o.plate ? ` · ${o.plate}` : ''}</p>
+                    {o.description && (
+                      <p className="text-[11px] text-slate-400 line-clamp-2 mb-3">{o.description}</p>
+                    )}
+
+                    <div className="flex items-center justify-between pt-3 border-t border-slate-50">
+                      <div>
+                        <p className="text-[10px] text-slate-400">{t('orders.card.technician')}</p>
+                        <p className="text-xs font-semibold text-slate-700">{o.assigned_tech || t('orders.card.notAssigned')}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] text-slate-400">{t('orders.card.total')}</p>
+                        <p className="text-sm font-black text-[#FF6B2C]">{o.total_cost > 0 ? `${o.total_cost.toLocaleString('sv-SE')} kr` : '—'}</p>
+                      </div>
+                    </div>
+
+                    <p className="text-[10px] text-slate-400 mt-2">
+                      {new Date(o.created_at).toLocaleDateString('sv-SE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </p>
+                  </Link>
+
+                  {/* Delete control — top-right corner */}
+                  {confirmId === o.id ? (
+                    <div className="absolute top-3 right-3 flex items-center gap-1 bg-white border border-red-200 rounded-xl px-2 py-1 shadow-sm z-10">
+                      <button
+                        onClick={() => handleDelete(o.id)}
+                        disabled={deleting}
+                        className="text-[10px] font-bold text-red-600 hover:text-red-700 disabled:opacity-50"
+                      >
+                        {deleting ? '...' : 'Radera'}
+                      </button>
+                      <span className="text-slate-300">|</span>
+                      <button
+                        onClick={() => setConfirmId(null)}
+                        className="text-[10px] font-semibold text-slate-500 hover:text-slate-700"
+                      >
+                        Avbryt
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmId(o.id)}
+                      className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 w-6 h-6 flex items-center justify-center rounded-lg hover:bg-red-50 text-slate-300 hover:text-red-500 transition-all"
+                      title="Radera arbetsorder"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
                   )}
-
-                  <div className="flex items-center justify-between pt-3 border-t border-slate-50">
-                    <div>
-                      <p className="text-[10px] text-slate-400">{t('orders.card.technician')}</p>
-                      <p className="text-xs font-semibold text-slate-700">{o.assigned_tech || t('orders.card.notAssigned')}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] text-slate-400">{t('orders.card.total')}</p>
-                      <p className="text-sm font-black text-[#FF6B2C]">{o.total_cost > 0 ? `${o.total_cost.toLocaleString('sv-SE')} kr` : '—'}</p>
-                    </div>
-                  </div>
-
-                  <p className="text-[10px] text-slate-400 mt-2">
-                    {new Date(o.created_at).toLocaleDateString('sv-SE', { day: 'numeric', month: 'short', year: 'numeric' })}
-                  </p>
-                </Link>
+                </div>
               ))}
             </div>
           )}

@@ -205,6 +205,7 @@
     "purchaseinvoices": "Purchase Invoices",
     "salesPipeline": "Sales Pipeline",
     "pipeline": "Pipeline",
+    "counterSale": "Counter Sale",
     "calendar": "Calendar",
     "tasks": "Tasks",
     "customers": "Customers",
@@ -229,10 +230,16 @@
     "groups": {
       "core": "CORE",
       "sales": "SALES",
+      "service": "SERVICE",
       "admin": "ADMIN"
     },
+    "bookingCalendar": "Appointment Calendar",
+    "serviceBookings": "Bookings",
+    "serviceOrders": "Work Orders",
     "serviceVehicles": "Vehicle History",
-    "serviceComms": "Communications"
+    "serviceComms": "Communications",
+    "scheduling": "Tech Calendar",
+    "serviceReminders": "Service Reminders"
   },
   "login": {
     "title": "Welcome Back",
@@ -1843,7 +1850,8 @@
         "waitingParts": "⚠ Waiting for parts",
         "createPO": "📦 Create purchase order",
         "payInvoice": "💳 Pay {id}",
-        "goToPayment": "💳 Go to payment — {id}"
+        "goToPayment": "💳 Go to payment — {id}",
+        "alreadyPaid": "Already paid"
       },
       "po": {
         "title": "Create purchase order for {count} missing items",
@@ -1871,7 +1879,8 @@
         "partActions": "Stock status — actions",
         "markOrdered": "Mark ordered",
         "markReceived": "Received",
-        "markUsed": "Used"
+        "markUsed": "Used",
+        "remove": "Remove line"
       },
       "taskStatus": {
         "done": "Done",
@@ -1949,7 +1958,8 @@
         "completeError": "Error completing order",
         "notesSaved": "Notes saved",
         "checkedOut": "Checked out",
-        "noTechName": "Enter technician name"
+        "noTechName": "Enter technician name",
+        "lineRemoved": "Line removed"
       }
     },
     "purchaseOrders": {
@@ -2106,7 +2116,7 @@
         "totalLabel": "Total to pay (incl. VAT)",
         "kr": "kr",
         "saving": "Saving...",
-        "vatLine": "of which VAT (20%)",
+        "vatLine": "of which VAT (25%)",
         "net": "net",
         "invoiceLabel": "Invoice",
         "vehicle": "Vehicle"
@@ -3163,7 +3173,7 @@
       "address": "Address",
       "contact": "Contact details",
       "banking": "Banking details",
-      "sms": "SMS (Twilio)",
+      "sms": "SMS (Vonage)",
       "notifEmails": "Notification Emails",
       "cover": "Cover image — Dashboard background",
       "logo": "Logo"
@@ -3194,12 +3204,6 @@
       "ibanHint": "International bank account number",
       "bic": "BIC / SWIFT",
       "bicHint": "Bank identifier code",
-      "twilioSid": "Account SID",
-      "twilioSidHint": "Starts with AC…",
-      "twilioToken": "Auth Token",
-      "twilioTokenHint": "Secret — never share with customers",
-      "twilioFrom": "Sender number",
-      "twilioFromHint": "E.164 format, e.g. +46701234567",
       "deliveryEmail": "Delivery Note Email",
       "deliveryEmailHint": "Receives email when a delivery note arrives.",
       "invoiceEmail": "Invoice Email",
@@ -3529,6 +3533,179 @@
       "reactivateError": "Could not reactivate lead",
       "closedLost": "Lead closed as lost",
       "closeError": "Could not close lead"
+    }
+  },
+  "counterSale": {
+    "breadcrumb": "Sales",
+    "title": "🛒 Counter Sale",
+    "subtitle": "Sell accessories & gear directly — no pipeline needed",
+    "viewReceipts": "View all receipts →",
+    "searchTitle": "Search item",
+    "searchHint": "↩ Enter to add",
+    "searchPlaceholder": "Helmet, jacket, gloves, part number…",
+    "inStock": "{n} in stock",
+    "outOfStock": "Out of stock",
+    "noResults": "No items for \"{q}\" — check spelling or part number",
+    "cartTitle": "Cart",
+    "clearAll": "Clear all",
+    "cartEmpty": "Cart is empty",
+    "cartEmptyHint": "Search and add items above",
+    "colItem": "Item",
+    "colQty": "Qty",
+    "colPrice": "Price",
+    "addDiscount": "+ discount",
+    "lineDiscount": "−{pct}% discount",
+    "discountOn": "Discount on {name}",
+    "noDiscount": "None",
+    "saving": "You save {amount} on this line",
+    "addOrderDiscount": "+ Add order discount",
+    "orderDiscount": "Order discount",
+    "removeDiscount": "Remove",
+    "originalPrice": "Original price",
+    "subtotal": "Subtotal",
+    "subtotalAfter": "Subtotal (after item discounts)",
+    "net": "Net (excl. VAT)",
+    "vat25": "VAT 25%",
+    "totalToPay": "Total to pay",
+    "perUnit": "/ ea",
+    "notesTitle": "Note (optional)",
+    "notesPlaceholder": "Internal note about the sale…",
+    "customerTitle": "Customer",
+    "customerSearch": "Search existing customer…",
+    "walkIn": "or walk-in customer",
+    "walkInName": "Name (optional)",
+    "paymentTitle": "Payment method",
+    "payCard": "Card",
+    "payCash": "Cash",
+    "paySwish": "Swish",
+    "items": "{count, plural, =1 {# item} other {# items}}",
+    "netSuffix": "net",
+    "totalSaving": "Total savings",
+    "toPay": "To pay",
+    "addItems": "Add items",
+    "complete": "Complete — {amount}",
+    "creating": "Creating receipt…",
+    "receiptTitle": "Receipt {id}",
+    "receiptCustomer": "Customer",
+    "receiptColItem": "Item",
+    "receiptColQty": "Qty",
+    "receiptColTotal": "Total",
+    "receiptOrderDiscount": "Order discount",
+    "receiptNet": "Net (excl. VAT)",
+    "receiptVat": "VAT 25%",
+    "receiptTotal": "Total",
+    "receiptPayment": "Payment method",
+    "receiptNote": "Note: ",
+    "receiptThanks": "Thank you for your purchase!",
+    "print": "Print",
+    "newSale": "New sale",
+    "toastAddItems": "Add at least one item",
+    "toastNotLoggedIn": "Not logged in",
+    "toastError": "Something went wrong"
+  },
+  "reminders": {
+    "title": "Service Reminders",
+    "subtitle": "Automatic reminders when vehicles are due for service",
+    "addReminder": "New Reminder",
+    "confirmDelete": "Are you sure you want to delete this reminder?",
+    "month": "mo",
+    "months": "mo",
+    "lastSent": "Last sent",
+    "daysOverdue": "days overdue",
+    "daysLeft": "days left",
+    "today": "Today",
+    "stats": {
+      "total": "Total",
+      "overdue": "Overdue",
+      "dueSoon": "Due soon"
+    },
+    "filter": {
+      "all": "All",
+      "active": "Active",
+      "paused": "Paused",
+      "overdue": "Overdue",
+      "soon": "Within 7 days"
+    },
+    "col": {
+      "customer": "Customer",
+      "vehicle": "Vehicle",
+      "interval": "Interval",
+      "lastService": "Last service",
+      "nextReminder": "Next reminder"
+    },
+    "actions": {
+      "edit": "Edit",
+      "pause": "Pause",
+      "resume": "Resume",
+      "delete": "Delete"
+    },
+    "empty": {
+      "title": "No reminders",
+      "subtitle": "Create your first service reminder to keep customers informed"
+    },
+    "toasts": {
+      "created": "Reminder created",
+      "updated": "Reminder updated",
+      "deleted": "Reminder deleted",
+      "paused": "Reminder paused",
+      "resumed": "Reminder resumed",
+      "error": "Something went wrong"
+    },
+    "form": {
+      "title": "New Service Reminder",
+      "customerName": "Customer name",
+      "customerEmail": "Email",
+      "customerPhone": "Phone",
+      "vehicleName": "Vehicle",
+      "plate": "Licence plate",
+      "vin": "VIN number",
+      "interval": "Service interval",
+      "month": "month",
+      "months": "months",
+      "lastServiceAt": "Last service date",
+      "nextWillBe": "Next reminder",
+      "notes": "Notes",
+      "notesPlaceholder": "Service type, customer preferences...",
+      "save": "Save reminder",
+      "saving": "Saving...",
+      "cancel": "Cancel"
+    },
+    "cronInfo": {
+      "title": "Automatic emails sent at 08:00 every day",
+      "body": "The system checks daily whether any vehicles are due for service and automatically emails the customer up to 7 days in advance. When a work order is completed, the reminder is updated automatically."
+    }
+  },
+  "scheduling": {
+    "title": "Tech Calendar",
+    "subtitle": "Plan and assign work across technicians",
+    "view": {
+      "day": "Day",
+      "week": "Week"
+    },
+    "today": "Today",
+    "newBooking": "New Booking",
+    "backlog": "Work Orders",
+    "backlogTitle": "Open Work Orders",
+    "backlogSubtitle": "Active, not yet completed",
+    "noOpenOrders": "No open work orders",
+    "viewAllOrders": "View all orders",
+    "unassigned": "Unassigned",
+    "bookingsCount": "bookings",
+    "noTechnicians": "No active technicians found",
+    "capacity": "booked",
+    "legend": "Legend",
+    "nowLine": "Now",
+    "statusUpdated": "Status updated",
+    "statusError": "Could not update status",
+    "modal": {
+      "tech": "Technician",
+      "type": "Type",
+      "description": "Description",
+      "notes": "Notes",
+      "changeStatus": "Change status",
+      "viewWorkOrder": "View work order",
+      "editBooking": "Edit booking",
+      "unassigned": "Unassigned"
     }
   }
 }

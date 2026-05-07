@@ -205,6 +205,7 @@
     "purchaseinvoices": "Inköpsfakturor",
     "salesPipeline": "Försäljningspipeline",
     "pipeline": "Pipeline",
+    "counterSale": "Butiksförsäljning",
     "calendar": "Kalender",
     "tasks": "Uppgifter",
     "customers": "Kunder",
@@ -223,8 +224,12 @@
     "groups": {
       "core": "KÄRNA",
       "sales": "FÖRSÄLJNING",
+      "service": "SERVICE",
       "admin": "ADMIN"
     },
+    "bookingCalendar": "Bokningskalender",
+    "serviceBookings": "Bokningar",
+    "serviceOrders": "Arbetsordrar",
     "reservations": "Reservationer",
     "tradeIns": "Inbyten",
     "cancellations": "Avbokningar",
@@ -232,7 +237,9 @@
     "nps": "NPS & Nöjdhet",
     "commissions": "Provisioner",
     "serviceVehicles": "Fordonshistorik",
-    "serviceComms": "Kundkommunikation"
+    "serviceComms": "Kundkommunikation",
+    "scheduling": "Teknikerkalender",
+    "serviceReminders": "Servicepåminnelser"
   },
   "login": {
     "title": "Välkommen tillbaka",
@@ -1843,7 +1850,8 @@
         "waitingParts": "⚠ Väntar på delar",
         "createPO": "📦 Skapa inköpsorder",
         "payInvoice": "💳 Betala {id}",
-        "goToPayment": "💳 Gå till betalning — {id}"
+        "goToPayment": "💳 Gå till betalning — {id}",
+        "alreadyPaid": "Redan betald"
       },
       "po": {
         "title": "Skapa inköpsorder för {count} saknade artiklar",
@@ -1871,7 +1879,8 @@
         "partActions": "Lagerstatus — åtgärder",
         "markOrdered": "Markera beställd",
         "markReceived": "Mottagen",
-        "markUsed": "Förbrukad"
+        "markUsed": "Förbrukad",
+        "remove": "Ta bort rad"
       },
       "taskStatus": {
         "done": "Klar",
@@ -1949,7 +1958,8 @@
         "completeError": "Fel vid slutförande",
         "notesSaved": "Anteckningar sparade",
         "checkedOut": "Utcheckad",
-        "noTechName": "Ange teknikernamn"
+        "noTechName": "Ange teknikernamn",
+        "lineRemoved": "Rad borttagen"
       }
     },
     "purchaseOrders": {
@@ -2106,7 +2116,7 @@
         "totalLabel": "Totalt att betala (inkl. moms)",
         "kr": "kr",
         "saving": "Sparar...",
-        "vatLine": "varav moms (20%)",
+        "vatLine": "varav moms (25%)",
         "net": "netto",
         "invoiceLabel": "Faktura",
         "vehicle": "Fordon"
@@ -3163,7 +3173,7 @@
       "address": "Adress",
       "contact": "Kontaktuppgifter",
       "banking": "Bankuppgifter",
-      "sms": "SMS (Twilio)",
+      "sms": "SMS (Vonage)",
       "notifEmails": "Notification Emails",
       "cover": "Omslagsbild — Dashboard-bakgrund",
       "logo": "Logotyp"
@@ -3194,12 +3204,6 @@
       "ibanHint": "Internationellt bankkontonummer",
       "bic": "BIC / SWIFT",
       "bicHint": "Bankens identifieringskod, t.ex. HANDSESS",
-      "twilioSid": "Account SID",
-      "twilioSidHint": "Börjar med AC…",
-      "twilioToken": "Auth Token",
-      "twilioTokenHint": "Hemligt — delas aldrig med kunder",
-      "twilioFrom": "Avsändarnummer",
-      "twilioFromHint": "E.164-format, t.ex. +46701234567",
       "deliveryEmail": "Delivery Note Email",
       "deliveryEmailHint": "Mottar e-post när en leveransnota anländer.",
       "invoiceEmail": "Invoice Email",
@@ -3529,6 +3533,179 @@
       "reactivateError": "Kunde inte återaktivera lead",
       "closedLost": "Lead stängt som förlorat",
       "closeError": "Kunde inte stänga lead"
+    }
+  },
+  "counterSale": {
+    "breadcrumb": "Försäljning",
+    "title": "🛒 Butiksförsäljning",
+    "subtitle": "Sälj tillbehör & utrustning direkt — utan pipeline",
+    "viewReceipts": "Visa alla kvitton →",
+    "searchTitle": "Sök artikel",
+    "searchHint": "↩ Enter lägger till",
+    "searchPlaceholder": "Hjälm, jacka, handske, artikelnummer…",
+    "inStock": "{n} i lager",
+    "outOfStock": "Ej i lager",
+    "noResults": "Inga artiklar för \"{q}\" — kontrollera stavning eller artikelnummer",
+    "cartTitle": "Varukorg",
+    "clearAll": "Rensa alla",
+    "cartEmpty": "Varukorgen är tom",
+    "cartEmptyHint": "Sök och lägg till artiklar ovan",
+    "colItem": "Artikel",
+    "colQty": "Ant",
+    "colPrice": "Pris",
+    "addDiscount": "+ rabatt",
+    "lineDiscount": "−{pct}% rabatt",
+    "discountOn": "Rabatt på {name}",
+    "noDiscount": "Ingen",
+    "saving": "Du sparar {amount} på denna rad",
+    "addOrderDiscount": "+ Lägg till orderrabatt",
+    "orderDiscount": "Orderrabatt",
+    "removeDiscount": "Ta bort",
+    "originalPrice": "Ordinarie pris",
+    "subtotal": "Delsumma",
+    "subtotalAfter": "Delsumma (efter artikelrabatter)",
+    "net": "Netto (exkl. moms)",
+    "vat25": "Moms 25%",
+    "totalToPay": "Totalt att betala",
+    "perUnit": "/ st",
+    "notesTitle": "Notering (valfritt)",
+    "notesPlaceholder": "Intern notering om försäljningen…",
+    "customerTitle": "Kund",
+    "customerSearch": "Sök befintlig kund…",
+    "walkIn": "eller gångkund",
+    "walkInName": "Namn (valfritt)",
+    "paymentTitle": "Betalningssätt",
+    "payCard": "Kort",
+    "payCash": "Kontant",
+    "paySwish": "Swish",
+    "items": "{count, plural, =1 {# artikel} other {# artiklar}}",
+    "netSuffix": "netto",
+    "totalSaving": "Total besparing",
+    "toPay": "Att betala",
+    "addItems": "Lägg till artiklar",
+    "complete": "Slutför — {amount}",
+    "creating": "Skapar kvitto…",
+    "receiptTitle": "Kvitto {id}",
+    "receiptCustomer": "Kund",
+    "receiptColItem": "Artikel",
+    "receiptColQty": "Ant",
+    "receiptColTotal": "Summa",
+    "receiptOrderDiscount": "Orderrabatt",
+    "receiptNet": "Netto (exkl. moms)",
+    "receiptVat": "Moms 25%",
+    "receiptTotal": "Totalt",
+    "receiptPayment": "Betalningssätt",
+    "receiptNote": "Notering: ",
+    "receiptThanks": "Tack för ditt köp!",
+    "print": "Skriv ut",
+    "newSale": "Ny försäljning",
+    "toastAddItems": "Lägg till minst en artikel",
+    "toastNotLoggedIn": "Inte inloggad",
+    "toastError": "Något gick fel"
+  },
+  "reminders": {
+    "title": "Servicepåminnelser",
+    "subtitle": "Automatiska påminnelser när fordon är redo för service",
+    "addReminder": "Ny påminnelse",
+    "confirmDelete": "Är du säker på att du vill ta bort denna påminnelse?",
+    "month": "mån",
+    "months": "mån",
+    "lastSent": "Senast skickad",
+    "daysOverdue": "dagar försenad",
+    "daysLeft": "dagar kvar",
+    "today": "Idag",
+    "stats": {
+      "total": "Totalt",
+      "overdue": "Försenade",
+      "dueSoon": "Snart"
+    },
+    "filter": {
+      "all": "Alla",
+      "active": "Aktiva",
+      "paused": "Pausade",
+      "overdue": "Försenade",
+      "soon": "Inom 7 dagar"
+    },
+    "col": {
+      "customer": "Kund",
+      "vehicle": "Fordon",
+      "interval": "Intervall",
+      "lastService": "Senaste service",
+      "nextReminder": "Nästa påminnelse"
+    },
+    "actions": {
+      "edit": "Redigera",
+      "pause": "Pausa",
+      "resume": "Återuppta",
+      "delete": "Ta bort"
+    },
+    "empty": {
+      "title": "Inga påminnelser",
+      "subtitle": "Skapa din första servicepåminnelse för att hålla kunder informerade"
+    },
+    "toasts": {
+      "created": "Påminnelse skapad",
+      "updated": "Påminnelse uppdaterad",
+      "deleted": "Påminnelse borttagen",
+      "paused": "Påminnelse pausad",
+      "resumed": "Påminnelse återupptagen",
+      "error": "Något gick fel"
+    },
+    "form": {
+      "title": "Ny servicepåminnelse",
+      "customerName": "Kundnamn",
+      "customerEmail": "E-post",
+      "customerPhone": "Telefon",
+      "vehicleName": "Fordon",
+      "plate": "Registreringsnummer",
+      "vin": "VIN-nummer",
+      "interval": "Serviceintervall",
+      "month": "månad",
+      "months": "månader",
+      "lastServiceAt": "Senaste servicedatum",
+      "nextWillBe": "Nästa påminnelse",
+      "notes": "Anteckningar",
+      "notesPlaceholder": "Typ av service, kundpreferenser...",
+      "save": "Spara påminnelse",
+      "saving": "Sparar...",
+      "cancel": "Avbryt"
+    },
+    "cronInfo": {
+      "title": "Automatiska utskick kl. 08:00 varje dag",
+      "body": "Systemet kontrollerar dagligen om några fordon är redo för service och skickar automatiskt e-post till kunden upp till 7 dagar i förväg. När en arbetsorder slutförs uppdateras påminnelsen automatiskt."
+    }
+  },
+  "scheduling": {
+    "title": "Teknikerkalender",
+    "subtitle": "Planera och fördela arbete mellan tekniker",
+    "view": {
+      "day": "Dag",
+      "week": "Vecka"
+    },
+    "today": "Idag",
+    "newBooking": "Ny bokning",
+    "backlog": "Arbetsordrar",
+    "backlogTitle": "Öppna arbetsordrar",
+    "backlogSubtitle": "Aktiva, ej avslutade",
+    "noOpenOrders": "Inga öppna arbetsordrar",
+    "viewAllOrders": "Visa alla ordrar",
+    "unassigned": "Ej tilldelad",
+    "bookingsCount": "bokningar",
+    "noTechnicians": "Inga aktiva tekniker hittades",
+    "capacity": "belagd",
+    "legend": "Förklaring",
+    "nowLine": "Just nu",
+    "statusUpdated": "Status uppdaterad",
+    "statusError": "Kunde inte uppdatera status",
+    "modal": {
+      "tech": "Tekniker",
+      "type": "Typ",
+      "description": "Beskrivning",
+      "notes": "Anteckningar",
+      "changeStatus": "Ändra status",
+      "viewWorkOrder": "Visa arbetsorder",
+      "editBooking": "Redigera bokning",
+      "unassigned": "Ej tilldelad"
     }
   }
 }

@@ -66,6 +66,29 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 }
 
+// DELETE /api/service/orders/[id]/tasks?taskId=…&dealershipId=…
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const taskId      = req.nextUrl.searchParams.get('taskId');
+    const dealershipId = req.nextUrl.searchParams.get('dealershipId');
+    if (!taskId || !dealershipId) return NextResponse.json({ error: 'taskId and dealershipId required' }, { status: 400 });
+
+    const { error } = await sb()
+      .from('work_order_tasks')
+      .delete()
+      .eq('id', Number(taskId))
+      .eq('work_order_id', Number(id));
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    await recomputeLaborCost(id, dealershipId);
+    return NextResponse.json({ success: true });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
+}
+
 async function recomputeLaborCost(orderId: string, dealershipId: string) {
   const { data: tasks } = await sb()
     .from('work_order_tasks')

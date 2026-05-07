@@ -130,7 +130,7 @@ export default function VehicleHistoryPage() {
               {vehicles.map(v => (
                 <Link
                   key={v.key}
-                  href={`/service/vehicles/${encodeURIComponent(v.key)}`}
+                  href={`/service/vehicles/${encodeURIComponent(v.key.trim())}`}
                   className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-5 hover:border-[#FF6B2C]/40 hover:shadow-md transition-all group"
                 >
                   {/* Vehicle header */}
