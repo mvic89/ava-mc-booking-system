@@ -18,6 +18,7 @@ interface ReceiptItem {
     ordered_qty:    number | null
     received_qty:   number
     backorder_qty:  number
+    damaged_qty:    number
     unit_cost:      number | null
     matched:        boolean
 }
@@ -39,7 +40,7 @@ interface GoodsReceipt {
 
 // ── Manual entry form state ───────────────────────────────────────────────────
 
-const EMPTY_ITEM = { article_number: '', name: '', ordered_qty: '', received_qty: '', unit_cost: '', backorder_qty: '' }
+const EMPTY_ITEM = { article_number: '', name: '', ordered_qty: '', received_qty: '', damaged_qty: '', unit_cost: '', backorder_qty: '' }
 const EMPTY_FORM = {
     vendor:               '',
     po_id:                '',
@@ -103,6 +104,7 @@ function DetailModal({ receipt, onClose, onStatusChange, onPoRelinked }: {
     const [selectedNewPo, setSelectedNewPo] = useState('')
 
     const totalReceived = receipt.items?.reduce((s, i) => s + i.received_qty, 0) ?? 0
+    const totalDamaged  = receipt.items?.reduce((s, i) => s + (i.damaged_qty ?? 0), 0) ?? 0
     const matched       = receipt.items?.filter(i => i.matched).length ?? 0
     const hasBackorder  = receipt.items?.some(i => (i.backorder_qty ?? 0) > 0) ?? false
 
@@ -305,15 +307,16 @@ function DetailModal({ receipt, onClose, onStatusChange, onPoRelinked }: {
                 )}
 
                 {/* Summary strip */}
-                <div className="grid grid-cols-3 gap-3 px-6 py-4 border-b border-gray-100 bg-gray-50/50 shrink-0 mt-3">
+                <div className={`grid gap-3 px-6 py-4 border-b border-gray-100 bg-gray-50/50 shrink-0 mt-3 ${totalDamaged > 0 ? 'grid-cols-4' : 'grid-cols-3'}`}>
                     {[
-                        { label: 'Received Date', value: receipt.received_date },
-                        { label: 'Items Received', value: `${totalReceived} units` },
-                        { label: 'Matched to Stock', value: `${matched} / ${receipt.items?.length ?? 0} lines` },
+                        { label: 'Received Date',   value: receipt.received_date,                              color: '' },
+                        { label: 'Items Received',  value: `${totalReceived} units`,                           color: '' },
+                        { label: 'Matched to Stock',value: `${matched} / ${receipt.items?.length ?? 0} lines`, color: '' },
+                        ...(totalDamaged > 0 ? [{ label: 'Damaged', value: `${totalDamaged} units`, color: 'text-red-600' }] : []),
                     ].map(c => (
                         <div key={c.label} className="text-center">
                             <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">{c.label}</p>
-                            <p className="text-sm font-bold text-gray-800 mt-0.5">{c.value}</p>
+                            <p className={`text-sm font-bold mt-0.5 ${c.color || 'text-gray-800'}`}>{c.value}</p>
                         </div>
                     ))}
                 </div>
@@ -333,6 +336,7 @@ function DetailModal({ receipt, onClose, onStatusChange, onPoRelinked }: {
                                 <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider">Art #</th>
                                 <th className="px-3 py-2 text-center font-semibold text-gray-500 uppercase tracking-wider">Ordered</th>
                                 <th className="px-3 py-2 text-center font-semibold text-gray-500 uppercase tracking-wider">Received</th>
+                                <th className="px-3 py-2 text-center font-semibold text-red-500 uppercase tracking-wider">Damaged</th>
                                 <th className="px-3 py-2 text-center font-semibold text-orange-600 uppercase tracking-wider">Backorder</th>
                                 <th className="px-3 py-2 text-center font-semibold text-gray-500 uppercase tracking-wider">Stock</th>
                             </tr>
@@ -344,6 +348,12 @@ function DetailModal({ receipt, onClose, onStatusChange, onPoRelinked }: {
                                     <td className="px-3 py-2.5 font-mono text-gray-400">{item.article_number || '—'}</td>
                                     <td className="px-3 py-2.5 text-center text-gray-500">{item.ordered_qty ?? '—'}</td>
                                     <td className="px-3 py-2.5 text-center font-bold text-gray-900">{item.received_qty}</td>
+                                    <td className="px-3 py-2.5 text-center">
+                                        {(item.damaged_qty ?? 0) > 0
+                                            ? <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-600">{item.damaged_qty} damaged</span>
+                                            : <span className="text-gray-300">—</span>
+                                        }
+                                    </td>
                                     <td className="px-3 py-2.5 text-center">
                                         {(item.backorder_qty ?? 0) > 0
                                             ? <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">{item.backorder_qty} pending</span>
@@ -523,6 +533,7 @@ function GoodsReceiptsContent() {
                 name:           li.name ?? '',
                 ordered_qty:    String(li.order_qty ?? ''),
                 received_qty:   String(li.order_qty ?? ''),
+                damaged_qty:    '0',
                 unit_cost:      String(li.unit_cost ?? ''),
                 backorder_qty:  '0',
             })),
@@ -563,6 +574,7 @@ function GoodsReceiptsContent() {
                 if (!item.name || !item.received_qty) continue
 
                 const receivedQty  = parseInt(item.received_qty)  || 0
+                const damagedQty   = parseInt(item.damaged_qty)   || 0
                 const orderedQty   = parseInt(item.ordered_qty)   || 0
                 const backorderQty = orderedQty > 0 && receivedQty < orderedQty ? orderedQty - receivedQty : 0
 
@@ -595,6 +607,7 @@ function GoodsReceiptsContent() {
                     name:           item.name.trim(),
                     ordered_qty:    orderedQty || null,
                     received_qty:   receivedQty,
+                    damaged_qty:    damagedQty,
                     backorder_qty:  backorderQty,
                     unit_cost:      item.unit_cost ? parseFloat(item.unit_cost) : null,
                     matched,
@@ -823,6 +836,7 @@ function GoodsReceiptsContent() {
                                                 <th className="px-3 py-2 text-left font-semibold text-gray-500">Art #</th>
                                                 <th className="px-3 py-2 text-center font-semibold text-gray-500">Ordered</th>
                                                 <th className="px-3 py-2 text-center font-semibold text-gray-500">Received *</th>
+                                                <th className="px-3 py-2 text-center font-semibold text-red-500">Damaged</th>
                                                 <th className="px-3 py-2 text-center font-semibold text-orange-500">Backorder</th>
                                                 <th className="px-3 py-2 text-left font-semibold text-gray-500">Unit Cost</th>
                                                 <th className="px-3 py-2" />
@@ -846,14 +860,19 @@ function GoodsReceiptsContent() {
                                                             className="w-full bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs font-mono text-gray-800 focus:outline-none focus:border-orange-400" />
                                                     </td>
                                                     <td className="px-2 py-1.5">
-                                                        <input type="number" min="0" placeholder="10" value={item.ordered_qty}
+                                                        <input type="number" min="0" placeholder="10" value={item.ordered_qty ?? ''}
                                                             onChange={e => setItem(idx, 'ordered_qty', e.target.value)}
                                                             className="w-16 bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs text-center text-gray-800 focus:outline-none focus:border-orange-400" />
                                                     </td>
                                                     <td className="px-2 py-1.5">
-                                                        <input type="number" min="0" placeholder="5" value={item.received_qty}
+                                                        <input type="number" min="0" placeholder="5" value={item.received_qty ?? ''}
                                                             onChange={e => setItem(idx, 'received_qty', e.target.value)}
                                                             className="w-16 bg-white border border-orange-200 rounded-lg px-2 py-1 text-xs text-center font-bold text-gray-800 focus:outline-none focus:border-orange-400" />
+                                                    </td>
+                                                    <td className="px-2 py-1.5">
+                                                        <input type="number" min="0" placeholder="0" value={item.damaged_qty ?? ''}
+                                                            onChange={e => setItem(idx, 'damaged_qty', e.target.value)}
+                                                            className="w-16 bg-white border border-red-200 rounded-lg px-2 py-1 text-xs text-center text-red-700 font-bold focus:outline-none focus:border-red-400" />
                                                     </td>
                                                     <td className="px-2 py-1.5 text-center">
                                                         {backorder > 0
@@ -862,7 +881,7 @@ function GoodsReceiptsContent() {
                                                         }
                                                     </td>
                                                     <td className="px-2 py-1.5">
-                                                        <input type="number" min="0" step="0.01" placeholder="0.00" value={item.unit_cost}
+                                                        <input type="number" min="0" step="0.01" placeholder="0.00" value={item.unit_cost ?? ''}
                                                             onChange={e => setItem(idx, 'unit_cost', e.target.value)}
                                                             className="w-20 bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-800 focus:outline-none focus:border-orange-400" />
                                                     </td>

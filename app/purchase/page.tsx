@@ -90,6 +90,113 @@ function poIdToRefNo(poId: string): string {
     return poId.replace(/^PO-/, 'REF-')
 }
 
+// ─── Supplier scorecard ───────────────────────────────────────────────────────
+
+type SupplierMetric = {
+    vendor_id:          number
+    vendor_name:        string
+    total_pos:          number
+    on_time_pct:        number | null
+    backorder_rate:     number | null
+    damage_rate:        number | null
+    avg_lead_time_days: number | null
+}
+
+function metricColor(value: number | null, thresholds: [number, number], invert = false): string {
+    if (value === null) return 'text-gray-400'
+    const [warn, bad] = thresholds
+    if (!invert) {
+        if (value >= warn) return 'text-green-600'
+        if (value >= bad)  return 'text-amber-500'
+        return 'text-red-500'
+    } else {
+        if (value <= warn) return 'text-green-600'
+        if (value <= bad)  return 'text-amber-500'
+        return 'text-red-500'
+    }
+}
+
+function SupplierScorecard({ dealershipId }: { dealershipId: string }) {
+    const [metrics, setMetrics]   = useState<SupplierMetric[]>([])
+    const [open,    setOpen]      = useState(false)
+    const [loading, setLoading]   = useState(false)
+
+    useEffect(() => {
+        if (!open || !dealershipId) return
+        setLoading(true)
+        supabase
+            .from('supplier_performance_mv')
+            .select('*')
+            .eq('dealership_id', dealershipId)
+            .then(({ data }) => {
+                setMetrics((data ?? []) as SupplierMetric[])
+                setLoading(false)
+            })
+    }, [open, dealershipId])
+
+    return (
+        <div className="shrink-0 mb-4 border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
+            <button
+                onClick={() => setOpen((v) => !v)}
+                className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+                <span className="flex items-center gap-2">
+                    <span>📊</span> Supplier Performance
+                    <span className="text-xs font-normal text-gray-400">— last 365 days</span>
+                </span>
+                <span className="text-gray-400 text-xs">{open ? '▲ Hide' : '▼ Show'}</span>
+            </button>
+
+            {open && (
+                <div className="border-t border-gray-100 overflow-x-auto">
+                    {loading ? (
+                        <div className="flex items-center justify-center h-20 text-gray-400 text-sm">Loading…</div>
+                    ) : metrics.length === 0 ? (
+                        <div className="flex items-center justify-center h-20 text-gray-400 text-sm">
+                            No data yet — metrics appear once POs reach Sent / Received status.
+                        </div>
+                    ) : (
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b border-gray-100 bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                                    <th className="text-left px-4 py-2 font-medium">Supplier</th>
+                                    <th className="text-center px-4 py-2 font-medium">POs</th>
+                                    <th className="text-center px-4 py-2 font-medium">On-Time %</th>
+                                    <th className="text-center px-4 py-2 font-medium">Backorder %</th>
+                                    <th className="text-center px-4 py-2 font-medium">Damage %</th>
+                                    <th className="text-center px-4 py-2 font-medium">Avg Lead Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {metrics.map((m) => (
+                                    <tr key={m.vendor_id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                                        <td className="px-4 py-2.5 font-medium text-gray-800 truncate max-w-[180px]">
+                                            {m.vendor_name}
+                                        </td>
+                                        <td className="px-4 py-2.5 text-center text-gray-500">{m.total_pos}</td>
+                                        <td className={`px-4 py-2.5 text-center font-semibold ${metricColor(m.on_time_pct, [90, 70])}`}>
+                                            {m.on_time_pct !== null ? `${m.on_time_pct}%` : '—'}
+                                        </td>
+                                        <td className={`px-4 py-2.5 text-center font-semibold ${metricColor(m.backorder_rate, [5, 15], true)}`}>
+                                            {m.backorder_rate !== null ? `${m.backorder_rate}%` : '—'}
+                                        </td>
+                                        <td className={`px-4 py-2.5 text-center font-semibold ${metricColor(m.damage_rate, [1, 5], true)}`}>
+                                            {m.damage_rate !== null ? `${m.damage_rate}%` : '—'}
+                                        </td>
+                                        <td className="px-4 py-2.5 text-center text-gray-600">
+                                            {m.avg_lead_time_days !== null ? `${m.avg_lead_time_days}d` : '—'}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+            )}
+        </div>
+    )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function PurchasePage() {
@@ -117,6 +224,7 @@ export default function PurchasePage() {
         async function loadHistoricalPOs() {
             const dealershipId = getDealershipId()
             if (!dealershipId) return
+            setDealershipId(dealershipId)
             const { data: orders } = await supabase.from('purchase_orders').select('*').eq('dealership_id', dealershipId)
             // po_line_items are scoped via po_id FK; fetch only items for this dealer's POs
             const poIds = (orders ?? []).map((o) => o.id)
@@ -630,6 +738,7 @@ export default function PurchasePage() {
             .map(({ id, name, articleNumber, cost, size }) => ({ id, name, articleNumber, cost, size }))
     }, [selectedPO, allInventoryItems])
 
+    const [dealershipId, setDealershipId] = useState('')
     const [nextPOId, setNextPOId] = useState('')
     useEffect(() => {
         const id = getDealershipId()
@@ -813,6 +922,7 @@ export default function PurchasePage() {
                 )}
 
                 <div className="shrink-0"><SummaryCards allPOs={allPOsResolved} filtered={filtered} /></div>
+                {dealershipId && <SupplierScorecard dealershipId={dealershipId} />}
 
                 {/* Status tabs */}
                 <div className="flex gap-1 overflow-x-auto mb-4 pb-1 shrink-0">
