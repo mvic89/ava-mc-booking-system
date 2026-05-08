@@ -26,9 +26,18 @@ import { CreatePOModal, FlatInventoryItem } from '@/components/CreatePOModal'
 import { ImportPOModal } from '@/components/ImportPOModal'
 import { POLineItem, POLineItemStatus, POStatus, POApprovalStatus, POPlacementOutcome, PurchaseOrder, SupplierClaim } from '@/utils/types'
 import Sidebar from '@/components/Sidebar'
+import { Tip } from '@/components/Tip'
 import Link from 'next/link'
 
 const ALL_STATUSES: POStatus[] = ['Draft', 'Reviewed', 'Sent', 'Received']
+
+const TAB_TIPS: Record<string, string> = {
+    All:      'Show all purchase orders regardless of status.',
+    Draft:    'POs created but not yet reviewed or sent to a supplier.',
+    Reviewed: 'POs reviewed internally and ready to be placed with the supplier.',
+    Sent:     'POs sent to the supplier, awaiting delivery or confirmation.',
+    Received: 'POs where all ordered goods have been fully received into inventory.',
+}
 
 const APPROVAL_STYLE: Record<POApprovalStatus, { badge: string; label: string }> = {
     pending_approval: { badge: 'bg-amber-100 text-amber-700 border border-amber-300',  label: '🔐 Pending Approval' },
@@ -65,20 +74,22 @@ function SummaryCards({ allPOs, filtered }: { allPOs: PurchaseOrder[]; filtered:
     const sent       = allPOs.filter((p) => p.status === 'Sent').length
 
     const cards = [
-        { label: 'Total POs',       value: String(allPOs.length),      icon: '📦', color: 'bg-blue-50 text-blue-700'  },
-        { label: 'Draft',           value: String(draft),              icon: '📝', color: 'bg-gray-100 text-gray-700' },
-        { label: 'Sent',            value: String(sent),               icon: '📤', color: 'bg-orange-50 text-orange-700' },
-        { label: 'Displayed Value', value: formatCurrency(totalValue), icon: '💰', color: 'bg-green-50 text-green-700' },
+        { label: 'Total POs',       value: String(allPOs.length),      icon: '📦', color: 'bg-blue-50 text-blue-700',    tip: 'All purchase orders ever created for your dealership, across every status.' },
+        { label: 'Draft',           value: String(draft),              icon: '📝', color: 'bg-gray-100 text-gray-700',  tip: 'POs created but not yet reviewed or sent to a supplier.' },
+        { label: 'Sent',            value: String(sent),               icon: '📤', color: 'bg-orange-50 text-orange-700', tip: 'POs sent to the supplier and currently awaiting delivery or confirmation.' },
+        { label: 'Displayed Value', value: formatCurrency(totalValue), icon: '💰', color: 'bg-green-50 text-green-700',  tip: 'Total cost of POs visible in the table below — updates when you change the status tab or supplier filter.' },
     ]
 
     return (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
             {cards.map((c) => (
-                <div key={c.label} className={`rounded-xl p-4 ${c.color}`}>
-                    <div className="text-xl mb-1">{c.icon}</div>
-                    <div className="text-xs font-medium opacity-70 mb-0.5">{c.label}</div>
-                    <div className="text-lg font-bold">{c.value}</div>
-                </div>
+                <Tip key={c.label} text={c.tip}>
+                    <div className={`rounded-xl p-4 cursor-default ${c.color}`}>
+                        <div className="text-xl mb-1">{c.icon}</div>
+                        <div className="text-xs font-medium opacity-70 mb-0.5">{c.label}</div>
+                        <div className="text-lg font-bold">{c.value}</div>
+                    </div>
+                </Tip>
             ))}
         </div>
     )
@@ -88,6 +99,92 @@ function SummaryCards({ allPOs, filtered }: { allPOs: PurchaseOrder[]; filtered:
 // This keeps them obviously paired: PO-AVA-2026-001 ↔ REF-AVA-2026-001.
 function poIdToRefNo(poId: string): string {
     return poId.replace(/^PO-/, 'REF-')
+}
+
+// ─── Financial summary ────────────────────────────────────────────────────────
+
+const OPEN_STATUSES = new Set(['Draft', 'Reviewed', 'Sent', 'Partial'])
+
+function FinancialMetrics({ dealershipId, allPOs }: { dealershipId: string; allPOs: PurchaseOrder[] }) {
+    const [claimsValue, setClaimsValue] = useState(0)
+    const [claimsCount, setClaimsCount] = useState(0)
+
+    useEffect(() => {
+        if (!dealershipId) return
+        supabase
+            .from('supplier_claims')
+            .select('claimed_amount')
+            .eq('dealership_id', dealershipId)
+            .in('status', ['open', 'submitted'])
+            .then(({ data }) => {
+                if (!data) return
+                setClaimsCount(data.length)
+                setClaimsValue(data.reduce((s, r) => s + (Number(r.claimed_amount) || 0), 0))
+            })
+    }, [dealershipId])
+
+    const thisMonthPrefix = new Date().toISOString().slice(0, 7) // "YYYY-MM"
+
+    const openPOs    = allPOs.filter(p => OPEN_STATUSES.has(p.status))
+    const monthlyPOs = allPOs.filter(p => p.status === 'Received' && p.date?.startsWith(thisMonthPrefix))
+
+    const openPoValue    = openPOs.reduce((s, p) => s + p.totalCost, 0)
+    const monthlySpend   = monthlyPOs.reduce((s, p) => s + p.totalCost, 0)
+
+    const pl = (n: number) => (n !== 1 ? 's' : '')
+
+    const cards = [
+        {
+            label:   'Open PO Value',
+            sub:     `${openPOs.length} PO${pl(openPOs.length)} in progress`,
+            value:   formatCurrency(openPoValue),
+            icon:    '📤',
+            bg:      'bg-orange-50',
+            border:  'border-orange-200',
+            text:    'text-orange-700',
+            subtext: 'text-orange-500',
+            tip:     'Total cost of all outstanding POs — Draft, Reviewed, Sent, and Partial. This is your current financial commitment to suppliers.',
+        },
+        {
+            label:   "This Month's Spend",
+            sub:     `${monthlyPOs.length} PO${pl(monthlyPOs.length)} received`,
+            value:   formatCurrency(monthlySpend),
+            icon:    '📅',
+            bg:      'bg-green-50',
+            border:  'border-green-200',
+            text:    'text-green-700',
+            subtext: 'text-green-500',
+            tip:     'Total cost of POs marked as Received in the current calendar month.',
+        },
+        {
+            label:   'Outstanding Claims',
+            sub:     `${claimsCount} claim${pl(claimsCount)} open`,
+            value:   formatCurrency(claimsValue),
+            icon:    '⚠️',
+            bg:      claimsCount ? 'bg-red-50'      : 'bg-gray-50',
+            border:  claimsCount ? 'border-red-200'  : 'border-gray-200',
+            text:    claimsCount ? 'text-red-700'    : 'text-gray-500',
+            subtext: claimsCount ? 'text-red-400'    : 'text-gray-400',
+            tip:     'Total value of unresolved supplier claims — damaged goods, short deliveries, or wrong items — that are still open or submitted.',
+        },
+    ]
+
+    return (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 shrink-0">
+            {cards.map(c => (
+                <Tip key={c.label} text={c.tip}>
+                    <div className={`rounded-xl border ${c.border} ${c.bg} px-4 py-3 flex items-center gap-3 cursor-default`}>
+                        <span className="text-2xl shrink-0">{c.icon}</span>
+                        <div className="min-w-0">
+                            <p className={`text-[11px] font-semibold uppercase tracking-wide ${c.subtext}`}>{c.label}</p>
+                            <p className={`text-xl font-bold leading-tight ${c.text}`}>{c.value}</p>
+                            <p className={`text-[11px] ${c.subtext}`}>{c.sub}</p>
+                        </div>
+                    </div>
+                </Tip>
+            ))}
+        </div>
+    )
 }
 
 // ─── Supplier scorecard ───────────────────────────────────────────────────────
@@ -856,7 +953,7 @@ export default function PurchasePage() {
             </div>
 
             {/* Page body */}
-            <div className="flex-1 min-h-0 p-6 flex flex-col overflow-y-auto">
+            <div className="flex-1 overflow-y-auto p-6">
                 {/* Page header */}
                 <div className="flex items-start justify-between mb-5 shrink-0 gap-4">
                     <div>
@@ -883,6 +980,12 @@ export default function PurchasePage() {
                                 ))}
                             </select>
                         </div>
+                        <Link
+                            href="/purchase/daily"
+                            className="bg-white hover:bg-amber-50 border border-amber-200 text-amber-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+                        >
+                            📋 Daily Actions
+                        </Link>
                         <button
                             onClick={() => setShowImportPO(true)}
                             className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
@@ -922,32 +1025,34 @@ export default function PurchasePage() {
                 )}
 
                 <div className="shrink-0"><SummaryCards allPOs={allPOsResolved} filtered={filtered} /></div>
+                {dealershipId && <FinancialMetrics dealershipId={dealershipId} allPOs={allPOsResolved} />}
                 {dealershipId && <SupplierScorecard dealershipId={dealershipId} />}
 
                 {/* Status tabs */}
                 <div className="flex gap-1 overflow-x-auto mb-4 pb-1 shrink-0">
                     {tabs.map((tab) => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveStatus(tab)}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                                activeStatus === tab
-                                    ? 'bg-orange-500 text-white'
-                                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                            }`}
-                        >
-                            {tab}
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
-                                activeStatus === tab ? 'bg-white/25 text-white' : 'bg-gray-200 text-gray-500'
-                            }`}>
-                                {statusCounts[tab] ?? 0}
-                            </span>
-                        </button>
+                        <Tip key={tab} text={TAB_TIPS[tab]}>
+                            <button
+                                onClick={() => setActiveStatus(tab)}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                                    activeStatus === tab
+                                        ? 'bg-orange-500 text-white'
+                                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                                }`}
+                            >
+                                {tab}
+                                <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
+                                    activeStatus === tab ? 'bg-white/25 text-white' : 'bg-gray-200 text-gray-500'
+                                }`}>
+                                    {statusCounts[tab] ?? 0}
+                                </span>
+                            </button>
+                        </Tip>
                     ))}
                 </div>
 
                 {/* PO table */}
-                <div className="table-scroll bg-white rounded-xl border border-gray-200 shadow-sm overflow-auto flex-1 min-h-0">
+                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-x-auto">
                     {filtered.length === 0 ? (
                         allPOs.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-64 gap-4">

@@ -14,6 +14,7 @@ import { getCustomers, type Customer } from '@/lib/customers';
 import { getLeads, type Lead } from '@/lib/leads';
 import { getTargets, type StaffTarget } from '@/lib/targets';
 import { useAutoRefresh } from '@/lib/realtime';
+import { Tip } from '@/components/Tip';
 
 const BRAND      = '#FF6B2C';
 const TEAL       = '#235971';
@@ -327,13 +328,20 @@ export default function AnalyticsPage() {
           {/* Tab bar */}
           <div className="flex gap-1 mt-5 border-b border-slate-100 -mb-6 pb-0">
             {TABS.map(tb => (
-              <button key={tb.id} onClick={() => setTab(tb.id)}
+              <Tip key={tb.id} text={
+                tb.id === 'overview'    ? 'Revenue, invoices, payment mix, and customer segment overview.' :
+                tb.id === 'leaderboard' ? 'Sales team rankings by revenue, conversion rate, and gross profit.' :
+                tb.id === 'grossprofit' ? 'Gross profit margins, best deals, and brand-level profitability.' :
+                                          'Lead source performance: volume, conversion rates, and ROI.'
+              }>
+              <button onClick={() => setTab(tb.id)}
                 className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold rounded-t-lg border-b-2 transition-colors ${
                   tab === tb.id ? 'border-[#FF6B2C] text-[#FF6B2C] bg-orange-50/60' : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50'
                 }`}>
                 <span>{tb.icon}</span>
                 <span>{tb.label}</span>
               </button>
+              </Tip>
             ))}
           </div>
         </div>
@@ -343,16 +351,30 @@ export default function AnalyticsPage() {
           <div className="flex-1 px-5 md:px-8 py-6 space-y-6">
 
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-              <KPICard label={t('kpi.totalRevenue')}  value={kr(totalRevenue)}  sub={t('sub.paidInvoices', { n: paidInvoices.length })}             color={BRAND}   />
-              <KPICard label={t('kpi.avgOrder')}      value={kr(avgOrderValue)} sub={t('sub.perInvoice')}                                            color="#10b981" />
-              <KPICard label={t('kpi.convRate')}      value={pct(convRate)}     sub={t('sub.paidOf', { paid: paidInvoices.length, total: invoices.length })} color="#8b5cf6" />
+              <Tip text="Cumulative revenue from all paid invoices across all time.">
+                <KPICard label={t('kpi.totalRevenue')}  value={kr(totalRevenue)}  sub={t('sub.paidInvoices', { n: paidInvoices.length })}             color={BRAND}   />
+              </Tip>
+              <Tip text="Average revenue value per individual paid invoice.">
+                <KPICard label={t('kpi.avgOrder')}      value={kr(avgOrderValue)} sub={t('sub.perInvoice')}                                            color="#10b981" />
+              </Tip>
+              <Tip text="Percentage of invoices that have been successfully paid.">
+                <KPICard label={t('kpi.convRate')}      value={pct(convRate)}     sub={t('sub.paidOf', { paid: paidInvoices.length, total: invoices.length })} color="#8b5cf6" />
+              </Tip>
             </div>
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <KPICard label={t('kpi.grossProfit')}     value={kr(totalGross)}   sub={t('sub.dealsWithCost', { n: closedWithCost.length })} color="#10b981" />
-              <KPICard label={t('kpi.avgMargin')}       value={pct(avgMargin)}   sub={t('sub.perDeal')} color={avgMargin >= 15 ? '#10b981' : avgMargin >= 5 ? '#f59e0b' : '#ef4444'} />
-              <KPICard label={t('kpi.totalCustomers')}  value={String(customers.length)} sub={t('sub.vip', { vip: customers.filter(c=>c.tag==='VIP').length, active: customers.filter(c=>c.tag==='Active').length })} color={TEAL} />
-              <KPICard label={t('kpi.pendingInvoices')} value={String(pendingCount)} sub={t('sub.notPaid')} color="#f59e0b" />
+              <Tip text="Total gross profit earned across all closed deals with cost data.">
+                <KPICard label={t('kpi.grossProfit')}     value={kr(totalGross)}   sub={t('sub.dealsWithCost', { n: closedWithCost.length })} color="#10b981" />
+              </Tip>
+              <Tip text="Average gross profit margin percentage across all closed deals.">
+                <KPICard label={t('kpi.avgMargin')}       value={pct(avgMargin)}   sub={t('sub.perDeal')} color={avgMargin >= 15 ? '#10b981' : avgMargin >= 5 ? '#f59e0b' : '#ef4444'} />
+              </Tip>
+              <Tip text="Total registered customers, including VIP and active segments.">
+                <KPICard label={t('kpi.totalCustomers')}  value={String(customers.length)} sub={t('sub.vip', { vip: customers.filter(c=>c.tag==='VIP').length, active: customers.filter(c=>c.tag==='Active').length })} color={TEAL} />
+              </Tip>
+              <Tip text="Invoices issued but not yet paid, requiring follow-up.">
+                <KPICard label={t('kpi.pendingInvoices')} value={String(pendingCount)} sub={t('sub.notPaid')} color="#f59e0b" />
+              </Tip>
             </div>
 
             {/* Revenue chart */}
@@ -597,10 +619,18 @@ export default function AnalyticsPage() {
           <div className="flex-1 px-5 md:px-8 py-6 space-y-6">
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <KPICard label={t('kpi.totalGrossProfit')} value={kr(totalGross)}   sub={t('sub.dealsWithCost', { n: closedWithCost.length })} color="#10b981" />
-              <KPICard label={t('kpi.avgMargin')}        value={pct(avgMargin)}  sub={t('sub.perDeal')}   color={avgMargin >= 15 ? '#10b981' : '#f59e0b'} />
-              <KPICard label={t('kpi.bestDeal')}         value={bestDeal ? kr(bestDeal.grossProfit) : '—'} sub={bestDeal ? bestDeal.bike : t('sub.noCost')} color={BRAND} />
-              <KPICard label={t('kpi.totalClosed')}      value={String(closedLeads.length)} sub={t('sub.dealsWithCost', { n: closedWithCost.length })} color={TEAL} />
+              <Tip text="Total gross profit from all closed deals where cost price is recorded.">
+                <KPICard label={t('kpi.totalGrossProfit')} value={kr(totalGross)}   sub={t('sub.dealsWithCost', { n: closedWithCost.length })} color="#10b981" />
+              </Tip>
+              <Tip text="Average gross margin percentage per deal across all closed sales.">
+                <KPICard label={t('kpi.avgMargin')}        value={pct(avgMargin)}  sub={t('sub.perDeal')}   color={avgMargin >= 15 ? '#10b981' : '#f59e0b'} />
+              </Tip>
+              <Tip text="Single deal with the highest gross profit recorded to date.">
+                <KPICard label={t('kpi.bestDeal')}         value={bestDeal ? kr(bestDeal.grossProfit) : '—'} sub={bestDeal ? bestDeal.bike : t('sub.noCost')} color={BRAND} />
+              </Tip>
+              <Tip text="Total number of leads that reached the closed stage.">
+                <KPICard label={t('kpi.totalClosed')}      value={String(closedLeads.length)} sub={t('sub.dealsWithCost', { n: closedWithCost.length })} color={TEAL} />
+              </Tip>
             </div>
 
             {/* Monthly gross */}
@@ -692,10 +722,18 @@ export default function AnalyticsPage() {
           <div className="flex-1 px-5 md:px-8 py-6 space-y-6">
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <KPICard label={t('kpi.totalLeads')}    value={String(leads.length)}        sub={t('sub.allChannels')}      color={BRAND}   />
-              <KPICard label={t('kpi.uniqueSources')} value={String(sourceStats.length)}  sub={t('sub.identifiedSources')} color="#8b5cf6" />
-              <KPICard label={t('kpi.bestSource')}    value={sourceStats[0]?.source ?? '—'} sub={sourceStats[0] ? t('sub.sourceRevenue', { rev: kr(sourceStats[0].revenue) }) : t('sub.noCost')} color="#10b981" />
-              <KPICard label={t('kpi.avgConv')}       value={leads.length > 0 ? pct(Math.round(closedLeads.length / leads.length * 100)) : '—'} sub={t('sub.avgAllSources')} color={TEAL} />
+              <Tip text="Total leads received across all marketing and referral channels.">
+                <KPICard label={t('kpi.totalLeads')}    value={String(leads.length)}        sub={t('sub.allChannels')}      color={BRAND}   />
+              </Tip>
+              <Tip text="Number of distinct lead sources tracked in the system.">
+                <KPICard label={t('kpi.uniqueSources')} value={String(sourceStats.length)}  sub={t('sub.identifiedSources')} color="#8b5cf6" />
+              </Tip>
+              <Tip text="Lead source that has generated the highest total revenue.">
+                <KPICard label={t('kpi.bestSource')}    value={sourceStats[0]?.source ?? '—'} sub={sourceStats[0] ? t('sub.sourceRevenue', { rev: kr(sourceStats[0].revenue) }) : t('sub.noCost')} color="#10b981" />
+              </Tip>
+              <Tip text="Average lead-to-sale conversion rate across all sources combined.">
+                <KPICard label={t('kpi.avgConv')}       value={leads.length > 0 ? pct(Math.round(closedLeads.length / leads.length * 100)) : '—'} sub={t('sub.avgAllSources')} color={TEAL} />
+              </Tip>
             </div>
 
             {/* Source ROI table */}

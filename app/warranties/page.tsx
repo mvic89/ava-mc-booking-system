@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { useTranslations, useLocale } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
 import { getDealershipId } from '@/lib/tenant';
+import { Tip } from '@/components/Tip';
 
 interface Warranty {
   id:              number;
@@ -327,10 +328,10 @@ export default function WarrantiesPage() {
   const claimed       = warranties.filter(w => w.status === 'claimed').length;
 
   const kpis = [
-    { label: t('kpi.active'),   value: active.length,   icon: '🛡️', alert: false },
-    { label: t('kpi.coverage'), value: fmtKr(totalCoverage), icon: '💰', alert: false },
-    { label: t('kpi.expiring'), value: expiring30,       icon: '⚠️', alert: expiring30 > 0 },
-    { label: t('kpi.claims'),   value: claimed,          icon: '📋', alert: claimed > 0 },
+    { label: t('kpi.active'),   value: active.length,        icon: '🛡️', alert: false,          tip: 'Number of currently active warranty policies.' },
+    { label: t('kpi.coverage'), value: fmtKr(totalCoverage), icon: '💰', alert: false,          tip: 'Total coverage amount across all active warranties.' },
+    { label: t('kpi.expiring'), value: expiring30,            icon: '⚠️', alert: expiring30 > 0, tip: 'Warranties expiring within the next 30 days.' },
+    { label: t('kpi.claims'),   value: claimed,               icon: '📋', alert: claimed > 0,    tip: 'Total number of warranties with an active claim filed.' },
   ];
 
   return (
@@ -363,10 +364,12 @@ export default function WarrantiesPage() {
         <div className="px-6 md:px-8 py-4 bg-white border-b border-slate-100">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {kpis.map(k => (
-              <div key={k.label} className={`rounded-2xl border p-4 ${k.alert ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-100'}`}>
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">{k.icon} {k.label}</p>
-                <p className={`text-xl font-extrabold ${k.alert ? 'text-amber-700' : 'text-slate-900'}`}>{String(k.value)}</p>
-              </div>
+              <Tip key={k.label} text={k.tip}>
+                <div className={`rounded-2xl border p-4 ${k.alert ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-100'}`}>
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">{k.icon} {k.label}</p>
+                  <p className={`text-xl font-extrabold ${k.alert ? 'text-amber-700' : 'text-slate-900'}`}>{String(k.value)}</p>
+                </div>
+              </Tip>
             ))}
           </div>
         </div>
@@ -375,10 +378,17 @@ export default function WarrantiesPage() {
         <div className="px-6 md:px-8 py-3 bg-white border-b border-slate-100">
           <div className="flex bg-slate-100 rounded-xl p-1 gap-1 w-fit flex-wrap">
             {(['active', 'expired', 'claimed', 'all'] as const).map(s => (
-              <button key={s} onClick={() => setStatusFilter(s)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${statusFilter === s ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}>
-                {statusLabels[s]}
-              </button>
+              <Tip key={s} text={
+                s === 'active'  ? 'Show only warranties currently in force.' :
+                s === 'expired' ? 'Show warranties whose end date has passed.' :
+                s === 'claimed' ? 'Show warranties that have had a claim filed.' :
+                                  'Show all warranties regardless of status.'
+              }>
+                <button onClick={() => setStatusFilter(s)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${statusFilter === s ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}>
+                  {statusLabels[s]}
+                </button>
+              </Tip>
             ))}
           </div>
         </div>

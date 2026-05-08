@@ -16,6 +16,7 @@ import { getLeads, type Lead } from '@/lib/leads';
 import { useAutoRefresh } from '@/lib/realtime';
 import { getSupabaseBrowser } from '@/lib/supabase';
 import { getDealershipId } from '@/lib/tenant';
+import { Tip } from '@/components/Tip';
 
 // ── Count-up hook ─────────────────────────────────────────────────────────────
 function useCountUp(target: number, duration = 1200, delay = 0) {
@@ -604,12 +605,13 @@ export default function DashboardPage() {
           {/* ── KPI CARDS ─────────────────────────────────────────────────────── */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 stagger">
             {[
-              { icon: '💰', label: t('stats.activeLeads'),  value: leads,     suffix: '',  change: changes.leads,     up: changesUp.leads,     color: '#FF6B2C', bg: '#fff4ef', trend: trends.leads     },
-              { icon: '🏍', label: t('stats.inStock'),       value: vehicles,  suffix: '',  change: changes.vehicles,  up: changesUp.vehicles,  color: '#3b82f6', bg: '#eff6ff', trend: trends.vehicles  },
-              { icon: '📊', label: t('stats.revenueKr'),     value: revenue,   suffix: 'k', change: changes.revenue,   up: changesUp.revenue,   color: '#10b981', bg: '#f0fdf4', trend: trends.revenue   },
-              { icon: '👥', label: t('stats.customers'),     value: customers, suffix: '',  change: changes.customers, up: changesUp.customers, color: '#8b5cf6', bg: '#f5f3ff', trend: trends.customers },
+              { icon: '💰', label: t('stats.activeLeads'),  value: leads,     suffix: '',  change: changes.leads,     up: changesUp.leads,     color: '#FF6B2C', bg: '#fff4ef', trend: trends.leads,     tip: 'Total leads currently active in your sales pipeline.' },
+              { icon: '🏍', label: t('stats.inStock'),       value: vehicles,  suffix: '',  change: changes.vehicles,  up: changesUp.vehicles,  color: '#3b82f6', bg: '#eff6ff', trend: trends.vehicles,  tip: 'Number of motorcycles currently available in inventory.' },
+              { icon: '📊', label: t('stats.revenueKr'),     value: revenue,   suffix: 'k', change: changes.revenue,   up: changesUp.revenue,   color: '#10b981', bg: '#f0fdf4', trend: trends.revenue,   tip: 'Total revenue from all paid invoices in thousands kr.' },
+              { icon: '👥', label: t('stats.customers'),     value: customers, suffix: '',  change: changes.customers, up: changesUp.customers, color: '#8b5cf6', bg: '#f5f3ff', trend: trends.customers, tip: 'Total number of registered customers in the dealership.' },
             ].map((s, i) => (
-              <div key={i}
+              <Tip key={i} text={s.tip}>
+              <div
                 className="bg-white rounded-2xl border border-slate-100 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 animate-fade-up">
                 <div className="p-5">
                   <div className="flex items-start justify-between mb-4">
@@ -634,6 +636,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </div>
+              </Tip>
             ))}
           </div>
 

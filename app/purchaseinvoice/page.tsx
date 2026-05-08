@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { getDealershipId, getDealershipProfile, tagFromName } from '@/lib/tenant';
 import { ImportInvoiceModal } from '@/components/ImportInvoiceModal';
 import Sidebar from '@/components/Sidebar';
+import { Tip } from '@/components/Tip';
 
 // ── Download helpers ────────────────────────────────────────────────────────
 
@@ -822,25 +823,27 @@ export default function PurchaseInvoicePage() {
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-5">
         {([
-          { label: 'Pending',            color: 'border-l-amber-400',   icon: '🕐' },
-          { label: 'Awaiting Approval',  color: 'border-l-blue-400',    icon: '👁️' },
-          { label: 'Paid',               color: 'border-l-emerald-400', icon: '✅' },
-          { label: 'Overdue',            color: 'border-l-red-400',     icon: '🚨' },
-          { label: 'Disputed',           color: 'border-l-purple-400',  icon: '⚠️' },
-        ] as { label: PurchaseInvoiceStatus; color: string; icon: string }[]).map(({ label, color, icon }) => {
+          { label: 'Pending',            color: 'border-l-amber-400',   icon: '🕐', tip: 'Invoices received but not yet actioned.'              },
+          { label: 'Awaiting Approval',  color: 'border-l-blue-400',    icon: '👁️', tip: 'Invoices submitted for internal approval.'            },
+          { label: 'Paid',               color: 'border-l-emerald-400', icon: '✅', tip: 'Invoices that have been fully paid.'                  },
+          { label: 'Overdue',            color: 'border-l-red-400',     icon: '🚨', tip: 'Invoices past their due date that remain unpaid.'     },
+          { label: 'Disputed',           color: 'border-l-purple-400',  icon: '⚠️', tip: 'Invoices with a raised dispute or discrepancy.'       },
+        ] as { label: PurchaseInvoiceStatus; color: string; icon: string; tip: string }[]).map(({ label, color, icon, tip }) => {
           const count = invoices.filter(i => i.status === label).length;
           const total = invoices.filter(i => i.status === label).reduce((a, i) => a + i.amount, 0);
           return (
-            <div key={label} className={`bg-white border border-gray-200 border-l-4 ${color} rounded-xl p-4 shadow-sm`}>
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{label}</p>
-                <span>{icon}</span>
+            <Tip key={label} text={tip}>
+              <div className={`bg-white border border-gray-200 border-l-4 ${color} rounded-xl p-4 shadow-sm`}>
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{label}</p>
+                  <span>{icon}</span>
+                </div>
+                <p className="text-2xl font-bold text-gray-900">{count}</p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {total.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}
+                </p>
               </div>
-              <p className="text-2xl font-bold text-gray-900">{count}</p>
-              <p className="text-xs text-gray-400 mt-0.5">
-                {total.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}
-              </p>
-            </div>
+            </Tip>
           );
         })}
       </div>
@@ -955,23 +958,32 @@ export default function PurchaseInvoicePage() {
       <div className="flex gap-1 overflow-x-auto mb-4 pb-1">
         {(['All', ...statuses] as const).map(s => {
           const count = s === 'All' ? invoices.length : invoices.filter(i => i.status === s).length;
+          const tabTips: Record<string, string> = {
+            'All':               'Show all invoices regardless of status.',
+            'Pending':           'Invoices received but not yet actioned.',
+            'Awaiting Approval': 'Invoices submitted for internal approval.',
+            'Paid':              'Invoices that have been fully paid.',
+            'Overdue':           'Invoices past their due date that remain unpaid.',
+            'Disputed':          'Invoices with a raised dispute or discrepancy.',
+          };
           return (
-            <button
-              key={s}
-              onClick={() => setFilterStatus(s)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                filterStatus === s
-                  ? 'bg-orange-500 text-white'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              {s}
-              <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
-                filterStatus === s ? 'bg-white/25 text-white' : 'bg-gray-200 text-gray-500'
-              }`}>
-                {count}
-              </span>
-            </button>
+            <Tip key={s} text={tabTips[s] ?? s}>
+              <button
+                onClick={() => setFilterStatus(s)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                  filterStatus === s
+                    ? 'bg-orange-500 text-white'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                {s}
+                <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
+                  filterStatus === s ? 'bg-white/25 text-white' : 'bg-gray-200 text-gray-500'
+                }`}>
+                  {count}
+                </span>
+              </button>
+            </Tip>
           );
         })}
       </div>

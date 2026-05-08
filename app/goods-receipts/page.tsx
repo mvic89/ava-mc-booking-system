@@ -7,6 +7,7 @@ import Sidebar from '@/components/Sidebar'
 import { supabase } from '@/lib/supabase'
 import { getDealershipId, getDealershipTag } from '@/lib/tenant'
 import { ReorderableTable, type ColDef } from '@/components/ResizableTable'
+import { Tip } from '@/components/Tip'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -663,17 +664,19 @@ function GoodsReceiptsContent() {
                     {/* Stats */}
                     <div className="grid grid-cols-3 gap-4 mb-6 shrink-0">
                         {[
-                            { label: 'Total Receipts',    value: receipts.length, icon: '📦', color: 'border-l-orange-400' },
-                            { label: 'Units Received',    value: totalUnits,      icon: '📊', color: 'border-l-blue-400' },
-                            { label: 'Pending Approval',  value: pendingCount,    icon: '⏳', color: 'border-l-amber-400' },
+                            { label: 'Total Receipts',    value: receipts.length, icon: '📦', color: 'border-l-orange-400', tip: 'Total goods receipt notes created for your dealership.'                        },
+                            { label: 'Units Received',    value: totalUnits,      icon: '📊', color: 'border-l-blue-400',   tip: 'Total number of units physically received across all receipts.'              },
+                            { label: 'Pending Approval',  value: pendingCount,    icon: '⏳', color: 'border-l-amber-400',  tip: 'Receipts submitted but not yet approved or rejected.'                        },
                         ].map(s => (
-                            <div key={s.label} className={`bg-white border border-gray-200 border-l-4 ${s.color} rounded-xl p-4 shadow-sm`}>
-                                <div className="flex items-center justify-between mb-1">
-                                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{s.label}</p>
-                                    <span className="text-lg">{s.icon}</span>
+                            <Tip key={s.label} text={s.tip}>
+                                <div className={`bg-white border border-gray-200 border-l-4 ${s.color} rounded-xl p-4 shadow-sm`}>
+                                    <div className="flex items-center justify-between mb-1">
+                                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{s.label}</p>
+                                        <span className="text-lg">{s.icon}</span>
+                                    </div>
+                                    <p className="text-2xl font-bold text-gray-900">{s.value}</p>
                                 </div>
-                                <p className="text-2xl font-bold text-gray-900">{s.value}</p>
-                            </div>
+                            </Tip>
                         ))}
                     </div>
 

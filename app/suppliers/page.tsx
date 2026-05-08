@@ -13,6 +13,7 @@ import { POLineItem, POStatus, PurchaseOrder } from '@/utils/types'
 import { supabase } from '@/lib/supabase'
 import { getDealershipId, getDealershipTag, tagFromName } from '@/lib/tenant'
 import Sidebar from '@/components/Sidebar'
+import { Tip } from '@/components/Tip'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -39,20 +40,22 @@ function SummaryCards({ suppliers }: { suppliers: SupplierRow[] }) {
     const totalSKUs    = suppliers.reduce((sum, s) => sum + s.itemCount, 0)
 
     const cards = [
-        { label: 'Total Suppliers',      value: suppliers.length, icon: '🏭', color: 'bg-blue-50 text-blue-700'    },
-        { label: 'With Contact Details', value: withDetails,      icon: '📋', color: 'bg-green-50 text-green-700'  },
-        { label: 'Low Stock Alerts',     value: withLowStock,     icon: '⚠️', color: 'bg-amber-50 text-amber-700'  },
-        { label: 'Total SKUs Supplied',  value: totalSKUs,        icon: '📦', color: 'bg-orange-50 text-orange-700' },
+        { label: 'Total Suppliers',      value: suppliers.length, icon: '🏭', color: 'bg-blue-50 text-blue-700',    tip: 'Total number of active suppliers in your dealership.'                  },
+        { label: 'With Contact Details', value: withDetails,      icon: '📋', color: 'bg-green-50 text-green-700',  tip: 'Suppliers that have an email or phone number on file.'                 },
+        { label: 'Low Stock Alerts',     value: withLowStock,     icon: '⚠️', color: 'bg-amber-50 text-amber-700',  tip: 'Total number of distinct product SKUs linked to your suppliers.'      },
+        { label: 'Total SKUs Supplied',  value: totalSKUs,        icon: '📦', color: 'bg-orange-50 text-orange-700', tip: 'Average unit cost across all supplier SKUs.'                          },
     ]
 
     return (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {cards.map((c) => (
-                <div key={c.label} className={`rounded-xl p-4 ${c.color}`}>
-                    <div className="text-xl mb-1">{c.icon}</div>
-                    <div className="text-xs font-medium opacity-70 mb-0.5">{c.label}</div>
-                    <div className="text-lg font-bold">{c.value}</div>
-                </div>
+                <Tip key={c.label} text={c.tip}>
+                    <div className={`rounded-xl p-4 ${c.color}`}>
+                        <div className="text-xl mb-1">{c.icon}</div>
+                        <div className="text-xs font-medium opacity-70 mb-0.5">{c.label}</div>
+                        <div className="text-lg font-bold">{c.value}</div>
+                    </div>
+                </Tip>
             ))}
         </div>
     )
