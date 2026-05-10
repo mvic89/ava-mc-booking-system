@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { useInventory } from '@/context/InventoryContext'
@@ -163,11 +164,12 @@ function StockBadge({ stock, reorderQty }: { stock: number; reorderQty: number }
 }
 
 function ListingToggle({ item, toggleListing }: { item: BaseInventoryItem; toggleListing: (id: string, listed: boolean) => void }) {
+    const t = useTranslations('inventory')
     const listed = item.listedOnWebsite ?? false
     return (
         <button
             onClick={e => { e.stopPropagation(); toggleListing(item.id, !listed) }}
-            title={listed ? 'Click to unlist from website' : 'Click to list on website'}
+            title={listed ? t('unlistTitle') : t('listTitle')}
             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all border ${
                 listed
                     ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
@@ -175,7 +177,7 @@ function ListingToggle({ item, toggleListing }: { item: BaseInventoryItem; toggl
             }`}
         >
             <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${listed ? 'bg-emerald-500' : 'bg-gray-300'}`} />
-            {listed ? 'Listed' : 'Unlisted'}
+            {listed ? t('listed') : t('unlisted')}
         </button>
     )
 }
@@ -272,9 +274,10 @@ function MotorcycleTable({ data, updateStock, toggleListing, onRowClick, onDelet
     onRowClick: (item: Motorcycle) => void
     onDelete: (id: string) => void
 }) {
+    const t = useTranslations('inventory')
     const cols: ColDef<Motorcycle>[] = [
-        { label: 'ID',           defaultWidth: 120, tdClass: 'font-mono text-xs text-slate-400 truncate',  cell: m => m.id },
-        { label: 'Name / Brand', defaultWidth: 180, cell: m => (
+        { label: t('table.id'),      defaultWidth: 120, tdClass: 'font-mono text-xs text-slate-400 truncate',  cell: m => m.id },
+        { label: t('table.name'),    defaultWidth: 180, cell: m => (
             <div className="flex items-start gap-2">
                 {m.images && m.images.length > 0
                     ? <img src={m.images[0]} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0 border border-gray-200" />
@@ -287,31 +290,31 @@ function MotorcycleTable({ data, updateStock, toggleListing, onRowClick, onDelet
                 </div>
             </div>
         )},
-        { label: 'Article No.',  defaultWidth: 110, tdClass: 'font-mono text-xs text-slate-500 truncate',  cell: m => m.articleNumber },
-        { label: 'VIN',          defaultWidth: 130, tdClass: 'font-mono text-xs text-blue-600 truncate',   cell: m => m.vin },
-        { label: 'Year',         defaultWidth: 60,  tdClass: 'text-slate-700 text-xs',                     cell: m => m.year },
-        { label: 'Engine',       defaultWidth: 75,  tdClass: 'text-slate-700 text-xs truncate',             cell: m => `${m.engineCC}cc` },
-        { label: 'Color',        defaultWidth: 90,  cell: m => (
+        { label: t('table.articleNo'), defaultWidth: 110, tdClass: 'font-mono text-xs text-slate-500 truncate',  cell: m => m.articleNumber },
+        { label: t('table.vin'),       defaultWidth: 130, tdClass: 'font-mono text-xs text-blue-600 truncate',   cell: m => m.vin },
+        { label: t('table.year'),      defaultWidth: 60,  tdClass: 'text-slate-700 text-xs',                     cell: m => m.year },
+        { label: t('table.engine'),    defaultWidth: 75,  tdClass: 'text-slate-700 text-xs truncate',             cell: m => `${m.engineCC}cc` },
+        { label: t('table.color'),     defaultWidth: 90,  cell: m => (
             <span className="inline-flex items-center gap-1.5 text-xs text-slate-700">
                 <span className="w-2.5 h-2.5 rounded-full border border-gray-300 shrink-0" style={{ background: m.color.toLowerCase().includes('black') ? '#1f2937' : m.color.toLowerCase().includes('white') ? '#f9fafb' : m.color.toLowerCase().includes('red') ? '#dc2626' : m.color.toLowerCase().includes('green') ? '#16a34a' : m.color.toLowerCase().includes('blue') ? '#2563eb' : m.color.toLowerCase().includes('yellow') || m.color.toLowerCase().includes('gold') ? '#ca8a04' : m.color.toLowerCase().includes('gray') || m.color.toLowerCase().includes('grey') ? '#6b7280' : m.color.toLowerCase().includes('orange') ? '#ea580c' : '#d1d5db' }} />
                 <span className="truncate">{m.color}</span>
             </span>
         )},
-        { label: 'MC Type',      defaultWidth: 85,  cell: m => (
+        { label: t('table.mcType'),    defaultWidth: 85,  cell: m => (
             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${m.mcType === 'New' ? 'bg-green-100 text-green-700' : m.mcType === 'Trade-In' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>{m.mcType}</span>
         )},
-        { label: 'Warehouse',    defaultWidth: 110, tdClass: 'text-xs text-slate-500 truncate',            cell: m => m.warehouse },
-        { label: 'Location',     defaultWidth: 90,  cell: m => m.location
+        { label: t('table.warehouse'), defaultWidth: 110, tdClass: 'text-xs text-slate-500 truncate',            cell: m => m.warehouse },
+        { label: t('table.location'),  defaultWidth: 90,  cell: m => m.location
             ? <span className="font-mono text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded">{m.location}</span>
             : <span className="text-slate-300 text-xs">—</span>
         },
-        { label: 'Stock',        defaultWidth: 120, noClick: true, cell: (m, h) => <StockCell item={m} updateStock={updateStock} /> },
-        { label: 'Reorder',      defaultWidth: 75,  tdClass: 'text-slate-500 text-xs',                     cell: m => m.reorderQty },
-        { label: 'Cost',         defaultWidth: 110, tdClass: 'text-slate-700 text-xs truncate',             cell: m => formatSEK(m.cost) },
-        { label: 'Sell Price',   defaultWidth: 110, tdClass: 'font-semibold text-slate-900 text-xs truncate', cell: m => formatSEK(m.sellingPrice) },
-        { label: 'Margin',       defaultWidth: 70,  cell: m => <span className="text-green-600 font-medium text-xs">{(((m.sellingPrice - m.cost) / m.sellingPrice) * 100).toFixed(1)}%</span> },
-        { label: 'Vendor',       defaultWidth: 130, tdClass: 'text-xs text-slate-400 truncate',             cell: m => <span title={m.vendor}>{m.vendor}</span> },
-        { label: 'Website',      defaultWidth: 95,  noClick: true, cell: m => <ListingToggle item={m} toggleListing={toggleListing} /> },
+        { label: t('table.stock'),     defaultWidth: 120, noClick: true, cell: (m, h) => <StockCell item={m} updateStock={updateStock} /> },
+        { label: t('table.reorder'),   defaultWidth: 75,  tdClass: 'text-slate-500 text-xs',                     cell: m => m.reorderQty },
+        { label: t('table.cost'),      defaultWidth: 110, tdClass: 'text-slate-700 text-xs truncate',             cell: m => formatSEK(m.cost) },
+        { label: t('table.sellPrice'), defaultWidth: 110, tdClass: 'font-semibold text-slate-900 text-xs truncate', cell: m => formatSEK(m.sellingPrice) },
+        { label: t('table.margin'),    defaultWidth: 70,  cell: m => <span className="text-green-600 font-medium text-xs">{(((m.sellingPrice - m.cost) / m.sellingPrice) * 100).toFixed(1)}%</span> },
+        { label: t('table.vendor'),    defaultWidth: 130, tdClass: 'text-xs text-slate-400 truncate',             cell: m => <span title={m.vendor}>{m.vendor}</span> },
+        { label: t('table.website'),   defaultWidth: 95,  noClick: true, cell: m => <ListingToggle item={m} toggleListing={toggleListing} /> },
         { label: '',             defaultWidth: 40,  noClick: true, cell: m => (
             <button onClick={() => onDelete(m.id)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all text-sm" title="Delete">🗑️</button>
         )},
@@ -326,9 +329,10 @@ function SparePartsTable({ data, updateStock, toggleListing, onRowClick, onDelet
     onRowClick: (item: SparePart) => void
     onDelete: (id: string) => void
 }) {
+    const t = useTranslations('inventory')
     const cols: ColDef<SparePart>[] = [
-        { label: 'ID',           defaultWidth: 120, tdClass: 'font-mono text-xs text-slate-400 truncate',     cell: s => s.id },
-        { label: 'Name / Brand', defaultWidth: 180, cell: s => (
+        { label: t('table.id'),      defaultWidth: 120, tdClass: 'font-mono text-xs text-slate-400 truncate',     cell: s => s.id },
+        { label: t('table.name'),    defaultWidth: 180, cell: s => (
             <div className="flex items-start gap-2">
                 {s.images && s.images.length > 0
                     ? <img src={s.images[0]} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0 border border-gray-200" />
@@ -341,9 +345,9 @@ function SparePartsTable({ data, updateStock, toggleListing, onRowClick, onDelet
                 </div>
             </div>
         )},
-        { label: 'Article No.',  defaultWidth: 110, tdClass: 'font-mono text-xs text-slate-500 truncate',     cell: s => s.articleNumber },
-        { label: 'Category',     defaultWidth: 110, cell: s => <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap">{s.category}</span> },
-        { label: 'Sub-type',     defaultWidth: 140, cell: s => {
+        { label: t('table.articleNo'), defaultWidth: 110, tdClass: 'font-mono text-xs text-slate-500 truncate',     cell: s => s.articleNumber },
+        { label: t('table.category'), defaultWidth: 110, cell: s => <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap">{s.category}</span> },
+        { label: t('table.subType'),  defaultWidth: 140, cell: s => {
             const catColor: Record<string, string> = {
                 'Engine':            'bg-red-50 text-red-700 border border-red-100',
                 'Transmission':      'bg-orange-50 text-orange-700 border border-orange-100',
@@ -364,17 +368,17 @@ function SparePartsTable({ data, updateStock, toggleListing, onRowClick, onDelet
                 ? <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap ${catColor[s.category] ?? 'bg-gray-100 text-gray-500'}`}>{s.subCategory}</span>
                 : <span className="text-slate-300 text-xs">—</span>
         }},
-        { label: 'Location',     defaultWidth: 90,  cell: s => s.location
+        { label: t('table.location'),  defaultWidth: 90,  cell: s => s.location
             ? <span className="font-mono text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded">{s.location}</span>
             : <span className="text-slate-300 text-xs">—</span>
         },
-        { label: 'Stock',        defaultWidth: 120, noClick: true, cell: (s, h) => <StockCell item={s} updateStock={updateStock} /> },
-        { label: 'Reorder',      defaultWidth: 75,  tdClass: 'text-slate-500 text-xs',                        cell: s => s.reorderQty },
-        { label: 'Cost',         defaultWidth: 110, tdClass: 'text-xs text-slate-700 truncate',               cell: s => formatCurrency(s.cost) },
-        { label: 'Sell Price',   defaultWidth: 110, tdClass: 'font-semibold text-slate-900 text-xs truncate', cell: s => formatCurrency(s.sellingPrice) },
-        { label: 'Margin',       defaultWidth: 70,  cell: s => <span className="text-green-600 font-medium text-xs">{(((s.sellingPrice - s.cost) / s.sellingPrice) * 100).toFixed(1)}%</span> },
-        { label: 'Vendor',       defaultWidth: 130, tdClass: 'text-xs text-slate-400 truncate',               cell: s => <span title={s.vendor}>{s.vendor}</span> },
-        { label: 'Website',      defaultWidth: 95,  noClick: true, cell: s => <ListingToggle item={s} toggleListing={toggleListing} /> },
+        { label: t('table.stock'),     defaultWidth: 120, noClick: true, cell: (s, h) => <StockCell item={s} updateStock={updateStock} /> },
+        { label: t('table.reorder'),   defaultWidth: 75,  tdClass: 'text-slate-500 text-xs',                        cell: s => s.reorderQty },
+        { label: t('table.cost'),      defaultWidth: 110, tdClass: 'text-xs text-slate-700 truncate',               cell: s => formatCurrency(s.cost) },
+        { label: t('table.sellPrice'), defaultWidth: 110, tdClass: 'font-semibold text-slate-900 text-xs truncate', cell: s => formatCurrency(s.sellingPrice) },
+        { label: t('table.margin'),    defaultWidth: 70,  cell: s => <span className="text-green-600 font-medium text-xs">{(((s.sellingPrice - s.cost) / s.sellingPrice) * 100).toFixed(1)}%</span> },
+        { label: t('table.vendor'),    defaultWidth: 130, tdClass: 'text-xs text-slate-400 truncate',               cell: s => <span title={s.vendor}>{s.vendor}</span> },
+        { label: t('table.website'),   defaultWidth: 95,  noClick: true, cell: s => <ListingToggle item={s} toggleListing={toggleListing} /> },
         { label: '',             defaultWidth: 40,  noClick: true, cell: s => (
             <button onClick={() => onDelete(s.id)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all text-sm" title="Delete">🗑️</button>
         )},
@@ -389,9 +393,10 @@ function AccessoriesTable({ data, updateStock, toggleListing, onRowClick, onDele
     onRowClick: (item: Accessory) => void
     onDelete: (id: string) => void
 }) {
+    const t = useTranslations('inventory')
     const cols: ColDef<Accessory>[] = [
-        { label: 'ID',           defaultWidth: 120, tdClass: 'font-mono text-xs text-slate-400 truncate',     cell: a => a.id },
-        { label: 'Name / Brand', defaultWidth: 180, cell: a => (
+        { label: t('table.id'),      defaultWidth: 120, tdClass: 'font-mono text-xs text-slate-400 truncate',     cell: a => a.id },
+        { label: t('table.name'),    defaultWidth: 180, cell: a => (
             <div className="flex items-start gap-2">
                 {a.images && a.images.length > 0
                     ? <img src={a.images[0]} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0 border border-gray-200" />
@@ -404,9 +409,9 @@ function AccessoriesTable({ data, updateStock, toggleListing, onRowClick, onDele
                 </div>
             </div>
         )},
-        { label: 'Article No.',  defaultWidth: 110, tdClass: 'font-mono text-xs text-slate-500 truncate',     cell: a => a.articleNumber },
-        { label: 'Type',         defaultWidth: 120, cell: a => <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap">{a.category}</span> },
-        { label: 'Style',        defaultWidth: 130, cell: a => {
+        { label: t('table.articleNo'), defaultWidth: 110, tdClass: 'font-mono text-xs text-slate-500 truncate',     cell: a => a.articleNumber },
+        { label: t('table.type'),      defaultWidth: 120, cell: a => <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap">{a.category}</span> },
+        { label: t('table.style'),     defaultWidth: 130, cell: a => {
             const typeColor: Record<string, string> = {
                 'Helmet':             'bg-indigo-50 text-indigo-700 border border-indigo-100',
                 'Gloves':             'bg-orange-50 text-orange-700 border border-orange-100',
@@ -425,7 +430,7 @@ function AccessoriesTable({ data, updateStock, toggleListing, onRowClick, onDele
                 ? <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap ${typeColor[a.category] ?? 'bg-gray-100 text-gray-500'}`}>{a.subGroup}</span>
                 : <span className="text-slate-300 text-xs">—</span>
         }},
-        { label: 'Colour',       defaultWidth: 110, cell: a => a.color ? (
+        { label: t('table.colour'),    defaultWidth: 110, cell: a => a.color ? (
             <span className="inline-flex items-center gap-1.5 text-xs text-slate-700">
                 <span className="w-2.5 h-2.5 rounded-full border border-gray-300 shrink-0" style={{ background:
                     a.color.toLowerCase().includes('black')  ? '#1f2937' :
@@ -444,18 +449,18 @@ function AccessoriesTable({ data, updateStock, toggleListing, onRowClick, onDele
                 <span className="truncate">{a.color}</span>
             </span>
         ) : <span className="text-slate-300 text-xs">—</span> },
-        { label: 'Size',         defaultWidth: 70,  tdClass: 'text-slate-700 text-xs font-medium',            cell: a => a.size ?? '—' },
-        { label: 'Location',     defaultWidth: 90,  cell: a => a.location
+        { label: t('table.size'),      defaultWidth: 70,  tdClass: 'text-slate-700 text-xs font-medium',            cell: a => a.size ?? '—' },
+        { label: t('table.location'), defaultWidth: 90,  cell: a => a.location
             ? <span className="font-mono text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded">{a.location}</span>
             : <span className="text-slate-300 text-xs">—</span>
         },
-        { label: 'Stock',        defaultWidth: 120, noClick: true, cell: (a, h) => <StockCell item={a} updateStock={updateStock} /> },
-        { label: 'Reorder',      defaultWidth: 75,  tdClass: 'text-slate-500 text-xs',                        cell: a => a.reorderQty },
-        { label: 'Cost',         defaultWidth: 110, tdClass: 'text-xs text-slate-700 truncate',               cell: a => formatCurrency(a.cost) },
-        { label: 'Sell Price',   defaultWidth: 110, tdClass: 'font-semibold text-slate-900 text-xs truncate', cell: a => formatCurrency(a.sellingPrice) },
-        { label: 'Margin',       defaultWidth: 70,  cell: a => <span className="text-green-600 font-medium text-xs">{(((a.sellingPrice - a.cost) / a.sellingPrice) * 100).toFixed(1)}%</span> },
-        { label: 'Vendor',       defaultWidth: 130, tdClass: 'text-xs text-slate-400 truncate',               cell: a => <span title={a.vendor}>{a.vendor}</span> },
-        { label: 'Website',      defaultWidth: 95,  noClick: true, cell: a => <ListingToggle item={a} toggleListing={toggleListing} /> },
+        { label: t('table.stock'),     defaultWidth: 120, noClick: true, cell: (a, h) => <StockCell item={a} updateStock={updateStock} /> },
+        { label: t('table.reorder'),   defaultWidth: 75,  tdClass: 'text-slate-500 text-xs',                        cell: a => a.reorderQty },
+        { label: t('table.cost'),      defaultWidth: 110, tdClass: 'text-xs text-slate-700 truncate',               cell: a => formatCurrency(a.cost) },
+        { label: t('table.sellPrice'), defaultWidth: 110, tdClass: 'font-semibold text-slate-900 text-xs truncate', cell: a => formatCurrency(a.sellingPrice) },
+        { label: t('table.margin'),    defaultWidth: 70,  cell: a => <span className="text-green-600 font-medium text-xs">{(((a.sellingPrice - a.cost) / a.sellingPrice) * 100).toFixed(1)}%</span> },
+        { label: t('table.vendor'),    defaultWidth: 130, tdClass: 'text-xs text-slate-400 truncate',               cell: a => <span title={a.vendor}>{a.vendor}</span> },
+        { label: t('table.website'),   defaultWidth: 95,  noClick: true, cell: a => <ListingToggle item={a} toggleListing={toggleListing} /> },
         { label: '',             defaultWidth: 40,  noClick: true, cell: a => (
             <button onClick={() => onDelete(a.id)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all text-sm" title="Delete">🗑️</button>
         )},
@@ -466,15 +471,16 @@ function AccessoriesTable({ data, updateStock, toggleListing, onRowClick, onDele
 // ─── Summary Cards ────────────────────────────────────────────────────────────
 
 function SummaryCards({ data }: { data: BaseInventoryItem[] }) {
+    const t = useTranslations('inventory')
     const totalItems = data.length
     const totalStock = data.reduce((s, i) => s + i.stock, 0)
     const lowStock   = data.filter((i) => i.stock <= i.reorderQty).length
     const totalValue = data.reduce((s, i) => s + i.sellingPrice * i.stock, 0)
     const cards = [
-        { label: 'Total SKUs',         value: String(totalItems),         icon: '📦', color: 'text-[#FF6B2C]' },
-        { label: 'Units in Stock',     value: String(totalStock),         icon: '🗃️', color: 'text-green-600' },
-        { label: 'Low Stock Alerts',   value: String(lowStock),           icon: '⚠️', color: 'text-red-600'   },
-        { label: 'Stock Value (Sell)', value: formatCurrency(totalValue), icon: '💰', color: 'text-slate-900' },
+        { label: t('stats.totalSkus'),    value: String(totalItems),         icon: '📦', color: 'text-[#FF6B2C]' },
+        { label: t('stats.unitsInStock'), value: String(totalStock),         icon: '🗃️', color: 'text-green-600' },
+        { label: t('stats.lowStock'),     value: String(lowStock),           icon: '⚠️', color: 'text-red-600'   },
+        { label: t('stats.stockValue'),   value: formatCurrency(totalValue), icon: '💰', color: 'text-slate-900' },
     ]
     return (
         <div className="grid grid-cols-4 gap-3">
@@ -494,11 +500,12 @@ function SummaryCards({ data }: { data: BaseInventoryItem[] }) {
 // ─── Empty State ──────────────────────────────────────────────────────────────
 
 function EmptyState({ onImport, isFiltered }: { onImport: () => void; isFiltered: boolean }) {
+    const t = useTranslations('inventory')
     if (isFiltered) {
         return (
             <div className="flex flex-col items-center justify-center h-48 text-slate-400">
                 <span className="text-4xl mb-2">🔍</span>
-                <p className="text-sm font-medium">No items match your search</p>
+                <p className="text-sm font-medium">{t('noMatch')}</p>
             </div>
         )
     }
@@ -506,14 +513,14 @@ function EmptyState({ onImport, isFiltered }: { onImport: () => void; isFiltered
         <div className="flex flex-col items-center justify-center h-64 gap-4">
             <span className="text-5xl">📦</span>
             <div className="text-center">
-                <p className="text-slate-700 font-semibold">No inventory yet</p>
-                <p className="text-slate-400 text-sm mt-1">Import from Excel or add items one by one</p>
+                <p className="text-slate-700 font-semibold">{t('empty')}</p>
+                <p className="text-slate-400 text-sm mt-1">{t('import')}</p>
             </div>
             <button
                 onClick={onImport}
                 className="bg-[#FF6B2C] hover:bg-[#e55a1f] text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2"
             >
-                ⬆ Import from Excel
+                ⬆ {t('importBtn')}
             </button>
         </div>
     )
@@ -577,15 +584,6 @@ async function downloadInventoryPDF(data: BaseInventoryItem[], tabName: string) 
     doc.save(`inventory_${tabName}_${new Date().toISOString().split('T')[0]}.pdf`)
 }
 
-// ─── Tab config ───────────────────────────────────────────────────────────────
-
-const TABS: { id: InventoryCategory | 'lowStock'; label: string; icon: string; href: string }[] = [
-    { id: 'motorcycles', label: 'Motorcycles', icon: '🏍️', href: '/inventory/motorcycles' },
-    { id: 'spareParts',  label: 'Spare Parts',  icon: '🔧', href: '/inventory/spare-parts'  },
-    { id: 'accessories', label: 'Accessories',  icon: '🪖', href: '/inventory/accessories'  },
-    { id: 'lowStock',    label: 'Low Stock',    icon: '⚠',  href: '/inventory/low-stock'   },
-]
-
 // ─── Main shared page component ───────────────────────────────────────────────
 
 // ─── Filter types ─────────────────────────────────────────────────────────────
@@ -627,6 +625,13 @@ const fIn  = fSel
 export function InventoryPageContent({ category }: { category: InventoryCategory }) {
     const { motorcycles, spareParts, accessories, updateStock, toggleListing, deleteItem, lowStockAlerts } = useInventory()
     const pathname = usePathname()
+    const t = useTranslations('inventory')
+    const TABS: { id: InventoryCategory | 'lowStock'; label: string; icon: string; href: string }[] = [
+        { id: 'motorcycles', label: t('tabs.motorcycles'), icon: '🏍️', href: '/inventory/motorcycles' },
+        { id: 'spareParts',  label: t('tabs.spareParts'),  icon: '🔧', href: '/inventory/spare-parts'  },
+        { id: 'accessories', label: t('tabs.accessories'), icon: '🪖', href: '/inventory/accessories'  },
+        { id: 'lowStock',    label: t('tabs.lowStock'),    icon: '⚠',  href: '/inventory/low-stock'   },
+    ]
 
     const [search,          setSearch         ] = useState('')
     const [showAddModal,    setShowAddModal    ] = useState(false)
@@ -725,7 +730,7 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
         : []
 
     const pendingPOs  = lowStockAlerts.length
-    const tabLabel    = TABS.find(t => t.id === category)?.label ?? ''
+    const tabLabel    = TABS.find(tab => tab.id === category)?.label ?? ''
 
     return (
         <div className="flex min-h-screen bg-[#f5f7fa]">
@@ -738,20 +743,19 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2.5">
                         <span className="text-lg">🏍</span>
-                        <h1 className="text-base font-bold text-slate-900">Inventory</h1>
-                        <span className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold hidden sm:inline">· Lager</span>
+                        <h1 className="text-base font-bold text-slate-900">{t('title')}</h1>
                     </div>
                     <div className="flex items-center gap-2">
                         {pendingPOs > 0 && (
                             <Link href="/inventory/low-stock" className="flex items-center gap-1 text-xs font-semibold bg-amber-50 border border-amber-200 text-amber-700 px-2.5 py-1 rounded-full hover:bg-amber-100 transition-colors">
-                                ⚠ {pendingPOs} Low Stock
+                                ⚠ {t('lowStockBadge', { n: pendingPOs })}
                             </Link>
                         )}
                         <button
                             onClick={() => setShowImportModal(true)}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-xs font-medium transition-colors"
                         >
-                            ⬆ Import
+                            ⬆ {t('importBtn')}
                         </button>
 
                         {/* Download dropdown */}
@@ -760,7 +764,7 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
                                 onClick={() => setShowDownload(v => !v)}
                                 className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-xs font-medium transition-colors"
                             >
-                                ⬇ Download <span className="text-slate-400">▾</span>
+                                ⬇ {t('downloadBtn')} <span className="text-slate-400">▾</span>
                             </button>
                             {showDownload && (
                                 <>
@@ -768,7 +772,7 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
                                     <div className="absolute right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-20 w-44 overflow-hidden">
                                         <div className="px-3 py-1.5 border-b border-slate-100">
                                             <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                                                {tabLabel} · {filtered.length} items
+                                                {tabLabel} · {filtered.length} {t('items')}
                                             </p>
                                         </div>
                                         <button
@@ -777,8 +781,8 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
                                         >
                                             <span>📊</span>
                                             <div className="text-left">
-                                                <div className="font-semibold">Excel (.xlsx)</div>
-                                                <div className="text-[10px] text-slate-400">Spreadsheet format</div>
+                                                <div className="font-semibold">{t('download.excelLabel')}</div>
+                                                <div className="text-[10px] text-slate-400">{t('download.excelHint')}</div>
                                             </div>
                                         </button>
                                         <button
@@ -787,8 +791,8 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
                                         >
                                             <span>📄</span>
                                             <div className="text-left">
-                                                <div className="font-semibold">PDF</div>
-                                                <div className="text-[10px] text-slate-400">Print-ready</div>
+                                                <div className="font-semibold">{t('download.pdfLabel')}</div>
+                                                <div className="text-[10px] text-slate-400">{t('download.pdfHint')}</div>
                                             </div>
                                         </button>
                                     </div>
@@ -800,7 +804,7 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
                             onClick={() => setShowAddModal(true)}
                             className="flex items-center gap-1.5 bg-[#FF6B2C] hover:bg-[#e55a1f] text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-colors"
                         >
-                            + Add Item
+                            {t('addBtn')}
                         </button>
                     </div>
                 </div>
@@ -852,7 +856,7 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h18M7 12h10M11 20h2" />
                         </svg>
-                        Filters
+                        {t('filtersBtn')}
                         {activeFilterCount > 0 && (
                             <span className="bg-[#FF6B2C] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                                 {activeFilterCount}
@@ -864,14 +868,14 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
                     <span className="text-xs text-slate-400">
                         {filtered.length !== allData.length
                             ? <><span className="font-semibold text-slate-600">{filtered.length}</span> of {allData.length}</>
-                            : <><span className="font-semibold text-slate-600">{allData.length}</span> items</>
+                            : <><span className="font-semibold text-slate-600">{allData.length}</span> {t('items')}</>
                         }
                     </span>
 
                     <div className="ml-auto flex items-center gap-2">
                         {activeFilterCount > 0 && (
                             <button onClick={clearFilters} className="text-xs text-slate-400 hover:text-red-500 transition-colors">
-                                Clear all
+                                {t('clearAll')}
                             </button>
                         )}
                         <div className="relative">
@@ -880,7 +884,7 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
                             </svg>
                             <input
                                 type="text"
-                                placeholder={`Search ${tabLabel.toLowerCase()}...`}
+                                placeholder={t('search')}
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 className="pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#FF6B2C]/30 focus:border-[#FF6B2C]/50 w-56 bg-white"
@@ -895,35 +899,35 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
                         {/* Row 1 — universal filters */}
                         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
                             <div>
-                                <FLabel>Website</FLabel>
+                                <FLabel>{t('filter.website')}</FLabel>
                                 <select className={fSel} value={filters.websiteStatus} onChange={e => setF('websiteStatus', e.target.value as Filters['websiteStatus'])}>
-                                    <option value="all">All products</option>
-                                    <option value="listed">🌐 Listed only</option>
-                                    <option value="unlisted">· Unlisted only</option>
+                                    <option value="all">{t('filter.allProducts')}</option>
+                                    <option value="listed">🌐 {t('filter.listedOnly')}</option>
+                                    <option value="unlisted">· {t('filter.unlistedOnly')}</option>
                                 </select>
                             </div>
                             <div>
-                                <FLabel>Brand</FLabel>
+                                <FLabel>{t('filter.brand')}</FLabel>
                                 <select className={fSel} value={filters.brand} onChange={e => setF('brand', e.target.value)}>
-                                    <option value="">All brands</option>
+                                    <option value="">{t('filter.allBrands')}</option>
                                     {uniqueBrands.map(b => <option key={b}>{b}</option>)}
                                 </select>
                             </div>
                             <div>
-                                <FLabel>Stock Status</FLabel>
+                                <FLabel>{t('filter.stockStatus')}</FLabel>
                                 <select className={fSel} value={filters.stockStatus} onChange={e => setF('stockStatus', e.target.value as Filters['stockStatus'])}>
-                                    <option value="all">All</option>
-                                    <option value="instock">In stock</option>
-                                    <option value="lowstock">Low stock</option>
-                                    <option value="outofstock">Out of stock</option>
+                                    <option value="all">{t('filter.all')}</option>
+                                    <option value="instock">{t('filter.inStock')}</option>
+                                    <option value="lowstock">{t('filter.lowStock')}</option>
+                                    <option value="outofstock">{t('filter.outOfStock')}</option>
                                 </select>
                             </div>
                             <div>
-                                <FLabel>Price min (SEK)</FLabel>
+                                <FLabel>{t('filter.priceMin')}</FLabel>
                                 <input type="number" className={fIn} placeholder="0" value={filters.priceMin} onChange={e => setF('priceMin', e.target.value)} />
                             </div>
                             <div>
-                                <FLabel>Price max (SEK)</FLabel>
+                                <FLabel>{t('filter.priceMax')}</FLabel>
                                 <input type="number" className={fIn} placeholder="∞" value={filters.priceMax} onChange={e => setF('priceMax', e.target.value)} />
                             </div>
                         </div>
@@ -932,18 +936,18 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
                         {category === 'motorcycles' && (
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2.5 pt-2.5 border-t border-slate-100">
                                 <div>
-                                    <FLabel>MC Type</FLabel>
+                                    <FLabel>{t('filter.mcType')}</FLabel>
                                     <select className={fSel} value={filters.mcType} onChange={e => setF('mcType', e.target.value)}>
-                                        <option value="">All types</option>
+                                        <option value="">{t('filter.allTypes')}</option>
                                         <option>New</option>
                                         <option>Trade-In</option>
                                         <option>Commission</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <FLabel>Warehouse</FLabel>
+                                    <FLabel>{t('filter.warehouse')}</FLabel>
                                     <select className={fSel} value={filters.warehouse} onChange={e => setF('warehouse', e.target.value)}>
-                                        <option value="">All warehouses</option>
+                                        <option value="">{t('filter.allWarehouses')}</option>
                                         <option>Warehouse A</option>
                                         <option>Warehouse B</option>
                                         <option>Warehouse C</option>
@@ -951,7 +955,7 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
                                     </select>
                                 </div>
                                 <div>
-                                    <FLabel>Colour</FLabel>
+                                    <FLabel>{t('filter.colour')}</FLabel>
                                     <input type="text" className={fIn} placeholder="e.g. Black, Red…" value={filters.mcColour} onChange={e => setF('mcColour', e.target.value)} />
                                 </div>
                             </div>
@@ -960,9 +964,9 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
                         {category === 'spareParts' && (
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2.5 pt-2.5 border-t border-slate-100">
                                 <div>
-                                    <FLabel>Category</FLabel>
+                                    <FLabel>{t('filter.category')}</FLabel>
                                     <select className={fSel} value={filters.spCategory} onChange={e => setF('spCategory', e.target.value)}>
-                                        <option value="">All categories</option>
+                                        <option value="">{t('filter.allCategories')}</option>
                                         <optgroup label="Powertrain">
                                             {['Engine','Transmission','Fuel System','Exhaust'].map(c => <option key={c}>{c}</option>)}
                                         </optgroup>
@@ -983,9 +987,9 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
                         {category === 'accessories' && (
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2.5 pt-2.5 border-t border-slate-100">
                                 <div>
-                                    <FLabel>Type</FLabel>
+                                    <FLabel>{t('filter.type')}</FLabel>
                                     <select className={fSel} value={filters.accType} onChange={e => setF('accType', e.target.value)}>
-                                        <option value="">All types</option>
+                                        <option value="">{t('filter.allTypes')}</option>
                                         <optgroup label="Helmets"><option>Helmet</option></optgroup>
                                         <optgroup label="Clothing">
                                             {['Jacket','Gloves','T-Shirt','Pants','Boots','Cap','Neck & Face'].map(c => <option key={c}>{c}</option>)}
@@ -996,14 +1000,14 @@ export function InventoryPageContent({ category }: { category: InventoryCategory
                                     </select>
                                 </div>
                                 <div>
-                                    <FLabel>Size</FLabel>
+                                    <FLabel>{t('filter.size')}</FLabel>
                                     <select className={fSel} value={filters.accSize} onChange={e => setF('accSize', e.target.value)}>
-                                        <option value="">All sizes</option>
+                                        <option value="">{t('filter.allSizes')}</option>
                                         {uniqueSizes.map(s => <option key={s}>{s}</option>)}
                                     </select>
                                 </div>
                                 <div>
-                                    <FLabel>Colour</FLabel>
+                                    <FLabel>{t('filter.colour')}</FLabel>
                                     <input type="text" className={fIn} placeholder="e.g. Black, Blue…" value={filters.accColour} onChange={e => setF('accColour', e.target.value)} />
                                 </div>
                             </div>

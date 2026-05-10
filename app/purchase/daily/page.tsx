@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { getDealershipId } from '@/lib/tenant'
 import { useInventory } from '@/context/InventoryContext'
 import { formatCurrency } from '@/components/POModal'
+import { useTranslations } from 'next-intl'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -77,6 +78,7 @@ function ActionSection({
     href:        string
     children:    React.ReactNode
 }) {
+    const t = useTranslations('daily')
     return (
         <div className={`bg-white border border-gray-200 border-l-4 ${borderColor} rounded-xl shadow-sm overflow-hidden`}>
             <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
@@ -86,7 +88,7 @@ function ActionSection({
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${color}`}>{count}</span>
                 </div>
                 <Link href={href} className="text-xs text-orange-500 hover:text-orange-700 font-semibold">
-                    View all →
+                    {t('viewAll')}
                 </Link>
             </div>
             <div className="divide-y divide-gray-50">
@@ -102,6 +104,7 @@ function ActionSection({
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DailyActionDashboard() {
+    const t = useTranslations('daily')
     const { lowStockAlerts } = useInventory()
 
     const [pos,              setPOs]             = useState<ActionPO[]>([])
@@ -209,10 +212,10 @@ export default function DailyActionDashboard() {
                 <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 bg-white shrink-0">
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                         <Link href="/purchase" className="hover:text-orange-500 transition-colors font-medium">
-                            Purchase
+                            {t('breadcrumbParent')}
                         </Link>
                         <span>/</span>
-                        <span className="text-gray-800 font-semibold">Daily Actions</span>
+                        <span className="text-gray-800 font-semibold">{t('breadcrumb')}</span>
                     </div>
                     <span className="text-xs text-gray-400">{dateLabel}</span>
                 </div>
@@ -221,17 +224,17 @@ export default function DailyActionDashboard() {
 
                     {/* Hero */}
                     <div className="mb-6">
-                        <h1 className="text-2xl font-black text-gray-900">Daily Action Dashboard</h1>
-                        <p className="text-sm text-gray-400 mt-0.5">Everything that needs attention today.</p>
+                        <h1 className="text-2xl font-black text-gray-900">{t('title')}</h1>
+                        <p className="text-sm text-gray-400 mt-0.5">{t('subtitle')}</p>
                     </div>
 
                     {/* Summary strip */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
                         {[
-                            { label: 'Total Actions',      value: totalActions,                            color: totalActions > 0 ? 'bg-red-50 text-red-700 border-red-200' : 'bg-green-50 text-green-700 border-green-200' },
-                            { label: 'Urgent',             value: followUpPOs.length + etaOverduePOs.length + overdueInvoices.length, color: 'bg-red-50 text-red-700 border-red-200' },
-                            { label: 'Pending Approval',   value: pendingApprovalPOs.length + pendingReceipts.length, color: 'bg-amber-50 text-amber-700 border-amber-200' },
-                            { label: 'Low Stock',          value: lowStockAlerts.length,                   color: 'bg-blue-50 text-blue-700 border-blue-200' },
+                            { label: t('summary.totalActions'),    value: totalActions,                            color: totalActions > 0 ? 'bg-red-50 text-red-700 border-red-200' : 'bg-green-50 text-green-700 border-green-200' },
+                            { label: t('summary.urgent'),          value: followUpPOs.length + etaOverduePOs.length + overdueInvoices.length, color: 'bg-red-50 text-red-700 border-red-200' },
+                            { label: t('summary.pendingApproval'), value: pendingApprovalPOs.length + pendingReceipts.length, color: 'bg-amber-50 text-amber-700 border-amber-200' },
+                            { label: t('summary.lowStock'),        value: lowStockAlerts.length,                   color: 'bg-blue-50 text-blue-700 border-blue-200' },
                         ].map(c => (
                             <div key={c.label} className={`border rounded-xl px-4 py-3 ${c.color}`}>
                                 <p className="text-[10px] font-semibold uppercase tracking-wide opacity-70">{c.label}</p>
@@ -243,8 +246,8 @@ export default function DailyActionDashboard() {
                     {totalActions === 0 && (
                         <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
                             <span className="text-5xl">✅</span>
-                            <p className="text-lg font-bold text-gray-700">All clear — nothing needs attention today!</p>
-                            <p className="text-sm text-gray-400">Check back tomorrow or after new POs are placed.</p>
+                            <p className="text-lg font-bold text-gray-700">{t('allClear')}</p>
+                            <p className="text-sm text-gray-400">{t('allClearHint')}</p>
                         </div>
                     )}
 
@@ -252,9 +255,9 @@ export default function DailyActionDashboard() {
 
                         {/* 1. Follow Up Now */}
                         <ActionSection
-                            icon="🔴" title="Follow Up Now" count={followUpPOs.length}
+                            icon="🔴" title={t('sections.followUp.title')} count={followUpPOs.length}
                             color="bg-red-100 text-red-700" borderColor="border-l-red-500"
-                            emptyText="No overdue follow-ups — all sent POs are within 5 business days."
+                            emptyText={t('sections.followUp.empty')}
                             href="/purchase"
                         >
                             {followUpPOs.slice(0, 5).map(po => (
@@ -266,7 +269,7 @@ export default function DailyActionDashboard() {
                                         <p className="text-xs text-gray-500 truncate">{po.vendor}</p>
                                     </div>
                                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700 whitespace-nowrap ml-3 shrink-0">
-                                        {po.placed_at ? businessDaysSince(po.placed_at) : '?'}d overdue
+                                        {t('badges.daysOverdue', { days: po.placed_at ? businessDaysSince(po.placed_at) : '?' })}
                                     </span>
                                 </Link>
                             ))}
@@ -274,9 +277,9 @@ export default function DailyActionDashboard() {
 
                         {/* 2. ETA Overdue */}
                         <ActionSection
-                            icon="⚠️" title="ETA Overdue" count={etaOverduePOs.length}
+                            icon="⚠️" title={t('sections.etaOverdue.title')} count={etaOverduePOs.length}
                             color="bg-orange-100 text-orange-700" borderColor="border-l-orange-500"
-                            emptyText="No POs past their expected arrival date."
+                            emptyText={t('sections.etaOverdue.empty')}
                             href="/purchase"
                         >
                             {etaOverduePOs.slice(0, 5).map(po => (
@@ -288,7 +291,7 @@ export default function DailyActionDashboard() {
                                         <p className="text-xs text-gray-500 truncate">{po.vendor}</p>
                                     </div>
                                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 whitespace-nowrap ml-3 shrink-0">
-                                        ETA was {formatDate(po.eta!)} ({Math.abs(dayDiff(today, po.eta!))}d ago)
+                                        {t('badges.etaWas', { date: formatDate(po.eta!), days: Math.abs(dayDiff(today, po.eta!)) })}
                                     </span>
                                 </Link>
                             ))}
@@ -297,9 +300,9 @@ export default function DailyActionDashboard() {
                         {/* 3. Arriving Today */}
                         {arrivingTodayPOs.length > 0 && (
                             <ActionSection
-                                icon="📅" title="Arriving Today" count={arrivingTodayPOs.length}
+                                icon="📅" title={t('sections.arrivingToday.title')} count={arrivingTodayPOs.length}
                                 color="bg-blue-100 text-blue-700" borderColor="border-l-blue-500"
-                                emptyText=""
+                                emptyText={t('sections.arrivingToday.empty')}
                                 href="/purchase"
                             >
                                 {arrivingTodayPOs.map(po => (
@@ -320,9 +323,9 @@ export default function DailyActionDashboard() {
 
                         {/* 4. Pending PO Approval */}
                         <ActionSection
-                            icon="🔐" title="POs Awaiting Approval" count={pendingApprovalPOs.length}
+                            icon="🔐" title={t('sections.pendingApproval.title')} count={pendingApprovalPOs.length}
                             color="bg-amber-100 text-amber-700" borderColor="border-l-amber-500"
-                            emptyText="No POs waiting for approval."
+                            emptyText={t('sections.pendingApproval.empty')}
                             href="/purchase"
                         >
                             {pendingApprovalPOs.slice(0, 5).map(po => (
@@ -342,9 +345,9 @@ export default function DailyActionDashboard() {
 
                         {/* 5. Goods Receipts Pending */}
                         <ActionSection
-                            icon="📬" title="Receipts to Approve" count={pendingReceipts.length}
+                            icon="📬" title={t('sections.receiptsApprove.title')} count={pendingReceipts.length}
                             color="bg-purple-100 text-purple-700" borderColor="border-l-purple-500"
-                            emptyText="No delivery notes waiting for approval."
+                            emptyText={t('sections.receiptsApprove.empty')}
                             href="/goods-receipts"
                         >
                             {pendingReceipts.slice(0, 5).map(r => (
@@ -356,7 +359,7 @@ export default function DailyActionDashboard() {
                                         <p className="text-xs text-gray-500 truncate">{r.vendor}</p>
                                     </div>
                                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 ml-3 shrink-0">
-                                        {r.unit_count} units · {formatDate(r.received_date)}
+                                        {t('badges.unitsDate', { units: r.unit_count, date: formatDate(r.received_date) })}
                                     </span>
                                 </Link>
                             ))}
@@ -364,9 +367,9 @@ export default function DailyActionDashboard() {
 
                         {/* 6. Overdue Invoices */}
                         <ActionSection
-                            icon="💸" title="Overdue Invoices" count={overdueInvoices.length}
+                            icon="💸" title={t('sections.overdueInvoices.title')} count={overdueInvoices.length}
                             color="bg-red-100 text-red-700" borderColor="border-l-red-400"
-                            emptyText="No overdue supplier invoices."
+                            emptyText={t('sections.overdueInvoices.empty')}
                             href="/purchaseinvoice"
                         >
                             {overdueInvoices.slice(0, 5).map(inv => (
@@ -379,7 +382,7 @@ export default function DailyActionDashboard() {
                                     </div>
                                     <div className="flex items-center gap-2 ml-3 shrink-0">
                                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700">
-                                            Due {isValidDate(inv.due_date) ? formatDate(inv.due_date) : inv.due_date}
+                                            {t('badges.due', { date: isValidDate(inv.due_date) ? formatDate(inv.due_date) : inv.due_date })}
                                         </span>
                                         <span className="text-xs font-semibold text-gray-700">{formatCurrency(inv.amount)}</span>
                                     </div>
@@ -389,9 +392,9 @@ export default function DailyActionDashboard() {
 
                         {/* 7. Backorders */}
                         <ActionSection
-                            icon="🔄" title="Partial Orders" count={partialPOs.length}
+                            icon="🔄" title={t('sections.partialOrders.title')} count={partialPOs.length}
                             color="bg-gray-100 text-gray-600" borderColor="border-l-gray-400"
-                            emptyText="No POs with outstanding backorders."
+                            emptyText={t('sections.partialOrders.empty')}
                             href="/purchase"
                         >
                             {partialPOs.slice(0, 5).map(po => (
@@ -403,7 +406,7 @@ export default function DailyActionDashboard() {
                                         <p className="text-xs text-gray-500 truncate">{po.vendor}</p>
                                     </div>
                                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600 ml-3 shrink-0">
-                                        Partial
+                                        {t('badges.partial')}
                                     </span>
                                 </Link>
                             ))}
@@ -411,9 +414,9 @@ export default function DailyActionDashboard() {
 
                         {/* 8. Low Stock */}
                         <ActionSection
-                            icon="📦" title="Low Stock — Reorder Needed" count={lowStockAlerts.length}
+                            icon="📦" title={t('sections.lowStock.title')} count={lowStockAlerts.length}
                             color="bg-blue-100 text-blue-700" borderColor="border-l-blue-400"
-                            emptyText="All items are above reorder level."
+                            emptyText={t('sections.lowStock.empty')}
                             href="/inventory/low-stock"
                         >
                             {lowStockAlerts.slice(0, 5).map(item => (
@@ -422,10 +425,10 @@ export default function DailyActionDashboard() {
                                 >
                                     <div className="min-w-0">
                                         <p className="text-xs font-bold text-gray-800 truncate">{item.name}</p>
-                                        <p className="text-xs text-gray-400 truncate">{item.vendor ?? 'No vendor'}</p>
+                                        <p className="text-xs text-gray-400 truncate">{item.vendor ?? t('noVendor')}</p>
                                     </div>
                                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 ml-3 shrink-0">
-                                        Stock: {item.currentStock} / Min: {item.reorderQty}
+                                        {t('badges.stock', { current: item.currentStock, min: item.reorderQty })}
                                     </span>
                                 </Link>
                             ))}

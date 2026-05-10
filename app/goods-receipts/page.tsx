@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useState, useEffect, useCallback, useMemo, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import Sidebar from '@/components/Sidebar'
@@ -61,35 +61,20 @@ function makeGrId(tag: string, count: number) {
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function SourceBadge({ source }: { source: string }) {
+    const t = useTranslations('goodsReceipts')
     return source === 'email_automation'
-        ? <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">⚡ Auto</span>
-        : <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">✏️ Manual</span>
+        ? <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">{t('source.auto')}</span>
+        : <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{t('source.manual')}</span>
 }
 
 function StatusBadge({ status }: { status: GoodsReceipt['status'] }) {
+    const t = useTranslations('goodsReceipts')
     if (status === 'approved')
-        return <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">✓ Approved</span>
+        return <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">{t('statusBadge.approved')}</span>
     if (status === 'rejected')
-        return <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-600">✕ Rejected</span>
-    return <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">⏳ Pending Approval</span>
+        return <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-600">{t('statusBadge.rejected')}</span>
+    return <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">{t('statusBadge.pending')}</span>
 }
-
-const GR_COLS: ColDef<GoodsReceipt>[] = [
-    { label: 'Receipt ID',    defaultWidth: 160, cell: r => <span className="font-mono text-xs font-bold text-orange-500 whitespace-nowrap">{r.id}</span> },
-    { label: 'Vendor',        defaultWidth: 160, cell: r => <span className="text-xs text-gray-800 font-medium truncate block">{r.vendor}</span> },
-    { label: 'PO #',          defaultWidth: 130, cell: r => <span className="text-xs text-gray-500 font-mono">{r.po_id || '—'}</span> },
-    { label: 'Delivery Note', defaultWidth: 140, cell: r => <span className="text-xs text-gray-500 font-mono">{r.delivery_note_number || '—'}</span> },
-    { label: 'Received Date', defaultWidth: 140, cell: r => <span className="text-xs text-gray-500 whitespace-nowrap">{r.received_date}</span> },
-    { label: 'Lines',         defaultWidth: 80,  tdClass: 'text-center', cell: r => <span className="text-xs text-gray-700 font-semibold">{r.items?.length ?? 0}</span> },
-    { label: 'Units',         defaultWidth: 80,  tdClass: 'text-center', cell: r => {
-        const units = r.items?.reduce((s, i) => s + i.received_qty, 0) ?? 0
-        return <span className="text-xs font-bold text-gray-900">{units}</span>
-    }},
-    { label: 'Source', defaultWidth: 120, cell: r => <SourceBadge source={r.source} /> },
-    { label: 'Status', defaultWidth: 120, cell: r => <StatusBadge status={r.status ?? 'approved'} /> },
-]
-
-const GR_DEFAULT_WIDTHS = GR_COLS.map(c => c.defaultWidth)
 
 function DetailModal({ receipt, onClose, onStatusChange, onPoRelinked }: {
     receipt: GoodsReceipt
@@ -97,6 +82,7 @@ function DetailModal({ receipt, onClose, onStatusChange, onPoRelinked }: {
     onStatusChange: (id: string, status: GoodsReceipt['status']) => void
     onPoRelinked:   (id: string, newPoId: string) => void
 }) {
+    const t = useTranslations('goodsReceipts')
     const [acting,       setActing]       = useState<'approve' | 'reject' | null>(null)
     const [poStatus,     setPoStatus]     = useState<string | null>(null)
     const [openPos,      setOpenPos]      = useState<{ id: string; vendor: string; status: string }[]>([])
@@ -186,7 +172,7 @@ function DetailModal({ receipt, onClose, onStatusChange, onPoRelinked }: {
                 <div className="px-6 pt-5 pb-4 border-b border-gray-100 flex items-start justify-between shrink-0">
                     <div>
                         <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-0.5">
-                            Goods Receipt · <span className="font-mono">{receipt.id}</span>
+                            {t('detail.prefix')} <span className="font-mono">{receipt.id}</span>
                         </p>
                         <h2 className="text-lg font-bold text-gray-900">{receipt.vendor}</h2>
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -215,8 +201,8 @@ function DetailModal({ receipt, onClose, onStatusChange, onPoRelinked }: {
                     <div className="mx-6 mt-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-3 shrink-0">
                         <span className="text-xl">⏳</span>
                         <div className="flex-1">
-                            <p className="text-sm font-bold text-amber-800">Awaiting Admin Approval</p>
-                            <p className="text-xs text-amber-600 mt-0.5">Stock will not update until you approve this delivery.</p>
+                            <p className="text-sm font-bold text-amber-800">{t('detail.awaitingApproval')}</p>
+                            <p className="text-xs text-amber-600 mt-0.5">{t('detail.approvalNote')}</p>
                         </div>
                         <div className="flex gap-2 shrink-0">
                             <button
@@ -224,14 +210,14 @@ function DetailModal({ receipt, onClose, onStatusChange, onPoRelinked }: {
                                 disabled={!!acting}
                                 className="px-3 py-1.5 bg-white border border-red-300 text-red-600 text-xs font-bold rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
                             >
-                                {acting === 'reject' ? '…' : 'Reject'}
+                                {acting === 'reject' ? '…' : t('detail.reject')}
                             </button>
                             <button
                                 onClick={() => handleAction('approve')}
                                 disabled={!!acting}
                                 className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded-lg transition-colors disabled:opacity-50"
                             >
-                                {acting === 'approve' ? '…' : 'Approve & Update Stock'}
+                                {acting === 'approve' ? '…' : t('detail.approve')}
                             </button>
                         </div>
                     </div>
@@ -242,7 +228,7 @@ function DetailModal({ receipt, onClose, onStatusChange, onPoRelinked }: {
                     <div className="mx-6 mt-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3 shrink-0">
                         <span className="text-xl">⚠️</span>
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-red-800">PO already fully received</p>
+                            <p className="text-sm font-bold text-red-800">{t('detail.poFullyReceived')}</p>
                             <p className="text-xs text-red-600 mt-0.5">
                                 <span className="font-mono">{receipt.po_id}</span> is closed. Would you like to link this delivery to a different open PO?
                             </p>
@@ -251,7 +237,7 @@ function DetailModal({ receipt, onClose, onStatusChange, onPoRelinked }: {
                             onClick={loadOpenPos}
                             className="shrink-0 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors"
                         >
-                            Re-link to PO
+                            {t('detail.relinkPo')}
                         </button>
                     </div>
                 )}
@@ -259,9 +245,9 @@ function DetailModal({ receipt, onClose, onStatusChange, onPoRelinked }: {
                 {/* Re-link PO picker */}
                 {showRelink && (
                     <div className="mx-6 mt-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 shrink-0">
-                        <p className="text-xs font-bold text-blue-800 mb-2">Select an open PO to link this delivery to:</p>
+                        <p className="text-xs font-bold text-blue-800 mb-2">{t('detail.selectPoPrompt')}</p>
                         {openPos.length === 0 ? (
-                            <p className="text-xs text-blue-600">No open POs found for {receipt.vendor}.</p>
+                            <p className="text-xs text-blue-600">{t('detail.noOpenPos')}</p>
                         ) : (
                             <div className="space-y-1 max-h-36 overflow-y-auto mb-3">
                                 {openPos.map(po => (
@@ -286,14 +272,14 @@ function DetailModal({ receipt, onClose, onStatusChange, onPoRelinked }: {
                                 onClick={() => { setShowRelink(false); setSelectedNewPo('') }}
                                 className="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 text-xs font-bold rounded-lg hover:bg-gray-50 transition-colors"
                             >
-                                Cancel
+                                {t('detail.cancel')}
                             </button>
                             <button
                                 onClick={handleRelink}
                                 disabled={!selectedNewPo || relinking}
                                 className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-colors disabled:opacity-50"
                             >
-                                {relinking ? 'Linking…' : 'Confirm Link'}
+                                {relinking ? t('detail.linking') : t('detail.confirmLink')}
                             </button>
                         </div>
                     </div>
@@ -303,17 +289,17 @@ function DetailModal({ receipt, onClose, onStatusChange, onPoRelinked }: {
                 {hasBackorder && (
                     <div className="mx-6 mt-3 bg-orange-50 border border-orange-200 rounded-xl px-4 py-2.5 flex items-center gap-2 shrink-0">
                         <span className="text-base">📋</span>
-                        <p className="text-xs text-orange-700 font-medium">Some items have backorders — supplier will deliver outstanding quantities later.</p>
+                        <p className="text-xs text-orange-700 font-medium">{t('detail.backorderBanner')}</p>
                     </div>
                 )}
 
                 {/* Summary strip */}
                 <div className={`grid gap-3 px-6 py-4 border-b border-gray-100 bg-gray-50/50 shrink-0 mt-3 ${totalDamaged > 0 ? 'grid-cols-4' : 'grid-cols-3'}`}>
                     {[
-                        { label: 'Received Date',   value: receipt.received_date,                              color: '' },
-                        { label: 'Items Received',  value: `${totalReceived} units`,                           color: '' },
-                        { label: 'Matched to Stock',value: `${matched} / ${receipt.items?.length ?? 0} lines`, color: '' },
-                        ...(totalDamaged > 0 ? [{ label: 'Damaged', value: `${totalDamaged} units`, color: 'text-red-600' }] : []),
+                        { label: t('detail.receivedDate'),    value: receipt.received_date,                              color: '' },
+                        { label: t('detail.itemsReceived'),   value: `${totalReceived} units`,                           color: '' },
+                        { label: t('detail.matchedToStock'),  value: `${matched} / ${receipt.items?.length ?? 0} lines`, color: '' },
+                        ...(totalDamaged > 0 ? [{ label: t('detail.damaged'), value: `${totalDamaged} units`, color: 'text-red-600' }] : []),
                     ].map(c => (
                         <div key={c.label} className="text-center">
                             <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">{c.label}</p>
@@ -326,20 +312,20 @@ function DetailModal({ receipt, onClose, onStatusChange, onPoRelinked }: {
                 <div className="flex-1 overflow-y-auto px-6 py-4">
                     {receipt.delivery_note_number && (
                         <p className="text-xs text-gray-500 mb-3">
-                            Delivery Note #: <span className="font-mono font-semibold text-gray-800">{receipt.delivery_note_number}</span>
+                            {t('detail.deliveryNoteLabel')} <span className="font-mono font-semibold text-gray-800">{receipt.delivery_note_number}</span>
                         </p>
                     )}
 
                     <table className="w-full text-xs">
                         <thead>
                             <tr className="bg-gray-50 rounded-lg">
-                                <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider">Item</th>
-                                <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider">Art #</th>
-                                <th className="px-3 py-2 text-center font-semibold text-gray-500 uppercase tracking-wider">Ordered</th>
-                                <th className="px-3 py-2 text-center font-semibold text-gray-500 uppercase tracking-wider">Received</th>
-                                <th className="px-3 py-2 text-center font-semibold text-red-500 uppercase tracking-wider">Damaged</th>
-                                <th className="px-3 py-2 text-center font-semibold text-orange-600 uppercase tracking-wider">Backorder</th>
-                                <th className="px-3 py-2 text-center font-semibold text-gray-500 uppercase tracking-wider">Stock</th>
+                                <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider">{t('detail.item')}</th>
+                                <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider">{t('detail.artNo')}</th>
+                                <th className="px-3 py-2 text-center font-semibold text-gray-500 uppercase tracking-wider">{t('detail.ordered')}</th>
+                                <th className="px-3 py-2 text-center font-semibold text-gray-500 uppercase tracking-wider">{t('detail.received')}</th>
+                                <th className="px-3 py-2 text-center font-semibold text-red-500 uppercase tracking-wider">{t('detail.damaged')}</th>
+                                <th className="px-3 py-2 text-center font-semibold text-orange-600 uppercase tracking-wider">{t('detail.backorder')}</th>
+                                <th className="px-3 py-2 text-center font-semibold text-gray-500 uppercase tracking-wider">{t('detail.stock')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -351,22 +337,22 @@ function DetailModal({ receipt, onClose, onStatusChange, onPoRelinked }: {
                                     <td className="px-3 py-2.5 text-center font-bold text-gray-900">{item.received_qty}</td>
                                     <td className="px-3 py-2.5 text-center">
                                         {(item.damaged_qty ?? 0) > 0
-                                            ? <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-600">{item.damaged_qty} damaged</span>
+                                            ? <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-600">{t('detail.damagedBadge', { n: item.damaged_qty })}</span>
                                             : <span className="text-gray-300">—</span>
                                         }
                                     </td>
                                     <td className="px-3 py-2.5 text-center">
                                         {(item.backorder_qty ?? 0) > 0
-                                            ? <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">{item.backorder_qty} pending</span>
+                                            ? <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">{t('detail.pendingBadge', { n: item.backorder_qty })}</span>
                                             : <span className="text-gray-300">—</span>
                                         }
                                     </td>
                                     <td className="px-3 py-2.5 text-center">
                                         {item.received_qty === 0
-                                            ? <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">⏳ Backordered</span>
+                                            ? <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">{t('detail.backordered')}</span>
                                             : item.matched
-                                                ? <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">✓ Matched</span>
-                                                : <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">? Unmatched</span>
+                                                ? <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">{t('detail.matched')}</span>
+                                                : <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">{t('detail.unmatched')}</span>
                                         }
                                     </td>
                                 </tr>
@@ -376,7 +362,7 @@ function DetailModal({ receipt, onClose, onStatusChange, onPoRelinked }: {
 
                     {receipt.notes && (
                         <div className="mt-4 bg-gray-50 rounded-xl px-4 py-3">
-                            <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Notes</p>
+                            <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">{t('detail.notes')}</p>
                             <p className="text-sm text-gray-700">{receipt.notes}</p>
                         </div>
                     )}
@@ -391,12 +377,12 @@ function DetailModal({ receipt, onClose, onStatusChange, onPoRelinked }: {
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-semibold rounded-lg transition-colors"
                             >
-                                📄 View PDF
+                                {t('detail.viewPdf')}
                             </a>
                         )}
                     </div>
                     <button onClick={onClose} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg transition-colors">
-                        Close
+                        {t('detail.close')}
                     </button>
                 </div>
             </div>
@@ -417,6 +403,21 @@ export default function GoodsReceiptsPage() {
 function GoodsReceiptsContent() {
     const t            = useTranslations('goodsReceipts')
     const searchParams = useSearchParams()
+
+    const grCols = useMemo<ColDef<GoodsReceipt>[]>(() => [
+        { label: t('cols.receiptId'),    defaultWidth: 160, cell: r => <span className="font-mono text-xs font-bold text-orange-500 whitespace-nowrap">{r.id}</span> },
+        { label: t('cols.vendor'),       defaultWidth: 160, cell: r => <span className="text-xs text-gray-800 font-medium truncate block">{r.vendor}</span> },
+        { label: t('cols.po'),           defaultWidth: 130, cell: r => <span className="text-xs text-gray-500 font-mono">{r.po_id || '—'}</span> },
+        { label: t('cols.deliveryNote'), defaultWidth: 140, cell: r => <span className="text-xs text-gray-500 font-mono">{r.delivery_note_number || '—'}</span> },
+        { label: t('cols.receivedDate'), defaultWidth: 140, cell: r => <span className="text-xs text-gray-500 whitespace-nowrap">{r.received_date}</span> },
+        { label: t('cols.lines'),        defaultWidth: 80,  tdClass: 'text-center', cell: r => <span className="text-xs text-gray-700 font-semibold">{r.items?.length ?? 0}</span> },
+        { label: t('cols.units'),        defaultWidth: 80,  tdClass: 'text-center', cell: r => {
+            const units = r.items?.reduce((s, i) => s + i.received_qty, 0) ?? 0
+            return <span className="text-xs font-bold text-gray-900">{units}</span>
+        }},
+        { label: t('cols.source'), defaultWidth: 120, cell: r => <SourceBadge source={r.source} /> },
+        { label: t('cols.status'), defaultWidth: 120, cell: r => <StatusBadge status={r.status ?? 'approved'} /> },
+    ], [t])
     const [receipts, setReceipts]   = useState<GoodsReceipt[]>([])
     const [loading,  setLoading]    = useState(true)
     const [search,   setSearch]     = useState('')
@@ -664,9 +665,9 @@ function GoodsReceiptsContent() {
                     {/* Stats */}
                     <div className="grid grid-cols-3 gap-4 mb-6 shrink-0">
                         {[
-                            { label: 'Total Receipts',    value: receipts.length, icon: '📦', color: 'border-l-orange-400', tip: 'Total goods receipt notes created for your dealership.'                        },
-                            { label: 'Units Received',    value: totalUnits,      icon: '📊', color: 'border-l-blue-400',   tip: 'Total number of units physically received across all receipts.'              },
-                            { label: 'Pending Approval',  value: pendingCount,    icon: '⏳', color: 'border-l-amber-400',  tip: 'Receipts submitted but not yet approved or rejected.'                        },
+                            { label: t('stats.total'),   value: receipts.length, icon: '📦', color: 'border-l-orange-400', tip: t('stats.totalTip')   },
+                            { label: t('stats.units'),   value: totalUnits,      icon: '📊', color: 'border-l-blue-400',   tip: t('stats.unitsTip')   },
+                            { label: t('stats.pending'), value: pendingCount,    icon: '⏳', color: 'border-l-amber-400',  tip: t('stats.pendingTip') },
                         ].map(s => (
                             <Tip key={s.label} text={s.tip}>
                                 <div className={`bg-white border border-gray-200 border-l-4 ${s.color} rounded-xl p-4 shadow-sm`}>
@@ -691,12 +692,10 @@ function GoodsReceiptsContent() {
                                 <span className="text-5xl">📦</span>
                                 <div className="text-center">
                                     <p className="text-gray-700 font-semibold">
-                                        {receipts.length === 0 ? 'No goods receipts yet' : 'No results match your search'}
+                                        {receipts.length === 0 ? t('empty') : t('noMatch')}
                                     </p>
                                     <p className="text-gray-400 text-sm mt-1">
-                                        {receipts.length === 0
-                                            ? 'Create a manual entry or wait for an incoming delivery email'
-                                            : 'Try a different search term'}
+                                        {receipts.length === 0 ? t('emptyHint') : t('noMatchHint')}
                                     </p>
                                 </div>
                                 {receipts.length === 0 && (
@@ -710,9 +709,9 @@ function GoodsReceiptsContent() {
                             </div>
                         ) : (
                             <ReorderableTable<GoodsReceipt>
-                                cols={GR_COLS}
+                                cols={grCols}
                                 data={filtered}
-                                defaultWidths={GR_DEFAULT_WIDTHS}
+                                defaultWidths={grCols.map(c => c.defaultWidth)}
                                 onRowClick={r => setSelected(r)}
                                 rowKey={r => r.id}
                             />

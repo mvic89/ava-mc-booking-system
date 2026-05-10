@@ -1270,79 +1270,175 @@
     "tabs": {
       "motorcycles": "Motorcyklar",
       "spareParts": "Reservdelar",
-      "accessories": "Tillbehör"
+      "accessories": "Tillbehör",
+      "lowStock": "Lågt lager"
     },
-    "search": "Sök i lager...",
+    "search": "Sök lager...",
+    "lowStockBadge": "{n} lågt lager",
+    "importBtn": "Importera",
+    "downloadBtn": "Ladda ner",
+    "addBtn": "+ Lägg till artikel",
+    "filtersBtn": "Filter",
+    "clearAll": "Rensa alla",
+    "items": "artiklar",
+    "listed": "Listad",
+    "unlisted": "Olistad",
+    "listTitle": "Klicka för att lista på webbplats",
+    "unlistTitle": "Klicka för att avlista från webbplats",
+    "decreaseStock": "Minska lager",
+    "increaseStock": "Öka lager",
     "stats": {
       "totalSkus": "Totalt antal SKU",
       "unitsInStock": "Enheter i lager",
-      "lowStock": "Låga lagervarningar",
-      "stockValue": "Lagervärde"
+      "lowStock": "Lågt lagervarningar",
+      "stockValue": "Lagervärde (sälj)"
     },
     "table": {
       "id": "ID",
       "name": "Namn / Märke",
-      "articleNo": "Artikelnr",
+      "articleNo": "Art.nr",
       "vin": "VIN",
       "year": "År",
       "engine": "Motor",
       "color": "Färg",
       "mcType": "MC-typ",
       "warehouse": "Lager",
+      "location": "Plats",
       "stock": "Lager",
-      "reorderQty": "Återbeställningsantal",
+      "reorder": "Beställningspunkt",
       "cost": "Kostnad",
       "sellPrice": "Försäljningspris",
       "margin": "Marginal",
-      "vendor": "Leverantör"
+      "vendor": "Leverantör",
+      "website": "Webbplats",
+      "category": "Kategori",
+      "subType": "Underkategori",
+      "type": "Typ",
+      "style": "Stil",
+      "colour": "Färg",
+      "size": "Storlek"
+    },
+    "filter": {
+      "website": "Webbplats",
+      "brand": "Märke",
+      "stockStatus": "Lagerstatus",
+      "priceMin": "Minpris (SEK)",
+      "priceMax": "Maxpris (SEK)",
+      "mcType": "MC-typ",
+      "warehouse": "Lager",
+      "colour": "Färg",
+      "category": "Kategori",
+      "type": "Typ",
+      "size": "Storlek",
+      "allProducts": "Alla produkter",
+      "listedOnly": "Endast listade",
+      "unlistedOnly": "Endast olistade",
+      "allBrands": "Alla märken",
+      "all": "Alla",
+      "inStock": "I lager",
+      "lowStock": "Lågt lager",
+      "outOfStock": "Slut i lager",
+      "allTypes": "Alla typer",
+      "allWarehouses": "Alla lager",
+      "allCategories": "Alla kategorier",
+      "allSizes": "Alla storlekar"
     },
     "empty": "Inget lager ännu",
-    "noMatch": "Inga artiklar matchar din sökning",
-    "hint": "Håll muspekaren på en rad för att justera lagret",
-    "import": "Importera från Excel eller lägg till manuellt",
+    "noMatch": "Inga artiklar matchar sökningen",
+    "hint": "Håll muspekaren över en rad för att justera lagret",
+    "import": "Importera från Excel eller lägg till artiklar en i taget",
+    "importBtn2": "⬆ Importera från Excel",
     "export": {
       "pdf": "PDF",
       "excel": "Excel (.xlsx)",
-      "spreadsheet": "Kalkylblad",
-      "print": "Utskriftsformat"
+      "spreadsheet": "Kalkylbladsformat",
+      "print": "Utskriftsklart"
+    },
+    "download": {
+      "excelLabel": "Excel (.xlsx)",
+      "excelHint": "Kalkylbladsformat",
+      "pdfLabel": "PDF",
+      "pdfHint": "Utskriftsklart"
     }
   },
   "goodsReceipts": {
-    "title": "Varuinleveranser",
-    "breadcrumb": "Varuinleveranser",
+    "title": "Godsmottagningar",
+    "breadcrumb": "Godsmottagningar",
     "subtitle": "Registrera mottagna varor — lagret uppdateras automatiskt",
+    "newReceipt": "Ny mottagning",
+    "search": "Sök på kvitto-ID, leverantör, IO...",
     "stats": {
-      "total": "Totalt antal inleveranser",
+      "total": "Totala kvitton",
+      "totalTip": "Totalt antal godsmottagningskvitton för din återförsäljare.",
       "units": "Mottagna enheter",
-      "items": "Mottagna artiklar",
-      "pending": "Väntar på godkännande"
+      "unitsTip": "Totalt antal fysiskt mottagna enheter på alla kvitton.",
+      "pending": "Väntar på godkännande",
+      "pendingTip": "Kvitton inlämnade men ännu inte godkända eller avvisade."
     },
-    "table": {
-      "receiptId": "Inleverans-ID",
-      "po": "Inköpsorder #",
+    "source": {
+      "auto": "⚡ Auto",
+      "manual": "✏️ Manuell"
+    },
+    "statusBadge": {
+      "approved": "✓ Godkänd",
+      "rejected": "✕ Avvisad",
+      "pending": "⏳ Väntar på godkännande"
+    },
+    "cols": {
+      "receiptId": "Kvitto-ID",
+      "vendor": "Leverantör",
+      "po": "IO #",
       "deliveryNote": "Följesedel",
+      "receivedDate": "Mottaget datum",
+      "lines": "Rader",
+      "units": "Enheter",
+      "source": "Källa",
+      "status": "Status"
+    },
+    "detail": {
+      "prefix": "Godsmottagning ·",
+      "awaitingApproval": "Väntar på administratörsgodkännande",
+      "approvalNote": "Lagret uppdateras inte förrän du godkänner leveransen.",
+      "reject": "Avvisa",
+      "approve": "Godkänn & uppdatera lager",
+      "poFullyReceived": "IO redan fullt mottagen",
+      "relinkPo": "Länka om till IO",
+      "selectPoPrompt": "Välj en öppen IO att länka leveransen till:",
+      "noOpenPos": "Inga öppna IO hittades för denna leverantör.",
+      "cancel": "Avbryt",
+      "confirmLink": "Bekräfta länk",
+      "linking": "Länkar…",
+      "poIncomplete": "IO ofullständig — väntar på restorder",
+      "receivedDate": "Mottaget datum",
+      "itemsReceived": "Mottagna artiklar",
+      "matchedToStock": "Matchade mot lager",
+      "damaged": "Skadade",
+      "deliveryNoteLabel": "Följesedel #:",
       "item": "Artikel",
-      "artNo": "Art.nr",
-      "lineItems": "Rader",
+      "artNo": "Art #",
       "ordered": "Beställt",
       "received": "Mottaget",
-      "status": "Status",
-      "source": "Källa",
-      "notes": "Anteckningar"
+      "backorder": "Restorder",
+      "stock": "Lager",
+      "damagedBadge": "{n} skadade",
+      "pendingBadge": "{n} väntande",
+      "backordered": "⏳ Restorder",
+      "matched": "✓ Matchad",
+      "unmatched": "? Omatchad",
+      "viewPdf": "📄 Visa PDF",
+      "close": "Stäng",
+      "notes": "Anteckningar",
+      "backorderBanner": "Vissa artiklar har restorder — leverantören levererar utestående kvantiteter senare."
     },
-    "newReceipt": "Ny inleverans",
-    "search": "Sök inleveranser...",
-    "empty": "Inga varuinleveranser ännu",
-    "noMatch": "Inga inleveranser matchar din sökning",
+    "empty": "Inga godsmottagningar ännu",
+    "emptyHint": "Skapa en manuell post eller vänta på ett inkommande leverans-e-post",
+    "noMatch": "Inga resultat matchar din sökning",
+    "noMatchHint": "Prova ett annat sökord",
     "approve": "Godkänn",
     "pending": "Väntande",
     "approved": "Godkänd",
     "rejected": "Avvisad",
-    "backorder": "Restorder",
-    "linkPo": "Koppla till Inköpsorder (valfritt)",
-    "deliveryNoteLabel": "Följesedelnr (valfritt)",
-    "receivedBy": "Mottagen av",
-    "noOpenPos": "Inga öppna inköpsorder hittades"
+    "backorder": "Restorder"
   },
   "accounting": {
     "title": "Bokföring",
@@ -1378,58 +1474,247 @@
   "suppliers": {
     "title": "Leverantörer",
     "breadcrumb": "Leverantörer",
-    "subtitle": "Klicka på en rad för att visa eller redigera leverantörsuppgifter.",
-    "addBtn": "Lägg till leverantör",
-    "importBtn": "Importera Excel",
-    "search": "Sök leverantörer...",
-    "empty": "Inga leverantörer ännu",
-    "noMatch": "Inga leverantörer matchar din sökning",
+    "subtitle": "Klicka på en rad för att visa eller redigera leverantörsinformation.",
+    "addBtn": "+ Lägg till leverantör",
+    "importBtn": "⬆ Importera Excel",
+    "search": "Sök leverantör, kategori...",
     "stats": {
-      "total": "Totalt antal leverantörer",
+      "total": "Totala leverantörer",
+      "totalTip": "Totalt antal aktiva leverantörer hos din återförsäljare.",
       "withContact": "Med kontaktuppgifter",
-      "lowStock": "Låga lagervarningar",
-      "totalSkus": "Totalt levererade SKU:er"
+      "withContactTip": "Leverantörer som har en e-post eller telefon registrerad.",
+      "lowStock": "Lagervarningar",
+      "lowStockTip": "Leverantörer med artiklar under beställningsnivå.",
+      "totalSkus": "Totala SKU:er",
+      "totalSkusTip": "Totalt antal unika produktlinjer hos alla leverantörer."
     },
     "cols": {
-      "no": "Leverantörsnr",
+      "no": "Lev. nr.",
       "name": "Leverantörsnamn",
       "address": "Adress",
       "phone": "Telefon",
-      "orgNo": "Organisationsnummer",
+      "orgNo": "Org.nummer",
       "skus": "SKU:er",
       "categories": "Kategorier",
       "status": "Lagerstatus"
     },
+    "stock": {
+      "noInventory": "Inget lager",
+      "lowStock": "{n} lågt lager",
+      "allStocked": "Allt på lager"
+    },
     "poModal": {
-      "title": "Inköpsorder",
-      "noPo": "Inga inköpsorder för denna leverantör"
-    }
+      "title": "Inköpsordrar",
+      "found": "{n} IO hittad{s}",
+      "noPo": "Inga inköpsordrar för denna leverantör",
+      "close": "Stäng"
+    },
+    "empty": "Inga leverantörer ännu",
+    "noMatch": "Inga leverantörer matchar din sökning"
   },
   "purchaseInvoices": {
-    "title": "Leverantörsfakturor",
-    "breadcrumb": "Leverantörsfakturor",
+    "title": "Inköpsfakturor",
+    "topbar": "Inköpsfakturor",
+    "breadcrumb": "Inköpsfakturor",
     "subtitle": "Spåra och hantera fakturor från leverantörer",
-    "newBtn": "Ny faktura",
-    "search": "Sök inköpsorder, leverantör, fakturanr...",
-    "empty": "Inga leverantörsfakturor ännu",
-    "noMatch": "Inga fakturor matchar ditt filter",
-    "cols": {
-      "supplierInvoice": "Leverantörsfaktura #",
-      "systemRef": "Systemreferens #",
-      "po": "Inköpsorder (valfritt)",
-      "amount": "Belopp",
-      "invoiceDate": "Fakturadatum",
-      "dueDate": "Förfallodatum",
-      "vendor": "Leverantör",
-      "status": "Status",
-      "notes": "Anteckningar"
+    "search": "Sök IO, leverantör, faktura #...",
+    "importBtn": "Importera Excel",
+    "downloadBtn": "Ladda ner",
+    "addInvoiceBtn": "Skapa ny faktura",
+    "addCreditNoteBtn": "Lägg till kreditnota",
+    "viewMode": {
+      "invoices": "Fakturor",
+      "creditNotes": "Kreditnotor"
     },
     "status": {
+      "all": "Alla",
       "pending": "Väntande",
+      "awaitingApproval": "Inväntar godkännande",
       "paid": "Betald",
       "overdue": "Förfallen",
       "disputed": "Bestridd"
-    }
+    },
+    "statusTip": {
+      "all": "Visa alla fakturor oavsett status.",
+      "pending": "Fakturor mottagna men ej åtgärdade.",
+      "awaitingApproval": "Fakturor inlämnade för intern godkännelse.",
+      "paid": "Fakturor som har betalats fullt ut.",
+      "overdue": "Fakturor efter förfallodatum som ej betalats.",
+      "disputed": "Fakturor med en väckt tvist eller avvikelse."
+    },
+    "alert": {
+      "overdueTitle": "{n} faktura förfallen",
+      "overdueTitle_p": "{n} fakturor förfallna",
+      "overdueBody": "{vendors} — totalt {amount}. Åtgärd krävs omedelbart.",
+      "dueTitle": "{n} faktura förfaller inom 7 dagar",
+      "dueTitle_p": "{n} fakturor förfaller inom 7 dagar",
+      "dueBody": "{vendors} — totalt {amount}. Schemalägg betalning snart.",
+      "disputedTitle": "{n} faktura under tvist",
+      "disputedTitle_p": "{n} fakturor under tvist",
+      "disputedBody": "{vendors} — avvaktar leverantörslösning. Betala ej förrän löst."
+    },
+    "aging": {
+      "title": "Åldersrapport förfallna",
+      "bucket30": "1–30 dagar",
+      "bucket60": "31–60 dagar",
+      "bucket61": "61+ dagar"
+    },
+    "spend": {
+      "title": "Utgifter per leverantör",
+      "hide": "▲ Dölj",
+      "show": "▼ Visa"
+    },
+    "creditNoteList": {
+      "empty": "Inga kreditnotor mottagna ännu",
+      "emptyHint": "Kreditnotor anländer automatiskt när leverantörer skickar dem via e-post",
+      "totalCredit": "Totalt tillgänglig kredit"
+    },
+    "cols": {
+      "systemRef": "System Ref #",
+      "supplierInvoice": "Leverantörsfaktura #",
+      "po": "IO #",
+      "vendor": "Leverantör",
+      "invoiceDate": "Fakturadatum",
+      "dueDate": "Förfallodag",
+      "amount": "Belopp",
+      "status": "Status"
+    },
+    "cnCols": {
+      "systemRef": "System Ref #",
+      "supplierCredit": "Leverantörskreditnota #",
+      "vendor": "Leverantör",
+      "linkedInvoice": "Länkad faktura",
+      "creditDate": "Kreditdatum",
+      "creditAmount": "Kreditbelopp",
+      "remaining": "Återstående",
+      "status": "Status",
+      "reason": "Orsak"
+    },
+    "cnStatus": {
+      "unmatched": "Omatchad",
+      "pending": "Väntande",
+      "partiallyApplied": "Delvis tillämpad",
+      "applied": "Tillämpad"
+    },
+    "filter": {
+      "label": "Filter",
+      "vendor": "Leverantör",
+      "date": "Fakturadatum",
+      "clearAll": "Rensa alla",
+      "allVendors": "Alla leverantörer"
+    },
+    "empty": "Inga inköpsfakturor ännu",
+    "emptyHint": "Importera från Excel eller skapa en faktura manuellt",
+    "noMatch": "Inga fakturor matchar ditt filter",
+    "tfoot": {
+      "netTotal": "Nettototalt (exkl. moms)",
+      "vatTotal": "Momstotalt",
+      "grossTotal": "Bruttototalt"
+    },
+    "bulk": {
+      "selected": "{n} valda",
+      "markPaid": "Markera som betald",
+      "export": "Exportera"
+    },
+    "detail": {
+      "header": "Inköpsfaktura",
+      "poFullyReceived": "IO fullständigt mottagen",
+      "invoiceDate": "Fakturadatum",
+      "dueDate": "Förfallodag",
+      "linkedPO": "Länkad IO",
+      "supplierInv": "Leverantörsfaktura #",
+      "creditBannerTitle": "Kredit tillgänglig från {vendor}",
+      "creditBannerBody": "{n} kreditnota · SEK {amount} tillgänglig.",
+      "creditBannerBody_p": "{n} kreditnotor · SEK {amount} tillgängliga.",
+      "applyCredit": "Tillämpa kredit",
+      "creditApplied": "Tillämpad kredit:",
+      "netPayable": "Netto att betala:",
+      "lineItems": "Radposter",
+      "loading": "Laddar poster…",
+      "noItems": "Inga radposter extraherade från denna faktura-PDF.",
+      "colDesc": "Beskrivning",
+      "colArt": "Art.nr",
+      "colQty": "Antal",
+      "colGrossPrice": "Bruttopris",
+      "colDisc": "Rabatt %",
+      "colNetPrice": "Nettopris",
+      "colVAT": "Moms 25%",
+      "colTotal": "Radtotal",
+      "totalInclVAT": "Totalt (inkl. moms)",
+      "notes": "Anteckningar",
+      "viewPdf": "Visa PDF",
+      "sendApproval": "Skicka för godkännande",
+      "approve": "Godkänn",
+      "markPaid": "Markera som betald",
+      "dispute": "Bestrida",
+      "edit": "Redigera",
+      "close": "Stäng"
+    },
+    "form": {
+      "createTitle": "Skapa ny faktura",
+      "editTitle": "Redigera faktura",
+      "systemRefHint": "System Ref # kommer att bli:",
+      "poLink": "Länka till inköpsorder (valfritt)",
+      "noPO": "— Ingen IO länkad —",
+      "poHint": "Att välja en IO fyller automatiskt i leverantör och belopp",
+      "supplierInv": "Leverantörsfaktura #",
+      "vendor": "Leverantör",
+      "invoiceDate": "Fakturadatum",
+      "dueDate": "Förfallodag",
+      "gross": "Bruttobelopp (SEK)",
+      "vatRate": "Momssats",
+      "status": "Status",
+      "notes": "Anteckningar",
+      "cancel": "Avbryt",
+      "save": "Spara ändringar",
+      "create": "Skapa faktura",
+      "netExVat": "Netto (exkl. moms)",
+      "vatPct": "Moms",
+      "grossTotal": "Bruttototalt"
+    },
+    "cnForm": {
+      "title": "Lägg till kreditnota",
+      "vendor": "Leverantör",
+      "supplierCredit": "Leverantörskreditnota #",
+      "creditDate": "Kreditdatum",
+      "linkInvoice": "Länka till faktura",
+      "noInvoiceLinked": "— Ingen faktura länkad —",
+      "creditAmount": "Kreditbelopp (SEK)",
+      "reason": "Orsak",
+      "cancel": "Avbryt",
+      "save": "Spara kreditnota"
+    },
+    "applyCredit": {
+      "title": "Tillämpa kreditnota",
+      "invoiceAmount": "Fakturabelopp",
+      "alreadyCredited": "Redan krediterat",
+      "netPayable": "Netto att betala",
+      "selectCredit": "Välj kreditnota att tillämpa",
+      "available": "Tillgängligt:",
+      "amountToApply": "Belopp att tillämpa",
+      "leaveBlank": "(lämna tomt för att tillämpa full kredit)",
+      "afterApplying": "Efter tillämpning:",
+      "creditApplied": "Tillämpad kredit",
+      "newNetPayable": "Nytt netto att betala",
+      "fullySled": "✓ Fullt reglerat",
+      "cancel": "Avbryt",
+      "apply": "Tillämpa kredit"
+    },
+    "dispute": {
+      "title": "Bestrida faktura",
+      "reason": "Orsak till tvist",
+      "cancel": "Avbryt",
+      "submit": "Markera som bestridd"
+    },
+    "download": {
+      "excelLabel": "Excel (.xlsx)",
+      "excelHint": "Kalkylbladsformat",
+      "pdfLabel": "PDF",
+      "pdfHint": "Utskriftsklart format",
+      "currentView": "{n} faktura (aktuell vy)",
+      "currentView_p": "{n} fakturor (aktuell vy)"
+    },
+    "newBtn": "Ny faktura"
   },
   "purchaseOrders": {
     "title": "Inköpsorder",
@@ -1699,37 +1984,110 @@
     "avgPipeline": "Snitt pipeline"
   },
   "purchase": {
-    "title": "Inköpsorder",
-    "subtitle": "Klicka på en rad för att öppna hela PO. Auto-PO uppdateras live med lagerstatus.",
-    "breadcrumb": "Inköpsorder",
-    "search": "Sök PO, leverantör, artikel...",
-    "importBtn": "Importera Excel",
-    "createBtn": "Skapa PO",
-    "importFromExcel": "Importera från Excel",
-    "allGoodBanner": "Alla {n} lagerartiklar är över sina beställningspunkter — inga PO behövs just nu.",
-    "autoPOBanner": "{n} auto-genererad{s} PO från lågt lager",
-    "autoPOHide": "▲ dölj",
-    "autoPOShow": "▼ visa",
-    "autoPODesc": "Dessa PO är auto-genererade och uppdateras live när lagerstatus ändras.",
-    "empty": "Inga inköpsorder ännu",
-    "emptyHint": "Importera från Excel eller skapa en PO manuellt",
-    "noMatch": "Inga inköpsorder matchar ditt filter",
-    "tabAll": "Alla",
-    "statusDraft": "Utkast",
-    "statusReviewed": "Granskad",
-    "statusSent": "Skickad",
-    "statusReceived": "Mottagen",
-    "cardTotal": "Totalt PO",
-    "cardDraft": "Utkast",
-    "cardSent": "Skickade",
-    "cardValue": "Visat värde",
-    "colPO": "PO-nummer",
-    "colVendor": "Leverantör",
-    "colDate": "Datum",
-    "colItems": "Artiklar",
-    "colCost": "Totalkostnad",
-    "colETA": "Beräknad ankomst",
-    "colStatus": "Status"
+    "page": {
+      "title": "Inköp",
+      "description": "Lager notis → Skapa IO → systemet tilldelar Ref-nr. → ange Ref-nr. på leverantörsportalen."
+    },
+    "topbar": {
+      "title": "Inköpsorder",
+      "searchPlaceholder": "Sök IO, leverantör, artikel..."
+    },
+    "buttons": {
+      "dailyActions": "📋 Dagliga åtgärder",
+      "importExcel": "⬆ Importera Excel",
+      "createPo": "+ Skapa IO",
+      "importFromExcel": "⬆ Importera från Excel"
+    },
+    "filter": {
+      "label": "Filtrera leverantör:",
+      "allSuppliers": "Alla leverantörer"
+    },
+    "status": {
+      "draft": "Utkast",
+      "reviewed": "Granskad",
+      "sent": "Skickad",
+      "received": "Mottagen",
+      "partial": "Delvis",
+      "followUp": "⚠ Följ upp — {days}d"
+    },
+    "approval": {
+      "pendingApproval": "🔐 Väntar på godkännande",
+      "approved": "✓ Godkänd",
+      "rejected": "✗ Avvisad"
+    },
+    "summary": {
+      "totalPos": "Totalt antal IO",
+      "draft": "Utkast",
+      "sent": "Skickad",
+      "displayedValue": "Visad summa",
+      "tips": {
+        "totalPos": "Alla inköpsorder som skapats för din återförsäljare, i alla statusar.",
+        "draft": "IO skapade men ännu inte granskade eller skickade till en leverantör.",
+        "sent": "IO skickade till leverantören, inväntar leverans eller bekräftelse.",
+        "displayedValue": "Total kostnad för IO som visas i tabellen nedan — uppdateras när du ändrar statustabb eller leverantörsfilter."
+      }
+    },
+    "metrics": {
+      "openPoValue": "Öppet IO-värde",
+      "openPoInProgress": "{count, plural, one {# IO pågår} other {# IO pågår}}",
+      "thisMonthSpend": "Månadens inköp",
+      "posReceived": "{count, plural, one {# IO mottagen} other {# IO mottagna}}",
+      "outstandingClaims": "Utestående reklamationer",
+      "claimsOpen": "{count, plural, one {# reklamation öppen} other {# reklamationer öppna}}",
+      "tips": {
+        "openPoValue": "Total kostnad för alla utestående IO — Utkast, Granskad, Skickad och Delvis. Detta är ditt nuvarande ekonomiska åtagande mot leverantörer.",
+        "thisMonthSpend": "Total kostnad för IO markerade som Mottagna i den aktuella kalendermånaden.",
+        "outstandingClaims": "Totalt värde av olösta leverantörsreklamationer — skadade varor, underleveranser eller fel artiklar — som fortfarande är öppna eller inskickade."
+      }
+    },
+    "tabs": {
+      "all": "Alla",
+      "tips": {
+        "all": "Visa alla inköpsorder oavsett status.",
+        "draft": "IO skapade men ännu inte granskade eller skickade till en leverantör.",
+        "reviewed": "IO granskade internt och redo att läggas hos leverantören.",
+        "sent": "IO skickade till leverantören, inväntar leverans eller bekräftelse.",
+        "received": "IO där alla beställda varor har tagits emot i lagret."
+      }
+    },
+    "cols": {
+      "poNumber": "IO-nummer",
+      "refNo": "Ref-nr.",
+      "vendor": "Leverantör",
+      "date": "Datum",
+      "items": "Artiklar",
+      "totalCost": "Total kostnad",
+      "eta": "Förv. ankomst",
+      "status": "Status"
+    },
+    "scorecard": {
+      "title": "Leverantörsprestanda",
+      "period": "— senaste 365 dagarna",
+      "hide": "▲ Dölj",
+      "show": "▼ Visa",
+      "loading": "Laddar…",
+      "noData": "Ingen data ännu — statistik visas när IO når status Skickad/Mottagen.",
+      "cols": {
+        "supplier": "Leverantör",
+        "pos": "IO",
+        "onTime": "I tid %",
+        "backorder": "Restorder %",
+        "damage": "Skador %",
+        "leadTime": "Genomsn. ledtid"
+      }
+    },
+    "lowStock": {
+      "alert": "{count, plural, one {# artikel under beställningsgräns} other {# artiklar under beställningsgräns}}",
+      "hint": "— klicka för att se och skapa IO",
+      "viewButton": "Visa lågt lager →"
+    },
+    "empty": {
+      "title": "Inga inköpsorder ännu",
+      "description": "Importera från Excel eller skapa en IO manuellt",
+      "importButton": "⬆ Importera från Excel",
+      "filtered": "Inga inköpsorder matchar ditt filter"
+    },
+    "items": "{count, plural, one {# artikel} other {# artiklar}}"
   },
   "documents": {
     "breadcrumb": "Arkiv",
@@ -2750,6 +3108,64 @@
       "reactivateError": "Kunde inte återaktivera lead",
       "closedLost": "Lead stängt som förlorat",
       "closeError": "Kunde inte stänga lead"
+    }
+  },
+  "daily": {
+    "breadcrumbParent": "Inköp",
+    "breadcrumb": "Dagliga åtgärder",
+    "title": "Daglig åtgärdstavla",
+    "subtitle": "Allt som behöver uppmärksamhet idag.",
+    "viewAll": "Visa alla →",
+    "noVendor": "Ingen leverantör",
+    "summary": {
+      "totalActions": "Totala åtgärder",
+      "urgent": "Brådskande",
+      "pendingApproval": "Väntar på godkännande",
+      "lowStock": "Lågt lager"
+    },
+    "allClear": "Allt klart — inget behöver uppmärksamhet idag!",
+    "allClearHint": "Kom tillbaka imorgon eller efter att nya IO har lagts.",
+    "sections": {
+      "followUp": {
+        "title": "Följ upp nu",
+        "empty": "Inga försenade uppföljningar — alla skickade IO är inom 5 arbetsdagar."
+      },
+      "etaOverdue": {
+        "title": "ETA passerat",
+        "empty": "Inga IO efter förväntat ankomstdatum."
+      },
+      "arrivingToday": {
+        "title": "Anländer idag",
+        "empty": ""
+      },
+      "pendingApproval": {
+        "title": "IO väntar på godkännande",
+        "empty": "Inga IO väntar på godkännande."
+      },
+      "receiptsApprove": {
+        "title": "Kvitton att godkänna",
+        "empty": "Inga följesedlar väntar på godkännande."
+      },
+      "overdueInvoices": {
+        "title": "Förfallna fakturor",
+        "empty": "Inga förfallna leverantörsfakturor."
+      },
+      "partialOrders": {
+        "title": "Delleveranser",
+        "empty": "Inga IO med utestående restordrar."
+      },
+      "lowStock": {
+        "title": "Lågt lager — beställning behövs",
+        "empty": "Alla artiklar är över beställningsnivå."
+      }
+    },
+    "badges": {
+      "daysOverdue": "{days}d försenad",
+      "etaWas": "ETA var {date} ({days}d sedan)",
+      "partial": "Delleverans",
+      "unitsDate": "{units} st · {date}",
+      "due": "Förfaller {date}",
+      "stock": "Lager: {current} / Min: {min}"
     }
   }
 }
