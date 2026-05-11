@@ -327,6 +327,7 @@ export default function UsersSettingsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           invitees: [{ email: inviteEmail.trim(), name: inviteName.trim(), role: inviteRole, inviteUrl: url }],
+          dealershipId,
           dealershipName,
           inviterName: currentUser?.name || currentUser?.givenName || 'Admin',
         }),

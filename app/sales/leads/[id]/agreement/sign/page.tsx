@@ -30,13 +30,38 @@ export default function BankIDSigningPage() {
   const [customerRecord, setCustomerRecord] = useState<SignRecord | null>(null);
   const [dealerRecord, setDealerRecord] = useState<SignRecord | null>(null);
   const [dealerName, setDealerName] = useState('');
+  const [leadPnr, setLeadPnr]     = useState('');
+  const [leadName, setLeadName]   = useState('');
+  const [identityError, setIdentityError] = useState<string | null>(null);
 
   useEffect(() => {
     const user = localStorage.getItem('user');
     if (!user) { router.replace('/auth/login'); return; }
     setDealerName(getDealerInfo().name);
+
+    // Load the lead's customer name + personnummer so we can verify the signer
+    const did = (() => { try { return (JSON.parse(user) as { dealershipId?: string }).dealershipId ?? ''; } catch { return ''; } })();
+    if (did) {
+      fetch(`/api/leads/${id}?dealershipId=${did}`)
+        .then(r => r.ok ? r.json() : null)
+        .then((data: { lead?: { name?: string; personnummer?: string } } | null) => {
+          if (data?.lead?.personnummer) setLeadPnr(data.lead.personnummer);
+          if (data?.lead?.name)        setLeadName(data.lead.name!);
+        })
+        .catch(() => {});
+    }
     setReady(true);
-  }, [router]);
+  }, [router, id]);
+
+  // Normalise any personnummer format to 12 digits for comparison
+  const normalizePnr = (pnr: string): string => {
+    const digits = pnr.replace(/\D/g, '');
+    if (digits.length === 10) {
+      const yy = parseInt(digits.slice(0, 2), 10);
+      return (yy <= new Date().getFullYear() % 100 ? '20' : '19') + digits;
+    }
+    return digits;
+  };
 
   const now = () =>
     new Date().toLocaleString('sv-SE', {
@@ -45,6 +70,22 @@ export default function BankIDSigningPage() {
     }) + ' via BankID';
 
   const handleCustomerComplete = (result: BankIDResult) => {
+    setIdentityError(null);
+
+    // Verify the BankID signer matches the customer on this agreement
+    if (leadPnr) {
+      const bankIdPnr  = normalizePnr(result.user.personalNumber);
+      const expectedPnr = normalizePnr(leadPnr);
+      if (bankIdPnr !== expectedPnr) {
+        setStep('customer-pending');
+        setIdentityError(
+          `Fel person — BankID tillhör ${result.user.name} (${result.user.personalNumber.replace(/(\d{8})(\d{4})/, '$1-$2')}), ` +
+          `men avtalet gäller ${leadName || expectedPnr}. Be rätt kund att signera.`
+        );
+        return;
+      }
+    }
+
     setCustomerRecord({
       name: result.user.name,
       personalNumber: result.user.personalNumber.replace(/(\d{8})(\d{4})/, '$1-$2'),
@@ -147,6 +188,17 @@ export default function BankIDSigningPage() {
                 <h2 className="text-base font-bold text-slate-900">{t('sign.signingStatus')}</h2>
                 <p className="text-xs text-slate-400 mt-1">{t('sign.bothMustSign')}</p>
               </div>
+
+              {/* ── Identity mismatch error ── */}
+              {identityError && (
+                <div className="mb-4 flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                  <span className="text-red-500 text-lg shrink-0 mt-0.5">⛔</span>
+                  <div>
+                    <p className="text-sm font-bold text-red-700">Identiteten stämmer inte</p>
+                    <p className="text-xs text-red-600 mt-0.5 leading-relaxed">{identityError}</p>
+                  </div>
+                </div>
+              )}
 
               {/* ── Customer Signature ── */}
               <div className={`rounded-xl border p-4 mb-4 transition-colors ${

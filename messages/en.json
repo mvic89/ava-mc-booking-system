@@ -50,7 +50,11 @@
       "f7t": "Customer Profiles",
       "f7d": "Full CRM with purchase history, vehicle ownership, GDPR exports and NPS scores.",
       "f8t": "Inventory Management",
-      "f8d": "New bikes, trade-ins, stock levels, reorder triggers. Every motorcycle tracked end to end."
+      "f8d": "New bikes, trade-ins, stock levels, reorder triggers. Every motorcycle tracked end to end.",
+      "f9t": "Service & Workshop",
+      "f9d": "Work orders, bookings, technician assignment, parts tracking, and service invoicing — all in one workshop view.",
+      "f10t": "Purchase & Procurement",
+      "f10d": "Purchase orders, supplier invoices via email, goods receipts with PDF parsing, and accounts payable tracking."
     },
     "how": {
       "badge": "The process",

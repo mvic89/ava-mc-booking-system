@@ -165,6 +165,10 @@ export function startSupabaseSync(dealershipId: string): () => void {
       { event: 'UPDATE', schema: 'public', table: 'customers', filter: `dealership_id=eq.${dealershipId}` },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (p: any) => emit({ type: 'customer:updated', payload: { id: p.new.id } }))
+    // ── communications ───────────────────────────────────────────────────
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'communications', filter: `dealership_id=eq.${dealershipId}` },
+      () => emit({ type: 'data:refresh' }))
     // ── leads ────────────────────────────────────────────────────────────
     .on('postgres_changes',
       { event: 'INSERT', schema: 'public', table: 'leads', filter: `dealership_id=eq.${dealershipId}` },

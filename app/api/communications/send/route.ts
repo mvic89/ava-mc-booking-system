@@ -37,7 +37,7 @@ function buildEmailHtml(subject: string, body: string, dealershipName: string): 
 </html>`;
 }
 
-async function sendEmail(dealer: DealershipRow, to: string, subject: string, body: string, leadId?: number | null): Promise<void> {
+async function sendEmail(dealer: DealershipRow, dealershipId: string, to: string, subject: string, body: string, leadId?: number | null): Promise<void> {
   if (!dealer.smtp_user || !dealer.smtp_pass) throw new Error('SMTP not configured');
   const html    = buildEmailHtml(subject, body, dealer.name);
   const isGmail = (dealer.smtp_host ?? '').includes('gmail');
@@ -69,8 +69,11 @@ async function sendEmail(dealer: DealershipRow, to: string, subject: string, bod
         },
   );
   try {
-    // Reply-To is the dealership's own email so customer replies go directly to them.
-    const replyTo = fromEmail ?? undefined;
+    // Route customer replies through Postmark Inbound.
+    // Format: reply+{dealershipId}_l_{leadId}@domain — leadId lets the webhook link the reply to the correct lead.
+    const REPLY_DOMAIN = process.env.POSTMARK_INBOUND_DOMAIN ?? 'inbound.bikeme.now';
+    const leadSuffix   = leadId ? `_l_${leadId}` : '';
+    const replyTo      = `reply+${dealershipId}${leadSuffix}@${REPLY_DOMAIN}`;
 
     await transport.sendMail({
       from:    `"${dealer.name}" <${fromEmail}>`,
@@ -156,7 +159,7 @@ export async function POST(req: NextRequest) {
 
   try {
     if (body.channel === 'email') {
-      await sendEmail(d, body.recipientEmail!, body.subject ?? `Meddelande från ${d.name}`, body.message, body.leadId);
+      await sendEmail(d, body.dealershipId, body.recipientEmail!, body.subject ?? `Meddelande från ${d.name}`, body.message, body.leadId);
     } else {
       await sendSms(d, body.recipientPhone!, body.message);
     }

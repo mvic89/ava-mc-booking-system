@@ -50,7 +50,11 @@
       "f7t": "Kundeprofiler",
       "f7d": "Fullt CRM med kjøpshistorikk, kjøretøyeierskap, GDPR-eksport og NPS-score.",
       "f8t": "Lagerforvaltning",
-      "f8d": "Nye sykler, innbytter, lagernivåer, bestillingsgrenser. Hver motorsykkel sporet."
+      "f8d": "Nye sykler, innbytter, lagernivåer, bestillingsgrenser. Hver motorsykkel sporet.",
+      "f9t": "Service & Verksted",
+      "f9d": "Arbeidsordrer, bookinger, teknikertildeling, reservedelssporing og servicefakturering — alt i én verkstedsvisning.",
+      "f10t": "Innkjøp og anskaffelse",
+      "f10d": "Innkjøpsordrer, leverandørfakturaer via e-post, varemottak med PDF-tolking og leverandørgjeld."
     },
     "how": {
       "badge": "Prosessen",
