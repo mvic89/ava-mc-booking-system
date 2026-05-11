@@ -9,7 +9,7 @@ import Sidebar from '@/components/Sidebar';
 import { getSupabaseBrowser } from '@/lib/supabase';
 import { getDealershipId } from '@/lib/tenant';
 import { computeLeadScore } from '@/lib/leads';
-import { emit } from '@/lib/realtime';
+import { emit, useAutoRefresh } from '@/lib/realtime';
 import type { ActivityType } from '@/app/api/leads/[id]/activity/route';
 import DocumentAttachments from '@/components/DocumentAttachments';
 
@@ -375,6 +375,12 @@ export default function LeadDetailPage() {
     loadComms(id, dealershipId);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, router, loadActivities, loadTasks, loadComms]);
+
+  // Re-fetch communications instantly when a new inbound message arrives via Supabase Realtime
+  useAutoRefresh(() => {
+    const did = dealershipIdRef.current;
+    if (did) loadComms(id, did);
+  });
 
   // ── Task handlers ───────────────────────────────────────────────────────────
 
