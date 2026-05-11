@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
+import { ReorderableTable, type ColDef } from '@/components/ResizableTable'
 import { useInventory }  from '@/context/InventoryContext'
 import { historicalPOs } from '@/data/purchaseOrders'
 import { POModal, STATUS_STYLE, formatCurrency, qtyKey } from '@/components/POModal'
@@ -13,6 +14,7 @@ import { POLineItem, POStatus, PurchaseOrder } from '@/utils/types'
 import { supabase } from '@/lib/supabase'
 import { getDealershipId, getDealershipTag, tagFromName } from '@/lib/tenant'
 import Sidebar from '@/components/Sidebar'
+import { Tip } from '@/components/Tip'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -34,25 +36,28 @@ function supNum(existingNumbers: string[], dealershipId: string | null, dbName?:
 // ─── Summary cards ────────────────────────────────────────────────────────────
 
 function SummaryCards({ suppliers }: { suppliers: SupplierRow[] }) {
+    const t = useTranslations('suppliers')
     const withDetails  = suppliers.filter((s) => s.hasDetails).length
     const withLowStock = suppliers.filter((s) => s.lowStockCount > 0).length
     const totalSKUs    = suppliers.reduce((sum, s) => sum + s.itemCount, 0)
 
     const cards = [
-        { label: 'Total Suppliers',      value: suppliers.length, icon: '🏭', color: 'bg-blue-50 text-blue-700'    },
-        { label: 'With Contact Details', value: withDetails,      icon: '📋', color: 'bg-green-50 text-green-700'  },
-        { label: 'Low Stock Alerts',     value: withLowStock,     icon: '⚠️', color: 'bg-amber-50 text-amber-700'  },
-        { label: 'Total SKUs Supplied',  value: totalSKUs,        icon: '📦', color: 'bg-orange-50 text-orange-700' },
+        { label: t('stats.total'),       value: suppliers.length, icon: '🏭', color: 'bg-blue-50 text-blue-700',    tip: t('stats.totalTip')       },
+        { label: t('stats.withContact'), value: withDetails,      icon: '📋', color: 'bg-green-50 text-green-700',  tip: t('stats.withContactTip') },
+        { label: t('stats.lowStock'),    value: withLowStock,     icon: '⚠️', color: 'bg-amber-50 text-amber-700',  tip: t('stats.lowStockTip')    },
+        { label: t('stats.totalSkus'),   value: totalSKUs,        icon: '📦', color: 'bg-orange-50 text-orange-700', tip: t('stats.totalSkusTip')  },
     ]
 
     return (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {cards.map((c) => (
-                <div key={c.label} className={`rounded-xl p-4 ${c.color}`}>
-                    <div className="text-xl mb-1">{c.icon}</div>
-                    <div className="text-xs font-medium opacity-70 mb-0.5">{c.label}</div>
-                    <div className="text-lg font-bold">{c.value}</div>
-                </div>
+                <Tip key={c.label} text={c.tip}>
+                    <div className={`rounded-xl p-4 ${c.color}`}>
+                        <div className="text-xl mb-1">{c.icon}</div>
+                        <div className="text-xs font-medium opacity-70 mb-0.5">{c.label}</div>
+                        <div className="text-lg font-bold">{c.value}</div>
+                    </div>
+                </Tip>
             ))}
         </div>
     )
@@ -70,6 +75,7 @@ function SupplierPOListModal({
     onSelectPO: (po: PurchaseOrder) => void
     onClose:    () => void
 }) {
+    const t = useTranslations('suppliers')
     const sorted = [...pos].sort((a, b) => {
         const ai = STATUS_ORDER.indexOf(a.status)
         const bi = STATUS_ORDER.indexOf(b.status)
@@ -88,7 +94,7 @@ function SupplierPOListModal({
                 <div className="flex items-start justify-between px-7 pt-6 pb-4 border-b border-gray-100 shrink-0">
                     <div>
                         <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">
-                            Purchase Orders
+                            {t('poModal.title')}
                         </p>
                         <h2 className="text-xl font-bold text-gray-900">{supplier.name}</h2>
                         <span className="text-xs font-mono text-orange-600">{supplier.supplierNumber}</span>
@@ -103,13 +109,13 @@ function SupplierPOListModal({
 
                 <div className="flex-1 overflow-y-auto px-7 py-5">
                     <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-3">
-                        {pos.length} PO{pos.length !== 1 ? 's' : ''} found
+                        {t('poModal.found', { n: pos.length, s: pos.length !== 1 ? 's' : '' })}
                     </p>
 
                     {sorted.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-32 text-gray-400">
                             <span className="text-3xl mb-2">📭</span>
-                            <p className="text-sm">No purchase orders for this supplier</p>
+                            <p className="text-sm">{t('poModal.noPo')}</p>
                         </div>
                     ) : (
                         <div className="space-y-2">
@@ -153,7 +159,7 @@ function SupplierPOListModal({
                         onClick={onClose}
                         className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg transition-colors"
                     >
-                        Close
+                        {t('poModal.close')}
                     </button>
                 </div>
             </div>
@@ -165,7 +171,7 @@ function SupplierPOListModal({
 
 export default function SuppliersPage() {
     const t = useTranslations('suppliers')
-    const { autoPOs, motorcycles, spareParts, accessories } = useInventory()
+    const { motorcycles, spareParts, accessories } = useInventory()
     // SKU counts per supplier (computed from inventory, not used to auto-generate rows)
     const inventoryItems = useMemo(
         () => [...motorcycles, ...spareParts, ...accessories],
@@ -185,12 +191,11 @@ export default function SuppliersPage() {
     const [dbDealershipName,  setDbDealershipName]  = useState<string | null>(null)
 
     const allPOs = useMemo<PurchaseOrder[]>(
-        () => [...autoPOs, ...historicalPOs].map((po) =>
+        () => historicalPOs.map((po) =>
             poStatusOverrides[po.id] ? { ...po, status: poStatusOverrides[po.id] } : po
         ),
-        [autoPOs, poStatusOverrides],
+        [poStatusOverrides],
     )
-    const autoIds = useMemo(() => new Set(autoPOs.map((p) => p.id)), [autoPOs])
 
     // Suppliers only come from Supabase (imported or manually added — never auto-generated)
     const suppliers = useMemo<SupplierRow[]>(() => {
@@ -407,13 +412,107 @@ export default function SuppliersPage() {
         [poListSupplier, allPOs],
     )
 
+    const supplierCols = useMemo<ColDef<SupplierRow>[]>(() => [
+        {
+            label: t('cols.no'),
+            defaultWidth: 140,
+            cell: s => (
+                <span className="font-mono text-xs font-semibold text-orange-600 bg-orange-50 border border-orange-100 px-2 py-0.5 rounded">
+                    {s.supplierNumber}
+                </span>
+            ),
+        },
+        {
+            label: t('cols.name'),
+            defaultWidth: 200,
+            cell: s => {
+                const poCount = allPOs.filter(po => po.vendor === s.name).length
+                return (
+                    <div>
+                        <div className="font-semibold text-gray-800 text-sm">{s.name}</div>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                            {poCount > 0 ? (
+                                <span className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-semibold">
+                                    {poCount} PO{poCount !== 1 ? 's' : ''}
+                                </span>
+                            ) : (
+                                <span className="text-[10px] text-gray-400 italic">No POs</span>
+                            )}
+                            {s.isManual && (
+                                <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-100 px-1.5 py-0.5 rounded font-semibold">Manual</span>
+                            )}
+                        </div>
+                    </div>
+                )
+            },
+        },
+        {
+            label: t('cols.address'),
+            defaultWidth: 200,
+            cell: s => <span title={s.address} className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{s.address}</span>,
+        },
+        {
+            label: t('cols.phone'),
+            defaultWidth: 130,
+            cell: s => <span className="text-sm text-gray-600 whitespace-nowrap">{s.phone}</span>,
+        },
+        {
+            label: t('cols.orgNo'),
+            defaultWidth: 130,
+            cell: s => <span className="font-mono text-xs text-gray-500 whitespace-nowrap">{s.orgNumber}</span>,
+        },
+        {
+            label: t('cols.skus'),
+            defaultWidth: 80,
+            tdClass: 'text-center',
+            cell: s => (
+                <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-semibold">{s.itemCount}</span>
+            ),
+        },
+        {
+            label: t('cols.categories'),
+            defaultWidth: 180,
+            cell: s => (
+                <div className="flex flex-wrap gap-1">
+                    {s.categories.map(cat => (
+                        <span key={cat} className={`text-xs px-2 py-0.5 rounded-full font-medium ${CATEGORY_STYLE[cat] ?? 'bg-gray-100 text-gray-600'}`}>
+                            {cat}
+                        </span>
+                    ))}
+                </div>
+            ),
+        },
+        {
+            label: t('cols.status'),
+            defaultWidth: 150,
+            cell: s => s.itemCount === 0 ? (
+                <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-400 text-xs px-2.5 py-1 rounded-full font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0" />
+                    {t('stock.noInventory')}
+                </span>
+            ) : s.lowStockCount > 0 ? (
+                <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                    {t('stock.lowStock', { n: s.lowStockCount })}
+                </span>
+            ) : (
+                <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-xs px-2.5 py-1 rounded-full font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+                    {t('stock.allStocked')}
+                </span>
+            ),
+        },
+    ], [allPOs, t])
+
+    const supplierDefaultWidths = useMemo(() => supplierCols.map(c => c.defaultWidth), [supplierCols])
+
     return (
-        <div className="flex min-h-screen bg-[#f5f7fa]">
+        <div className="flex min-h-screen">
         <Sidebar />
-        <div className="lg:ml-64 min-h-screen flex flex-col bg-white w-full">
+        <div className="lg:ml-64 h-screen overflow-hidden flex flex-col bg-white w-full">
             {/* Top bar */}
             <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 shrink-0">
-                <span className="text-sm text-gray-500 font-medium">{t('breadcrumb')}</span>
+                <span className="text-sm text-gray-500 font-medium">{t('title')}</span>
                 <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
                     <input
@@ -427,8 +526,8 @@ export default function SuppliersPage() {
             </div>
 
             {/* Page body */}
-            <div className="flex-1 overflow-auto p-6">
-                <div className="flex items-center justify-between mb-5">
+            <div className="flex-1 min-h-0 p-6 flex flex-col">
+                <div className="flex items-center justify-between mb-5 shrink-0">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
                         <p className="text-sm text-gray-400 mt-0.5">{t('subtitle')}</p>
@@ -438,21 +537,21 @@ export default function SuppliersPage() {
                             onClick={() => setShowImportModal(true)}
                             className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
                         >
-                            ⬆ {t('importBtn')}
+                            {t('importBtn')}
                         </button>
                         <button
                             onClick={() => setShowAddSupplier(true)}
                             className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
                         >
-                            + {t('addBtn')}
+                            {t('addBtn')}
                         </button>
                     </div>
                 </div>
 
-                <SummaryCards suppliers={suppliers} />
+                <div className="shrink-0"><SummaryCards suppliers={suppliers} /></div>
 
                 {/* Supplier table */}
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="table-scroll bg-white rounded-xl border border-gray-200 shadow-sm overflow-auto flex-1 min-h-0">
                     {filtered.length === 0 ? (
                         suppliers.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-64 gap-4">
@@ -475,88 +574,13 @@ export default function SuppliersPage() {
                             </div>
                         )
                     ) : (
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs uppercase text-gray-500 tracking-wider">
-                                    <th className="px-4 py-3">Supplier No.</th>
-                                    <th className="px-4 py-3">Supplier Name</th>
-                                    <th className="px-4 py-3">Address</th>
-                                    <th className="px-4 py-3">Phone</th>
-                                    <th className="px-4 py-3">Org Number</th>
-                                    <th className="px-4 py-3 text-center">SKUs</th>
-                                    <th className="px-4 py-3">Categories</th>
-                                    <th className="px-4 py-3">Stock Status</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {filtered.map((s) => {
-                                    const poCount = allPOs.filter((po) => po.vendor === s.name).length
-                                    return (
-                                        <tr
-                                            key={s.name}
-                                            onClick={() => setDetailSupplier(s)}
-                                            className="hover:bg-orange-50 transition-colors cursor-pointer"
-                                        >
-                                            <td className="px-4 py-3.5">
-                                                <span className="font-mono text-xs font-semibold text-orange-600 bg-orange-50 border border-orange-100 px-2 py-0.5 rounded">
-                                                    {s.supplierNumber}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3.5">
-                                                <div className="font-semibold text-gray-800 text-sm">{s.name}</div>
-                                                <div className="flex items-center gap-1.5 mt-0.5">
-                                                    {poCount > 0 ? (
-                                                        <span className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-semibold">
-                                                            {poCount} PO{poCount !== 1 ? 's' : ''}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-[10px] text-gray-400 italic">No POs</span>
-                                                    )}
-                                                    {s.isManual && (
-                                                        <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-100 px-1.5 py-0.5 rounded font-semibold">Manual</span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3.5 text-xs text-gray-500 max-w-56">
-                                                <span title={s.address} className="line-clamp-2 leading-relaxed">{s.address}</span>
-                                            </td>
-                                            <td className="px-4 py-3.5 text-sm text-gray-600 whitespace-nowrap">{s.phone}</td>
-                                            <td className="px-4 py-3.5 font-mono text-xs text-gray-500 whitespace-nowrap">{s.orgNumber}</td>
-                                            <td className="px-4 py-3.5 text-center">
-                                                <span className="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-semibold">{s.itemCount}</span>
-                                            </td>
-                                            <td className="px-4 py-3.5">
-                                                <div className="flex flex-wrap gap-1">
-                                                    {s.categories.map((cat) => (
-                                                        <span key={cat} className={`text-xs px-2 py-0.5 rounded-full font-medium ${CATEGORY_STYLE[cat] ?? 'bg-gray-100 text-gray-600'}`}>
-                                                            {cat}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3.5">
-                                                {s.itemCount === 0 ? (
-                                                    <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-400 text-xs px-2.5 py-1 rounded-full font-medium">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0" />
-                                                        No inventory
-                                                    </span>
-                                                ) : s.lowStockCount > 0 ? (
-                                                    <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-medium">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-                                                        {s.lowStockCount} low stock
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-xs px-2.5 py-1 rounded-full font-medium">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-                                                        All stocked
-                                                    </span>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    )
-                                })}
-                            </tbody>
-                        </table>
+                        <ReorderableTable<SupplierRow>
+                            cols={supplierCols}
+                            data={filtered}
+                            defaultWidths={supplierDefaultWidths}
+                            onRowClick={s => setDetailSupplier(s)}
+                            rowKey={s => s.name}
+                        />
                     )}
                 </div>
             </div>
@@ -641,7 +665,7 @@ export default function SuppliersPage() {
                 <SupplierPOListModal
                     supplier={poListSupplier}
                     pos={supplierPOs}
-                    autoIds={autoIds}
+                    autoIds={new Set<string>()}
                     onSelectPO={(po) => setSelectedPO(po)}
                     onClose={() => setPoListSupplier(null)}
                 />
@@ -651,7 +675,7 @@ export default function SuppliersPage() {
             {selectedPO && (
                 <POModal
                     po={selectedPO}
-                    isAuto={autoIds.has(selectedPO.id)}
+                    isAuto={false}
                     qtyOverrides={qtyOverrides}
                     onAdjust={handleAdjust}
                     onClose={() => setSelectedPO(null)}

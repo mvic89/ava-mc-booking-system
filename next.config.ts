@@ -32,7 +32,7 @@ const securityHeaders = [
       // x.klarnacdn.net — Klarna Payments JS SDK
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://x.klarnacdn.net https://js.stripe.com",
       "style-src 'self' 'unsafe-inline' https://vercel.live https://www.gstatic.com https://*.klarnacdn.net",
-      "img-src 'self' data: blob: https://vercel.live https://*.vercel.com https://www.gstatic.com https://*.klarnacdn.net https://*.klarna.com",
+      "img-src 'self' data: blob: https://vercel.live https://*.vercel.com https://www.gstatic.com https://*.klarnacdn.net https://*.klarna.com https://*.supabase.co",
       "font-src 'self' https://vercel.live https://fonts.gstatic.com https://*.klarnacdn.net",
       // *.klarna.com — Klarna SDK makes direct API calls to Klarna from the browser
       // api.stripe.com — Stripe.js makes direct calls to Stripe from the browser

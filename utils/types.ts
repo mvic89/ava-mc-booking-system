@@ -17,6 +17,9 @@ export interface BaseInventoryItem {
     sellingPrice: number;
     vendor: string;
     description: string;
+    location?: string;         // shelf / bin position, e.g. "B3-12"
+    listedOnWebsite?: boolean; // true = this variant is visible on the dealer website
+    images?: string[];         // public URLs from Supabase Storage (inventory-images bucket)
 }
 
 export type MCType = 'New' | 'Trade-In' | 'Commission';
@@ -32,17 +35,49 @@ export interface Motorcycle extends BaseInventoryItem {
 }
 
 export interface SparePart extends BaseInventoryItem {
-    category: 'Engine' | 'Brakes' | 'Electrical' | 'Transmission' | 'Suspension' | 'Fuel System' | 'Tyres & Wheels' | 'Exhaust' | 'Body & Frame';
+    category: 'Engine' | 'Brakes' | 'Electrical' | 'Transmission' | 'Suspension' | 'Fuel System' | 'Tyres & Wheels' | 'Exhaust' | 'Body & Frame' | 'Cooling System' | 'Filters & Fluids' | 'Controls & Cables' | 'Lighting' | 'Instruments';
+    subCategory?: string;
+}
+
+export type AccessoryGroup = 'Helmets' | 'Clothing' | 'Seat Covers' | 'Luggage' | 'Protection' | 'Other'
+
+const CLOTHING_CATS = ['Gloves', 'Jacket', 'T-Shirt', 'Boots', 'Pants', 'Cap', 'Neck & Face']
+export function accessoryGroup(category: string): AccessoryGroup {
+    if (category === 'Helmet') return 'Helmets'
+    if (CLOTHING_CATS.includes(category)) return 'Clothing'
+    if (category === 'Seat Cover') return 'Seat Covers'
+    if (category === 'Luggage') return 'Luggage'
+    if (category === 'Protection') return 'Protection'
+    return 'Other'
 }
 
 export interface Accessory extends BaseInventoryItem {
-    category: 'Helmet' | 'Gloves' | 'Jacket' | 'Boots' | 'Pants' | 'Protection' | 'Luggage' | 'Handlebars & Grips' | 'Cap' | 'Neck & Face';
+    category: 'Helmet' | 'Gloves' | 'Jacket' | 'T-Shirt' | 'Boots' | 'Pants' | 'Protection' | 'Luggage' | 'Handlebars & Grips' | 'Cap' | 'Neck & Face' | 'Seat Cover';
+    subGroup?: string;  // style variant, e.g. Modular, Full Gauntlet, Leather Racing
     size?: string;
+    color?: string;     // product colour, e.g. Black, Midnight Blue
 }
 
 export type InventoryCategory = 'motorcycles' | 'spareParts' | 'accessories';
 
+// ─── Low Stock Alert Types ────────────────────────────────────────────────────
+
+export interface LowStockAlert {
+    inventoryId: string
+    name: string
+    articleNumber: string
+    brand: string
+    vendor: string
+    currentStock: number
+    reorderQty: number
+    itemType: 'motorcycle' | 'sparePart' | 'accessory'
+    location?: string
+}
+
 // ─── Purchase Order Types ─────────────────────────────────────────────────────
+
+/** Per-line lifecycle status — tracks each line independently through the procurement cycle */
+export type POLineItemStatus = 'pending' | 'confirmed' | 'backordered' | 'received' | 'damaged'
 
 export interface POLineItem {
     inventoryId: string;
@@ -51,7 +86,13 @@ export interface POLineItem {
     orderQty: number;
     unitCost: number;
     lineTotal: number;
-    size?: string;  // e.g. 'XS' | 'S' | 'M' | 'L' | 'XL' — for sized accessories
+    size?: string;           // e.g. 'XS' | 'S' | 'M' | 'L' | 'XL' — for sized accessories
+    // Per-line lifecycle tracking
+    status?: POLineItemStatus;
+    backorderedETA?: string; // ISO date — supplier's promised date for backordered items
+    receivedQty?: number;    // quantity physically received and counted at goods receipt
+    damagedQty?: number;     // quantity received but damaged — triggers supplier claim
+    lineNotes?: string;
 }
 
 export type POStatus = 'Draft' | 'Reviewed' | 'Sent' | 'Received';
@@ -67,12 +108,23 @@ export interface PurchaseInvoice {
     vendor: string
     invoiceDate: string           // ISO date string
     dueDate: string
-    amount: number
+    amount: number                // gross total incl. VAT (what you pay the supplier)
+    vatRate: number               // 0, 12, or 25 (Swedish VAT %)
     creditedAmount?: number       // total credit applied against this invoice
     status: PurchaseInvoiceStatus
     notes?: string
     pdfUrl?: string               // URL to the stored supplier invoice PDF
     poFullyReceived?: boolean     // true if the linked PO has been fully received
+}
+
+/** Net amount excl. VAT, derived from gross + vatRate */
+export function invoiceNet(inv: PurchaseInvoice): number {
+    return inv.amount / (1 + inv.vatRate / 100)
+}
+
+/** VAT amount derived from gross + vatRate */
+export function invoiceVAT(inv: PurchaseInvoice): number {
+    return inv.amount - invoiceNet(inv)
 }
 
 // ─── Credit Note Types ─────────────────────────────────────────────────────────
@@ -118,8 +170,13 @@ export interface SalesInvoice {
     items: SalesInvoiceItem[]
 }
 
+export type POApprovalStatus = 'pending_approval' | 'approved' | 'rejected'
+
+export type POPlacementOutcome = 'confirmed' | 'backordered' | 'credit_blocked' | 'substituted'
+
 export interface PurchaseOrder {
     id: string;
+    refNo?: string;                  // REF-TAG-YEAR-NNN — what the supplier sees on their portal
     vendor: string;
     date: string;
     eta: string;
@@ -127,4 +184,36 @@ export interface PurchaseOrder {
     items: POLineItem[];
     totalCost: number;
     notes?: string;
+    supplierOrderRef?: string;       // order/confirmation number given by the supplier's portal
+    placedAt?: string;               // ISO timestamp — when user confirmed "placed on portal"
+    placementOutcome?: POPlacementOutcome;
+    placementNotes?: string;
+    approvalStatus?: POApprovalStatus;
+    approvalNote?: string;
+    // Supplier confirmation — between portal placement and arrival of confirmation email
+    supplierConfirmed?: boolean;
+    confirmedAt?: string;            // ISO timestamp when supplier confirmed the order
+}
+
+// ─── Supplier Claim Types ─────────────────────────────────────────────────────
+
+export type SupplierClaimType   = 'damaged' | 'short_delivered' | 'wrong_item'
+export type SupplierClaimStatus = 'open' | 'submitted' | 'resolved' | 'credited'
+
+export interface SupplierClaim {
+    id: string
+    poId: string
+    vendor: string
+    inventoryId?: string
+    itemName: string
+    articleNumber?: string
+    size?: string
+    claimType: SupplierClaimType
+    claimedQty: number
+    claimedAmount?: number
+    status: SupplierClaimStatus
+    description?: string
+    createdAt: string
+    resolvedAt?: string
+    dealershipId: string
 }

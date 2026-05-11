@@ -184,9 +184,11 @@ export default function Sidebar() {
         { icon: '🏷️', label: t('navigation.offer'),            href: '/offer',                 roles: ['admin', 'sales', 'service', 'sales_manager', 'technician'] },
         { icon: '🏍', label: t('navigation.inventory'),         href: '/inventory/motorcycles', roles: ['admin', 'sales', 'service', 'sales_manager', 'technician'] },
         { icon: '📦', label: t('navigation.purchaseOrders'),   href: '/purchase',              roles: ['admin', 'sales', 'service', 'sales_manager', 'technician'] },
+        { icon: '📋', label: t('navigation.dailyActions'),   href: '/purchase/daily',  roles: ['admin', 'sales', 'service'] },
         { icon: '🚚', label: t('navigation.goodsReceipts'),    href: '/goods-receipts',        roles: ['admin', 'sales', 'service', 'sales_manager', 'technician'] },
         { icon: '🏭', label: t('navigation.suppliers'),         href: '/suppliers',             roles: ['admin', 'sales', 'service', 'sales_manager', 'technician'] },
         { icon: '📧', label: t('navigation.purchaseinvoices'),  href: '/purchaseinvoice',      roles: ['admin', 'sales', 'service', 'sales_manager', 'technician'] },
+
       ],
     },
     {
@@ -361,7 +363,7 @@ export default function Sidebar() {
   }, []);
 
   // Hide on auth, public pages, and landing page
-  const AUTH_PATHS = ['/auth', '/privacy', '/terms'];
+  const AUTH_PATHS = ['/auth', '/privacy', '/terms', '/shop'];
   if (pathname === '/' || AUTH_PATHS.some(p => pathname?.startsWith(p))) return null;
 
   const isActive = (href: string) =>

@@ -203,6 +203,7 @@
     "goodsReceipts": "Recepciones de mercancías",
     "suppliers": "Proveedores",
     "purchaseinvoices": "Facturas de compra",
+    "dailyActions": "Acciones diarias",
     "salesPipeline": "Pipeline de ventas",
     "pipeline": "Pipeline",
     "calendar": "Calendario",
@@ -1275,79 +1276,175 @@
     "tabs": {
       "motorcycles": "Motocicletas",
       "spareParts": "Repuestos",
-      "accessories": "Accesorios"
+      "accessories": "Accesorios",
+      "lowStock": "Stock bajo"
     },
-    "search": "Buscar en inventario...",
+    "search": "Buscar inventario...",
+    "lowStockBadge": "{n} stock bajo",
+    "importBtn": "Importar",
+    "downloadBtn": "Descargar",
+    "addBtn": "+ Añadir artículo",
+    "filtersBtn": "Filtros",
+    "clearAll": "Borrar todo",
+    "items": "artículos",
+    "listed": "Listado",
+    "unlisted": "No listado",
+    "listTitle": "Clic para listar en el sitio web",
+    "unlistTitle": "Clic para quitar del sitio web",
+    "decreaseStock": "Reducir stock",
+    "increaseStock": "Aumentar stock",
     "stats": {
-      "totalSkus": "Total SKUs",
+      "totalSkus": "Total de referencias",
       "unitsInStock": "Unidades en stock",
       "lowStock": "Alertas de stock bajo",
-      "stockValue": "Valor del stock"
+      "stockValue": "Valor del stock (venta)"
     },
     "table": {
       "id": "ID",
       "name": "Nombre / Marca",
-      "articleNo": "Nº artículo",
+      "articleNo": "Nº de artículo",
       "vin": "VIN",
       "year": "Año",
       "engine": "Motor",
       "color": "Color",
-      "mcType": "Tipo moto",
+      "mcType": "Tipo de moto",
       "warehouse": "Almacén",
+      "location": "Ubicación",
       "stock": "Stock",
-      "reorderQty": "Cant. reorden",
+      "reorder": "Punto de reorden",
       "cost": "Coste",
-      "sellPrice": "Precio venta",
+      "sellPrice": "Precio de venta",
       "margin": "Margen",
-      "vendor": "Proveedor"
+      "vendor": "Proveedor",
+      "website": "Sitio web",
+      "category": "Categoría",
+      "subType": "Subtipo",
+      "type": "Tipo",
+      "style": "Estilo",
+      "colour": "Color",
+      "size": "Talla"
     },
-    "empty": "Aún no hay inventario",
-    "noMatch": "Ningún artículo coincide con tu búsqueda",
+    "filter": {
+      "website": "Sitio web",
+      "brand": "Marca",
+      "stockStatus": "Estado del stock",
+      "priceMin": "Precio mín (SEK)",
+      "priceMax": "Precio máx (SEK)",
+      "mcType": "Tipo de moto",
+      "warehouse": "Almacén",
+      "colour": "Color",
+      "category": "Categoría",
+      "type": "Tipo",
+      "size": "Talla",
+      "allProducts": "Todos los productos",
+      "listedOnly": "Solo listados",
+      "unlistedOnly": "Solo no listados",
+      "allBrands": "Todas las marcas",
+      "all": "Todos",
+      "inStock": "En stock",
+      "lowStock": "Stock bajo",
+      "outOfStock": "Sin stock",
+      "allTypes": "Todos los tipos",
+      "allWarehouses": "Todos los almacenes",
+      "allCategories": "Todas las categorías",
+      "allSizes": "Todas las tallas"
+    },
+    "empty": "Sin inventario todavía",
+    "noMatch": "Ningún artículo coincide con la búsqueda",
     "hint": "Pasa el ratón por una fila para ajustar el stock",
-    "import": "Importar desde Excel o añadir manualmente",
+    "import": "Importar desde Excel o añadir artículos uno a uno",
+    "importBtn2": "⬆ Importar desde Excel",
     "export": {
       "pdf": "PDF",
       "excel": "Excel (.xlsx)",
-      "spreadsheet": "Hoja de cálculo",
-      "print": "Formato impresión"
+      "spreadsheet": "Formato hoja de cálculo",
+      "print": "Listo para imprimir"
+    },
+    "download": {
+      "excelLabel": "Excel (.xlsx)",
+      "excelHint": "Formato hoja de cálculo",
+      "pdfLabel": "PDF",
+      "pdfHint": "Listo para imprimir"
     }
   },
   "goodsReceipts": {
-    "title": "Recepciones de mercancía",
-    "breadcrumb": "Recepciones",
-    "subtitle": "Registrar artículos recibidos — el stock se actualiza automáticamente",
+    "title": "Albaranes de entrada",
+    "breadcrumb": "Albaranes de entrada",
+    "subtitle": "Registra artículos recibidos — el stock se actualiza automáticamente",
+    "newReceipt": "Nueva recepción",
+    "search": "Buscar por ID, proveedor, OC...",
     "stats": {
-      "total": "Total recepciones",
+      "total": "Total de recepciones",
+      "totalTip": "Total de albaranes de entrada creados para tu concesionario.",
       "units": "Unidades recibidas",
-      "items": "Artículos recibidos",
-      "pending": "Pendiente aprobación"
+      "unitsTip": "Total de unidades físicamente recibidas en todas las recepciones.",
+      "pending": "Pendiente de aprobación",
+      "pendingTip": "Recepciones enviadas pero aún no aprobadas ni rechazadas."
     },
-    "table": {
+    "source": {
+      "auto": "⚡ Auto",
+      "manual": "✏️ Manual"
+    },
+    "statusBadge": {
+      "approved": "✓ Aprobado",
+      "rejected": "✕ Rechazado",
+      "pending": "⏳ Pendiente de aprobación"
+    },
+    "cols": {
       "receiptId": "ID recepción",
-      "po": "Pedido #",
+      "vendor": "Proveedor",
+      "po": "OC #",
       "deliveryNote": "Albarán",
+      "receivedDate": "Fecha de recepción",
+      "lines": "Líneas",
+      "units": "Unidades",
+      "source": "Origen",
+      "status": "Estado"
+    },
+    "detail": {
+      "prefix": "Recepción ·",
+      "awaitingApproval": "Esperando aprobación del administrador",
+      "approvalNote": "El stock no se actualizará hasta que apruebes esta entrega.",
+      "reject": "Rechazar",
+      "approve": "Aprobar y actualizar stock",
+      "poFullyReceived": "OC ya completamente recibida",
+      "relinkPo": "Vincular a otra OC",
+      "selectPoPrompt": "Selecciona una OC abierta para vincular esta entrega:",
+      "noOpenPos": "No se encontraron OC abiertas para este proveedor.",
+      "cancel": "Cancelar",
+      "confirmLink": "Confirmar vínculo",
+      "linking": "Vinculando…",
+      "poIncomplete": "OC incompleta — pendiente de pedido diferido",
+      "receivedDate": "Fecha de recepción",
+      "itemsReceived": "Artículos recibidos",
+      "matchedToStock": "Coincidencia con stock",
+      "damaged": "Dañado",
+      "deliveryNoteLabel": "Albarán #:",
       "item": "Artículo",
-      "artNo": "Nº art.",
-      "lineItems": "Líneas",
+      "artNo": "Ref.",
       "ordered": "Pedido",
       "received": "Recibido",
-      "status": "Estado",
-      "source": "Fuente",
-      "notes": "Notas"
+      "backorder": "Pedido diferido",
+      "stock": "Stock",
+      "damagedBadge": "{n} dañado",
+      "pendingBadge": "{n} pendiente",
+      "backordered": "⏳ Pedido diferido",
+      "matched": "✓ Coincidente",
+      "unmatched": "? No coincidente",
+      "viewPdf": "📄 Ver PDF",
+      "close": "Cerrar",
+      "notes": "Notas",
+      "backorderBanner": "Algunos artículos tienen pedidos diferidos — el proveedor entregará las cantidades pendientes más tarde."
     },
-    "newReceipt": "Nueva recepción",
-    "search": "Buscar recepciones...",
-    "empty": "Aún no hay recepciones",
-    "noMatch": "Ninguna recepción coincide con tu búsqueda",
+    "empty": "No hay recepciones aún",
+    "emptyHint": "Crea una entrada manual o espera un correo de entrega entrante",
+    "noMatch": "Ningún resultado coincide con tu búsqueda",
+    "noMatchHint": "Prueba con otro término de búsqueda",
     "approve": "Aprobar",
     "pending": "Pendiente",
     "approved": "Aprobado",
     "rejected": "Rechazado",
-    "backorder": "Pedido pendiente",
-    "linkPo": "Vincular a pedido (opcional)",
-    "deliveryNoteLabel": "Nº albarán (opcional)",
-    "receivedBy": "Recibido por",
-    "noOpenPos": "No se encontraron pedidos abiertos"
+    "backorder": "Pedido diferido"
   },
   "accounting": {
     "title": "Contabilidad",
@@ -1384,57 +1481,246 @@
     "title": "Proveedores",
     "breadcrumb": "Proveedores",
     "subtitle": "Haz clic en cualquier fila para ver o editar los detalles del proveedor.",
-    "addBtn": "Añadir proveedor",
-    "importBtn": "Importar Excel",
-    "search": "Buscar proveedores...",
-    "empty": "Aún no hay proveedores",
-    "noMatch": "Ningún proveedor coincide con tu búsqueda",
+    "addBtn": "+ Añadir proveedor",
+    "importBtn": "⬆ Importar Excel",
+    "search": "Buscar proveedor, categoría...",
     "stats": {
-      "total": "Total proveedores",
+      "total": "Total de proveedores",
+      "totalTip": "Número total de proveedores activos en tu concesionario.",
       "withContact": "Con datos de contacto",
+      "withContactTip": "Proveedores que tienen un correo o teléfono registrado.",
       "lowStock": "Alertas de stock bajo",
-      "totalSkus": "Total SKUs suministradas"
+      "lowStockTip": "Proveedores con artículos por debajo del nivel de reorden.",
+      "totalSkus": "Total de SKUs",
+      "totalSkusTip": "Número total de líneas de producto únicas en todos los proveedores."
     },
     "cols": {
-      "no": "Nº proveedor",
+      "no": "N.º proveedor",
       "name": "Nombre proveedor",
       "address": "Dirección",
       "phone": "Teléfono",
-      "orgNo": "NIF/CIF",
+      "orgNo": "N.º empresa",
       "skus": "SKUs",
       "categories": "Categorías",
       "status": "Estado stock"
     },
+    "stock": {
+      "noInventory": "Sin inventario",
+      "lowStock": "{n} stock bajo",
+      "allStocked": "Todo en stock"
+    },
     "poModal": {
-      "title": "Pedidos de compra",
-      "noPo": "No hay pedidos de compra para este proveedor"
-    }
+      "title": "Órdenes de compra",
+      "found": "{n} OC encontrada(s)",
+      "noPo": "No hay órdenes de compra para este proveedor",
+      "close": "Cerrar"
+    },
+    "empty": "No hay proveedores aún",
+    "noMatch": "Ningún proveedor coincide con tu búsqueda"
   },
   "purchaseInvoices": {
     "title": "Facturas de compra",
+    "topbar": "Facturas de compra",
     "breadcrumb": "Facturas de compra",
-    "subtitle": "Rastrear y gestionar facturas recibidas de proveedores",
-    "newBtn": "Nueva factura",
-    "search": "Buscar pedido, proveedor, nº factura...",
-    "empty": "Aún no hay facturas de compra",
-    "noMatch": "Ninguna factura coincide con tu filtro",
-    "cols": {
-      "supplierInvoice": "Factura proveedor #",
-      "systemRef": "Ref. sistema #",
-      "po": "Pedido (opcional)",
-      "amount": "Importe",
-      "invoiceDate": "Fecha factura",
-      "dueDate": "Fecha vencimiento",
-      "vendor": "Proveedor",
-      "status": "Estado",
-      "notes": "Notas"
+    "subtitle": "Seguir y gestionar facturas recibidas de proveedores",
+    "search": "Buscar PC, proveedor, factura #...",
+    "importBtn": "Importar Excel",
+    "downloadBtn": "Descargar",
+    "addInvoiceBtn": "Crear nueva factura",
+    "addCreditNoteBtn": "Añadir nota de crédito",
+    "viewMode": {
+      "invoices": "Facturas",
+      "creditNotes": "Notas de crédito"
     },
     "status": {
+      "all": "Todos",
       "pending": "Pendiente",
+      "awaitingApproval": "Esperando aprobación",
       "paid": "Pagada",
       "overdue": "Vencida",
       "disputed": "Disputada"
-    }
+    },
+    "statusTip": {
+      "all": "Mostrar todas las facturas independientemente del estado.",
+      "pending": "Facturas recibidas pero aún no procesadas.",
+      "awaitingApproval": "Facturas enviadas para aprobación interna.",
+      "paid": "Facturas completamente pagadas.",
+      "overdue": "Facturas vencidas que siguen sin pagar.",
+      "disputed": "Facturas con una disputa en curso."
+    },
+    "alert": {
+      "overdueTitle": "{n} factura vencida",
+      "overdueTitle_p": "{n} facturas vencidas",
+      "overdueBody": "{vendors} — total {amount}. Se requiere acción inmediata.",
+      "dueTitle": "{n} factura vence en 7 días",
+      "dueTitle_p": "{n} facturas vencen en 7 días",
+      "dueBody": "{vendors} — total {amount}. Programar el pago pronto.",
+      "disputedTitle": "{n} factura en disputa",
+      "disputedTitle_p": "{n} facturas en disputa",
+      "disputedBody": "{vendors} — esperando resolución del proveedor. No pagar hasta resolver."
+    },
+    "aging": {
+      "title": "Informe de antigüedad de vencidas",
+      "bucket30": "1–30 días",
+      "bucket60": "31–60 días",
+      "bucket61": "61+ días"
+    },
+    "spend": {
+      "title": "Gasto por proveedor",
+      "hide": "▲ Ocultar",
+      "show": "▼ Mostrar"
+    },
+    "creditNoteList": {
+      "empty": "Aún no se han recibido notas de crédito",
+      "emptyHint": "Las notas de crédito llegan automáticamente cuando los proveedores las envían por correo electrónico",
+      "totalCredit": "Total de crédito disponible"
+    },
+    "cols": {
+      "systemRef": "Ref. sistema #",
+      "supplierInvoice": "Factura proveedor #",
+      "po": "PC #",
+      "vendor": "Proveedor",
+      "invoiceDate": "Fecha de factura",
+      "dueDate": "Fecha de vencimiento",
+      "amount": "Importe",
+      "status": "Estado"
+    },
+    "cnCols": {
+      "systemRef": "Ref. sistema #",
+      "supplierCredit": "Nota crédito proveedor #",
+      "vendor": "Proveedor",
+      "linkedInvoice": "Factura vinculada",
+      "creditDate": "Fecha de crédito",
+      "creditAmount": "Importe del crédito",
+      "remaining": "Restante",
+      "status": "Estado",
+      "reason": "Motivo"
+    },
+    "cnStatus": {
+      "unmatched": "Sin asociar",
+      "pending": "Pendiente",
+      "partiallyApplied": "Parcialmente aplicado",
+      "applied": "Aplicado"
+    },
+    "filter": {
+      "label": "Filtrar",
+      "vendor": "Proveedor",
+      "date": "Fecha de factura",
+      "clearAll": "Borrar todo",
+      "allVendors": "Todos los proveedores"
+    },
+    "empty": "Aún no hay facturas de compra",
+    "emptyHint": "Importar desde Excel o crear una factura manualmente",
+    "noMatch": "Ninguna factura coincide con el filtro",
+    "tfoot": {
+      "netTotal": "Total neto (sin IVA)",
+      "vatTotal": "Total IVA",
+      "grossTotal": "Total bruto"
+    },
+    "bulk": {
+      "selected": "{n} seleccionado(s)",
+      "markPaid": "Marcar como pagada",
+      "export": "Exportar"
+    },
+    "detail": {
+      "header": "Factura de compra",
+      "poFullyReceived": "PC completamente recibida",
+      "invoiceDate": "Fecha de factura",
+      "dueDate": "Fecha de vencimiento",
+      "linkedPO": "PC vinculada",
+      "supplierInv": "Factura proveedor #",
+      "creditBannerTitle": "Crédito disponible de {vendor}",
+      "creditBannerBody": "{n} nota de crédito · SEK {amount} disponible.",
+      "creditBannerBody_p": "{n} notas de crédito · SEK {amount} disponible.",
+      "applyCredit": "Aplicar crédito",
+      "creditApplied": "Crédito aplicado:",
+      "netPayable": "Neto a pagar:",
+      "lineItems": "Líneas de factura",
+      "loading": "Cargando artículos…",
+      "noItems": "No se extrajeron líneas de esta factura PDF.",
+      "colDesc": "Descripción",
+      "colArt": "Art. #",
+      "colQty": "Cant.",
+      "colGrossPrice": "Precio bruto",
+      "colDisc": "Desc. %",
+      "colNetPrice": "Precio neto",
+      "colVAT": "IVA 25%",
+      "colTotal": "Total línea",
+      "totalInclVAT": "Total (IVA incluido)",
+      "notes": "Notas",
+      "viewPdf": "Ver PDF",
+      "sendApproval": "Enviar para aprobación",
+      "approve": "Aprobar",
+      "markPaid": "Marcar como pagada",
+      "dispute": "Disputar",
+      "edit": "Editar",
+      "close": "Cerrar"
+    },
+    "form": {
+      "createTitle": "Crear nueva factura",
+      "editTitle": "Editar factura",
+      "systemRefHint": "Ref. sistema será:",
+      "poLink": "Vincular a pedido de compra (opcional)",
+      "noPO": "— Sin PC vinculada —",
+      "poHint": "Seleccionar PC rellena automáticamente proveedor e importe",
+      "supplierInv": "Factura proveedor #",
+      "vendor": "Proveedor",
+      "invoiceDate": "Fecha de factura",
+      "dueDate": "Fecha de vencimiento",
+      "gross": "Importe bruto (SEK)",
+      "vatRate": "Tipo de IVA",
+      "status": "Estado",
+      "notes": "Notas",
+      "cancel": "Cancelar",
+      "save": "Guardar cambios",
+      "create": "Crear factura",
+      "netExVat": "Neto (sin IVA)",
+      "vatPct": "IVA",
+      "grossTotal": "Total bruto"
+    },
+    "cnForm": {
+      "title": "Añadir nota de crédito",
+      "vendor": "Proveedor",
+      "supplierCredit": "Nota crédito proveedor #",
+      "creditDate": "Fecha de crédito",
+      "linkInvoice": "Vincular a factura",
+      "noInvoiceLinked": "— Sin factura vinculada —",
+      "creditAmount": "Importe del crédito (SEK)",
+      "reason": "Motivo",
+      "cancel": "Cancelar",
+      "save": "Guardar nota de crédito"
+    },
+    "applyCredit": {
+      "title": "Aplicar nota de crédito",
+      "invoiceAmount": "Importe factura",
+      "alreadyCredited": "Ya acreditado",
+      "netPayable": "Neto a pagar",
+      "selectCredit": "Seleccionar nota de crédito",
+      "available": "Disponible:",
+      "amountToApply": "Importe a aplicar",
+      "leaveBlank": "(dejar en blanco para aplicar crédito completo)",
+      "afterApplying": "Tras la aplicación:",
+      "creditApplied": "Crédito aplicado",
+      "newNetPayable": "Nuevo neto a pagar",
+      "fullySled": "✓ Totalmente liquidado",
+      "cancel": "Cancelar",
+      "apply": "Aplicar crédito"
+    },
+    "dispute": {
+      "title": "Disputar factura",
+      "reason": "Motivo de la disputa",
+      "cancel": "Cancelar",
+      "submit": "Marcar como disputada"
+    },
+    "download": {
+      "excelLabel": "Excel (.xlsx)",
+      "excelHint": "Formato hoja de cálculo",
+      "pdfLabel": "PDF",
+      "pdfHint": "Formato listo para imprimir",
+      "currentView": "{n} factura (vista actual)",
+      "currentView_p": "{n} facturas (vista actual)"
+    },
+    "newBtn": "Nueva factura"
   },
   "purchaseOrders": {
     "title": "Pedidos de compra",
@@ -2477,37 +2763,110 @@
     "avgPipeline": "Pipeline promedio"
   },
   "purchase": {
-    "title": "Órdenes de compra",
-    "subtitle": "Haz clic en una fila para abrir el pedido completo. Los pedidos automáticos se actualizan en tiempo real.",
-    "breadcrumb": "Órdenes de compra",
-    "search": "Buscar pedido, proveedor, artículo...",
-    "importBtn": "Importar Excel",
-    "createBtn": "Crear pedido",
-    "importFromExcel": "Importar desde Excel",
-    "allGoodBanner": "Los {n} artículos del inventario están por encima de sus puntos de pedido — no se necesitan pedidos.",
-    "autoPOBanner": "{n} pedido{s} automático generado por stock bajo",
-    "autoPOHide": "▲ ocultar",
-    "autoPOShow": "▼ mostrar",
-    "autoPODesc": "Estos pedidos se generan automáticamente y se actualizan en tiempo real cuando cambia el stock.",
-    "empty": "Todavía no hay órdenes de compra",
-    "emptyHint": "Importa desde Excel o crea un pedido manualmente",
-    "noMatch": "Ninguna orden de compra coincide con tu filtro",
-    "tabAll": "Todas",
-    "statusDraft": "Borrador",
-    "statusReviewed": "Revisado",
-    "statusSent": "Enviado",
-    "statusReceived": "Recibido",
-    "cardTotal": "Total pedidos",
-    "cardDraft": "Borrador",
-    "cardSent": "Enviados",
-    "cardValue": "Valor mostrado",
-    "colPO": "Nº pedido",
-    "colVendor": "Proveedor",
-    "colDate": "Fecha",
-    "colItems": "Artículos",
-    "colCost": "Coste total",
-    "colETA": "Llegada estimada",
-    "colStatus": "Estado"
+    "page": {
+      "title": "Compras",
+      "description": "Alerta stock bajo → Crear OC → el sistema asigna Ref. → usar Ref. en el portal del proveedor."
+    },
+    "topbar": {
+      "title": "Órdenes de compra",
+      "searchPlaceholder": "Buscar OC, proveedor, artículo..."
+    },
+    "buttons": {
+      "dailyActions": "📋 Acciones diarias",
+      "importExcel": "⬆ Importar Excel",
+      "createPo": "+ Crear OC",
+      "importFromExcel": "⬆ Importar desde Excel"
+    },
+    "filter": {
+      "label": "Filtrar proveedor:",
+      "allSuppliers": "Todos los proveedores"
+    },
+    "status": {
+      "draft": "Borrador",
+      "reviewed": "Revisado",
+      "sent": "Enviado",
+      "received": "Recibido",
+      "partial": "Parcial",
+      "followUp": "⚠ Seguimiento — {days}d"
+    },
+    "approval": {
+      "pendingApproval": "🔐 Aprobación pendiente",
+      "approved": "✓ Aprobado",
+      "rejected": "✗ Rechazado"
+    },
+    "summary": {
+      "totalPos": "Total OC",
+      "draft": "Borrador",
+      "sent": "Enviado",
+      "displayedValue": "Valor mostrado",
+      "tips": {
+        "totalPos": "Todas las órdenes de compra creadas para su concesionario, en todos los estados.",
+        "draft": "OC creadas pero aún no revisadas ni enviadas a un proveedor.",
+        "sent": "OC enviadas al proveedor, pendientes de entrega o confirmación.",
+        "displayedValue": "Coste total de las OC visibles en la tabla de abajo — se actualiza al cambiar la pestaña de estado o el filtro de proveedor."
+      }
+    },
+    "metrics": {
+      "openPoValue": "Valor OC abiertas",
+      "openPoInProgress": "{count, plural, one {# OC en curso} other {# OC en curso}}",
+      "thisMonthSpend": "Gasto del mes",
+      "posReceived": "{count, plural, one {# OC recibida} other {# OC recibidas}}",
+      "outstandingClaims": "Reclamaciones pendientes",
+      "claimsOpen": "{count, plural, one {# reclamación abierta} other {# reclamaciones abiertas}}",
+      "tips": {
+        "openPoValue": "Coste total de todas las OC pendientes — Borrador, Revisado, Enviado y Parcial. Este es su compromiso financiero actual con los proveedores.",
+        "thisMonthSpend": "Coste total de las OC marcadas como Recibidas en el mes natural actual.",
+        "outstandingClaims": "Valor total de reclamaciones a proveedores sin resolver — mercancía dañada, entregas incompletas o artículos incorrectos — que siguen abiertas o enviadas."
+      }
+    },
+    "tabs": {
+      "all": "Todas",
+      "tips": {
+        "all": "Mostrar todas las órdenes de compra independientemente del estado.",
+        "draft": "OC creadas pero aún no revisadas ni enviadas a un proveedor.",
+        "reviewed": "OC revisadas internamente y listas para ser colocadas con el proveedor.",
+        "sent": "OC enviadas al proveedor, pendientes de entrega o confirmación.",
+        "received": "OC donde todos los artículos pedidos han sido recibidos completamente en el inventario."
+      }
+    },
+    "cols": {
+      "poNumber": "N.º de OC",
+      "refNo": "Ref.",
+      "vendor": "Proveedor",
+      "date": "Fecha",
+      "items": "Artículos",
+      "totalCost": "Coste total",
+      "eta": "Llegada prevista",
+      "status": "Estado"
+    },
+    "scorecard": {
+      "title": "Rendimiento de proveedores",
+      "period": "— últimos 365 días",
+      "hide": "▲ Ocultar",
+      "show": "▼ Mostrar",
+      "loading": "Cargando…",
+      "noData": "Sin datos aún — las estadísticas aparecen cuando las OC alcanzan el estado Enviado/Recibido.",
+      "cols": {
+        "supplier": "Proveedor",
+        "pos": "OC",
+        "onTime": "A tiempo %",
+        "backorder": "Reserva %",
+        "damage": "Daños %",
+        "leadTime": "Plazo medio"
+      }
+    },
+    "lowStock": {
+      "alert": "{count, plural, one {# artículo por debajo del nivel de reposición} other {# artículos por debajo del nivel de reposición}}",
+      "hint": "— haga clic para ver y crear OC",
+      "viewButton": "Ver stock bajo →"
+    },
+    "empty": {
+      "title": "Aún no hay órdenes de compra",
+      "description": "Importe desde Excel o cree una OC manualmente",
+      "importButton": "⬆ Importar desde Excel",
+      "filtered": "Ninguna orden de compra coincide con su filtro"
+    },
+    "items": "{count, plural, one {# artículo} other {# artículos}}"
   },
   "documents": {
     "breadcrumb": "Archivo",
@@ -3522,6 +3881,64 @@
       "reactivateError": "No se pudo reactivar el lead",
       "closedLost": "Lead cerrado como perdido",
       "closeError": "No se pudo cerrar el lead"
+    }
+  },
+  "daily": {
+    "breadcrumbParent": "Compras",
+    "breadcrumb": "Acciones diarias",
+    "title": "Panel de acciones diarias",
+    "subtitle": "Todo lo que necesita atención hoy.",
+    "viewAll": "Ver todo →",
+    "noVendor": "Sin proveedor",
+    "summary": {
+      "totalActions": "Acciones totales",
+      "urgent": "Urgente",
+      "pendingApproval": "Pendiente de aprobación",
+      "lowStock": "Stock bajo"
+    },
+    "allClear": "¡Todo listo — no hay nada que atender hoy!",
+    "allClearHint": "Vuelve mañana o después de crear nuevas OC.",
+    "sections": {
+      "followUp": {
+        "title": "Seguir ahora",
+        "empty": "Sin seguimientos pendientes — todas las OC enviadas están dentro de 5 días hábiles."
+      },
+      "etaOverdue": {
+        "title": "ETA vencida",
+        "empty": "Sin OC tras la fecha de llegada prevista."
+      },
+      "arrivingToday": {
+        "title": "Llega hoy",
+        "empty": ""
+      },
+      "pendingApproval": {
+        "title": "OC pendientes de aprobación",
+        "empty": "Sin OC pendientes de aprobación."
+      },
+      "receiptsApprove": {
+        "title": "Recepciones para aprobar",
+        "empty": "Sin albaranes pendientes de aprobación."
+      },
+      "overdueInvoices": {
+        "title": "Facturas vencidas",
+        "empty": "Sin facturas de proveedor vencidas."
+      },
+      "partialOrders": {
+        "title": "Pedidos parciales",
+        "empty": "Sin OC con pedidos pendientes."
+      },
+      "lowStock": {
+        "title": "Stock bajo — se necesita reorden",
+        "empty": "Todos los artículos están por encima del nivel de reorden."
+      }
+    },
+    "badges": {
+      "daysOverdue": "{days}d vencido",
+      "etaWas": "ETA era {date} (hace {days}d)",
+      "partial": "Parcial",
+      "unitsDate": "{units} unid. · {date}",
+      "due": "Vence {date}",
+      "stock": "Stock: {current} / Mín: {min}"
     }
   }
 }

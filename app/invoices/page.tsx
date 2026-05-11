@@ -8,6 +8,7 @@ import Sidebar from '@/components/Sidebar';
 import { getInvoices, updateInvoicePaymentMethod, markInvoicePaidById, type Invoice } from '@/lib/invoices';
 import { useAutoRefresh } from '@/lib/realtime';
 import { getDealerInfo } from '@/lib/dealer';
+import { Tip } from '@/components/Tip';
 
 // ─── Print helper ─────────────────────────────────────────────────────────────
 
@@ -311,10 +312,10 @@ export default function InvoicesPage() {
 
   const fmtAmount = (n: number) => `${n.toLocaleString('sv-SE')} kr`;
 
-  const TABS: { id: FilterTab; label: string; count: number }[] = [
-    { id: 'all',     label: t('filterAll'),     count: stats.total   },
-    { id: 'paid',    label: t('filterPaid'),    count: stats.paid    },
-    { id: 'pending', label: t('filterPending'), count: stats.pending },
+  const TABS: { id: FilterTab; label: string; count: number; tip: string }[] = [
+    { id: 'all',     label: t('filterAll'),     count: stats.total,   tip: 'Show all invoices regardless of payment status.' },
+    { id: 'paid',    label: t('filterPaid'),    count: stats.paid,    tip: 'Show only fully paid invoices.' },
+    { id: 'pending', label: t('filterPending'), count: stats.pending, tip: 'Show only invoices awaiting payment.' },
   ];
 
   return (
@@ -364,18 +365,20 @@ export default function InvoicesPage() {
           {/* ── Stats bar ──────────────────────────────────────────────────── */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: t('statTotal'),   value: fmtAmount(stats.revenue), icon: '💰', color: 'text-[#FF6B2C]' },
-              { label: t('statCount'),   value: String(stats.total),       icon: '📄', color: 'text-slate-700' },
-              { label: t('statPaid'),    value: String(stats.paid),         icon: '✅', color: 'text-green-600' },
-              { label: t('statPending'), value: String(stats.pending),      icon: '⏳', color: 'text-amber-600' },
+              { label: t('statTotal'),   value: fmtAmount(stats.revenue), icon: '💰', color: 'text-[#FF6B2C]',  tip: 'Total value of all invoices in the current view.' },
+              { label: t('statCount'),   value: String(stats.total),       icon: '📄', color: 'text-slate-700',  tip: 'Number of invoices currently displayed.' },
+              { label: t('statPaid'),    value: String(stats.paid),         icon: '✅', color: 'text-green-600',  tip: 'Total value of invoices marked as paid.' },
+              { label: t('statPending'), value: String(stats.pending),      icon: '⏳', color: 'text-amber-600',  tip: 'Total value of invoices not yet paid.' },
             ].map(s => (
-              <div key={s.label} className="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
-                <span className="text-2xl">{s.icon}</span>
-                <div>
-                  <p className={`text-xl font-extrabold ${s.color}`}>{s.value}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">{s.label}</p>
+              <Tip key={s.label} text={s.tip}>
+                <div className="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+                  <span className="text-2xl">{s.icon}</span>
+                  <div>
+                    <p className={`text-xl font-extrabold ${s.color}`}>{s.value}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{s.label}</p>
+                  </div>
                 </div>
-              </div>
+              </Tip>
             ))}
           </div>
 
@@ -385,22 +388,23 @@ export default function InvoicesPage() {
               {/* Tabs */}
               <div className="flex items-center gap-1">
                 {TABS.map(tab => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setFilter(tab.id)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                      filter === tab.id
-                        ? 'bg-[#FF6B2C] text-white shadow-sm'
-                        : 'text-slate-500 hover:bg-slate-100'
-                    }`}
-                  >
-                    {tab.label}
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                      filter === tab.id ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500'
-                    }`}>
-                      {tab.count}
-                    </span>
-                  </button>
+                  <Tip key={tab.id} text={tab.tip}>
+                    <button
+                      onClick={() => setFilter(tab.id)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        filter === tab.id
+                          ? 'bg-[#FF6B2C] text-white shadow-sm'
+                          : 'text-slate-500 hover:bg-slate-100'
+                      }`}
+                    >
+                      {tab.label}
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+                        filter === tab.id ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500'
+                      }`}>
+                        {tab.count}
+                      </span>
+                    </button>
+                  </Tip>
                 ))}
               </div>
 

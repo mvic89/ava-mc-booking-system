@@ -1,48 +1,11 @@
 @import "tailwindcss";
 
-/* ── Enable class-based dark mode (Tailwind v4) ─────── */
-@custom-variant dark (&:where(.dark, .dark *));
-
-/* ── Design tokens — light mode ─────────────────────── */
 :root {
-  --background:      #ffffff;
-  --foreground:      #171717;
-  --brand-orange:    #FF6B2C;
-  --brand-navy:      #0f1729;
-  --brand-navy-mid:  #1e2a3f;
-
-  /* Semantic surface tokens */
-  --ds-bg-page:      #f5f7fa;
-  --ds-bg-card:      #ffffff;
-  --ds-bg-muted:     #f8fafc;
-  --ds-bg-subtle:    #f1f5f9;
-  --ds-border:       #e2e8f0;
-  --ds-border-sub:   #f1f5f9;
-  --ds-text-primary: #0f172a;
-  --ds-text-sec:     #475569;
-  --ds-text-muted:   #64748b;
-  --ds-text-faint:   #94a3b8;
-  --ds-input-bg:     #f8fafc;
-  --ds-shadow:       rgba(0,0,0,0.06);
-}
-
-/* ── Design tokens — dark mode ──────────────────────── */
-html.dark {
-  --background:      #0d1117;
-  --foreground:      #e6edf3;
-
-  --ds-bg-page:      #0d1117;
-  --ds-bg-card:      #161b22;
-  --ds-bg-muted:     #1c2128;
-  --ds-bg-subtle:    #21262d;
-  --ds-border:       #30363d;
-  --ds-border-sub:   #21262d;
-  --ds-text-primary: #e6edf3;
-  --ds-text-sec:     #adbac7;
-  --ds-text-muted:   #768390;
-  --ds-text-faint:   #545d68;
-  --ds-input-bg:     #21262d;
-  --ds-shadow:       rgba(0,0,0,0.3);
+  --background: #ffffff;
+  --foreground: #171717;
+  --brand-orange: #FF6B2C;
+  --brand-navy: #0f1729;
+  --brand-navy-mid: #1e2a3f;
 }
 
 @theme inline {
@@ -56,15 +19,15 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
-  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* ════════════════════════════════════════════════════════
-   DARK MODE — GLOBAL OVERRIDES
-   Targets the Tailwind utility classes used across all
-   pages so individual pages need no changes.
-   ════════════════════════════════════════════════════════ */
+/* ── Scrollbar (global — thin) ───────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
+<<<<<<< HEAD
 /* ── Page / layout backgrounds ───────────────────────── */
 html.dark .bg-\[\#f5f7fa\]    { background-color: #0d1117 !important; }
 html.dark .bg-\[\#f8fafc\]    { background-color: #0d1117 !important; }
@@ -253,6 +216,13 @@ html.dark .hover\:bg-white\/30:hover { background-color: rgba(255,255,255,0.18) 
 /* ════════════════════════════════════════════════════════
    ANIMATIONS & UTILITIES (unchanged)
    ════════════════════════════════════════════════════════ */
+   
+/* ── Inventory table scrollbar — thick & always visible ─ */
+.table-scroll::-webkit-scrollbar        { width: 8px; height: 12px; }
+.table-scroll::-webkit-scrollbar-track  { background: #f1f5f9; border-radius: 99px; }
+.table-scroll::-webkit-scrollbar-thumb  { background: #94a3b8; border-radius: 99px; border: 2px solid #f1f5f9; }
+.table-scroll::-webkit-scrollbar-thumb:hover { background: #FF6B2C; }
+.table-scroll { scrollbar-width: auto; scrollbar-color: #94a3b8 #f1f5f9; }
 
 /* ── Animations ─────────────────────────────────────── */
 @keyframes fadeUp {
@@ -285,8 +255,8 @@ html.dark .hover\:bg-white\/30:hover { background-color: rgba(255,255,255,0.18) 
   to   { height: var(--bar-h); }
 }
 
-.animate-fade-up    { animation: fadeUp 0.45s ease both; }
-.animate-fade-in    { animation: fadeIn 0.3s ease both; }
+.animate-fade-up   { animation: fadeUp 0.45s ease both; }
+.animate-fade-in   { animation: fadeIn 0.3s ease both; }
 .animate-pulse-ring { animation: pulse-ring 1.8s ease-in-out infinite; }
 .animate-pulse-dot  { animation: pulse-dot 1.5s ease-in-out infinite; }
 
@@ -320,15 +290,9 @@ html.dark .hover\:bg-white\/30:hover { background-color: rgba(255,255,255,0.18) 
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
-/* ── Stat card accent bar ───────────────────────────── */
+/* ── Stat card accent bar! ───────────────────────────── */
 .stat-bar {
   transform-origin: left;
   animation: slideRight 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   animation-delay: 0.3s;
 }
-
-/* ── Scrollbar ───────────────────────────────────────── */
-::-webkit-scrollbar       { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }

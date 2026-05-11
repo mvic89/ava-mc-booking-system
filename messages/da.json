@@ -207,6 +207,7 @@
     "goodsReceipts": "Varemodtagelse",
     "suppliers": "Leverandører",
     "purchaseinvoices": "Købsfakturaer",
+    "dailyActions": "Daglige handlinger",
     "salesPipeline": "Salgspipeline",
     "pipeline": "Pipeline",
     "counterSale": "Butikssalg",
@@ -1286,79 +1287,175 @@
     "tabs": {
       "motorcycles": "Motorcykler",
       "spareParts": "Reservedele",
-      "accessories": "Tilbehør"
+      "accessories": "Tilbehør",
+      "lowStock": "Lavt lager"
     },
-    "search": "Søg i lager...",
+    "search": "Søg lager...",
+    "lowStockBadge": "{n} lavt lager",
+    "importBtn": "Importer",
+    "downloadBtn": "Download",
+    "addBtn": "+ Tilføj artikel",
+    "filtersBtn": "Filtre",
+    "clearAll": "Ryd alle",
+    "items": "artikler",
+    "listed": "Listet",
+    "unlisted": "Ulistet",
+    "listTitle": "Klik for at liste på websted",
+    "unlistTitle": "Klik for at fjerne fra websted",
+    "decreaseStock": "Reducer lager",
+    "increaseStock": "Øg lager",
     "stats": {
-      "totalSkus": "Samlet antal SKU",
+      "totalSkus": "Samlet antal SKU'er",
       "unitsInStock": "Enheder på lager",
-      "lowStock": "Lave lageradvarsler",
-      "stockValue": "Lagerværdi"
+      "lowStock": "Lavt lager-advarsler",
+      "stockValue": "Lagerværdi (salg)"
     },
     "table": {
       "id": "ID",
       "name": "Navn / Mærke",
-      "articleNo": "Artikkelnr",
+      "articleNo": "Art.nr",
       "vin": "VIN",
       "year": "År",
       "engine": "Motor",
       "color": "Farve",
       "mcType": "MC-type",
       "warehouse": "Lager",
+      "location": "Placering",
       "stock": "Lager",
-      "reorderQty": "Genbestillingsantal",
-      "cost": "Omkostning",
+      "reorder": "Genbestillingspunkt",
+      "cost": "Kostpris",
       "sellPrice": "Salgspris",
-      "margin": "Margin",
-      "vendor": "Leverandør"
+      "margin": "Avance",
+      "vendor": "Leverandør",
+      "website": "Websted",
+      "category": "Kategori",
+      "subType": "Underkategori",
+      "type": "Type",
+      "style": "Stil",
+      "colour": "Farve",
+      "size": "Størrelse"
     },
-    "empty": "Intet lager endnu",
-    "noMatch": "Ingen varer matcher din søgning",
-    "hint": "Hold markøren over en række for at justere lageret",
-    "import": "Importer fra Excel eller tilføj manuelt",
+    "filter": {
+      "website": "Websted",
+      "brand": "Mærke",
+      "stockStatus": "Lagerstatus",
+      "priceMin": "Min pris (SEK)",
+      "priceMax": "Maks pris (SEK)",
+      "mcType": "MC-type",
+      "warehouse": "Lager",
+      "colour": "Farve",
+      "category": "Kategori",
+      "type": "Type",
+      "size": "Størrelse",
+      "allProducts": "Alle produkter",
+      "listedOnly": "Kun listede",
+      "unlistedOnly": "Kun ulistede",
+      "allBrands": "Alle mærker",
+      "all": "Alle",
+      "inStock": "På lager",
+      "lowStock": "Lavt lager",
+      "outOfStock": "Udsolgt",
+      "allTypes": "Alle typer",
+      "allWarehouses": "Alle lagre",
+      "allCategories": "Alle kategorier",
+      "allSizes": "Alle størrelser"
+    },
+    "empty": "Ingen lagervarer endnu",
+    "noMatch": "Ingen artikler matcher søgningen",
+    "hint": "Hold musen over en række for at justere lageret",
+    "import": "Importer fra Excel eller tilføj artikler én ad gangen",
+    "importBtn2": "⬆ Importer fra Excel",
     "export": {
       "pdf": "PDF",
       "excel": "Excel (.xlsx)",
-      "spreadsheet": "Regneark",
-      "print": "Udskriftsformat"
+      "spreadsheet": "Regnearkformat",
+      "print": "Udskriftsklart"
+    },
+    "download": {
+      "excelLabel": "Excel (.xlsx)",
+      "excelHint": "Regnearkformat",
+      "pdfLabel": "PDF",
+      "pdfHint": "Udskriftsklart"
     }
   },
   "goodsReceipts": {
-    "title": "Varemottagelse",
-    "breadcrumb": "Varemottagelse",
+    "title": "Varemodtagelser",
+    "breadcrumb": "Varemodtagelser",
     "subtitle": "Registrer modtagne varer — lageret opdateres automatisk",
+    "newReceipt": "Ny modtagelse",
+    "search": "Søg på kvitterings-ID, leverandør, IO...",
     "stats": {
-      "total": "Samlet modtagelse",
+      "total": "Samlede kvitteringer",
+      "totalTip": "Samlet antal varemodtagelseskvitteringer for din forhandler.",
       "units": "Modtagne enheder",
-      "items": "Modtagne artikler",
-      "pending": "Afventer godkendelse"
+      "unitsTip": "Samlet antal fysisk modtagne enheder på alle kvitteringer.",
+      "pending": "Afventer godkendelse",
+      "pendingTip": "Kvitteringer indsendt men endnu ikke godkendt eller afvist."
     },
-    "table": {
-      "receiptId": "Modtagelses-ID",
-      "po": "Indkøbsordre #",
+    "source": {
+      "auto": "⚡ Auto",
+      "manual": "✏️ Manuel"
+    },
+    "statusBadge": {
+      "approved": "✓ Godkendt",
+      "rejected": "✕ Afvist",
+      "pending": "⏳ Afventer godkendelse"
+    },
+    "cols": {
+      "receiptId": "Kvitterings-ID",
+      "vendor": "Leverandør",
+      "po": "IO #",
       "deliveryNote": "Følgeseddel",
-      "item": "Artikel",
-      "artNo": "Art.nr",
-      "lineItems": "Linjer",
+      "receivedDate": "Modtagelsesdato",
+      "lines": "Linjer",
+      "units": "Enheder",
+      "source": "Kilde",
+      "status": "Status"
+    },
+    "detail": {
+      "prefix": "Varemodtagelse ·",
+      "awaitingApproval": "Afventer administratorgodkendelse",
+      "approvalNote": "Lageret opdateres ikke, før du godkender leveringen.",
+      "reject": "Afvis",
+      "approve": "Godkend og opdater lager",
+      "poFullyReceived": "IO allerede fuldt modtaget",
+      "relinkPo": "Tilknyt til en anden IO",
+      "selectPoPrompt": "Vælg en åben IO at tilknytte leveringen til:",
+      "noOpenPos": "Ingen åbne IO fundet for denne leverandør.",
+      "cancel": "Annuller",
+      "confirmLink": "Bekræft tilknytning",
+      "linking": "Tilknytter…",
+      "poIncomplete": "IO ufuldstændig — afventer restordre",
+      "receivedDate": "Modtagelsesdato",
+      "itemsReceived": "Modtagne varer",
+      "matchedToStock": "Matchet til lager",
+      "damaged": "Beskadiget",
+      "deliveryNoteLabel": "Følgeseddel #:",
+      "item": "Vare",
+      "artNo": "Art #",
       "ordered": "Bestilt",
       "received": "Modtaget",
-      "status": "Status",
-      "source": "Kilde",
-      "notes": "Notater"
+      "backorder": "Restordre",
+      "stock": "Lager",
+      "damagedBadge": "{n} beskadiget",
+      "pendingBadge": "{n} afventer",
+      "backordered": "⏳ Restordre",
+      "matched": "✓ Matchet",
+      "unmatched": "? Ikke matchet",
+      "viewPdf": "📄 Vis PDF",
+      "close": "Luk",
+      "notes": "Notater",
+      "backorderBanner": "Nogle varer har restordrer — leverandøren leverer udestående mængder senere."
     },
-    "newReceipt": "Ny modtagelse",
-    "search": "Søg modtagelser...",
-    "empty": "Ingen varemottagelser endnu",
-    "noMatch": "Ingen modtagelser matcher din søgning",
+    "empty": "Ingen varemodtagelser endnu",
+    "emptyHint": "Opret en manuel post eller vent på en indgående leveringse-mail",
+    "noMatch": "Ingen resultater matcher din søgning",
+    "noMatchHint": "Prøv et andet søgeord",
     "approve": "Godkend",
     "pending": "Afventer",
     "approved": "Godkendt",
     "rejected": "Afvist",
-    "backorder": "Restordre",
-    "linkPo": "Link til indkøbsordre (valgfrit)",
-    "deliveryNoteLabel": "Følgeseddelnr (valgfrit)",
-    "receivedBy": "Modtaget af",
-    "noOpenPos": "Ingen åbne indkøbsordrer fundet"
+    "backorder": "Restordre"
   },
   "accounting": {
     "title": "Regnskab",
@@ -1395,19 +1492,21 @@
     "title": "Leverandører",
     "breadcrumb": "Leverandører",
     "subtitle": "Klik på en række for at se eller redigere leverandøroplysninger.",
-    "addBtn": "Tilføj leverandør",
-    "importBtn": "Importer Excel",
-    "search": "Søg leverandører...",
-    "empty": "Ingen leverandører endnu",
-    "noMatch": "Ingen leverandører matcher din søgning",
+    "addBtn": "+ Tilføj leverandør",
+    "importBtn": "⬆ Importer Excel",
+    "search": "Søg leverandør, kategori...",
     "stats": {
-      "total": "Samlet antal leverandører",
+      "total": "Samlede leverandører",
+      "totalTip": "Samlet antal aktive leverandører hos din forhandler.",
       "withContact": "Med kontaktoplysninger",
-      "lowStock": "Lave lageradvarsler",
-      "totalSkus": "Samlede leverede SKU'er"
+      "withContactTip": "Leverandører der har en e-mail eller telefon registreret.",
+      "lowStock": "Lageradvarsel",
+      "lowStockTip": "Leverandører med varer under genbestillingsniveau.",
+      "totalSkus": "Samlede SKU'er",
+      "totalSkusTip": "Samlet antal unikke produktlinjer på tværs af alle leverandører."
     },
     "cols": {
-      "no": "Leverandørnr",
+      "no": "Lev.nr.",
       "name": "Leverandørnavn",
       "address": "Adresse",
       "phone": "Telefon",
@@ -1416,36 +1515,223 @@
       "categories": "Kategorier",
       "status": "Lagerstatus"
     },
+    "stock": {
+      "noInventory": "Ingen beholdning",
+      "lowStock": "{n} lavt lager",
+      "allStocked": "Alt på lager"
+    },
     "poModal": {
       "title": "Indkøbsordrer",
-      "noPo": "Ingen indkøbsordrer for denne leverandør"
-    }
+      "found": "{n} IO fundet",
+      "noPo": "Ingen indkøbsordrer for denne leverandør",
+      "close": "Luk"
+    },
+    "empty": "Ingen leverandører endnu",
+    "noMatch": "Ingen leverandører matcher din søgning"
   },
   "purchaseInvoices": {
-    "title": "Leverandørfakturaer",
-    "breadcrumb": "Leverandørfakturaer",
-    "subtitle": "Spor og administrer fakturaer modtaget fra leverandører",
-    "newBtn": "Ny faktura",
-    "search": "Søg ordre, leverandør, fakturanr...",
-    "empty": "Ingen leverandørfakturaer endnu",
-    "noMatch": "Ingen fakturaer matcher dit filter",
-    "cols": {
-      "supplierInvoice": "Leverandørfaktura #",
-      "systemRef": "Systemreference #",
-      "po": "Indkøbsordre (valgfrit)",
-      "amount": "Beløb",
-      "invoiceDate": "Fakturadato",
-      "dueDate": "Forfaldsdato",
-      "vendor": "Leverandør",
-      "status": "Status",
-      "notes": "Notater"
+    "title": "Indkøbsfakturaer",
+    "topbar": "Indkøbsfakturaer",
+    "breadcrumb": "Indkøbsfakturaer",
+    "subtitle": "Spor og administrer fakturaer fra leverandører",
+    "search": "Søg IO, leverandør, faktura #...",
+    "importBtn": "Importer Excel",
+    "downloadBtn": "Download",
+    "addInvoiceBtn": "Opret ny faktura",
+    "addCreditNoteBtn": "Tilføj kreditnota",
+    "viewMode": {
+      "invoices": "Fakturaer",
+      "creditNotes": "Kreditnotaer"
     },
     "status": {
+      "all": "Alle",
       "pending": "Afventer",
+      "awaitingApproval": "Afventer godkendelse",
       "paid": "Betalt",
-      "overdue": "Forfalden",
+      "overdue": "Forfaldet",
       "disputed": "Bestridt"
-    }
+    },
+    "statusTip": {
+      "all": "Vis alle fakturaer uanset status.",
+      "pending": "Fakturaer modtaget men ikke behandlet.",
+      "awaitingApproval": "Fakturaer indsendt til intern godkendelse.",
+      "paid": "Fakturaer der er fuldt betalt.",
+      "overdue": "Fakturaer efter forfaldsdato der ikke er betalt.",
+      "disputed": "Fakturaer med en rejst tvist."
+    },
+    "alert": {
+      "overdueTitle": "{n} faktura forfaldet",
+      "overdueTitle_p": "{n} fakturaer forfaldet",
+      "overdueBody": "{vendors} — i alt {amount}. Handling kræves straks.",
+      "dueTitle": "{n} faktura forfalder inden for 7 dage",
+      "dueTitle_p": "{n} fakturaer forfalder inden for 7 dage",
+      "dueBody": "{vendors} — i alt {amount}. Planlæg betaling snart.",
+      "disputedTitle": "{n} faktura under tvist",
+      "disputedTitle_p": "{n} fakturaer under tvist",
+      "disputedBody": "{vendors} — afventer leverandørløsning. Betal ikke før løst."
+    },
+    "aging": {
+      "title": "Aldersfordeling forfalden",
+      "bucket30": "1–30 dage",
+      "bucket60": "31–60 dage",
+      "bucket61": "61+ dage"
+    },
+    "spend": {
+      "title": "Forbrug pr. leverandør",
+      "hide": "▲ Skjul",
+      "show": "▼ Vis"
+    },
+    "creditNoteList": {
+      "empty": "Ingen kreditnotaer modtaget endnu",
+      "emptyHint": "Kreditnotaer ankommer automatisk, når leverandører sender dem via e-mail",
+      "totalCredit": "Total tilgængelig kredit"
+    },
+    "cols": {
+      "systemRef": "System Ref #",
+      "supplierInvoice": "Leverandørfaktura #",
+      "po": "IO #",
+      "vendor": "Leverandør",
+      "invoiceDate": "Fakturadato",
+      "dueDate": "Forfaldsdato",
+      "amount": "Beløb",
+      "status": "Status"
+    },
+    "cnCols": {
+      "systemRef": "System Ref #",
+      "supplierCredit": "Leverandørkreditnota #",
+      "vendor": "Leverandør",
+      "linkedInvoice": "Tilknyttet faktura",
+      "creditDate": "Kreditdato",
+      "creditAmount": "Kreditbeløb",
+      "remaining": "Resterende",
+      "status": "Status",
+      "reason": "Årsag"
+    },
+    "cnStatus": {
+      "unmatched": "Umatched",
+      "pending": "Afventer",
+      "partiallyApplied": "Delvist anvendt",
+      "applied": "Anvendt"
+    },
+    "filter": {
+      "label": "Filter",
+      "vendor": "Leverandør",
+      "date": "Fakturadato",
+      "clearAll": "Ryd alle",
+      "allVendors": "Alle leverandører"
+    },
+    "empty": "Ingen indkøbsfakturaer endnu",
+    "emptyHint": "Importer fra Excel eller opret en faktura manuelt",
+    "noMatch": "Ingen fakturaer matcher dit filter",
+    "tfoot": {
+      "netTotal": "Netto i alt (ekskl. moms)",
+      "vatTotal": "Moms i alt",
+      "grossTotal": "Brutto i alt"
+    },
+    "bulk": {
+      "selected": "{n} valgt",
+      "markPaid": "Markér som betalt",
+      "export": "Eksporter"
+    },
+    "detail": {
+      "header": "Indkøbsfaktura",
+      "poFullyReceived": "IO fuldt modtaget",
+      "invoiceDate": "Fakturadato",
+      "dueDate": "Forfaldsdato",
+      "linkedPO": "Tilknyttet IO",
+      "supplierInv": "Leverandørfaktura #",
+      "creditBannerTitle": "Kredit tilgængelig fra {vendor}",
+      "creditBannerBody": "{n} kreditnota · SEK {amount} tilgængelig.",
+      "creditBannerBody_p": "{n} kreditnotaer · SEK {amount} tilgængelig.",
+      "applyCredit": "Anvend kredit",
+      "creditApplied": "Anvendt kredit:",
+      "netPayable": "Netto at betale:",
+      "lineItems": "Linjeartikler",
+      "loading": "Indlæser artikler…",
+      "noItems": "Ingen linjeartikler udtrukket fra denne faktura-PDF.",
+      "colDesc": "Beskrivelse",
+      "colArt": "Art.nr",
+      "colQty": "Antal",
+      "colGrossPrice": "Bruttopris",
+      "colDisc": "Rabat %",
+      "colNetPrice": "Nettopris",
+      "colVAT": "Moms 25%",
+      "colTotal": "Linjetotal",
+      "totalInclVAT": "I alt (inkl. moms)",
+      "notes": "Noter",
+      "viewPdf": "Vis PDF",
+      "sendApproval": "Send til godkendelse",
+      "approve": "Godkend",
+      "markPaid": "Markér som betalt",
+      "dispute": "Bestrid",
+      "edit": "Rediger",
+      "close": "Luk"
+    },
+    "form": {
+      "createTitle": "Opret ny faktura",
+      "editTitle": "Rediger faktura",
+      "systemRefHint": "System Ref # vil blive:",
+      "poLink": "Link til indkøbsordre (valgfrit)",
+      "noPO": "— Ingen IO tilknyttet —",
+      "poHint": "Vælg IO for at autoudfylde leverandør og beløb",
+      "supplierInv": "Leverandørfaktura #",
+      "vendor": "Leverandør",
+      "invoiceDate": "Fakturadato",
+      "dueDate": "Forfaldsdato",
+      "gross": "Bruttobeløb (SEK)",
+      "vatRate": "Momssats",
+      "status": "Status",
+      "notes": "Noter",
+      "cancel": "Annuller",
+      "save": "Gem ændringer",
+      "create": "Opret faktura",
+      "netExVat": "Netto (ekskl. moms)",
+      "vatPct": "Moms",
+      "grossTotal": "Brutto i alt"
+    },
+    "cnForm": {
+      "title": "Tilføj kreditnota",
+      "vendor": "Leverandør",
+      "supplierCredit": "Leverandørkreditnota #",
+      "creditDate": "Kreditdato",
+      "linkInvoice": "Link til faktura",
+      "noInvoiceLinked": "— Ingen faktura tilknyttet —",
+      "creditAmount": "Kreditbeløb (SEK)",
+      "reason": "Årsag",
+      "cancel": "Annuller",
+      "save": "Gem kreditnota"
+    },
+    "applyCredit": {
+      "title": "Anvend kreditnota",
+      "invoiceAmount": "Fakturabeløb",
+      "alreadyCredited": "Allerede krediteret",
+      "netPayable": "Netto at betale",
+      "selectCredit": "Vælg kreditnota at anvende",
+      "available": "Tilgængeligt:",
+      "amountToApply": "Beløb at anvende",
+      "leaveBlank": "(lad tomt for at anvende fuld kredit)",
+      "afterApplying": "Efter anvendelse:",
+      "creditApplied": "Anvendt kredit",
+      "newNetPayable": "Nyt netto at betale",
+      "fullySled": "✓ Fuldt afgjort",
+      "cancel": "Annuller",
+      "apply": "Anvend kredit"
+    },
+    "dispute": {
+      "title": "Bestrid faktura",
+      "reason": "Årsag til tvist",
+      "cancel": "Annuller",
+      "submit": "Markér som bestridt"
+    },
+    "download": {
+      "excelLabel": "Excel (.xlsx)",
+      "excelHint": "Regnearkformat",
+      "pdfLabel": "PDF",
+      "pdfHint": "Udskriftsklart format",
+      "currentView": "{n} faktura (aktuel visning)",
+      "currentView_p": "{n} fakturaer (aktuel visning)"
+    },
+    "newBtn": "Ny faktura"
   },
   "purchaseOrders": {
     "title": "Indkøbsordrer",
@@ -2491,37 +2777,110 @@
     "avgPipeline": "Gns. pipeline"
   },
   "purchase": {
-    "title": "Indkøbsordrer",
-    "subtitle": "Klik på en række for at åbne hele PO. Auto-PO opdateres live med lagerstatus.",
-    "breadcrumb": "Indkøbsordrer",
-    "search": "Søg PO, leverandør, vare...",
-    "importBtn": "Importer Excel",
-    "createBtn": "Opret PO",
-    "importFromExcel": "Importer fra Excel",
-    "allGoodBanner": "Alle {n} lagervarer er over deres genbestillingspunkter — ingen PO behøves nu.",
-    "autoPOBanner": "{n} auto-genereret{s} PO fra lavt lager",
-    "autoPOHide": "▲ skjul",
-    "autoPOShow": "▼ vis",
-    "autoPODesc": "Disse PO er auto-genererede og opdateres live, når lagerstatussen ændres.",
-    "empty": "Ingen indkøbsordrer endnu",
-    "emptyHint": "Importer fra Excel eller opret en PO manuelt",
-    "noMatch": "Ingen indkøbsordrer matcher dit filter",
-    "tabAll": "Alle",
-    "statusDraft": "Kladde",
-    "statusReviewed": "Gennemgået",
-    "statusSent": "Sendt",
-    "statusReceived": "Modtaget",
-    "cardTotal": "I alt PO",
-    "cardDraft": "Kladde",
-    "cardSent": "Sendte",
-    "cardValue": "Vist værdi",
-    "colPO": "PO-nummer",
-    "colVendor": "Leverandør",
-    "colDate": "Dato",
-    "colItems": "Varer",
-    "colCost": "Samlet kostnad",
-    "colETA": "Forventet ankomst",
-    "colStatus": "Status"
+    "page": {
+      "title": "Indkøb",
+      "description": "Lav beholdning → Opret IO → systemet tildeler Ref-nr. → brug Ref-nr. på leverandørportalen."
+    },
+    "topbar": {
+      "title": "Indkøbsordrer",
+      "searchPlaceholder": "Søg IO, leverandør, vare..."
+    },
+    "buttons": {
+      "dailyActions": "📋 Daglige handlinger",
+      "importExcel": "⬆ Importer Excel",
+      "createPo": "+ Opret IO",
+      "importFromExcel": "⬆ Importer fra Excel"
+    },
+    "filter": {
+      "label": "Filtrer leverandør:",
+      "allSuppliers": "Alle leverandører"
+    },
+    "status": {
+      "draft": "Kladde",
+      "reviewed": "Gennemgået",
+      "sent": "Sendt",
+      "received": "Modtaget",
+      "partial": "Delvis",
+      "followUp": "⚠ Opfølgning — {days}d"
+    },
+    "approval": {
+      "pendingApproval": "🔐 Afventer godkendelse",
+      "approved": "✓ Godkendt",
+      "rejected": "✗ Afvist"
+    },
+    "summary": {
+      "totalPos": "Antal IO",
+      "draft": "Kladde",
+      "sent": "Sendt",
+      "displayedValue": "Vist værdi",
+      "tips": {
+        "totalPos": "Alle indkøbsordrer oprettet for din forhandler, på tværs af alle statusser.",
+        "draft": "IO oprettet men endnu ikke gennemgået eller sendt til leverandør.",
+        "sent": "IO sendt til leverandøren, afventer levering eller bekræftelse.",
+        "displayedValue": "Samlet kostnad for IO synlig i tabellen nedenfor — opdateres når du skifter statusfane eller leverandørfilter."
+      }
+    },
+    "metrics": {
+      "openPoValue": "Åben IO-værdi",
+      "openPoInProgress": "{count, plural, one {# IO igangværende} other {# IO igangværende}}",
+      "thisMonthSpend": "Månedens forbrug",
+      "posReceived": "{count, plural, one {# IO modtaget} other {# IO modtaget}}",
+      "outstandingClaims": "Udestående reklamationer",
+      "claimsOpen": "{count, plural, one {# reklamation åben} other {# reklamationer åbne}}",
+      "tips": {
+        "openPoValue": "Samlet kostnad for alle udestående IO — Kladde, Gennemgået, Sendt og Delvis. Dette er dit nuværende finansielle tilsagn over for leverandører.",
+        "thisMonthSpend": "Samlet kostnad for IO markeret som Modtaget i den aktuelle kalendermåned.",
+        "outstandingClaims": "Samlet værdi af uløste leverandørreklamationer — beskadigede varer, underleverancer eller forkerte varer — der stadig er åbne eller indsendte."
+      }
+    },
+    "tabs": {
+      "all": "Alle",
+      "tips": {
+        "all": "Vis alle indkøbsordrer uanset status.",
+        "draft": "IO oprettet men endnu ikke gennemgået eller sendt til leverandør.",
+        "reviewed": "IO internt gennemgået og klar til at blive placeret hos leverandøren.",
+        "sent": "IO sendt til leverandøren, afventer levering eller bekræftelse.",
+        "received": "IO hvor alle bestilte varer er fuldt modtaget på lageret."
+      }
+    },
+    "cols": {
+      "poNumber": "IO-nummer",
+      "refNo": "Ref-nr.",
+      "vendor": "Leverandør",
+      "date": "Dato",
+      "items": "Varer",
+      "totalCost": "Samlet kostnad",
+      "eta": "Forv. ankomst",
+      "status": "Status"
+    },
+    "scorecard": {
+      "title": "Leverandørperformance",
+      "period": "— seneste 365 dage",
+      "hide": "▲ Skjul",
+      "show": "▼ Vis",
+      "loading": "Indlæser…",
+      "noData": "Ingen data endnu — statistik vises når IO når status Sendt/Modtaget.",
+      "cols": {
+        "supplier": "Leverandør",
+        "pos": "IO",
+        "onTime": "Til tiden %",
+        "backorder": "Restordre %",
+        "damage": "Skader %",
+        "leadTime": "Gns. leveringstid"
+      }
+    },
+    "lowStock": {
+      "alert": "{count, plural, one {# vare under genbestillingsniveau} other {# varer under genbestillingsniveau}}",
+      "hint": "— klik for at se og oprette IO",
+      "viewButton": "Se lavt lager →"
+    },
+    "empty": {
+      "title": "Ingen indkøbsordrer endnu",
+      "description": "Importer fra Excel eller opret en IO manuelt",
+      "importButton": "⬆ Importer fra Excel",
+      "filtered": "Ingen indkøbsordrer matcher dit filter"
+    },
+    "items": "{count, plural, one {# vare} other {# varer}}"
   },
   "documents": {
     "breadcrumb": "Arkiv",

@@ -183,6 +183,7 @@ export function ImportInvoiceModal({
                 invoice_date:            p.invoiceDate,
                 due_date:                p.dueDate || null,
                 amount:                  p.amount,
+                vat_rate:                25,
                 status:                  p.status,
                 notes:                   p.notes ?? null,
             })
@@ -198,6 +199,7 @@ export function ImportInvoiceModal({
                     invoiceDate:           p.invoiceDate,
                     dueDate:               p.dueDate,
                     amount:                p.amount,
+                    vatRate:               25,
                     status:                p.status,
                     notes:                 p.notes,
                 })

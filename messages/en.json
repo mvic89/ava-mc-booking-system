@@ -207,6 +207,7 @@
     "goodsReceipts": "Goods Receipts",
     "suppliers": "Suppliers",
     "purchaseinvoices": "Purchase Invoices",
+    "dailyActions": "Daily Actions",
     "salesPipeline": "Sales Pipeline",
     "pipeline": "Pipeline",
     "counterSale": "Counter Sale",
@@ -1287,14 +1288,28 @@
     "tabs": {
       "motorcycles": "Motorcycles",
       "spareParts": "Spare Parts",
-      "accessories": "Accessories"
+      "accessories": "Accessories",
+      "lowStock": "Low Stock"
     },
     "search": "Search inventory...",
+    "lowStockBadge": "{n} Low Stock",
+    "importBtn": "Import",
+    "downloadBtn": "Download",
+    "addBtn": "+ Add Item",
+    "filtersBtn": "Filters",
+    "clearAll": "Clear all",
+    "items": "items",
+    "listed": "Listed",
+    "unlisted": "Unlisted",
+    "listTitle": "Click to list on website",
+    "unlistTitle": "Click to unlist from website",
+    "decreaseStock": "Decrease stock",
+    "increaseStock": "Increase stock",
     "stats": {
       "totalSkus": "Total SKUs",
       "unitsInStock": "Units in Stock",
       "lowStock": "Low Stock Alerts",
-      "stockValue": "Stock Value"
+      "stockValue": "Stock Value (Sell)"
     },
     "table": {
       "id": "ID",
@@ -1306,60 +1321,142 @@
       "color": "Color",
       "mcType": "MC Type",
       "warehouse": "Warehouse",
+      "location": "Location",
       "stock": "Stock",
-      "reorderQty": "Reorder Qty",
+      "reorder": "Reorder",
       "cost": "Cost",
       "sellPrice": "Sell Price",
       "margin": "Margin",
-      "vendor": "Vendor"
+      "vendor": "Vendor",
+      "website": "Website",
+      "category": "Category",
+      "subType": "Sub-type",
+      "type": "Type",
+      "style": "Style",
+      "colour": "Colour",
+      "size": "Size"
+    },
+    "filter": {
+      "website": "Website",
+      "brand": "Brand",
+      "stockStatus": "Stock Status",
+      "priceMin": "Price min (SEK)",
+      "priceMax": "Price max (SEK)",
+      "mcType": "MC Type",
+      "warehouse": "Warehouse",
+      "colour": "Colour",
+      "category": "Category",
+      "type": "Type",
+      "size": "Size",
+      "allProducts": "All products",
+      "listedOnly": "Listed only",
+      "unlistedOnly": "Unlisted only",
+      "allBrands": "All brands",
+      "all": "All",
+      "inStock": "In stock",
+      "lowStock": "Low stock",
+      "outOfStock": "Out of stock",
+      "allTypes": "All types",
+      "allWarehouses": "All warehouses",
+      "allCategories": "All categories",
+      "allSizes": "All sizes"
     },
     "empty": "No inventory yet",
     "noMatch": "No items match your search",
     "hint": "Hover any row to adjust stock",
     "import": "Import from Excel or add items one by one",
+    "importBtn2": "⬆ Import from Excel",
     "export": {
       "pdf": "PDF",
       "excel": "Excel (.xlsx)",
-      "spreadsheet": "Spreadsheet",
+      "spreadsheet": "Spreadsheet format",
       "print": "Print-ready"
+    },
+    "download": {
+      "excelLabel": "Excel (.xlsx)",
+      "excelHint": "Spreadsheet format",
+      "pdfLabel": "PDF",
+      "pdfHint": "Print-ready"
     }
   },
   "goodsReceipts": {
     "title": "Goods Receipts",
     "breadcrumb": "Goods Receipts",
     "subtitle": "Record items received — stock updates automatically",
+    "newReceipt": "New Receipt",
+    "search": "Search by receipt ID, vendor, PO...",
     "stats": {
       "total": "Total Receipts",
+      "totalTip": "Total goods receipt notes created for your dealership.",
       "units": "Units Received",
-      "items": "Items Received",
-      "pending": "Pending Approval"
+      "unitsTip": "Total number of units physically received across all receipts.",
+      "pending": "Pending Approval",
+      "pendingTip": "Receipts submitted but not yet approved or rejected."
     },
-    "table": {
+    "source": {
+      "auto": "⚡ Auto",
+      "manual": "✏️ Manual"
+    },
+    "statusBadge": {
+      "approved": "✓ Approved",
+      "rejected": "✕ Rejected",
+      "pending": "⏳ Pending Approval"
+    },
+    "cols": {
       "receiptId": "Receipt ID",
+      "vendor": "Vendor",
       "po": "PO #",
       "deliveryNote": "Delivery Note",
+      "receivedDate": "Received Date",
+      "lines": "Lines",
+      "units": "Units",
+      "source": "Source",
+      "status": "Status"
+    },
+    "detail": {
+      "prefix": "Goods Receipt ·",
+      "awaitingApproval": "Awaiting Admin Approval",
+      "approvalNote": "Stock will not update until you approve this delivery.",
+      "reject": "Reject",
+      "approve": "Approve & Update Stock",
+      "poFullyReceived": "PO already fully received",
+      "relinkPo": "Re-link to PO",
+      "selectPoPrompt": "Select an open PO to link this delivery to:",
+      "noOpenPos": "No open POs found for this vendor.",
+      "cancel": "Cancel",
+      "confirmLink": "Confirm Link",
+      "linking": "Linking…",
+      "poIncomplete": "PO Incomplete — awaiting backorder",
+      "receivedDate": "Received Date",
+      "itemsReceived": "Items Received",
+      "matchedToStock": "Matched to Stock",
+      "damaged": "Damaged",
+      "deliveryNoteLabel": "Delivery Note #:",
       "item": "Item",
       "artNo": "Art #",
-      "lineItems": "Line Items",
       "ordered": "Ordered",
       "received": "Received",
-      "status": "Status",
-      "source": "Source",
-      "notes": "Notes"
+      "backorder": "Backorder",
+      "stock": "Stock",
+      "damagedBadge": "{n} damaged",
+      "pendingBadge": "{n} pending",
+      "backordered": "⏳ Backordered",
+      "matched": "✓ Matched",
+      "unmatched": "? Unmatched",
+      "viewPdf": "📄 View PDF",
+      "close": "Close",
+      "notes": "Notes",
+      "backorderBanner": "Some items have backorders — supplier will deliver outstanding quantities later."
     },
-    "newReceipt": "New Receipt",
-    "search": "Search receipts...",
     "empty": "No goods receipts yet",
-    "noMatch": "No receipts match your search",
+    "emptyHint": "Create a manual entry or wait for an incoming delivery email",
+    "noMatch": "No results match your search",
+    "noMatchHint": "Try a different search term",
     "approve": "Approve",
     "pending": "Pending",
     "approved": "Approved",
     "rejected": "Rejected",
-    "backorder": "Backorder",
-    "linkPo": "Link to PO # (optional)",
-    "deliveryNoteLabel": "Delivery Note # (optional)",
-    "receivedBy": "Received By",
-    "noOpenPos": "No open POs found"
+    "backorder": "Backordered"
   },
   "accounting": {
     "title": "Accounting",
@@ -1396,16 +1493,18 @@
     "title": "Suppliers",
     "breadcrumb": "Suppliers",
     "subtitle": "Click any row to view or edit supplier details.",
-    "addBtn": "Add Supplier",
-    "importBtn": "Import Excel",
-    "search": "Search suppliers...",
-    "empty": "No suppliers yet",
-    "noMatch": "No suppliers match your search",
+    "addBtn": "+ Add Supplier",
+    "importBtn": "⬆ Import Excel",
+    "search": "Search supplier, category...",
     "stats": {
       "total": "Total Suppliers",
+      "totalTip": "Total number of active suppliers in your dealership.",
       "withContact": "With Contact Details",
+      "withContactTip": "Suppliers that have an email or phone number on file.",
       "lowStock": "Low Stock Alerts",
-      "totalSkus": "Total SKUs Supplied"
+      "lowStockTip": "Suppliers with items currently below reorder level.",
+      "totalSkus": "Total SKUs Supplied",
+      "totalSkusTip": "Total number of unique product lines across all suppliers."
     },
     "cols": {
       "no": "Supplier No.",
@@ -1417,36 +1516,223 @@
       "categories": "Categories",
       "status": "Stock Status"
     },
+    "stock": {
+      "noInventory": "No inventory",
+      "lowStock": "{n} low stock",
+      "allStocked": "All stocked"
+    },
     "poModal": {
       "title": "Purchase Orders",
-      "noPo": "No purchase orders for this supplier"
-    }
+      "found": "{n} PO{s} found",
+      "noPo": "No purchase orders for this supplier",
+      "close": "Close"
+    },
+    "empty": "No suppliers yet",
+    "noMatch": "No suppliers match your search"
   },
   "purchaseInvoices": {
     "title": "Purchase Invoices",
+    "topbar": "Purchase Invoices",
     "breadcrumb": "Purchase Invoices",
     "subtitle": "Track and manage invoices received from suppliers",
-    "newBtn": "New Invoice",
     "search": "Search PO, vendor, invoice #...",
-    "empty": "No purchase invoices yet",
-    "noMatch": "No invoices match your filter",
-    "cols": {
-      "supplierInvoice": "Supplier Invoice #",
-      "systemRef": "System Ref #",
-      "po": "PO (optional)",
-      "amount": "Amount",
-      "invoiceDate": "Invoice Date",
-      "dueDate": "Due Date",
-      "vendor": "Vendor",
-      "status": "Status",
-      "notes": "Notes"
+    "importBtn": "Import Excel",
+    "downloadBtn": "Download",
+    "addInvoiceBtn": "Create New Invoice",
+    "addCreditNoteBtn": "Add Credit Note",
+    "viewMode": {
+      "invoices": "Invoices",
+      "creditNotes": "Credit Notes"
     },
     "status": {
+      "all": "All",
       "pending": "Pending",
+      "awaitingApproval": "Awaiting Approval",
       "paid": "Paid",
       "overdue": "Overdue",
       "disputed": "Disputed"
-    }
+    },
+    "statusTip": {
+      "all": "Show all invoices regardless of status.",
+      "pending": "Invoices received but not yet actioned.",
+      "awaitingApproval": "Invoices submitted for internal approval.",
+      "paid": "Invoices that have been fully paid.",
+      "overdue": "Invoices past their due date that remain unpaid.",
+      "disputed": "Invoices with a raised dispute or discrepancy."
+    },
+    "alert": {
+      "overdueTitle": "{n} invoice overdue",
+      "overdueTitle_p": "{n} invoices overdue",
+      "overdueBody": "{vendors} — total {amount}. Action required immediately.",
+      "dueTitle": "{n} invoice due within 7 days",
+      "dueTitle_p": "{n} invoices due within 7 days",
+      "dueBody": "{vendors} — total {amount}. Schedule payment soon.",
+      "disputedTitle": "{n} invoice under dispute",
+      "disputedTitle_p": "{n} invoices under dispute",
+      "disputedBody": "{vendors} — awaiting supplier resolution. Do not pay until resolved."
+    },
+    "aging": {
+      "title": "Overdue Aging Report",
+      "bucket30": "1–30 days",
+      "bucket60": "31–60 days",
+      "bucket61": "61+ days"
+    },
+    "spend": {
+      "title": "Spend by Supplier",
+      "hide": "▲ Hide",
+      "show": "▼ Show"
+    },
+    "creditNoteList": {
+      "empty": "No credit notes received yet",
+      "emptyHint": "Credit notes arrive automatically when suppliers send them by email",
+      "totalCredit": "Total credit available"
+    },
+    "cols": {
+      "systemRef": "System Ref #",
+      "supplierInvoice": "Supplier Invoice #",
+      "po": "PO #",
+      "vendor": "Vendor",
+      "invoiceDate": "Invoice Date",
+      "dueDate": "Due Date",
+      "amount": "Amount",
+      "status": "Status"
+    },
+    "cnCols": {
+      "systemRef": "System Ref #",
+      "supplierCredit": "Supplier Credit #",
+      "vendor": "Vendor",
+      "linkedInvoice": "Linked Invoice",
+      "creditDate": "Credit Date",
+      "creditAmount": "Credit Amount",
+      "remaining": "Remaining",
+      "status": "Status",
+      "reason": "Reason"
+    },
+    "cnStatus": {
+      "unmatched": "Unmatched",
+      "pending": "Pending",
+      "partiallyApplied": "Partially Applied",
+      "applied": "Applied"
+    },
+    "filter": {
+      "label": "Filter",
+      "vendor": "Vendor",
+      "date": "Invoice Date",
+      "clearAll": "Clear all",
+      "allVendors": "All Vendors"
+    },
+    "empty": "No purchase invoices yet",
+    "emptyHint": "Import from Excel or create an invoice manually",
+    "noMatch": "No invoices match your filter",
+    "tfoot": {
+      "netTotal": "Net Total (ex-VAT)",
+      "vatTotal": "VAT Total",
+      "grossTotal": "Gross Total"
+    },
+    "bulk": {
+      "selected": "{n} selected",
+      "markPaid": "Mark as Paid",
+      "export": "Export"
+    },
+    "detail": {
+      "header": "Purchase Invoice",
+      "poFullyReceived": "PO Fully Received",
+      "invoiceDate": "Invoice Date",
+      "dueDate": "Due Date",
+      "linkedPO": "Linked PO",
+      "supplierInv": "Supplier Inv #",
+      "creditBannerTitle": "Credit available from {vendor}",
+      "creditBannerBody": "{n} credit note · SEK {amount} available. Apply to reduce what you owe.",
+      "creditBannerBody_p": "{n} credit notes · SEK {amount} available. Apply to reduce what you owe.",
+      "applyCredit": "Apply Credit",
+      "creditApplied": "Credit applied:",
+      "netPayable": "Net payable:",
+      "lineItems": "Line Items",
+      "loading": "Loading items…",
+      "noItems": "No line items extracted from this invoice PDF.",
+      "colDesc": "Description",
+      "colArt": "Art #",
+      "colQty": "Qty",
+      "colGrossPrice": "Gross Price",
+      "colDisc": "Disc %",
+      "colNetPrice": "Net Price",
+      "colVAT": "VAT 25%",
+      "colTotal": "Line Total",
+      "totalInclVAT": "Total (incl. VAT)",
+      "notes": "Notes",
+      "viewPdf": "View PDF",
+      "sendApproval": "Send for Approval",
+      "approve": "Approve",
+      "markPaid": "Mark as Paid",
+      "dispute": "Dispute",
+      "edit": "Edit",
+      "close": "Close"
+    },
+    "form": {
+      "createTitle": "Create New Invoice",
+      "editTitle": "Edit Invoice",
+      "systemRefHint": "System Ref # will be:",
+      "poLink": "Link to Purchase Order (optional)",
+      "noPO": "— No PO linked —",
+      "poHint": "Selecting a PO auto-fills vendor and amount",
+      "supplierInv": "Supplier Invoice #",
+      "vendor": "Vendor",
+      "invoiceDate": "Invoice Date",
+      "dueDate": "Due Date",
+      "gross": "Gross Amount (SEK)",
+      "vatRate": "VAT Rate",
+      "status": "Status",
+      "notes": "Notes",
+      "cancel": "Cancel",
+      "save": "Save Changes",
+      "create": "Create Invoice",
+      "netExVat": "Net (ex-VAT)",
+      "vatPct": "VAT",
+      "grossTotal": "Gross Total"
+    },
+    "cnForm": {
+      "title": "Add Credit Note",
+      "vendor": "Vendor",
+      "supplierCredit": "Supplier Credit #",
+      "creditDate": "Credit Date",
+      "linkInvoice": "Link to Invoice",
+      "noInvoiceLinked": "— No invoice linked —",
+      "creditAmount": "Credit Amount (SEK)",
+      "reason": "Reason",
+      "cancel": "Cancel",
+      "save": "Save Credit Note"
+    },
+    "applyCredit": {
+      "title": "Apply Credit Note",
+      "invoiceAmount": "Invoice Amount",
+      "alreadyCredited": "Already Credited",
+      "netPayable": "Net Payable",
+      "selectCredit": "Select credit note to apply",
+      "available": "Available:",
+      "amountToApply": "Amount to apply",
+      "leaveBlank": "(leave blank to apply full available credit)",
+      "afterApplying": "After applying this credit:",
+      "creditApplied": "Credit applied",
+      "newNetPayable": "New net payable",
+      "fullySled": "✓ Fully settled",
+      "cancel": "Cancel",
+      "apply": "Apply Credit"
+    },
+    "dispute": {
+      "title": "Raise Dispute",
+      "reason": "Reason for dispute",
+      "cancel": "Cancel",
+      "submit": "Mark as Disputed"
+    },
+    "download": {
+      "excelLabel": "Excel (.xlsx)",
+      "excelHint": "Spreadsheet format",
+      "pdfLabel": "PDF",
+      "pdfHint": "Print-ready format",
+      "currentView": "{n} invoice (current view)",
+      "currentView_p": "{n} invoices (current view)"
+    },
+    "newBtn": "New Invoice"
   },
   "purchaseOrders": {
     "title": "Purchase Orders",
@@ -2492,37 +2778,110 @@
     "avgPipeline": "Avg Pipeline"
   },
   "purchase": {
-    "title": "Purchase Orders",
-    "subtitle": "Click any row to open the full PO. Auto POs update live with inventory stock.",
-    "breadcrumb": "Purchase Orders",
-    "search": "Search PO, vendor, item...",
-    "importBtn": "Import Excel",
-    "createBtn": "Create PO",
-    "importFromExcel": "Import from Excel",
-    "allGoodBanner": "All {n} inventory items are above their reorder points — no POs needed right now.",
-    "autoPOBanner": "{n} auto-generated PO{s} from low-stock inventory",
-    "autoPOHide": "▲ hide",
-    "autoPOShow": "▼ show",
-    "autoPODesc": "These POs are auto-generated and update live when inventory stock changes.",
-    "empty": "No purchase orders yet",
-    "emptyHint": "Import from Excel or create a PO manually",
-    "noMatch": "No purchase orders match your filter",
-    "tabAll": "All",
-    "statusDraft": "Draft",
-    "statusReviewed": "Reviewed",
-    "statusSent": "Sent",
-    "statusReceived": "Received",
-    "cardTotal": "Total POs",
-    "cardDraft": "Draft",
-    "cardSent": "Sent",
-    "cardValue": "Displayed Value",
-    "colPO": "PO Number",
-    "colVendor": "Vendor",
-    "colDate": "Date",
-    "colItems": "Items",
-    "colCost": "Total Cost",
-    "colETA": "ETA",
-    "colStatus": "Status"
+    "page": {
+      "title": "Procurement",
+      "description": "Low stock alert → Create PO → system assigns Ref No. → use Ref No. on supplier portal."
+    },
+    "topbar": {
+      "title": "Purchase Orders",
+      "searchPlaceholder": "Search PO, vendor, item..."
+    },
+    "buttons": {
+      "dailyActions": "📋 Daily Actions",
+      "importExcel": "⬆ Import Excel",
+      "createPo": "+ Create PO",
+      "importFromExcel": "⬆ Import from Excel"
+    },
+    "filter": {
+      "label": "Filter supplier:",
+      "allSuppliers": "All suppliers"
+    },
+    "status": {
+      "draft": "Draft",
+      "reviewed": "Reviewed",
+      "sent": "Sent",
+      "received": "Received",
+      "partial": "Partial",
+      "followUp": "⚠ Follow up — {days}d"
+    },
+    "approval": {
+      "pendingApproval": "🔐 Pending Approval",
+      "approved": "✓ Approved",
+      "rejected": "✗ Rejected"
+    },
+    "summary": {
+      "totalPos": "Total POs",
+      "draft": "Draft",
+      "sent": "Sent",
+      "displayedValue": "Displayed Value",
+      "tips": {
+        "totalPos": "All purchase orders ever created for your dealership, across every status.",
+        "draft": "POs created but not yet reviewed or sent to a supplier.",
+        "sent": "POs sent to the supplier and currently awaiting delivery or confirmation.",
+        "displayedValue": "Total cost of POs visible in the table below — updates when you change the status tab or supplier filter."
+      }
+    },
+    "metrics": {
+      "openPoValue": "Open PO Value",
+      "openPoInProgress": "{count, plural, one {# PO in progress} other {# POs in progress}}",
+      "thisMonthSpend": "This Month's Spend",
+      "posReceived": "{count, plural, one {# PO received} other {# POs received}}",
+      "outstandingClaims": "Outstanding Claims",
+      "claimsOpen": "{count, plural, one {# claim open} other {# claims open}}",
+      "tips": {
+        "openPoValue": "Total cost of all outstanding POs — Draft, Reviewed, Sent, and Partial. This is your current financial commitment to suppliers.",
+        "thisMonthSpend": "Total cost of POs marked as Received in the current calendar month.",
+        "outstandingClaims": "Total value of unresolved supplier claims — damaged goods, short deliveries, or wrong items — that are still open or submitted."
+      }
+    },
+    "tabs": {
+      "all": "All",
+      "tips": {
+        "all": "Show all purchase orders regardless of status.",
+        "draft": "POs created but not yet reviewed or sent to a supplier.",
+        "reviewed": "POs reviewed internally and ready to be placed with the supplier.",
+        "sent": "POs sent to the supplier, awaiting delivery or confirmation.",
+        "received": "POs where all ordered goods have been fully received into inventory."
+      }
+    },
+    "cols": {
+      "poNumber": "PO Number",
+      "refNo": "Ref No.",
+      "vendor": "Vendor",
+      "date": "Date",
+      "items": "Items",
+      "totalCost": "Total Cost",
+      "eta": "ETA",
+      "status": "Status"
+    },
+    "scorecard": {
+      "title": "Supplier Performance",
+      "period": "— last 365 days",
+      "hide": "▲ Hide",
+      "show": "▼ Show",
+      "loading": "Loading…",
+      "noData": "No data yet — metrics appear once POs reach Sent / Received status.",
+      "cols": {
+        "supplier": "Supplier",
+        "pos": "POs",
+        "onTime": "On-Time %",
+        "backorder": "Backorder %",
+        "damage": "Damage %",
+        "leadTime": "Avg Lead Time"
+      }
+    },
+    "lowStock": {
+      "alert": "{count, plural, one {# item below reorder level} other {# items below reorder level}}",
+      "hint": "— click to view and create POs",
+      "viewButton": "View Low Stock →"
+    },
+    "empty": {
+      "title": "No purchase orders yet",
+      "description": "Import from Excel or create a PO manually",
+      "importButton": "⬆ Import from Excel",
+      "filtered": "No purchase orders match your filter"
+    },
+    "items": "{count, plural, one {# item} other {# items}}"
   },
   "documents": {
     "breadcrumb": "Archive",

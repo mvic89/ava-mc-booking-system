@@ -10,6 +10,7 @@ import Sidebar from '@/components/Sidebar';
 import CustomerImportModal from '@/components/CustomerImportModal';
 import { getCustomers, deleteCustomers, type Customer, type Tag } from '@/lib/customers';
 import { useAutoRefresh } from '@/lib/realtime';
+import { Tip } from '@/components/Tip';
 
 type Tab = 'all' | 'active' | 'vip' | 'bankid' | 'inactive';
 
@@ -254,22 +255,29 @@ export default function CustomersPage() {
             {/* Tabs */}
             <div className="flex items-center border-b border-slate-100 px-2">
               {TABS.map(tabItem => (
-                <button
-                  key={tabItem.id}
-                  onClick={() => { setTab(tabItem.id); setSelected(new Set()); }}
-                  className={`px-4 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                    tab === tabItem.id
-                      ? 'border-[#FF6B2C] text-[#FF6B2C]'
-                      : 'border-transparent text-slate-500 hover:text-slate-700'
-                  }`}
-                >
-                  {tabItem.label}
-                  <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full font-bold ${
-                    tab === tabItem.id ? 'bg-[#FF6B2C]/10 text-[#FF6B2C]' : 'bg-slate-100 text-slate-500'
-                  }`}>
-                    {tabItem.count}
-                  </span>
-                </button>
+                <Tip key={tabItem.id} text={
+                  tabItem.id === 'all'      ? 'Show all customers in the system.' :
+                  tabItem.id === 'active'   ? 'Show only active and VIP customers.' :
+                  tabItem.id === 'vip'      ? 'Show only top-tier VIP customers.' :
+                  tabItem.id === 'bankid'   ? 'Show customers verified with BankID.' :
+                                             'Show inactive customers with no recent activity.'
+                }>
+                  <button
+                    onClick={() => { setTab(tabItem.id); setSelected(new Set()); }}
+                    className={`px-4 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                      tab === tabItem.id
+                        ? 'border-[#FF6B2C] text-[#FF6B2C]'
+                        : 'border-transparent text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    {tabItem.label}
+                    <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full font-bold ${
+                      tab === tabItem.id ? 'bg-[#FF6B2C]/10 text-[#FF6B2C]' : 'bg-slate-100 text-slate-500'
+                    }`}>
+                      {tabItem.count}
+                    </span>
+                  </button>
+                </Tip>
               ))}
             </div>
 
