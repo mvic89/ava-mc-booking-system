@@ -244,7 +244,8 @@
     "serviceVehicles": "Vehicle History",
     "serviceComms": "Communications",
     "scheduling": "Tech Calendar",
-    "serviceReminders": "Service Reminders"
+    "serviceReminders": "Service Reminders",
+    "momsredovisning": "VAT Report"
   },
   "login": {
     "title": "Welcome Back",

@@ -1,6 +1,7 @@
 // ─── Invoice store — Supabase backing store ───────────────────────────────────
 import { getSupabaseBrowser } from './supabase';
 import { getDealershipId } from './tenant';
+import type { VatScheme } from './vat';
 
 export interface InvoicePart {
   name:       string;
@@ -25,6 +26,12 @@ export interface Invoice {
   issueDate:     string;
   paidDate?:     string;
   parts?:        InvoicePart[];   // spare parts / accessories (service invoices)
+  // VAT / Moms fields
+  vatScheme:     VatScheme;       // 'normal' | 'margin' | 'exempt'
+  purchasePrice: number;          // dealer cost — used in margin scheme calculation
+  marginAmount:  number;          // selling − purchase (margin scheme)
+  currencyCode:  string;          // SEK | EUR | JPY etc.
+  currencyRate:  number;          // rate to SEK at purchase time
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -48,22 +55,32 @@ function mapDbToInvoice(row: Record<string, unknown>): Invoice {
     issueDate:     (row.issue_date     as string) ?? new Date().toISOString(),
     paidDate:      (row.paid_date      as string) ?? undefined,
     parts:         Array.isArray(row.parts) ? (row.parts as InvoicePart[]) : undefined,
+    vatScheme:     ((row.vat_scheme    as VatScheme) ?? 'normal'),
+    purchasePrice: parseFloat(String(row.purchase_price ?? '0')),
+    marginAmount:  parseFloat(String(row.margin_amount  ?? '0')),
+    currencyCode:  (row.currency_code  as string) ?? 'SEK',
+    currencyRate:  parseFloat(String(row.currency_rate  ?? '1')),
   };
 }
 
 function mapInvoiceToDb(inv: Omit<Invoice, 'id' | 'issueDate'>): Record<string, unknown> {
   return {
-    lead_id:        inv.leadId       || null,
-    customer_id:    inv.customerId   ?? null,
+    lead_id:        inv.leadId        || null,
+    customer_id:    inv.customerId    ?? null,
     customer_name:  inv.customerName,
     vehicle:        inv.vehicle,
-    agreement_ref:  inv.agreementRef || null,
+    agreement_ref:  inv.agreementRef  || null,
     total_amount:   inv.totalAmount,
     vat_amount:     inv.vatAmount,
     net_amount:     inv.netAmount,
     payment_method: inv.paymentMethod || '',
     status:         inv.status,
-    paid_date:      inv.paidDate     || null,
+    paid_date:      inv.paidDate      || null,
+    vat_scheme:     inv.vatScheme     ?? 'normal',
+    purchase_price: inv.purchasePrice || null,
+    margin_amount:  inv.marginAmount  || null,
+    currency_code:  inv.currencyCode  || 'SEK',
+    currency_rate:  inv.currencyRate  || 1,
   };
 }
 

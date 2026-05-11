@@ -244,7 +244,8 @@
     "serviceVehicles": "تاريخ المركبات",
     "serviceComms": "التواصل مع العملاء",
     "scheduling": "تقويم الفنيين",
-    "serviceReminders": "تذكيرات الصيانة"
+    "serviceReminders": "تذكيرات الصيانة",
+    "momsredovisning": "تقرير ضريبة القيمة المضافة"
   },
   "login": {
     "title": "مرحباً بعودتك",

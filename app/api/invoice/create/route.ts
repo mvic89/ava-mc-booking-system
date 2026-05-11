@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { logAudit } from '@/lib/audit';
 import { notify } from '@/lib/notify';
+import { calcVat, deriveVatScheme, type VatScheme } from '@/lib/vat';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function sb() { return getSupabaseAdmin() as any; }
@@ -255,16 +256,21 @@ async function nextInvoiceId(_dealershipId: string): Promise<string> {
 export async function POST(req: Request) {
   try {
     const body = await req.json() as {
-      dealershipId:  string;
-      leadId?:       string;
-      customerId?:   number | null;
-      customerName:  string;
-      vehicle:       string;
-      agreementRef?: string;
-      totalAmount:   number;
-      paymentMethod: string;
-      status:        'pending' | 'paid';
-      paidDate?:     string;
+      dealershipId:   string;
+      leadId?:        string;
+      customerId?:    number | null;
+      customerName:   string;
+      vehicle:        string;
+      agreementRef?:  string;
+      totalAmount:    number;
+      paymentMethod:  string;
+      status:         'pending' | 'paid';
+      paidDate?:      string;
+      // VAT / Moms
+      vatScheme?:     VatScheme;
+      purchasePrice?: number;
+      currencyCode?:  string;
+      currencyRate?:  number;
     };
 
     const { dealershipId, leadId, customerId: bodyCustomerId, customerName: bodyCustomerName,
@@ -274,8 +280,28 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing dealershipId' }, { status: 400 });
     }
 
-    const vatAmount = Math.round(totalAmount - totalAmount / 1.25);
-    const netAmount = totalAmount - vatAmount;
+    // ── Resolve VAT scheme ────────────────────────────────────────────────────
+    // Caller may pass vatScheme explicitly; otherwise derive from the lead's
+    // vehicle_condition and lead_type (new bike = normal, used = margin).
+    let vatScheme: VatScheme = body.vatScheme ?? 'normal';
+    let purchasePrice        = body.purchasePrice ?? 0;
+
+    if (!body.vatScheme && leadId) {
+      const { data: leadRow } = await sb()
+        .from('leads')
+        .select('vehicle_condition, lead_type, cost_price')
+        .eq('id', leadId)
+        .eq('dealership_id', dealershipId)
+        .maybeSingle() as { data: { vehicle_condition?: string; lead_type?: string; cost_price?: number } | null };
+      if (leadRow) {
+        vatScheme     = deriveVatScheme(leadRow.vehicle_condition, leadRow.lead_type);
+        purchasePrice = purchasePrice || leadRow.cost_price || 0;
+      }
+    }
+
+    const vat       = calcVat(vatScheme, totalAmount, purchasePrice);
+    const vatAmount = vat.vatAmount;
+    const netAmount = vat.netAmount;
 
     // Resolve customer server-side (service-role bypasses RLS) when not already known
     let customerId    = bodyCustomerId ?? null;
@@ -356,6 +382,11 @@ export async function POST(req: Request) {
           payment_method: paymentMethod || '',
           status,
           paid_date:      paidDate      || null,
+          vat_scheme:     vatScheme,
+          purchase_price: purchasePrice || null,
+          margin_amount:  vat.marginAmount || null,
+          currency_code:  body.currencyCode || 'SEK',
+          currency_rate:  body.currencyRate || 1,
         })
         .select('id')
         .single();

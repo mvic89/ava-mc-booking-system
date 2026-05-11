@@ -244,7 +244,8 @@
     "serviceVehicles": "Kjøretøyhistorikk",
     "serviceComms": "Kundekommunikasjon",
     "scheduling": "Teknikerkalender",
-    "serviceReminders": "Servicepåminnelser"
+    "serviceReminders": "Servicepåminnelser",
+    "momsredovisning": "Mva-rapport"
   },
   "login": {
     "title": "Velkommen tilbake",
