@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { logAudit } from '@/lib/audit';
 import { notify } from '@/lib/notify';
-import { calcVat, deriveVatScheme, type VatScheme } from '@/lib/vat';
+import { calcVat, calcVatLines, deriveVatScheme, type VatScheme, type InvoiceLine } from '@/lib/vat';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function sb() { return getSupabaseAdmin() as any; }
@@ -271,6 +271,7 @@ export async function POST(req: Request) {
       purchasePrice?: number;
       currencyCode?:  string;
       currencyRate?:  number;
+      lines?:         Array<{ description: string; totalAmount: number; vatScheme?: string; purchasePrice?: number }>;
     };
 
     const { dealershipId, leadId, customerId: bodyCustomerId, customerName: bodyCustomerName,
@@ -299,7 +300,30 @@ export async function POST(req: Request) {
       }
     }
 
-    const vat       = calcVat(vatScheme, totalAmount, purchasePrice);
+    let vat       = calcVat(vatScheme, totalAmount, purchasePrice);
+
+    // If caller provided line items, use per-line VAT calculation instead
+    let invoiceLines: InvoiceLine[] | undefined;
+    if (body.lines && Array.isArray(body.lines) && body.lines.length > 0) {
+      invoiceLines = body.lines.map(l => ({
+        description:   l.description ?? '',
+        totalAmount:   l.totalAmount ?? 0,
+        vatScheme:     (l.vatScheme as VatScheme) ?? vatScheme,
+        purchasePrice: l.purchasePrice ?? 0,
+      }));
+      const lineResult = calcVatLines(invoiceLines);
+      // Override the single-invoice vat with aggregated line totals
+      vat = {
+        scheme:       lineResult.hasMarginLines && !lineResult.hasNormalLines ? 'margin' : 'normal',
+        totalAmount:  lineResult.totalAmount,
+        netAmount:    lineResult.totalNet,
+        vatAmount:    lineResult.totalVat,
+        marginAmount: lineResult.totalMargin,
+        vatRate:      0.25,
+        vatHidden:    lineResult.hasMarginLines && !lineResult.hasNormalLines,
+      };
+    }
+
     const vatAmount = vat.vatAmount;
     const netAmount = vat.netAmount;
 
@@ -387,6 +411,7 @@ export async function POST(req: Request) {
           margin_amount:  vat.marginAmount || null,
           currency_code:  body.currencyCode || 'SEK',
           currency_rate:  body.currencyRate || 1,
+          ...(invoiceLines ? { invoice_lines: invoiceLines } : {}),
         })
         .select('id')
         .single();

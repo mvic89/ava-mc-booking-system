@@ -1,7 +1,7 @@
 // ─── Invoice store — Supabase backing store ───────────────────────────────────
 import { getSupabaseBrowser } from './supabase';
 import { getDealershipId } from './tenant';
-import type { VatScheme } from './vat';
+import type { VatScheme, InvoiceLine } from './vat';
 
 export interface InvoicePart {
   name:       string;
@@ -32,6 +32,7 @@ export interface Invoice {
   marginAmount:  number;          // selling − purchase (margin scheme)
   currencyCode:  string;          // SEK | EUR | JPY etc.
   currencyRate:  number;          // rate to SEK at purchase time
+  lines?:        InvoiceLine[];   // per-line VAT breakdown (mixed new/used orders)
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -60,6 +61,7 @@ function mapDbToInvoice(row: Record<string, unknown>): Invoice {
     marginAmount:  parseFloat(String(row.margin_amount  ?? '0')),
     currencyCode:  (row.currency_code  as string) ?? 'SEK',
     currencyRate:  parseFloat(String(row.currency_rate  ?? '1')),
+    lines:         row.invoice_lines ? (row.invoice_lines as InvoiceLine[]) : undefined,
   };
 }
 
@@ -81,6 +83,7 @@ function mapInvoiceToDb(inv: Omit<Invoice, 'id' | 'issueDate'>): Record<string, 
     margin_amount:  inv.marginAmount  || null,
     currency_code:  inv.currencyCode  || 'SEK',
     currency_rate:  inv.currencyRate  || 1,
+    ...(inv.lines ? { invoice_lines: inv.lines } : {}),
   };
 }
 
@@ -105,27 +108,30 @@ async function nextInvoiceId(_dealershipId: string): Promise<string> {
 export async function getInvoices(): Promise<Invoice[]> {
   const dealershipId = getDealershipId();
   if (!dealershipId) return [];
-  const { data, error } = await db()
-    .from('invoices')
-    .select('*')
-    .eq('dealership_id', dealershipId)
-    .order('issue_date', { ascending: false });
-  if (error) { console.error('[invoices] getInvoices:', error.message); return []; }
-  return (data ?? []).map((r: Record<string, unknown>) => mapDbToInvoice(r));
+  try {
+    const res = await fetch(`/api/invoices?dealershipId=${encodeURIComponent(dealershipId)}`);
+    if (!res.ok) { console.error('[invoices] getInvoices API error:', res.status); return []; }
+    const json = await res.json() as { invoices?: Record<string, unknown>[] };
+    return (json.invoices ?? []).map(mapDbToInvoice);
+  } catch (err) {
+    console.error('[invoices] getInvoices fetch error:', err);
+    return [];
+  }
 }
 
 /** Fetch all invoices for a specific customer (by customer_id FK). */
 export async function getInvoicesByCustomer(customerId: number): Promise<Invoice[]> {
   const dealershipId = getDealershipId();
   if (!dealershipId) return [];
-  const { data, error } = await db()
-    .from('invoices')
-    .select('*')
-    .eq('customer_id', customerId)
-    .eq('dealership_id', dealershipId)
-    .order('issue_date', { ascending: false });
-  if (error) { console.error('[invoices] getInvoicesByCustomer:', error.message); return []; }
-  return (data ?? []).map((r: Record<string, unknown>) => mapDbToInvoice(r));
+  try {
+    const res = await fetch(`/api/invoices?dealershipId=${encodeURIComponent(dealershipId)}&customerId=${customerId}`);
+    if (!res.ok) { console.error('[invoices] getInvoicesByCustomer API error:', res.status); return []; }
+    const json = await res.json() as { invoices?: Record<string, unknown>[] };
+    return (json.invoices ?? []).map(mapDbToInvoice);
+  } catch (err) {
+    console.error('[invoices] getInvoicesByCustomer fetch error:', err);
+    return [];
+  }
 }
 
 // ── Write ──────────────────────────────────────────────────────────────────────

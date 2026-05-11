@@ -87,12 +87,12 @@ export async function POST(
 
     // 2. Move lead to closed/lost
     await supabase
-      .from('custom_leads')
+      .from('leads')
       .update({
-        stage:      'closed',
-        status:     'cold',
+        stage:       'closed',
+        lead_status: 'cold',
         lost_reason: `Annullerad: ${body.reason}${body.reasonDetail ? ' — ' + body.reasonDetail : ''}`,
-        closed_at:  new Date().toISOString(),
+        closed_at:   new Date().toISOString(),
       })
       .eq('id', leadId)
       .eq('dealership_id', body.dealershipId);

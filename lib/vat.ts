@@ -77,6 +77,55 @@ export function formatSEK(amount: number): string {
   return amount.toLocaleString('sv-SE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' kr';
 }
 
+export interface InvoiceLine {
+  description:   string;
+  totalAmount:   number;
+  vatScheme:     VatScheme;
+  purchasePrice: number;   // dealer cost — for margin scheme lines
+}
+
+export interface InvoiceLineResult extends InvoiceLine {
+  netAmount:    number;
+  vatAmount:    number;
+  marginAmount: number;
+  vatHidden:    boolean;
+}
+
+/**
+ * Compute VAT for each line independently, then aggregate.
+ * Returns per-line results plus combined totals.
+ */
+export function calcVatLines(lines: InvoiceLine[]): {
+  lines:         InvoiceLineResult[];
+  totalAmount:   number;
+  totalNet:      number;
+  totalVat:      number;
+  totalMargin:   number;
+  hasMarginLines: boolean;
+  hasNormalLines: boolean;
+} {
+  const results: InvoiceLineResult[] = lines.map(l => {
+    const v = calcVat(l.vatScheme, l.totalAmount, l.purchasePrice);
+    return {
+      ...l,
+      netAmount:    v.netAmount,
+      vatAmount:    v.vatAmount,
+      marginAmount: v.marginAmount,
+      vatHidden:    v.vatHidden,
+    };
+  });
+
+  return {
+    lines:          results,
+    totalAmount:    results.reduce((s, l) => s + l.totalAmount,   0),
+    totalNet:       results.reduce((s, l) => s + l.netAmount,     0),
+    totalVat:       results.reduce((s, l) => s + l.vatAmount,     0),
+    totalMargin:    results.reduce((s, l) => s + l.marginAmount,  0),
+    hasMarginLines: results.some(l => l.vatScheme === 'margin'),
+    hasNormalLines: results.some(l => l.vatScheme === 'normal'),
+  };
+}
+
 /**
  * Swedish VAT period labels for momsredovisning.
  * Returns an array of { label, start, end } for each period in the given year,

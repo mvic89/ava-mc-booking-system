@@ -7,8 +7,10 @@ import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
 import BankIDModal from '@/components/bankIdModel';
 import { getDealershipId, getDealershipProfile } from '@/lib/tenant';
+import { getVatNumber } from '@/lib/dealer';
 import { emit } from '@/lib/realtime';
 import { upsertAgreement } from '@/lib/agreements';
+import { maskPnr, normalizePnr as normalizePnrLib } from '@/lib/pnr';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -47,6 +49,7 @@ interface AgrForm {
   tradeInCredit:      number;
   totalPrice:         number;
   vatAmount:          number;
+  costPrice:          number;
   // Payment
   paymentType:        PaymentType;
   downPayment:        number;
@@ -68,7 +71,7 @@ const BLANK: AgrForm = {
   customerName: '', personnummer: '', customerAddress: '', customerPhone: '', customerEmail: '',
   vehicle: '', vehicleColor: '', vehicleCondition: 'new', vin: '', registrationNumber: '',
   listPrice: 0, discount: 0, accessories: '', accessoriesCost: 0,
-  tradeIn: '', tradeInCredit: 0, totalPrice: 0, vatAmount: 0,
+  tradeIn: '', tradeInCredit: 0, totalPrice: 0, vatAmount: 0, costPrice: 0,
   paymentType: 'cash', downPayment: 0, financingMonths: 36,
   financingMonthly: 0, financingApr: 4.9, nominalRate: 3.9,
   deliveryWeeks: 4, validUntil: '', notes: '',
@@ -146,20 +149,26 @@ function NumIn({ value, onChange, suffix, step = 1 }: { value: number; onChange:
 
 // ─── BankID Signature Block ───────────────────────────────────────────────────
 
+const normalizePnr = normalizePnrLib;
+
 function SigBlock({
-  label, sigJson, signText, onSigned, party,
+  label, sigJson, signText, onSigned, party, expectedPersonnummer,
 }: {
-  label:    string;
-  sigJson:  string;
-  signText: string;
-  onSigned: (proof: SigProof) => void;
-  party:    'seller' | 'buyer';
+  label:                string;
+  sigJson:              string;
+  signText:             string;
+  onSigned:             (proof: SigProof) => void;
+  party:                'seller' | 'buyer';
+  expectedPersonnummer: string; // must match BankID identity
 }) {
-  const [showModal, setShowModal] = useState(false);
+  const [showModal,  setShowModal]  = useState(false);
+  const [mismatch,   setMismatch]   = useState<string | null>(null);
   const proof = parseSig(sigJson);
 
+  const fmtExpected = expectedPersonnummer ? maskPnr(expectedPersonnummer) : '';
+
   return (
-    <div className={`rounded-xl border-2 p-4 transition-colors ${proof ? 'border-emerald-200 bg-emerald-50' : 'border-dashed border-slate-200 bg-white'}`}>
+    <div className={`rounded-xl border-2 p-4 transition-colors ${proof ? 'border-emerald-200 bg-emerald-50' : mismatch ? 'border-red-200 bg-red-50' : 'border-dashed border-slate-200 bg-white'}`}>
       <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">{label}</p>
       {proof ? (
         <div className="space-y-1">
@@ -167,7 +176,7 @@ function SigBlock({
             <span className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0">✓</span>
             <span className="font-semibold text-emerald-800 text-sm">{proof.name}</span>
           </div>
-          <p className="text-xs text-emerald-700 ml-8">{proof.personalNumber.replace(/(\d{8})(\d{4})/, '$1-$2')}</p>
+          <p className="text-xs text-emerald-700 ml-8">{maskPnr(proof.personalNumber)}</p>
           <p className="text-xs text-emerald-600 ml-8">
             Signerat {new Date(proof.signedAt).toLocaleString('sv-SE', { dateStyle: 'short', timeStyle: 'short' })}
           </p>
@@ -183,8 +192,19 @@ function SigBlock({
           <p className="text-xs text-slate-500">
             {party === 'seller' ? 'Säljaren signerar med sitt BankID' : 'Köparen signerar med sitt BankID'}
           </p>
+          {fmtExpected && (
+            <p className="text-[11px] text-slate-400">
+              Kräver personnummer: <span className="font-mono font-semibold text-slate-600">{fmtExpected}</span>
+            </p>
+          )}
+          {mismatch && (
+            <div className="rounded-lg bg-red-100 border border-red-200 px-3 py-2 text-xs text-red-800">
+              <p className="font-semibold">Fel person signerade</p>
+              <p className="mt-0.5">{mismatch}</p>
+            </div>
+          )}
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => { setMismatch(null); setShowModal(true); }}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#235971] text-white text-sm font-semibold hover:bg-[#1a4557] transition-colors w-full justify-center"
           >
             <div className="w-5 h-5 bg-white/20 rounded-sm flex items-center justify-center">
@@ -205,14 +225,28 @@ function SigBlock({
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           onComplete={(data: any) => {
             setShowModal(false);
-            if (data?.user) {
-              onSigned({
-                name:           data.user.name,
-                personalNumber: data.user.personalNumber,
-                signedAt:       new Date().toISOString(),
-                verified:       true,
-              });
+            if (!data?.user) return;
+
+            // Enforce identity: BankID personnummer must match the expected one
+            if (expectedPersonnummer) {
+              const got      = normalizePnr(data.user.personalNumber ?? '');
+              const expected = normalizePnr(expectedPersonnummer);
+              if (got !== expected) {
+                setMismatch(
+                  `BankID identifierade ${data.user.name} (${data.user.personalNumber}), ` +
+                  `men detta avtal kräver personnummer ${fmtExpected}. Rätt person måste signera.`
+                );
+                return; // reject — do not call onSigned
+              }
             }
+
+            setMismatch(null);
+            onSigned({
+              name:           data.user.name,
+              personalNumber: data.user.personalNumber,
+              signedAt:       new Date().toISOString(),
+              verified:       true,
+            });
           }}
           onCancel={() => setShowModal(false)}
         />
@@ -236,7 +270,9 @@ export default function AgreementPage() {
   const [form,      setForm]      = useState<AgrForm>(BLANK);
   const [isEditing, setIsEditing] = useState(false);
   const [draft,     setDraft]     = useState<AgrForm | null>(null);
-  const [dealer,    setDealer]    = useState({ name: '', address: '', phone: '', email: '', orgNr: '' });
+  const [dealer,    setDealer]    = useState({ name: '', address: '', phone: '', email: '', orgNr: '', vatNr: '' });
+  const [vehicleWarning,      setVehicleWarning]      = useState<{ liens: boolean; stolen: boolean } | null>(null);
+  const [sellerPersonnummer,  setSellerPersonnummer]  = useState('');
 
   // ── Load offer from Supabase ──────────────────────────────────────────────
 
@@ -255,7 +291,9 @@ export default function AgreementPage() {
       phone:   profile.phone   || '',
       email:   profile.email   || '',
       orgNr:   (parsed.orgNr as string) || '',
+      vatNr:   getVatNumber((parsed.orgNr as string) || ''),
     });
+    setSellerPersonnummer((parsed.personalNumber as string) || '');
 
     (async () => {
       const res  = await fetch(`/api/offers?leadId=${leadId}&dealershipId=${dealershipId}`);
@@ -286,6 +324,7 @@ export default function AgreementPage() {
           tradeInCredit:      o.tradeInCredit       ?? 0,
           totalPrice:         o.totalPrice          ?? 0,
           vatAmount:          o.vatAmount           ?? 0,
+          costPrice:          o.costPrice           ?? 0,
           paymentType:        o.paymentType         ?? 'cash',
           downPayment:        o.downPayment         ?? 0,
           financingMonths:    o.financingMonths     ?? 36,
@@ -302,6 +341,25 @@ export default function AgreementPage() {
       setReady(true);
     })();
   }, [leadId, router]);
+
+  // ── Vehicle status check (liens / stolen) ────────────────────────────────
+  useEffect(() => {
+    const regNr = form.registrationNumber.trim();
+    if (regNr.length < 5) { setVehicleWarning(null); return; }
+    const dealershipId = getDealershipId() ?? 'ava-mc';
+    let cancelled = false;
+    fetch(`/api/transportstyrelsen/vehicle?regNr=${encodeURIComponent(regNr)}&dealerId=${encodeURIComponent(dealershipId)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then((json: { vehicle?: { liens?: boolean; status?: string } } | null) => {
+        if (cancelled || !json?.vehicle) return;
+        setVehicleWarning({
+          liens:  !!json.vehicle.liens,
+          stolen: json.vehicle.status === 'STOLEN',
+        });
+      })
+      .catch(() => { /* non-critical — no API key configured */ });
+    return () => { cancelled = true; };
+  }, [form.registrationNumber]);
 
   // ── Edit helpers ─────────────────────────────────────────────────────────
 
@@ -400,6 +458,7 @@ export default function AgreementPage() {
             tradeInCredit:      form.tradeInCredit,
             totalPrice:         form.totalPrice,
             vatAmount:          form.vatAmount,
+            costPrice:          form.costPrice,
             paymentType:        form.paymentType,
             downPayment:        form.downPayment,
             financingMonths:    form.financingMonths,
@@ -584,6 +643,15 @@ export default function AgreementPage() {
                           <TxtIn value={draft!.registrationNumber} onChange={v => upd('registrationNumber', v.toUpperCase())} />
                         </F>
                       </div>
+                      {vehicleWarning && (vehicleWarning.stolen || vehicleWarning.liens) && (
+                        <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 flex gap-2">
+                          <span className="text-red-500 text-lg leading-none mt-0.5">⚠</span>
+                          <div className="text-sm text-red-800 space-y-0.5">
+                            {vehicleWarning.stolen && <p className="font-semibold">Fordonet är markerat som stulet i Fordonsregistret.</p>}
+                            {vehicleWarning.liens  && <p className="font-semibold">Fordonet har utestående skulder (pant/leasing). Kontrollera med finansiär innan försäljning.</p>}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Pricing */}
@@ -612,6 +680,18 @@ export default function AgreementPage() {
                           <NumIn value={draft!.totalPrice} onChange={v => upd('totalPrice', v)} suffix="kr" />
                         </F>
                       </div>
+                      {draft!.vehicleCondition === 'used' && (
+                        <div className="sm:col-span-2">
+                          <F label="Inköpspris återförsäljare (exkl. moms, ej synligt för kund)">
+                            <NumIn value={draft!.costPrice} onChange={v => upd('costPrice', v)} suffix="kr" />
+                          </F>
+                          {draft!.costPrice > 0 && (
+                            <p className="text-xs text-amber-700 mt-1 bg-amber-50 rounded-lg px-3 py-1.5">
+                              Marginalbeskattning: moms = 20% × ({draft!.totalPrice.toLocaleString('sv-SE')} − {draft!.costPrice.toLocaleString('sv-SE')}) = <strong>{Math.max(0, Math.round((draft!.totalPrice - draft!.costPrice) * 0.2)).toLocaleString('sv-SE')} kr</strong> (ej utspecifierat på kundkopia per 9a kap ML)
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Payment */}
@@ -676,6 +756,7 @@ export default function AgreementPage() {
                             {dealer.phone && <span className="text-sm text-white/70">📞 {dealer.phone}</span>}
                             {dealer.email && <span className="text-sm text-white/70">✉ {dealer.email}</span>}
                             {dealer.orgNr && <span className="text-sm text-white/70">Org.nr {dealer.orgNr}</span>}
+                            {dealer.vatNr && <span className="text-sm text-white/70">Momsnr {dealer.vatNr}</span>}
                           </div>
                         </div>
                         <div className="text-right">
@@ -697,6 +778,7 @@ export default function AgreementPage() {
                         {dealer.phone   && <p className="text-sm text-slate-600">Tel: {dealer.phone}</p>}
                         {dealer.email   && <p className="text-sm text-slate-600">{dealer.email}</p>}
                         {dealer.orgNr   && <p className="text-sm text-slate-500 mt-1">Org.nr: {dealer.orgNr}</p>}
+                        {dealer.vatNr   && <p className="text-sm text-slate-500">Momsnr: {dealer.vatNr}</p>}
                       </div>
                       <div className="px-8 py-5">
                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Köpare</p>
@@ -724,6 +806,15 @@ export default function AgreementPage() {
                             <DocLine label="Skick" value={d.vehicleCondition === 'new' ? 'Ny' : 'Begagnad'} />
                           </div>
                         </div>
+                        {vehicleWarning && (vehicleWarning.stolen || vehicleWarning.liens) && (
+                          <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 flex gap-2">
+                            <span className="text-red-500 text-lg leading-none mt-0.5">⚠</span>
+                            <div className="text-sm text-red-800 space-y-0.5">
+                              {vehicleWarning.stolen && <p className="font-semibold">Fordonet är markerat som stulet i Fordonsregistret.</p>}
+                              {vehicleWarning.liens  && <p className="font-semibold">Fordonet har utestående skulder (pant/leasing). Kontrollera med finansiär innan försäljning.</p>}
+                            </div>
+                          </div>
+                        )}
                       </DocSection>
 
                       {/* Pricing */}
@@ -757,9 +848,12 @@ export default function AgreementPage() {
                           <span className="text-base font-black text-slate-900">Totalt att betala inkl. moms</span>
                           <span className="text-2xl font-black text-[#0b1524] font-mono">{fmt(d.totalPrice)}</span>
                         </div>
-                        <div className="flex gap-6 mt-1">
+                        <div className="flex gap-6 mt-1 flex-wrap items-center">
                           <span className="text-xs text-slate-500">varav moms 25%: <strong>{fmt(d.vatAmount)}</strong></span>
                           <span className="text-xs text-slate-500">nettopris exkl. moms: <strong>{fmt(exVat)}</strong></span>
+                          {d.vehicleCondition === 'used' && d.costPrice > 0 && (
+                            <span className="text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full ml-2">Marginalbeskattning · moms ej utspecifierat på kundkopia</span>
+                          )}
                         </div>
                       </DocSection>
 
@@ -796,7 +890,7 @@ export default function AgreementPage() {
                           <p><strong>§ 2 Leverans.</strong> Fordonet levereras vid {dealer.address || 'säljarens affärslokal'}. Risken för fordonet övergår till köparen vid avlämnandet (Konsumentköplagen 2022:260, §8).</p>
                           <p><strong>§ 3 Reklamationsrätt.</strong> Köparen har rätt att reklamera fel som förelåg vid leveransen inom 3 (tre) år från mottagandet, i enlighet med Konsumentköplagen (2022:260, §31). Fel som visar sig inom 2 år presumeras ha förelegat vid leveransen. Reklamation ska ske inom skälig tid efter att felet upptäckts.</p>
                           <p><strong>§ 4 Ångerfrist.</strong> Rätt att frånträda avtalet (ångerfrist) gäller vid distansavtal och avtal utanför fasta affärslokaler, i enlighet med Distansavtalslagen (2005:59), och uppgår då till 14 dagar från leverans. Vid köp som ingås i säljarens fasta affärslokal föreligger ingen lagstadgad ångerfrist om inte säljaren skriftligen åtar sig detta.</p>
-                          <p><strong>§ 5 Betalning &amp; finansiering.</strong> {d.paymentType === 'financing' ? 'Finansiering sker i enlighet med Konsumentkreditlagen (2010:1846). Kreditavtal ingås separat med kreditgivaren. Kredit beviljas efter godkänd kreditprövning. Effektiv ränta och totalkostnad framgår av kreditavtalet.' : 'Betalning erlägges kontant i sin helhet vid leverans av fordonet.'}</p>
+                          <p><strong>§ 5 Betalning &amp; finansiering.</strong> {d.paymentType === 'financing' ? 'Finansiering sker i enlighet med Konsumentkreditlagen (2010:1846). Kreditavtal ingås separat med kreditgivaren. Kredit beviljas efter godkänd kreditprövning. Effektiv ränta och totalkostnad framgår av kreditavtalet.' : 'Betalning erlägges kontant i sin helhet vid leverans av fordonet.'}{d.vehicleCondition === 'used' ? ' Fordonet är begagnat och moms ingår i priset via marginalbeskattning per 9a kap Mervärdesskattelagen.' : ''}</p>
                           {d.tradeIn && <p><strong>§ 6 Inbytesfordon.</strong> Inbytesfordon ("{d.tradeIn}") är värderat till {fmt(d.tradeInCredit)} och avräknas mot köpeskillingen. Inbytet överlåts i befintligt skick (sålt i befintligt skick, Konsumentköplagen 2022:260 §47) om inget annat skriftligen avtalats. Köparen ansvarar för att fordonet är fritt från lån och inteckningar vid inlösen.</p>}
                           <p><strong>§ {d.tradeIn ? '7' : '6'} Tvist.</strong> Tvist angående tolkning eller tillämpning av detta avtal ska i första hand lösas genom förhandling. I andra hand kan köparen vända sig till Allmänna reklamationsnämnden (ARN), Box 174, 101 23 Stockholm, arn.se. Parterna kan även vända sig till allmän domstol. Svensk lag tillämpas.</p>
                           <p><strong>§ {d.tradeIn ? '8' : '7'} Personuppgifter.</strong> Säljarens behandling av personuppgifter sker i enlighet med Europaparlamentets och rådets förordning (EU) 2016/679 (GDPR) samt kompletterande svensk dataskyddslag (2018:218). Ändamål: avtalsadministration, kundservice och rättsliga förpliktelser. Registrerad har rätt till tillgång, rättelse och radering. Kontakt: dataskydd@{dealer.email?.split('@')[1] || 'säljaren'}.</p>
@@ -818,6 +912,7 @@ export default function AgreementPage() {
                               signText={buildSignText('seller')}
                               onSigned={proof => handleSigned('seller', proof)}
                               party="seller"
+                              expectedPersonnummer={sellerPersonnummer}
                             />
                             <SigBlock
                               label="Köparens underskrift"
@@ -825,6 +920,7 @@ export default function AgreementPage() {
                               signText={buildSignText('buyer')}
                               onSigned={proof => handleSigned('buyer', proof)}
                               party="buyer"
+                              expectedPersonnummer={form.personnummer}
                             />
                           </div>
                         )}
@@ -848,7 +944,7 @@ export default function AgreementPage() {
                                 {proof ? (
                                   <div className="mb-2 p-3 bg-emerald-50 rounded-lg border border-emerald-100">
                                     <p className="text-sm font-semibold text-slate-900">{proof.name}</p>
-                                    <p className="text-xs text-slate-500">{proof.personalNumber.replace(/(\d{8})(\d{4})/, '$1-$2')}</p>
+                                    <p className="text-xs text-slate-500">{maskPnr(proof.personalNumber)}</p>
                                     <p className="text-xs text-slate-400">BankID • {new Date(proof.signedAt).toLocaleString('sv-SE')}</p>
                                   </div>
                                 ) : (
@@ -873,7 +969,7 @@ export default function AgreementPage() {
                     <div className="px-8 py-4 bg-slate-50 border-t border-slate-100 text-center">
                       <p className="text-[10px] text-slate-400">
                         {dealer.name} • {dealer.address} • {dealer.phone} • {dealer.email}
-                        {dealer.orgNr && ` • Org.nr ${dealer.orgNr}`}
+                        {dealer.orgNr && ` • Org.nr ${dealer.orgNr}${dealer.vatNr ? ' • Momsnr ' + dealer.vatNr : ''}`}
                       </p>
                     </div>
 

@@ -9,6 +9,7 @@ import FinancingComparison from '@/components/offer/FinancingComparison';
 import TradeInModal from '@/components/offer/TradeInModal';
 import { getSupabaseBrowser } from '@/lib/supabase';
 import { getDealershipId, getDealershipProfile } from '@/lib/tenant';
+import { maskPnr } from '@/lib/pnr';
 import {
   generateOfferNumber,
   type Offer,
@@ -1033,7 +1034,7 @@ export default function OfferPage() {
                       <div>
                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Köpare</p>
                         <p className="font-bold text-slate-900">{d.customerName || '—'}</p>
-                        {d.personnummer && <p className="text-sm text-slate-600">Personnr: {d.personnummer}</p>}
+                        {d.personnummer && <p className="text-sm text-slate-600">Personnr: {maskPnr(d.personnummer)}</p>}
                         {d.customerAddress && <p className="text-sm text-slate-600 mt-0.5">{d.customerAddress}</p>}
                         {d.customerPhone && <p className="text-sm text-slate-600">Tel: {d.customerPhone}</p>}
                         {d.customerEmail && <p className="text-sm text-slate-600">{d.customerEmail}</p>}

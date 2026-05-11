@@ -5,6 +5,8 @@ import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Sidebar from '@/components/Sidebar';
 import { getDealerInfo } from '@/lib/dealer';
+import { maskPnr } from '@/lib/pnr';
+import { getSupabaseBrowser } from '@/lib/supabase';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -1442,17 +1444,57 @@ function BankTransferTab({ order, onConfirmed }: { order: OrderSummary; onConfir
   const [sendStatus,    setSendStatus]    = useState<SendStatus>('idle');
   const [sendError,     setSendError]     = useState('');
 
+  // Live bank details fetched from dealership_settings on mount
+  const [liveBankName, setLiveBankName] = useState('');
+  const [liveBankgiro, setLiveBankgiro] = useState('');
+  const [liveIban,     setLiveIban]     = useState('');
+  const [liveBic,      setLiveBic]      = useState('');
+
+  useEffect(() => {
+    const did = (() => {
+      try { return (JSON.parse(localStorage.getItem('user') ?? '{}') as { dealershipId?: string }).dealershipId ?? ''; }
+      catch { return ''; }
+    })();
+    if (!did) return;
+
+    (getSupabaseBrowser() as ReturnType<typeof getSupabaseBrowser>)
+      .from('dealership_settings')
+      .select('bank_name,bankgiro,iban,bic')
+      .eq('dealership_id', did)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) return;
+        const bankName = data.bank_name ?? '';
+        const bankgiro = data.bankgiro  ?? '';
+        const iban     = data.iban      ?? '';
+        const bic      = data.bic       ?? '';
+        setLiveBankName(bankName);
+        setLiveBankgiro(bankgiro);
+        setLiveIban(iban);
+        setLiveBic(bic);
+        // Update localStorage cache so getDealerInfo() stays fresh for subsequent reads
+        try {
+          const cached = JSON.parse(localStorage.getItem('dealership_profile') ?? '{}');
+          localStorage.setItem('dealership_profile', JSON.stringify({ ...cached, bankName, bankgiro, iban, bic }));
+        } catch { /* ignore */ }
+      });
+  }, []);
+
   const reference     = `BKE${order.agreementNumber.replace(/\D/g, '')}`;
   const dealerInfo    = getDealerInfo();
   const dealerCompany = dealerInfo.name;
-  const bankConfigured = !!(dealerInfo.bankgiro || dealerInfo.iban);
+
+  // Prefer live Supabase values; fall back to cached getDealerInfo()
+  const resolvedBankgiro = liveBankgiro || dealerInfo.bankgiro;
+  const resolvedIban     = liveIban     || dealerInfo.iban;
+  const bankConfigured   = !!(resolvedBankgiro || resolvedIban);
 
   const bankDetails = {
     company:   dealerCompany || '—',
-    bank:      '—',
-    bankgiro:  dealerInfo.bankgiro  || '—',
-    iban:      dealerInfo.iban      || '—',
-    bic:       dealerInfo.bic       || '—',
+    bank:      liveBankName  || dealerInfo.bankName || '—',
+    bankgiro:  resolvedBankgiro || '—',
+    iban:      resolvedIban     || '—',
+    bic:       liveBic || dealerInfo.bic || '—',
     amount:    `${order.balanceDue.toLocaleString('sv-SE')} kr`,
     reference,
     currency:  'SEK',
@@ -1829,6 +1871,8 @@ export default function PaymentPage() {
   const [orderItems,         setOrderItems]         = useState<{ name: string; brand: string; price: number; qty: number; itemType: string }[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_ready, setReady] = useState(false);
+  const [showCancelModal,  setShowCancelModal]  = useState(false);
+  const [cancelling,       setCancelling]       = useState(false);
 
   // Default to Swish for accessories orders (Financing is hidden and irrelevant)
   useEffect(() => {
@@ -1855,6 +1899,28 @@ export default function PaymentPage() {
     }).catch(() => { /* non-fatal */ });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, dealershipId, order.totalAmount]);
+
+  const handleCancelOrder = async () => {
+    setCancelling(true);
+    try {
+      await fetch(`/api/leads/${id}/cancel`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dealershipId,
+          reason:          'changed_mind',
+          refundAmount:    0,
+          returnToStock:   false,
+          customerName:    order.customerName,
+          vehicle:         order.vehicle,
+          agreementNumber: order.agreementNumber,
+        }),
+      });
+    } catch { /* non-critical */ } finally {
+      setCancelling(false);
+    }
+    router.push('/sales/leads');
+  };
 
   const handlePaymentConfirmed = async (tabId: PaymentMethod) => {
     const tab = TABS.find(t => t.id === tabId)!;
@@ -2042,7 +2108,7 @@ export default function PaymentPage() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-slate-900">{order.customerName}</p>
-                    <p className="text-xs text-slate-400">{order.personnummer}</p>
+                    <p className="text-xs text-slate-400">{maskPnr(order.personnummer)}</p>
                   </div>
                 </div>
 
@@ -2116,6 +2182,14 @@ export default function PaymentPage() {
 
                   </>
                 )}
+
+                {/* Cancel order button */}
+                <button
+                  onClick={() => setShowCancelModal(true)}
+                  className="mt-5 w-full py-2 text-xs font-semibold rounded-xl border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  Avbryt beställning
+                </button>
               </div>
             </div>
 
@@ -2152,6 +2226,55 @@ export default function PaymentPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Cancel order confirmation modal ──────────────────────────────────── */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center text-xl shrink-0">✕</div>
+              <div>
+                <p className="font-bold text-slate-900">Avbryt beställning?</p>
+                <p className="text-xs text-slate-400">Affären markeras som förlorad och tas bort från pipeline</p>
+              </div>
+            </div>
+            <div className="rounded-xl bg-slate-50 border border-slate-100 px-4 py-3 text-sm space-y-1">
+              <div className="flex justify-between text-slate-600">
+                <span>Kund</span>
+                <span className="font-semibold">{order.customerName}</span>
+              </div>
+              <div className="flex justify-between text-slate-600">
+                <span>Belopp</span>
+                <span className="font-semibold">{order.balanceDue.toLocaleString('sv-SE')} kr</span>
+              </div>
+              <div className="flex justify-between text-slate-600">
+                <span>Status</span>
+                <span className="font-semibold text-red-600">Avslutad — förlorad</span>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500">
+              Ingen betalning registreras. Affären sparas som förlorad under Avslutade leads.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowCancelModal(false)}
+                disabled={cancelling}
+                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50"
+              >
+                Tillbaka
+              </button>
+              <button
+                onClick={handleCancelOrder}
+                disabled={cancelling}
+                className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-sm font-bold text-white disabled:opacity-50 transition-colors"
+              >
+                {cancelling ? 'Avbryter…' : 'Ja, avbryt'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

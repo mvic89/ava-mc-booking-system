@@ -11,6 +11,7 @@ import { getCustomerById, type Customer } from '@/lib/customers';
 import { getSupabaseBrowser } from '@/lib/supabase';
 import { getDealershipId } from '@/lib/tenant';
 import { useAutoRefresh } from '@/lib/realtime';
+import { maskPnr } from '@/lib/pnr';
 import { getInvoicesByCustomer } from '@/lib/invoices';
 import DocumentAttachments from '@/components/DocumentAttachments';
 
@@ -717,7 +718,7 @@ export default function CustomerProfilePage() {
                   )}
                 </div>
                 <div className="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
-                  {c.personnummer && <span className="font-mono">{c.personnummer}</span>}
+                  {c.personnummer && <span className="font-mono">{maskPnr(c.personnummer)}</span>}
                   {c.email && <span>{c.email}</span>}
                   {c.phone && <span>{c.phone}</span>}
                   {c.risk && (
@@ -879,7 +880,7 @@ export default function CustomerProfilePage() {
                     {/* Read-only: BankID fields */}
                     <FieldRow label={t('profile.fields.firstName')}      value={c.firstName}              src="BankID" />
                     <FieldRow label={t('profile.fields.lastName')}       value={c.lastName}               src="BankID" />
-                    <FieldRow label={t('profile.fields.personalNumber')} value={c.personnummer || '—'}    src="BankID" />
+                    <FieldRow label={t('profile.fields.personalNumber')} value={maskPnr(c.personnummer)}  src="BankID" />
                     <FieldRow label={t('profile.fields.birthDate')}      value={c.birthDate || '—'}       src="Folkbokföring" />
                     <FieldRow label={t('profile.fields.gender')}         value={c.gender || '—'}          src="Folkbokföring" />
                     <FieldRow label={t('profile.fields.citizenship')}    value={c.citizenship ?? '—'}     src="Folkbokföring" />

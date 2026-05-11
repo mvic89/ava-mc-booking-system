@@ -9,6 +9,7 @@ import BankIDModal from '@/components/bankIdModel';
 import { getSupabaseBrowser } from '@/lib/supabase';
 import { getDealershipId, getDealershipProfile } from '@/lib/tenant';
 import { emit } from '@/lib/realtime';
+import { maskPnr, normalizePnr } from '@/lib/pnr';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -132,23 +133,25 @@ function fmtDate(s: string) {
 // ─── BankID Signature Block ───────────────────────────────────────────────────
 
 function SigBlock({
-  label,
-  sigJson,
-  signText,
-  onSigned,
-  party,
+  label, sigJson, signText, onSigned, party, expectedPersonnummer,
 }: {
-  label:    string;
-  sigJson:  string;
-  signText: string;
-  onSigned: (proof: SigProof) => void;
-  party:    'driver' | 'staff';
+  label:                string;
+  sigJson:              string;
+  signText:             string;
+  onSigned:             (proof: SigProof) => void;
+  party:                'driver' | 'staff';
+  expectedPersonnummer: string;
 }) {
   const [showModal, setShowModal] = useState(false);
+  const [mismatch,  setMismatch]  = useState<string | null>(null);
   const proof = parseSig(sigJson);
 
+  const fmtExpected = expectedPersonnummer
+    ? maskPnr(expectedPersonnummer)
+    : '';
+
   return (
-    <div className={`rounded-xl border-2 p-4 transition-colors ${proof ? 'border-emerald-200 bg-emerald-50' : 'border-dashed border-slate-200 bg-white'}`}>
+    <div className={`rounded-xl border-2 p-4 transition-colors ${proof ? 'border-emerald-200 bg-emerald-50' : mismatch ? 'border-red-200 bg-red-50' : 'border-dashed border-slate-200 bg-white'}`}>
       <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">{label}</p>
 
       {proof ? (
@@ -157,9 +160,7 @@ function SigBlock({
             <span className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0">✓</span>
             <span className="font-semibold text-emerald-800 text-sm">{proof.name}</span>
           </div>
-          <p className="text-xs text-emerald-700 ml-8">
-            {proof.personalNumber.replace(/(\d{8})(\d{4})/, '$1-$2')}
-          </p>
+          <p className="text-xs text-emerald-700 ml-8">{maskPnr(proof.personalNumber)}</p>
           <p className="text-xs text-emerald-600 ml-8">
             Signerat {new Date(proof.signedAt).toLocaleString('sv-SE', { dateStyle: 'short', timeStyle: 'short' })}
           </p>
@@ -173,12 +174,21 @@ function SigBlock({
       ) : (
         <div className="space-y-3">
           <p className="text-xs text-slate-500">
-            {party === 'driver'
-              ? 'Föraren signerar med sitt BankID'
-              : 'Säljaren signerar med sitt BankID'}
+            {party === 'driver' ? 'Föraren signerar med sitt BankID' : 'Säljaren signerar med sitt BankID'}
           </p>
+          {fmtExpected && (
+            <p className="text-[11px] text-slate-400">
+              Kräver personnummer: <span className="font-mono font-semibold text-slate-600">{fmtExpected}</span>
+            </p>
+          )}
+          {mismatch && (
+            <div className="rounded-lg bg-red-100 border border-red-200 px-3 py-2 text-xs text-red-800">
+              <p className="font-semibold">Fel person signerade</p>
+              <p className="mt-0.5">{mismatch}</p>
+            </div>
+          )}
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => { setMismatch(null); setShowModal(true); }}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#235971] text-white text-sm font-semibold hover:bg-[#1a4557] transition-colors w-full justify-center"
           >
             <div className="w-5 h-5 bg-white/20 rounded-sm flex items-center justify-center">
@@ -197,16 +207,30 @@ function SigBlock({
           subtitle={party === 'driver'
             ? 'Be kunden öppna BankID-appen och scanna QR-koden.'
             : 'Öppna BankID-appen och signera.'}
-          onComplete={(data) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          onComplete={(data: any) => {
             setShowModal(false);
-            if (data?.user) {
-              onSigned({
-                name:           data.user.name,
-                personalNumber: data.user.personalNumber,
-                signedAt:       new Date().toISOString(),
-                verified:       true,
-              });
+            if (!data?.user) return;
+
+            if (expectedPersonnummer) {
+              const got      = normalizePnr(data.user.personalNumber ?? '');
+              const expected = normalizePnr(expectedPersonnummer);
+              if (got !== expected) {
+                setMismatch(
+                  `BankID identifierade ${data.user.name} (${maskPnr(data.user.personalNumber)}), ` +
+                  `men detta intyg kräver personnummer ${fmtExpected}. Rätt person måste signera.`
+                );
+                return;
+              }
             }
+
+            setMismatch(null);
+            onSigned({
+              name:           data.user.name,
+              personalNumber: data.user.personalNumber,
+              signedAt:       new Date().toISOString(),
+              verified:       true,
+            });
           }}
           onCancel={() => setShowModal(false)}
         />
@@ -321,7 +345,8 @@ export default function TestDrivePage() {
   const [isEditing,     setIsEditing]     = useState(false);
   const [draft,         setDraft]         = useState<TDForm | null>(null);
   const [dealer,        setDealer]        = useState({ name: '', address: '', phone: '' });
-  const [loggedInUser,  setLoggedInUser]  = useState('');
+  const [loggedInUser,         setLoggedInUser]         = useState('');
+  const [loggedInPersonalNumber, setLoggedInPersonalNumber] = useState('');
   const [showInvPicker, setShowInvPicker] = useState(false);
 
   // ── Load ───────────────────────────────────────────────────────────────────
@@ -346,6 +371,7 @@ export default function TestDrivePage() {
 
     setDealer({ name: profile.name, address: profile.address, phone: profile.phone });
     setLoggedInUser(userName);
+    setLoggedInPersonalNumber((parsed.personalNumber as string) || '');
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sb = getSupabaseBrowser() as any;
@@ -958,6 +984,7 @@ export default function TestDrivePage() {
                       signText={buildSignText('driver')}
                       onSigned={proof => handleSigned('driver', proof)}
                       party="driver"
+                      expectedPersonnummer={form.personnummer}
                     />
                     <SigBlock
                       label="Säljarens underskrift"
@@ -965,6 +992,7 @@ export default function TestDrivePage() {
                       signText={buildSignText('staff')}
                       onSigned={proof => handleSigned('staff', proof)}
                       party="staff"
+                      expectedPersonnummer={loggedInPersonalNumber}
                     />
                   </div>
 
@@ -974,7 +1002,7 @@ export default function TestDrivePage() {
                       {driverProof ? (
                         <div className="mb-1">
                           <p className="text-sm font-semibold text-slate-900">{driverProof.name}</p>
-                          <p className="text-xs text-slate-500">{driverProof.personalNumber.replace(/(\d{8})(\d{4})/, '$1-$2')}</p>
+                          <p className="text-xs text-slate-500">{maskPnr(driverProof.personalNumber)}</p>
                           <p className="text-xs text-slate-400">BankID • {new Date(driverProof.signedAt).toLocaleString('sv-SE')}</p>
                         </div>
                       ) : (
@@ -986,7 +1014,7 @@ export default function TestDrivePage() {
                       {staffProof ? (
                         <div className="mb-1">
                           <p className="text-sm font-semibold text-slate-900">{staffProof.name}</p>
-                          <p className="text-xs text-slate-500">{staffProof.personalNumber.replace(/(\d{8})(\d{4})/, '$1-$2')}</p>
+                          <p className="text-xs text-slate-500">{maskPnr(staffProof.personalNumber)}</p>
                           <p className="text-xs text-slate-400">BankID • {new Date(staffProof.signedAt).toLocaleString('sv-SE')}</p>
                         </div>
                       ) : (

@@ -40,7 +40,7 @@ async function syncTradeIns(offerId: number, leadId: number, dealershipId: strin
   }));
 
   const { error } = await sb().from('trade_ins').insert(rows);
-  if (error) console.warn('[offers/[id]] syncTradeIns insert failed:', error.message);
+  if (error) console.error('[offers/[id]] syncTradeIns insert failed:', error.message, error.code);
 }
 
 /** Map raw DB row → camelCase offer object */

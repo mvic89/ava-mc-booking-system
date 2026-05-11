@@ -320,17 +320,31 @@ export default function AgreementCompletePage() {
             vatAmount,
           }).catch((err) => console.warn('[complete] Fortnox sync skipped:', err));
 
+          // Resolve real odometer reading from delivery record (best-effort)
+          let odometerKm = 0;
+          try {
+            const delivRes = await fetch(`/api/deliveries/${leadId}?dealershipId=${encodeURIComponent(dealershipId)}`);
+            if (delivRes.ok) {
+              const delivJson = await delivRes.json() as { delivery?: { odometer?: string } };
+              const raw = (delivJson.delivery?.odometer ?? '').replace(/\D/g, '');
+              const parsed = parseInt(raw, 10);
+              if (!isNaN(parsed) && parsed > 0) odometerKm = parsed;
+            }
+          } catch { /* odometer is informational — never block the sale */ }
+
           const regNr = (offer?.registrationNumber as string) || (localAgr.registrationNumber as string) || '';
           const pnr   = (lead.personnummer as string) || '';
           if (regNr && pnr) {
             const sellerPnr = (() => { try { return (JSON.parse(localStorage.getItem('user') ?? '{}') as { personalNumber?: string }).personalNumber ?? ''; } catch { return ''; } })();
             syncToTransportstyrelsen({
               dealershipId,
+              leadId:             String(leadId),
               registrationNumber: regNr,
               sellerPersonNumber: sellerPnr,
               buyerPersonNumber:  pnr,
               purchaseDate:       new Date().toISOString().slice(0, 10),
               purchasePrice:      totalAmount,
+              odometerReading:    odometerKm,
             }).then((caseId) => { if (caseId) setTransferCaseId(caseId); })
               .catch((err) => console.warn('[complete] Transportstyrelsen skipped:', err));
           }
@@ -955,23 +969,26 @@ async function syncToFortnox(opts: {
 // Returns the caseId on success, null if API key not configured.
 async function syncToTransportstyrelsen(opts: {
   dealershipId:       string;
+  leadId:             string;
   registrationNumber: string;
   sellerPersonNumber: string;
   buyerPersonNumber:  string;
   purchaseDate:       string;
   purchasePrice:      number;
+  odometerReading:    number;
 }): Promise<string | null> {
   const res = await fetch('/api/transportstyrelsen/register', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       dealerId:           opts.dealershipId,
+      leadId:             opts.leadId,
       registrationNumber: opts.registrationNumber,
       sellerPersonNumber: opts.sellerPersonNumber,
       buyerPersonNumber:  opts.buyerPersonNumber,
       purchaseDate:       opts.purchaseDate,
       purchasePrice:      opts.purchasePrice,
-      odometerReading:    0,
+      odometerReading:    opts.odometerReading,
     }),
   });
   if (!res.ok) {

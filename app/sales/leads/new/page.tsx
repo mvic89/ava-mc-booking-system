@@ -9,6 +9,7 @@ import Sidebar from '@/components/Sidebar';
 import { notify } from '@/lib/notifications';
 import { createLead } from '@/lib/leads';
 import BankIDModal from '@/components/bankIdModel';
+import { maskPnr } from '@/lib/pnr';
 import PhoneInput from '@/components/PhoneInput';
 import { useInventory } from '@/context/InventoryContext';
 import { isValidEmail, isValidPhone } from '@/lib/validation';
@@ -344,7 +345,7 @@ export default function NewLeadPage() {
                 <div>
                   <p className="text-sm font-semibold text-emerald-900">{bankIDData.user.name}</p>
                   <p className="text-xs text-emerald-700">
-                    {bankIDData.user.personalNumber.replace(/(\d{8})(\d{4})/, '$1-$2')} · BankID verifierad
+                    {maskPnr(bankIDData.user.personalNumber)} · BankID verifierad
                   </p>
                 </div>
               </div>

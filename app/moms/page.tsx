@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
 import { getSupabaseBrowser } from '@/lib/supabase';
 import { vatPeriods } from '@/lib/vat';
@@ -93,6 +94,7 @@ function computeSummary(invoices: InvoiceRow[]): MomsSummary {
 
 export default function MomsPage() {
   const router  = useRouter();
+  const t       = useTranslations('vatReport');
   const [ready, setReady]           = useState(false);
   const [dealershipId, setDid]      = useState('');
   const [invoices, setInvoices]     = useState<InvoiceRow[]>([]);
@@ -154,8 +156,8 @@ export default function MomsPage() {
 
         {/* Header */}
         <div className="px-5 md:px-8 py-6 bg-white border-b border-slate-100">
-          <h1 className="text-2xl font-bold text-slate-900">Momsredovisning</h1>
-          <p className="text-sm text-slate-500 mt-1">Underlag för momsdeklaration till Skatteverket</p>
+          <h1 className="text-2xl font-bold text-slate-900">{t('title')}</h1>
+          <p className="text-sm text-slate-500 mt-1">{t('subtitle')}</p>
         </div>
 
         <div className="flex-1 px-5 md:px-8 py-8 space-y-6">
@@ -164,19 +166,19 @@ export default function MomsPage() {
           <div className="bg-white rounded-2xl border border-slate-100 p-5">
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-slate-600">Intervall</label>
+                <label className="text-sm font-medium text-slate-600">{t('interval')}</label>
                 <select
                   value={interval}
                   onChange={e => { setInterval(e.target.value as 'monthly' | 'quarterly'); setPeriodIdx(0); }}
                   className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-[#FF6B2C]/20"
                 >
-                  <option value="quarterly">Kvartal</option>
-                  <option value="monthly">Månadsvis</option>
+                  <option value="quarterly">{t('quarterly')}</option>
+                  <option value="monthly">{t('monthly')}</option>
                 </select>
               </div>
 
               <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-slate-600">År</label>
+                <label className="text-sm font-medium text-slate-600">{t('year')}</label>
                 <select
                   value={year}
                   onChange={e => { setYear(Number(e.target.value)); setPeriodIdx(0); }}
@@ -187,7 +189,7 @@ export default function MomsPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-slate-600">Period</label>
+                <label className="text-sm font-medium text-slate-600">{t('period')}</label>
                 <div className="flex gap-1 flex-wrap">
                   {periods.map((p, i) => (
                     <button
@@ -216,10 +218,10 @@ export default function MomsPage() {
               {/* Revenue breakdown */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                  { label: 'Normal 25 %', amount: summary.normalRevenue, sub: `Moms: ${fmtSEK(summary.ruta05_normalVat25)}`, color: 'text-slate-900' },
-                  { label: 'Marginalbeskattat', amount: summary.marginRevenue, sub: `Bruttovinst: ${fmtSEK(summary.marginGrossProfit)}`, color: 'text-purple-700' },
-                  { label: 'Momsfritt', amount: summary.exemptRevenue, sub: 'Ingen moms', color: 'text-slate-400' },
-                  { label: 'Total omsättning', amount: summary.totalRevenue, sub: `${summary.invoiceCount} fakturor`, color: 'text-[#FF6B2C]' },
+                  { label: t('normal25'),     amount: summary.normalRevenue, sub: t('vatOf', { amount: fmtSEK(summary.ruta05_normalVat25) }), color: 'text-slate-900' },
+                  { label: t('marginal'),     amount: summary.marginRevenue, sub: t('grossProfit', { amount: fmtSEK(summary.marginGrossProfit) }), color: 'text-purple-700' },
+                  { label: t('exempt'),       amount: summary.exemptRevenue, sub: t('noVat'), color: 'text-slate-400' },
+                  { label: t('totalRevenue'), amount: summary.totalRevenue,  sub: t('invoiceCount', { count: summary.invoiceCount }), color: 'text-[#FF6B2C]' },
                 ].map(card => (
                   <div key={card.label} className="bg-white rounded-xl border border-slate-100 p-4">
                     <p className="text-xs text-slate-500 font-medium">{card.label}</p>
@@ -232,19 +234,19 @@ export default function MomsPage() {
               {/* Skatteverket boxes */}
               <div className="bg-white rounded-2xl border border-slate-100 p-6">
                 <h2 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
-                  <span className="text-lg">🏛️</span> Momsdeklaration — underlag
+                  <span className="text-lg">🏛️</span> {t('declarationTitle')}
                 </h2>
 
                 <div className="grid md:grid-cols-2 gap-6">
                   {/* Utgående moms */}
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">Utgående moms</p>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">{t('outgoingVat')}</p>
                     <div className="space-y-2">
                       {[
-                        { ruta: '05', label: 'Moms 25 %',             value: summary.ruta05_normalVat25, highlight: summary.ruta05_normalVat25 > 0 },
-                        { ruta: '06', label: 'Moms 12 %',             value: summary.ruta06_normalVat12, highlight: false },
-                        { ruta: '07', label: 'Moms 6 %',              value: summary.ruta07_normalVat6,  highlight: false },
-                        { ruta: '10', label: 'Marginalbeskattning',   value: summary.ruta10_marginVat,   highlight: summary.ruta10_marginVat > 0 },
+                        { ruta: '05', label: t('vat25'),     value: summary.ruta05_normalVat25, highlight: summary.ruta05_normalVat25 > 0 },
+                        { ruta: '06', label: t('vat12'),     value: summary.ruta06_normalVat12, highlight: false },
+                        { ruta: '07', label: t('vat6'),      value: summary.ruta07_normalVat6,  highlight: false },
+                        { ruta: '10', label: t('marginTax'), value: summary.ruta10_marginVat,   highlight: summary.ruta10_marginVat > 0 },
                       ].map(row => (
                         <div key={row.ruta} className={`flex items-center justify-between py-2 px-3 rounded-lg ${row.highlight ? 'bg-amber-50' : 'bg-slate-50'}`}>
                           <div className="flex items-center gap-2">
@@ -261,12 +263,12 @@ export default function MomsPage() {
 
                   {/* Ingående moms + total */}
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">Ingående moms & summering</p>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">{t('incomingVatSummary')}</p>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-blue-50">
                         <div className="flex items-center gap-2">
                           <span className="w-7 h-7 rounded-md bg-blue-200 text-blue-700 text-[10px] font-bold flex items-center justify-center">48</span>
-                          <span className="text-sm text-slate-600">Ingående moms (inköp)</span>
+                          <span className="text-sm text-slate-600">{t('incomingVat')}</span>
                         </div>
                         <input
                           type="text"
@@ -276,12 +278,12 @@ export default function MomsPage() {
                           className="w-28 text-right text-sm font-bold text-blue-700 bg-white border border-blue-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300/40"
                         />
                       </div>
-                      <p className="text-xs text-slate-400 px-3">Ange ingående moms från inköpsfakturor manuellt</p>
+                      <p className="text-xs text-slate-400 px-3">{t('incomingVatHint')}</p>
 
                       <div className={`flex items-center justify-between py-3 px-3 rounded-lg mt-2 ${vatToPay > 0 ? 'bg-red-50' : 'bg-green-50'}`}>
                         <div className="flex items-center gap-2">
                           <span className={`w-7 h-7 rounded-md text-[10px] font-bold flex items-center justify-center ${vatToPay > 0 ? 'bg-red-200 text-red-700' : 'bg-green-200 text-green-700'}`}>49</span>
-                          <span className="text-sm font-bold text-slate-700">Moms att betala</span>
+                          <span className="text-sm font-bold text-slate-700">{t('vatToPay')}</span>
                         </div>
                         <span className={`font-bold text-lg ${vatToPay > 0 ? 'text-red-700' : 'text-green-700'}`}>
                           {fmtSEK(vatToPay)}
@@ -293,7 +295,7 @@ export default function MomsPage() {
 
                 <p className="mt-4 text-xs text-slate-400 flex items-start gap-1.5">
                   <span>ℹ️</span>
-                  <span>Detta är ett beräkningsunderlag baserat på betalda fakturor i perioden. Verifiera alltid mot bokföringen innan deklaration lämnas till Skatteverket.</span>
+                  <span>{t('disclaimer')}</span>
                 </p>
               </div>
 
@@ -301,19 +303,19 @@ export default function MomsPage() {
               {invoices.length > 0 && (
                 <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
                   <div className="px-5 py-4 border-b border-slate-100">
-                    <h2 className="text-sm font-bold text-slate-700">Fakturor i perioden ({invoices.length})</h2>
+                    <h2 className="text-sm font-bold text-slate-700">{t('invoicesInPeriod', { count: invoices.length })}</h2>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs">
                       <thead className="bg-slate-50 text-slate-500 font-semibold">
                         <tr>
-                          <th className="px-4 py-2.5 text-left">Faktura</th>
-                          <th className="px-4 py-2.5 text-left">Datum</th>
-                          <th className="px-4 py-2.5 text-left">Kund / Fordon</th>
-                          <th className="px-4 py-2.5 text-center">Schema</th>
-                          <th className="px-4 py-2.5 text-right">Belopp inkl.</th>
-                          <th className="px-4 py-2.5 text-right">Moms</th>
-                          <th className="px-4 py-2.5 text-right">Netto</th>
+                          <th className="px-4 py-2.5 text-left">{t('invoice')}</th>
+                          <th className="px-4 py-2.5 text-left">{t('date')}</th>
+                          <th className="px-4 py-2.5 text-left">{t('customerVehicle')}</th>
+                          <th className="px-4 py-2.5 text-center">{t('scheme')}</th>
+                          <th className="px-4 py-2.5 text-right">{t('amountIncl')}</th>
+                          <th className="px-4 py-2.5 text-right">{t('vat')}</th>
+                          <th className="px-4 py-2.5 text-right">{t('net')}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-50">
@@ -329,11 +331,11 @@ export default function MomsPage() {
                             </td>
                             <td className="px-4 py-2.5 text-center">
                               {inv.vat_scheme === 'margin' ? (
-                                <span className="inline-flex px-1.5 py-px rounded text-[9px] font-bold bg-purple-100 text-purple-700">Marginal</span>
+                                <span className="inline-flex px-1.5 py-px rounded text-[9px] font-bold bg-purple-100 text-purple-700">{t('schemeMarginal')}</span>
                               ) : inv.vat_scheme === 'exempt' ? (
-                                <span className="inline-flex px-1.5 py-px rounded text-[9px] font-bold bg-slate-100 text-slate-500">Momsfri</span>
+                                <span className="inline-flex px-1.5 py-px rounded text-[9px] font-bold bg-slate-100 text-slate-500">{t('schemeExempt')}</span>
                               ) : (
-                                <span className="inline-flex px-1.5 py-px rounded text-[9px] font-bold bg-green-100 text-green-700">25 %</span>
+                                <span className="inline-flex px-1.5 py-px rounded text-[9px] font-bold bg-green-100 text-green-700">{t('scheme25')}</span>
                               )}
                             </td>
                             <td className="px-4 py-2.5 text-right font-semibold text-slate-700">
@@ -341,7 +343,7 @@ export default function MomsPage() {
                             </td>
                             <td className="px-4 py-2.5 text-right text-slate-500">
                               {inv.vat_scheme === 'margin'
-                                ? <span className="text-purple-600">{fmtSEK(inv.vat_amount)} <span className="text-[9px]">(marginal)</span></span>
+                                ? <span className="text-purple-600">{fmtSEK(inv.vat_amount)} <span className="text-[9px]">{t('marginalSuffix')}</span></span>
                                 : fmtSEK(inv.vat_amount)}
                             </td>
                             <td className="px-4 py-2.5 text-right text-slate-500">
@@ -357,7 +359,7 @@ export default function MomsPage() {
 
               {invoices.length === 0 && (
                 <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center">
-                  <p className="text-slate-400 text-sm">Inga betalda fakturor under {period.label}</p>
+                  <p className="text-slate-400 text-sm">{t('noInvoices', { period: period.label })}</p>
                 </div>
               )}
             </>

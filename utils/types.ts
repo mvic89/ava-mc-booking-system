@@ -32,6 +32,9 @@ export interface Motorcycle extends BaseInventoryItem {
     year: number;
     mcType: MCType;
     warehouse: Warehouse;
+    costCurrency?:       string;   // 'EUR' | 'USD' | 'GBP' etc — original invoice currency
+    costAmountForeign?:  number;   // original amount in foreign currency
+    costFxRate?:         number;   // hedged SEK per foreign unit, e.g. 11.42 for EUR/SEK
 }
 
 export interface SparePart extends BaseInventoryItem {

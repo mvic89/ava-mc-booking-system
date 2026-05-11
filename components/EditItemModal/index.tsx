@@ -208,6 +208,11 @@ export function EditItemModal({ item, category, onClose }: Props) {
         images:          item.images ?? [] as string[],
     })
 
+    // FX cost tracking (motorcycles only)
+    const [costCurrency,      setCostCurrency]      = useState((item as Motorcycle).costCurrency      ?? '')
+    const [costAmountForeign, setCostAmountForeign] = useState((item as Motorcycle).costAmountForeign != null ? String((item as Motorcycle).costAmountForeign) : '')
+    const [costFxRate,        setCostFxRate]        = useState((item as Motorcycle).costFxRate        != null ? String((item as Motorcycle).costFxRate)        : '')
+
     const [saving,    setSaving]    = useState(false)
     const [deleting,  setDeleting]  = useState(false)
     const [saved,     setSaved]     = useState(false)
@@ -250,6 +255,9 @@ export function EditItemModal({ item, category, onClose }: Props) {
                     color:     form.color.trim(),
                     mcType:    form.mcType as MCType,
                     warehouse: form.warehouse as Warehouse,
+                    costCurrency:      costCurrency.trim().toUpperCase() || undefined,
+                    costAmountForeign: costAmountForeign ? parseFloat(costAmountForeign) : undefined,
+                    costFxRate:        costFxRate        ? parseFloat(costFxRate)        : undefined,
                 } as Motorcycle)
             } else if (category === 'spareParts') {
                 await updateItem('spareParts', { ...base, category: form.category, subCategory: form.spSubCat.trim() || undefined } as SparePart)
@@ -417,6 +425,59 @@ export function EditItemModal({ item, category, onClose }: Props) {
                                     </select>
                                 </div>
                             </div>
+                        )}
+
+                        {/* FX / Import cost (motorcycles only) */}
+                        {category === 'motorcycles' && (
+                            <>
+                                <div className="flex items-center gap-2 pt-2">
+                                    <span className="text-xs font-bold uppercase tracking-widest text-gray-400">FX / Import Cost (optional)</span>
+                                    <div className="flex-1 h-px bg-gray-100" />
+                                </div>
+                                <p className="text-xs text-slate-500 -mt-2 mb-2">If purchased in foreign currency, record the hedged rate here. The <strong>Cost (SEK)</strong> field above is always the authoritative SEK value used for margin VAT.</p>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="flex flex-col gap-1">
+                                        <label className="text-xs font-semibold text-gray-600 mb-1.5">Purchase Currency</label>
+                                        <select
+                                            value={costCurrency}
+                                            onChange={e => setCostCurrency(e.target.value)}
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400"
+                                        >
+                                            <option value="">— none —</option>
+                                            <option value="EUR">EUR</option>
+                                            <option value="USD">USD</option>
+                                            <option value="GBP">GBP</option>
+                                            <option value="JPY">JPY</option>
+                                            <option value="NOK">NOK</option>
+                                            <option value="DKK">DKK</option>
+                                        </select>
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <label className="text-xs font-semibold text-gray-600 mb-1.5">Amount in foreign currency</label>
+                                        <input
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400"
+                                            type="number" min="0" step="0.01" placeholder="0.00"
+                                            value={costAmountForeign} onChange={e => setCostAmountForeign(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <label className="text-xs font-semibold text-gray-600 mb-1.5">FX rate used (SEK per unit)</label>
+                                        <input
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 focus:outline-none focus:border-orange-400"
+                                            type="number" min="0" step="0.0001" placeholder="e.g. 11.42"
+                                            value={costFxRate} onChange={e => setCostFxRate(e.target.value)}
+                                        />
+                                    </div>
+                                    {costCurrency && costAmountForeign && costFxRate && (
+                                        <div className="flex flex-col gap-1">
+                                            <label className="text-xs font-semibold text-gray-600 mb-1.5">Implied SEK cost</label>
+                                            <div className="text-sm font-mono text-slate-700 px-3 py-2 bg-slate-50 rounded-lg border border-slate-200">
+                                                {(parseFloat(costAmountForeign) * parseFloat(costFxRate)).toLocaleString('sv-SE', {maximumFractionDigits: 2})} kr
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </>
                         )}
 
                         {/* Spare-part category + sub-type */}

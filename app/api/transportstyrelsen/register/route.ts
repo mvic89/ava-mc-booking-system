@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { initiateOwnershipTransfer, getOwnershipTransferStatus } from '@/lib/transportstyrelsen/client';
 import { getCredential } from '@/lib/integrations/config-store';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 /**
  * POST /api/transportstyrelsen/register
@@ -10,6 +11,7 @@ import { getCredential } from '@/lib/integrations/config-store';
  *
  * Body: {
  *   dealerId:           string
+ *   leadId?:            string   ← if provided, persists caseId to leads table
  *   registrationNumber: string   ← vehicle reg plate
  *   sellerPersonNumber: string   ← seller's personnummer (YYYYMMDDXXXX)
  *   buyerPersonNumber:  string   ← buyer's personnummer
@@ -22,6 +24,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json() as {
       dealerId:           string;
+      leadId?:            string;
       registrationNumber: string;
       sellerPersonNumber: string;
       buyerPersonNumber:  string;
@@ -47,6 +50,20 @@ export async function POST(req: NextRequest) {
       purchasePrice:      body.purchasePrice,
       odometerReading:    body.odometerReading,
     });
+
+    // Persist caseId back to the lead so the detail page can poll status
+    if (body.leadId && result.caseId) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (getSupabaseAdmin() as any)
+          .from('leads')
+          .update({ transfer_case_id: result.caseId })
+          .eq('id', Number(body.leadId))
+          .eq('dealership_id', body.dealerId);
+      } catch (e) {
+        console.warn('[transportstyrelsen/register] could not persist caseId to lead:', e);
+      }
+    }
 
     return NextResponse.json({ transfer: result });
   } catch (error: any) {

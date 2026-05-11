@@ -10,6 +10,7 @@ import Sidebar from '@/components/Sidebar';
 import CustomerImportModal from '@/components/CustomerImportModal';
 import { getCustomers, deleteCustomers, type Customer, type Tag } from '@/lib/customers';
 import { useAutoRefresh } from '@/lib/realtime';
+import { maskPnr } from '@/lib/pnr';
 import { Tip } from '@/components/Tip';
 
 type Tab = 'all' | 'active' | 'vip' | 'bankid' | 'inactive';
@@ -367,7 +368,7 @@ export default function CustomersPage() {
                               {c.protectedIdentity && <span title={t('stats.protected')} className="text-xs">🛡️</span>}
                             </div>
                             {c.personnummer && (
-                              <div className="text-[11px] text-slate-400 font-mono tracking-tight">{c.personnummer}</div>
+                              <div className="text-[11px] text-slate-400 font-mono tracking-tight">{maskPnr(c.personnummer)}</div>
                             )}
                           </div>
                         </div>

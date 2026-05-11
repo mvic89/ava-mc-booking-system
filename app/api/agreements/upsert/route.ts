@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
     trade_in_credit:     body.tradeInCredit       ?? 0,
     total_price:         body.totalPrice          ?? 0,
     vat_amount:          body.vatAmount           ?? 0,
+    cost_price:          body.costPrice           ?? null,
     payment_type:        body.paymentType         ?? 'cash',
     down_payment:        body.downPayment         ?? 0,
     financing_months:    body.financingMonths     ?? 36,

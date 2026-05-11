@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
 import { getSupabaseBrowser } from '@/lib/supabase';
 import { getDealershipId } from '@/lib/tenant';
+import { getVatNumber } from '@/lib/dealer';
 
 interface AgreementData {
   agreementNumber: string;
@@ -39,7 +40,7 @@ export default function AgreementPreviewPage() {
   const id = (params?.id as string) || 'default';
   const t = useTranslations('agreement');
   const [ready, setReady] = useState(false);
-  const [dealer, setDealer] = useState({ name: '', orgNr: '', city: '', email: '' });
+  const [dealer, setDealer] = useState({ name: '', orgNr: '', city: '', email: '', vatNr: '' });
 
   // Agreement data — loaded from localStorage (written by agreement editor)
   const [storedAgr, setStoredAgr] = useState({
@@ -70,14 +71,16 @@ export default function AgreementPreviewPage() {
     // Dealer profile
     try {
       const p = JSON.parse(localStorage.getItem('dealership_profile') || '{}');
+      const resolvedOrgNr = p.orgNr || '—';
       setDealer({
         name:  p.name  || user.dealershipName || user.dealership || 'My Dealership',
-        orgNr: p.orgNr || '—',
+        orgNr: resolvedOrgNr,
         city:  p.city  ? `${p.city}${p.county ? ', ' + p.county : ''}` : '—',
         email: p.email || '—',
+        vatNr: getVatNumber(resolvedOrgNr),
       });
     } catch {
-      setDealer({ name: user.dealershipName || 'My Dealership', orgNr: '—', city: '—', email: '—' });
+      setDealer({ name: user.dealershipName || 'My Dealership', orgNr: '—', city: '—', email: '—', vatNr: '' });
     }
 
     // Read agreement data from localStorage (saved by agreement/page.tsx on load + save)

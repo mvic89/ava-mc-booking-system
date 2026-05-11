@@ -200,7 +200,6 @@ export default function Sidebar() {
         { icon: '📅', label: t('navigation.bookingCalendar'),   href: '/calendar',           roles: ['admin', 'sales', 'sales_manager'] },
         { icon: '👥', label: t('navigation.customers'),         href: '/customers',          roles: ['admin', 'sales', 'sales_manager', 'accountant', 'service'] },
         { icon: '📧', label: t('navigation.invoices'),          href: '/invoices',           roles: ['admin', 'sales', 'sales_manager', 'accountant', 'service'] },
-        { icon: '🧾', label: t('navigation.momsredovisning'),   href: '/moms',               roles: ['admin', 'sales_manager', 'accountant'] },
         { icon: '❌', label: t('navigation.cancellations'),     href: '/cancellations',      roles: ['admin', 'sales', 'sales_manager'] },
         { icon: '🛡️', label: t('navigation.warranties'),        href: '/warranties',         roles: ['admin', 'sales', 'sales_manager'] },
       ],
@@ -222,6 +221,7 @@ export default function Sidebar() {
       items: [
         { icon: '📈', label: t('navigation.analytics'),    href: '/analytics',         roles: ['admin', 'sales_manager', 'accountant'] },
         { icon: '📒', label: t('navigation.accounting'),   href: '/accounting',        roles: ['admin', 'accountant'] },
+        { icon: '🧾', label: t('navigation.momsredovisning'), href: '/moms',           roles: ['admin', 'accountant'] },
         { icon: '💵', label: t('navigation.commissions'),  href: '/commissions',       roles: ['admin', 'sales_manager'] },
         { icon: '📄', label: t('navigation.documents'),    href: '/documents',         roles: ['admin', 'technician'] },
         { icon: '🏢', label: t('navigation.branches'),     href: '/settings/branches', roles: ['admin'] },

@@ -10,6 +10,7 @@ import { storeInvite } from '@/lib/invites';
 import { isValidEmail } from '@/lib/validation';
 import { useAutoRefresh } from '@/lib/realtime';
 import { getSupabaseBrowser } from '@/lib/supabase';
+import { maskPnr } from '@/lib/pnr';
 import { getBranches, type Branch } from '@/lib/branches';
 
 //──Types ────────────────────────────────────────────────────────────────────
@@ -402,7 +403,7 @@ export default function UsersSettingsPage() {
                 </p>
                 {currentUser.personalNumber && (
                   <p className="text-xs text-slate-400 font-mono mt-0.5">
-                    {currentUser.personalNumber.replace(/(\d{8})(\d{4})/, '$1-$2')}
+                    {maskPnr(currentUser.personalNumber)}
                   </p>
                 )}
                 <span className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-bold bg-[#235971] text-white px-2 py-0.5 rounded">
