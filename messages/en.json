@@ -244,7 +244,8 @@
     "serviceVehicles": "Vehicle History",
     "serviceComms": "Communications",
     "scheduling": "Tech Calendar",
-    "serviceReminders": "Service Reminders"
+    "serviceReminders": "Service Reminders",
+    "momsredovisning": "VAT Report"
   },
   "login": {
     "title": "Welcome Back",
@@ -4069,6 +4070,81 @@
       "viewWorkOrder": "View work order",
       "editBooking": "Edit booking",
       "unassigned": "Unassigned"
+    }
+  },
+  "vatReport": {
+    "title": "VAT Report",
+    "subtitle": "Basis for VAT declaration to the Tax Authority",
+    "interval": "Interval",
+    "quarterly": "Quarterly",
+    "monthly": "Monthly",
+    "year": "Year",
+    "period": "Period",
+    "normal25": "Standard 25 %",
+    "marginal": "Margin-taxed",
+    "exempt": "VAT-exempt",
+    "totalRevenue": "Total revenue",
+    "vatOf": "VAT: {amount}",
+    "grossProfit": "Gross profit: {amount}",
+    "noVat": "No VAT",
+    "invoiceCount": "{count} invoices",
+    "declarationTitle": "VAT declaration — basis",
+    "outgoingVat": "Output VAT",
+    "vat25": "VAT 25 %",
+    "vat12": "VAT 12 %",
+    "vat6": "VAT 6 %",
+    "marginTax": "Margin taxation",
+    "incomingVatSummary": "Input VAT & summary",
+    "incomingVat": "Input VAT (purchases)",
+    "incomingVatHint": "Enter input VAT from purchase invoices manually",
+    "vatToPay": "VAT to pay",
+    "disclaimer": "This is a calculation basis derived from paid invoices in the period. Always verify against your bookkeeping before submitting the declaration.",
+    "invoicesInPeriod": "Invoices in period ({count})",
+    "invoice": "Invoice",
+    "date": "Date",
+    "customerVehicle": "Customer / Vehicle",
+    "scheme": "Scheme",
+    "amountIncl": "Amount incl.",
+    "vat": "VAT",
+    "net": "Net",
+    "schemeMarginal": "Margin",
+    "schemeExempt": "Exempt",
+    "scheme25": "25 %",
+    "marginalSuffix": "(margin)",
+    "noInvoices": "No paid invoices in {period}"
+  },
+  "daily": {
+    "breadcrumbParent": "Purchasing",
+    "breadcrumb": "Daily Actions",
+    "title": "Daily Actions",
+    "subtitle": "Everything that needs attention today",
+    "viewAll": "View all →",
+    "allClear": "All clear!",
+    "allClearHint": "No pending actions. Check back tomorrow.",
+    "noVendor": "No vendor",
+    "summary": {
+      "totalActions":    "Total actions",
+      "urgent":          "Urgent",
+      "pendingApproval": "Pending approval",
+      "lowStock":        "Low stock"
+    },
+    "sections": {
+      "followUp":        { "title": "Follow Up Now",             "empty": "No orders needing follow-up." },
+      "etaOverdue":      { "title": "ETA Overdue",               "empty": "No overdue ETAs." },
+      "arrivingToday":   { "title": "Arriving Today",            "empty": "Nothing arriving today." },
+      "pendingApproval": { "title": "Pending PO Approval",       "empty": "No orders awaiting approval." },
+      "receiptsApprove": { "title": "Goods Receipts to Approve", "empty": "No receipts pending approval." },
+      "overdueInvoices": { "title": "Overdue Invoices",          "empty": "No overdue invoices." },
+      "partialOrders":   { "title": "Backorders",                "empty": "No backorders." },
+      "lowStock":        { "title": "Low Stock Alerts",          "empty": "All stock levels are healthy." }
+    },
+    "badges": {
+      "daysOverdue": "{days}d overdue",
+      "etaWas":      "ETA {date} (+{days}d)",
+      "unitsDate":   "{units} units · {date}",
+      "due":         "Due {date}",
+      "partial":     "Backorder",
+      "stock":       "{current}/{min}"
     }
   }
 }

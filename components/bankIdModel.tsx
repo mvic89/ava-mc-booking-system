@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { BankIDStatus, BankIDModalProps, BankIDUser } from '@/types';
+import { maskPnr } from '@/lib/pnr';
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -323,7 +324,7 @@ export default function BankIDModal({
               {completedUser.name}
             </p>
             <p className="text-base font-semibold text-slate-900 bg-green-50 px-4 py-2 rounded-lg inline-block">
-              {completedUser.personalNumber.replace(/(\d{8})(\d{4})/, '$1-$2')}
+              {maskPnr(completedUser.personalNumber)}
             </p>
           </>
         )}

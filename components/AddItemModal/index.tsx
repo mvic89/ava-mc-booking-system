@@ -147,6 +147,11 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
     const [mcType, setMcType]       = useState<MCType>('New')
     const [warehouse, setWarehouse] = useState<Warehouse>('Warehouse A')
 
+    // FX cost tracking (motorcycles only)
+    const [costCurrency,      setCostCurrency]      = useState('')
+    const [costAmountForeign, setCostAmountForeign] = useState('')
+    const [costFxRate,        setCostFxRate]        = useState('')
+
     // Spare part-specific
     const [spCategory,    setSpCategory]    = useState('')
     const [spSubCategory, setSpSubCategory] = useState('')
@@ -445,6 +450,9 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                     year: parseInt(year) || new Date().getFullYear(),
                     mcType,
                     warehouse,
+                    costCurrency:       costCurrency.trim().toUpperCase() || undefined,
+                    costAmountForeign:  costAmountForeign ? parseFloat(costAmountForeign) : undefined,
+                    costFxRate:         costFxRate        ? parseFloat(costFxRate)        : undefined,
                 })
             } else if (type === 'spareParts') {
                 await addItem('spareParts', {
@@ -917,6 +925,36 @@ export function AddItemModal({ onClose }: { onClose: () => void }) {
                                                     <option>Warehouse D</option>
                                                 </select>
                                             </Field>
+                                        </div>
+                                        <Section title="FX / Import Cost (optional)" />
+                                        <p className="text-xs text-slate-500 -mt-2 mb-2">If purchased in foreign currency, record the hedged rate here. The <strong>Cost (SEK)</strong> field above is always the authoritative SEK value used for margin VAT.</p>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <Field label="Purchase Currency">
+                                                <select className={selectCls} value={costCurrency} onChange={e => setCostCurrency(e.target.value)}>
+                                                    <option value="">— none —</option>
+                                                    <option value="EUR">EUR</option>
+                                                    <option value="USD">USD</option>
+                                                    <option value="GBP">GBP</option>
+                                                    <option value="JPY">JPY</option>
+                                                    <option value="NOK">NOK</option>
+                                                    <option value="DKK">DKK</option>
+                                                </select>
+                                            </Field>
+                                            <Field label="Amount in foreign currency">
+                                                <input className={inputCls} type="number" min="0" step="0.01" placeholder="0.00"
+                                                    value={costAmountForeign} onChange={e => setCostAmountForeign(e.target.value)} />
+                                            </Field>
+                                            <Field label="FX rate used (SEK per unit)">
+                                                <input className={inputCls} type="number" min="0" step="0.0001" placeholder="e.g. 11.42"
+                                                    value={costFxRate} onChange={e => setCostFxRate(e.target.value)} />
+                                            </Field>
+                                            {costCurrency && costAmountForeign && costFxRate && (
+                                                <Field label="Implied SEK cost">
+                                                    <div className="text-sm font-mono text-slate-700 px-3 py-2 bg-slate-50 rounded-lg border border-slate-200">
+                                                        {(parseFloat(costAmountForeign) * parseFloat(costFxRate)).toLocaleString('sv-SE', {maximumFractionDigits: 2})} kr
+                                                    </div>
+                                                </Field>
+                                            )}
                                         </div>
                                     </>
                                 )}

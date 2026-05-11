@@ -1,6 +1,7 @@
 // ─── Invoice store — Supabase backing store ───────────────────────────────────
 import { getSupabaseBrowser } from './supabase';
 import { getDealershipId } from './tenant';
+import type { VatScheme, InvoiceLine } from './vat';
 
 export interface InvoicePart {
   name:       string;
@@ -25,6 +26,13 @@ export interface Invoice {
   issueDate:     string;
   paidDate?:     string;
   parts?:        InvoicePart[];   // spare parts / accessories (service invoices)
+  // VAT / Moms fields
+  vatScheme:     VatScheme;       // 'normal' | 'margin' | 'exempt'
+  purchasePrice: number;          // dealer cost — used in margin scheme calculation
+  marginAmount:  number;          // selling − purchase (margin scheme)
+  currencyCode:  string;          // SEK | EUR | JPY etc.
+  currencyRate:  number;          // rate to SEK at purchase time
+  lines?:        InvoiceLine[];   // per-line VAT breakdown (mixed new/used orders)
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -48,22 +56,34 @@ function mapDbToInvoice(row: Record<string, unknown>): Invoice {
     issueDate:     (row.issue_date     as string) ?? new Date().toISOString(),
     paidDate:      (row.paid_date      as string) ?? undefined,
     parts:         Array.isArray(row.parts) ? (row.parts as InvoicePart[]) : undefined,
+    vatScheme:     ((row.vat_scheme    as VatScheme) ?? 'normal'),
+    purchasePrice: parseFloat(String(row.purchase_price ?? '0')),
+    marginAmount:  parseFloat(String(row.margin_amount  ?? '0')),
+    currencyCode:  (row.currency_code  as string) ?? 'SEK',
+    currencyRate:  parseFloat(String(row.currency_rate  ?? '1')),
+    lines:         row.invoice_lines ? (row.invoice_lines as InvoiceLine[]) : undefined,
   };
 }
 
 function mapInvoiceToDb(inv: Omit<Invoice, 'id' | 'issueDate'>): Record<string, unknown> {
   return {
-    lead_id:        inv.leadId       || null,
-    customer_id:    inv.customerId   ?? null,
+    lead_id:        inv.leadId        || null,
+    customer_id:    inv.customerId    ?? null,
     customer_name:  inv.customerName,
     vehicle:        inv.vehicle,
-    agreement_ref:  inv.agreementRef || null,
+    agreement_ref:  inv.agreementRef  || null,
     total_amount:   inv.totalAmount,
     vat_amount:     inv.vatAmount,
     net_amount:     inv.netAmount,
     payment_method: inv.paymentMethod || '',
     status:         inv.status,
-    paid_date:      inv.paidDate     || null,
+    paid_date:      inv.paidDate      || null,
+    vat_scheme:     inv.vatScheme     ?? 'normal',
+    purchase_price: inv.purchasePrice || null,
+    margin_amount:  inv.marginAmount  || null,
+    currency_code:  inv.currencyCode  || 'SEK',
+    currency_rate:  inv.currencyRate  || 1,
+    ...(inv.lines ? { invoice_lines: inv.lines } : {}),
   };
 }
 
@@ -88,27 +108,30 @@ async function nextInvoiceId(_dealershipId: string): Promise<string> {
 export async function getInvoices(): Promise<Invoice[]> {
   const dealershipId = getDealershipId();
   if (!dealershipId) return [];
-  const { data, error } = await db()
-    .from('invoices')
-    .select('*')
-    .eq('dealership_id', dealershipId)
-    .order('issue_date', { ascending: false });
-  if (error) { console.error('[invoices] getInvoices:', error.message); return []; }
-  return (data ?? []).map((r: Record<string, unknown>) => mapDbToInvoice(r));
+  try {
+    const res = await fetch(`/api/invoices?dealershipId=${encodeURIComponent(dealershipId)}`);
+    if (!res.ok) { console.error('[invoices] getInvoices API error:', res.status); return []; }
+    const json = await res.json() as { invoices?: Record<string, unknown>[] };
+    return (json.invoices ?? []).map(mapDbToInvoice);
+  } catch (err) {
+    console.error('[invoices] getInvoices fetch error:', err);
+    return [];
+  }
 }
 
 /** Fetch all invoices for a specific customer (by customer_id FK). */
 export async function getInvoicesByCustomer(customerId: number): Promise<Invoice[]> {
   const dealershipId = getDealershipId();
   if (!dealershipId) return [];
-  const { data, error } = await db()
-    .from('invoices')
-    .select('*')
-    .eq('customer_id', customerId)
-    .eq('dealership_id', dealershipId)
-    .order('issue_date', { ascending: false });
-  if (error) { console.error('[invoices] getInvoicesByCustomer:', error.message); return []; }
-  return (data ?? []).map((r: Record<string, unknown>) => mapDbToInvoice(r));
+  try {
+    const res = await fetch(`/api/invoices?dealershipId=${encodeURIComponent(dealershipId)}&customerId=${customerId}`);
+    if (!res.ok) { console.error('[invoices] getInvoicesByCustomer API error:', res.status); return []; }
+    const json = await res.json() as { invoices?: Record<string, unknown>[] };
+    return (json.invoices ?? []).map(mapDbToInvoice);
+  } catch (err) {
+    console.error('[invoices] getInvoicesByCustomer fetch error:', err);
+    return [];
+  }
 }
 
 // ── Write ──────────────────────────────────────────────────────────────────────

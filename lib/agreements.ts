@@ -35,6 +35,7 @@ export interface Agreement {
   tradeInCredit:      number;
   totalPrice:         number;
   vatAmount:          number;
+  costPrice:          number;
 
   // Payment
   paymentType:        string;
@@ -87,6 +88,7 @@ function mapRow(row: Record<string, unknown>): Agreement {
     tradeInCredit:      parseFloat(String(row.trade_in_credit  ?? '0')),
     totalPrice:         parseFloat(String(row.total_price      ?? '0')),
     vatAmount:          parseFloat(String(row.vat_amount       ?? '0')),
+    costPrice:          parseFloat(String(row.cost_price       ?? '0')),
     paymentType:        (row.payment_type       as string) ?? 'cash',
     downPayment:        parseFloat(String(row.down_payment     ?? '0')),
     financingMonths:    (row.financing_months   as number) ?? 36,
@@ -166,6 +168,7 @@ export interface UpsertAgreementPayload {
   tradeInCredit?:     number;
   totalPrice?:        number;
   vatAmount?:         number;
+  costPrice?:         number;
   paymentType?:       string;
   downPayment?:       number;
   financingMonths?:   number;

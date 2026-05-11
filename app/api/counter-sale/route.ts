@@ -17,12 +17,13 @@ interface SaleItem {
   part_number?: string;
 }
 
-async function nextPosId(dealershipId: string): Promise<string> {
+async function nextPosId(_dealershipId: string): Promise<string> {
   const year = new Date().getFullYear();
+  // Query the GLOBAL max — invoices.id is a global PK, so filter by dealership
+  // would miss rows from other dealers and cause a 23505 duplicate-key error.
   const { data } = await sb()
     .from('invoices')
     .select('id')
-    .eq('dealership_id', dealershipId)
     .like('id', `POS-${year}-%`)
     .order('id', { ascending: false })
     .limit(1);
@@ -48,32 +49,41 @@ export async function POST(req: NextRequest) {
     if (!dealershipId) return NextResponse.json({ error: 'dealershipId required' }, { status: 400 });
     if (!items?.length) return NextResponse.json({ error: 'No items' }, { status: 400 });
 
-    const id  = await nextPosId(dealershipId);
     const now = new Date().toISOString();
 
-    const { data, error } = await sb()
-      .from('invoices')
-      .insert({
-        id,
-        dealership_id:  dealershipId,
-        lead_id:        null,
-        customer_id:    customerId ?? null,
-        customer_name:  customerName || 'Gångkund',
-        vehicle:        '',
-        agreement_ref:  null,
-        total_amount:   totalAmount,
-        vat_amount:     vatAmount,
-        net_amount:     netAmount,
-        payment_method: paymentMethod,
-        status:         'paid',
-        issue_date:     now,
-        paid_date:      now,
-        parts:          items,
-      })
-      .select()
-      .single();
+    // Retry loop handles concurrent ID collisions (23505 on invoices_pkey)
+    let data: unknown = null;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const id = await nextPosId(dealershipId);
+      const { data: inserted, error } = await sb()
+        .from('invoices')
+        .insert({
+          id,
+          dealership_id:  dealershipId,
+          lead_id:        null,
+          customer_id:    customerId ?? null,
+          customer_name:  customerName || 'Gångkund',
+          vehicle:        '',
+          agreement_ref:  null,
+          total_amount:   totalAmount,
+          vat_amount:     vatAmount,
+          net_amount:     netAmount,
+          payment_method: paymentMethod,
+          status:         'paid',
+          issue_date:     now,
+          paid_date:      now,
+          parts:          items,
+        })
+        .select()
+        .single();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      if (!error) { data = inserted; break; }
+      if (error.code !== '23505') {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+      console.warn(`[counter-sale] ID collision attempt ${attempt + 1}, retrying…`);
+    }
+    if (!data) return NextResponse.json({ error: 'Could not generate a unique invoice ID' }, { status: 500 });
 
     // Update customer lifetime_value if linked
     if (customerId && totalAmount > 0) {
@@ -91,11 +101,12 @@ export async function POST(req: NextRequest) {
         .eq('dealership_id', dealershipId);
     }
 
+    const invoiceId = (data as { id: string }).id;
     const totalStr = Math.round(totalAmount).toLocaleString('sv-SE');
     notify({
       dealershipId,
       type:    'payment',
-      title:   `Butiksköp — ${id}`,
+      title:   `Butiksköp — ${invoiceId}`,
       message: `${customerName || 'Gångkund'} — ${totalStr} kr — ${paymentMethod}`,
       href:    '/invoices',
     });

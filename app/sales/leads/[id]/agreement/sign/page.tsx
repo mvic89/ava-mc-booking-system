@@ -9,6 +9,7 @@ import BankIDModal from '@/components/bankIdModel';
 import { getDealerInfo } from '@/lib/dealer';
 import type { BankIDResult } from '@/types';
 import { notify } from '@/lib/notifications';
+import { maskPnr } from '@/lib/pnr';
 
 type SignStep = 'customer-pending' | 'customer-signing' | 'dealer-pending' | 'dealer-signing' | 'complete';
 
@@ -79,7 +80,7 @@ export default function BankIDSigningPage() {
       if (bankIdPnr !== expectedPnr) {
         setStep('customer-pending');
         setIdentityError(
-          `Fel person — BankID tillhör ${result.user.name} (${result.user.personalNumber.replace(/(\d{8})(\d{4})/, '$1-$2')}), ` +
+          `Fel person — BankID tillhör ${result.user.name} (${maskPnr(result.user.personalNumber)}), ` +
           `men avtalet gäller ${leadName || expectedPnr}. Be rätt kund att signera.`
         );
         return;
@@ -88,7 +89,7 @@ export default function BankIDSigningPage() {
 
     setCustomerRecord({
       name: result.user.name,
-      personalNumber: result.user.personalNumber.replace(/(\d{8})(\d{4})/, '$1-$2'),
+      personalNumber: maskPnr(result.user.personalNumber),
       signedAt: now(),
     });
     setStep('dealer-pending');
@@ -97,7 +98,7 @@ export default function BankIDSigningPage() {
   const handleDealerComplete = (result: BankIDResult) => {
     const dealerRec: SignRecord = {
       name: result.user.name,
-      personalNumber: result.user.personalNumber.replace(/(\d{8})(\d{4})/, '$1-$2'),
+      personalNumber: maskPnr(result.user.personalNumber),
       signedAt: now(),
     };
     setDealerRecord(dealerRec);

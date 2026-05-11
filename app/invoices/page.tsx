@@ -163,9 +163,17 @@ function openInvoicePrintWindow(inv: Invoice, labels: Record<string, string>) {
 
   <table class="totals">
     <tbody>
-      <tr><td>${labels.net}</td><td>${fmt(inv.netAmount)} kr</td></tr>
-      <tr><td>${labels.vat}</td><td>${fmt(inv.vatAmount)} kr</td></tr>
-      <tr class="grand"><td>${labels.total}</td><td>${fmt(inv.totalAmount)} kr</td></tr>
+      ${inv.vatScheme === 'margin'
+        ? `<tr class="grand"><td>${labels.total}</td><td>${fmt(inv.totalAmount)} kr</td></tr>
+           <tr><td colspan="2" style="font-size:10px;color:#666;padding-top:4px">Marginalbeskattning — moms specificeras ej (9a kap ML)</td></tr>`
+        : inv.vatScheme === 'exempt'
+          ? `<tr><td>${labels.net}</td><td>${fmt(inv.totalAmount)} kr</td></tr>
+             <tr><td>Moms</td><td>0 kr (momsfri)</td></tr>
+             <tr class="grand"><td>${labels.total}</td><td>${fmt(inv.totalAmount)} kr</td></tr>`
+          : `<tr><td>${labels.net}</td><td>${fmt(inv.netAmount)} kr</td></tr>
+             <tr><td>${labels.vat} 25 %</td><td>${fmt(inv.vatAmount)} kr</td></tr>
+             <tr class="grand"><td>${labels.total}</td><td>${fmt(inv.totalAmount)} kr</td></tr>`
+      }
     </tbody>
   </table>
 
@@ -537,9 +545,24 @@ export default function InvoicesPage() {
                           )}
                         </td>
 
-                        {/* Amount */}
-                        <td className="px-4 py-3 font-bold text-slate-900 whitespace-nowrap">
-                          {fmtAmount(inv.totalAmount)}
+                        {/* Amount + VAT scheme */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className="font-bold text-slate-900">{fmtAmount(inv.totalAmount)}</span>
+                          <div className="mt-0.5">
+                            {inv.vatScheme === 'margin' ? (
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-px rounded text-[9px] font-bold bg-purple-100 text-purple-700">
+                                ⚖️ Marginalmoms
+                              </span>
+                            ) : inv.vatScheme === 'exempt' ? (
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-px rounded text-[9px] font-bold bg-slate-100 text-slate-500">
+                                Momsfri
+                              </span>
+                            ) : (
+                              <span className="text-[9px] text-slate-400">
+                                Moms {inv.vatAmount > 0 ? fmtAmount(inv.vatAmount) : '—'}
+                              </span>
+                            )}
+                          </div>
                         </td>
 
                         {/* Status badge */}

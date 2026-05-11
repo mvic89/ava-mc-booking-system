@@ -9,6 +9,7 @@ import jsPDF from 'jspdf';
 import { getDealerInfo } from '@/lib/dealer';
 import { getSupabaseBrowser } from '@/lib/supabase';
 import { getDealershipId } from '@/lib/tenant';
+import { maskPnr } from '@/lib/pnr';
 
 interface SignRecord {
   name:           string;
@@ -484,7 +485,7 @@ export default function SignedAgreementPage() {
                   {signatures ? (
                     <>
                       <p className="text-sm font-bold text-slate-800">{signatures.customer.name}</p>
-                      <p className="text-xs text-slate-500">{signatures.customer.personalNumber}</p>
+                      <p className="text-xs text-slate-500">{maskPnr(signatures.customer.personalNumber)}</p>
                       <p className="text-xs text-green-600 mt-1 font-medium">{t('signed.signedAt')} {signatures.customer.signedAt}</p>
                     </>
                   ) : (
@@ -498,7 +499,7 @@ export default function SignedAgreementPage() {
                   {signatures ? (
                     <>
                       <p className="text-sm font-bold text-slate-800">{signatures.dealer.name}</p>
-                      <p className="text-xs text-slate-500">{signatures.dealer.personalNumber}</p>
+                      <p className="text-xs text-slate-500">{maskPnr(signatures.dealer.personalNumber)}</p>
                       <p className="text-xs text-green-600 mt-1 font-medium">{t('signed.signedAt')} {signatures.dealer.signedAt}</p>
                     </>
                   ) : (

@@ -244,7 +244,8 @@
     "serviceVehicles": "Fordonshistorik",
     "serviceComms": "Kundkommunikation",
     "scheduling": "Teknikerkalender",
-    "serviceReminders": "Servicepåminnelser"
+    "serviceReminders": "Servicepåminnelser",
+    "momsredovisning": "Momsredovisning"
   },
   "login": {
     "title": "Välkommen tillbaka",
@@ -4069,6 +4070,81 @@
       "viewWorkOrder": "Visa arbetsorder",
       "editBooking": "Redigera bokning",
       "unassigned": "Ej tilldelad"
+    }
+  },
+  "vatReport": {
+    "title": "Momsredovisning",
+    "subtitle": "Underlag för momsdeklaration till Skatteverket",
+    "interval": "Intervall",
+    "quarterly": "Kvartal",
+    "monthly": "Månadsvis",
+    "year": "År",
+    "period": "Period",
+    "normal25": "Normal 25 %",
+    "marginal": "Marginalbeskattat",
+    "exempt": "Momsfritt",
+    "totalRevenue": "Total omsättning",
+    "vatOf": "Moms: {amount}",
+    "grossProfit": "Bruttovinst: {amount}",
+    "noVat": "Ingen moms",
+    "invoiceCount": "{count} fakturor",
+    "declarationTitle": "Momsdeklaration — underlag",
+    "outgoingVat": "Utgående moms",
+    "vat25": "Moms 25 %",
+    "vat12": "Moms 12 %",
+    "vat6": "Moms 6 %",
+    "marginTax": "Marginalbeskattning",
+    "incomingVatSummary": "Ingående moms & summering",
+    "incomingVat": "Ingående moms (inköp)",
+    "incomingVatHint": "Ange ingående moms från inköpsfakturor manuellt",
+    "vatToPay": "Moms att betala",
+    "disclaimer": "Detta är ett beräkningsunderlag baserat på betalda fakturor i perioden. Verifiera alltid mot bokföringen innan deklaration lämnas till Skatteverket.",
+    "invoicesInPeriod": "Fakturor i perioden ({count})",
+    "invoice": "Faktura",
+    "date": "Datum",
+    "customerVehicle": "Kund / Fordon",
+    "scheme": "Schema",
+    "amountIncl": "Belopp inkl.",
+    "vat": "Moms",
+    "net": "Netto",
+    "schemeMarginal": "Marginal",
+    "schemeExempt": "Momsfri",
+    "scheme25": "25 %",
+    "marginalSuffix": "(marginal)",
+    "noInvoices": "Inga betalda fakturor under {period}"
+  },
+  "daily": {
+    "breadcrumbParent": "Inköp",
+    "breadcrumb": "Dagliga åtgärder",
+    "title": "Dagliga åtgärder",
+    "subtitle": "Allt som behöver uppmärksamhet idag",
+    "viewAll": "Visa alla →",
+    "allClear": "Allt klart!",
+    "allClearHint": "Inga väntande åtgärder. Kolla igen imorgon.",
+    "noVendor": "Ingen leverantör",
+    "summary": {
+      "totalActions":    "Totalt åtgärder",
+      "urgent":          "Brådskande",
+      "pendingApproval": "Väntar godkännande",
+      "lowStock":        "Lågt lager"
+    },
+    "sections": {
+      "followUp":        { "title": "Följ upp nu",                  "empty": "Inga ordrar behöver uppföljning." },
+      "etaOverdue":      { "title": "ETA försenad",                 "empty": "Inga försenade ETA." },
+      "arrivingToday":   { "title": "Anländer idag",                "empty": "Ingenting anländer idag." },
+      "pendingApproval": { "title": "Väntar PO-godkännande",        "empty": "Inga ordrar väntar godkännande." },
+      "receiptsApprove": { "title": "Godsmottagning att godkänna",  "empty": "Inga mottagningar väntar godkännande." },
+      "overdueInvoices": { "title": "Förfallna fakturor",           "empty": "Inga förfallna fakturor." },
+      "partialOrders":   { "title": "Restorder",                    "empty": "Inga restorder." },
+      "lowStock":        { "title": "Lagervarningar",               "empty": "Alla lagernivåer är OK." }
+    },
+    "badges": {
+      "daysOverdue": "{days}d försenad",
+      "etaWas":      "ETA {date} (+{days}d)",
+      "unitsDate":   "{units} enheter · {date}",
+      "due":         "Förfaller {date}",
+      "partial":     "Restorder",
+      "stock":       "{current}/{min}"
     }
   }
 }

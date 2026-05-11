@@ -244,7 +244,8 @@
     "serviceVehicles": "Køretøjshistorik",
     "serviceComms": "Kundekommunikation",
     "scheduling": "Teknikerkalender",
-    "serviceReminders": "Servicepåmindelser"
+    "serviceReminders": "Servicepåmindelser",
+    "momsredovisning": "Momsrapport"
   },
   "login": {
     "title": "Velkommen tilbage",
@@ -4068,6 +4069,81 @@
       "viewWorkOrder": "Vis arbejdsordre",
       "editBooking": "Rediger booking",
       "unassigned": "Ikke tildelt"
+    }
+  },
+  "vatReport": {
+    "title": "Momsrapport",
+    "subtitle": "Grundlag for momsangivelse til Skattestyrelsen",
+    "interval": "Interval",
+    "quarterly": "Kvartal",
+    "monthly": "Månedlig",
+    "year": "År",
+    "period": "Periode",
+    "normal25": "Normal 25 %",
+    "marginal": "Margenbeskattet",
+    "exempt": "Momsfrit",
+    "totalRevenue": "Samlet omsætning",
+    "vatOf": "Moms: {amount}",
+    "grossProfit": "Bruttofortjeneste: {amount}",
+    "noVat": "Ingen moms",
+    "invoiceCount": "{count} fakturaer",
+    "declarationTitle": "Momsangivelse — grundlag",
+    "outgoingVat": "Udgående moms",
+    "vat25": "Moms 25 %",
+    "vat12": "Moms 12 %",
+    "vat6": "Moms 6 %",
+    "marginTax": "Margenbeskatning",
+    "incomingVatSummary": "Indgående moms & opsummering",
+    "incomingVat": "Indgående moms (køb)",
+    "incomingVatHint": "Angiv indgående moms fra købsfakturaer manuelt",
+    "vatToPay": "Moms at betale",
+    "disclaimer": "Dette er et beregningsgrundlag baseret på betalte fakturaer i perioden. Verificer altid mod bogføringen, inden angivelsen indsendes til Skattestyrelsen.",
+    "invoicesInPeriod": "Fakturaer i perioden ({count})",
+    "invoice": "Faktura",
+    "date": "Dato",
+    "customerVehicle": "Kunde / Køretøj",
+    "scheme": "Skema",
+    "amountIncl": "Beløb inkl.",
+    "vat": "Moms",
+    "net": "Netto",
+    "schemeMarginal": "Margen",
+    "schemeExempt": "Momsfri",
+    "scheme25": "25 %",
+    "marginalSuffix": "(margen)",
+    "noInvoices": "Ingen betalte fakturaer i {period}"
+  },
+  "daily": {
+    "breadcrumbParent": "Indkøb",
+    "breadcrumb": "Daglige handlinger",
+    "title": "Daglige handlinger",
+    "subtitle": "Alt der kræver opmærksomhed i dag",
+    "viewAll": "Vis alle →",
+    "allClear": "Alt klart!",
+    "allClearHint": "Ingen afventende handlinger. Tjek igen i morgen.",
+    "noVendor": "Ingen leverandør",
+    "summary": {
+      "totalActions":    "Samlede handlinger",
+      "urgent":          "Akut",
+      "pendingApproval": "Afventer godkendelse",
+      "lowStock":        "Lavt lager"
+    },
+    "sections": {
+      "followUp":        { "title": "Følg op nu",                      "empty": "Ingen ordrer kræver opfølgning." },
+      "etaOverdue":      { "title": "ETA forsinket",                   "empty": "Ingen forsinkede ETA'er." },
+      "arrivingToday":   { "title": "Ankommer i dag",                  "empty": "Intet ankommer i dag." },
+      "pendingApproval": { "title": "Afventer PO-godkendelse",         "empty": "Ingen ordrer afventer godkendelse." },
+      "receiptsApprove": { "title": "Varemodtagelse til godkendelse",  "empty": "Ingen modtagelser afventer godkendelse." },
+      "overdueInvoices": { "title": "Forfaldne fakturaer",             "empty": "Ingen forfaldne fakturaer." },
+      "partialOrders":   { "title": "Restordrer",                      "empty": "Ingen restordrer." },
+      "lowStock":        { "title": "Lageradvarsler",                  "empty": "Alle lagerniveauer er OK." }
+    },
+    "badges": {
+      "daysOverdue": "{days}d forsinket",
+      "etaWas":      "ETA {date} (+{days}d)",
+      "unitsDate":   "{units} enheder · {date}",
+      "due":         "Forfalder {date}",
+      "partial":     "Restordre",
+      "stock":       "{current}/{min}"
     }
   }
 }

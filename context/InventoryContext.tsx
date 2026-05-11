@@ -66,6 +66,9 @@ function dbToMotorcycle(r: any): Motorcycle {
         location:        r.location ?? undefined,
         listedOnWebsite: r.listed_on_website ?? false,
         images:          r.images ?? [],
+        costCurrency:      r.cost_currency      ?? undefined,
+        costAmountForeign: r.cost_amount_foreign != null ? Number(r.cost_amount_foreign) : undefined,
+        costFxRate:        r.cost_fx_rate       != null ? Number(r.cost_fx_rate)       : undefined,
     }
 }
 
@@ -250,6 +253,9 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 location:           mc.location ?? null,
                 listed_on_website:  mc.listedOnWebsite ?? false,
                 images:             mc.images ?? [],
+                cost_currency:       mc.costCurrency      ?? null,
+                cost_amount_foreign: mc.costAmountForeign ?? null,
+                cost_fx_rate:        mc.costFxRate        ?? null,
             })
             if (error) throw new Error(error.message)
             setMotorcycles((prev) => [mc, ...prev])
@@ -324,6 +330,9 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
                 cost: mc.cost, selling_price: mc.sellingPrice, vendor: mc.vendor,
                 location: mc.location ?? null, listed_on_website: mc.listedOnWebsite ?? false,
                 images: mc.images ?? [],
+                cost_currency:       mc.costCurrency      ?? null,
+                cost_amount_foreign: mc.costAmountForeign ?? null,
+                cost_fx_rate:        mc.costFxRate        ?? null,
             }).eq('id', mc.id).eq('dealership_id', dealershipId)
             setMotorcycles(prev => prev.map(m => m.id === mc.id ? mc : m))
         } else if (category === 'spareParts') {
