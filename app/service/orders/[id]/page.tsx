@@ -44,6 +44,16 @@ interface InvSuggestion {
   category?: string;
 }
 
+interface LinkedPO {
+  id:           string;
+  vendor:       string;
+  status:       string;
+  eta:          string | null;
+  total_cost:   number;
+  date:         string;
+  purchase_order_items?: { id: number; name: string; status: string }[];
+}
+
 // AddLineForm lives outside the page component to avoid focus-loss on re-render
 function AddLineForm({ onAdd, laborRate, disabled, dealershipId, t }: {
   onAdd: (type: LineType, name: string, qty: number, unitPrice: number, partNumber?: string, hrs?: number) => Promise<void>;
@@ -317,6 +327,11 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
   const [showPOForm,     setShowPOForm]     = useState(false);
   const [poVendor,     setPoVendor]     = useState('');
   const [creatingPO,   setCreatingPO]   = useState(false);
+  const [poEta,          setPoEta]          = useState('');
+  const [vendors,        setVendors]        = useState<{ name: string; email: string | null }[]>([]);
+  const [vendorSug,      setVendorSug]      = useState<{ name: string; email: string | null }[]>([]);
+  const [showVendorSug,  setShowVendorSug]  = useState(false);
+  const [linkedPOs,      setLinkedPOs]      = useState<LinkedPO[]>([]);
 
   // Status actions built from translations (inside component so t() is available)
   const STATUS_ACTIONS: Partial<Record<WorkOrderStatus, { next: WorkOrderStatus; label: string; color: string }>> = {
@@ -339,6 +354,12 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
     setParts(data.parts);
     setTimeLog(data.time);
     if (data.order) setNotes(data.order.internal_notes ?? '');
+    // Linked purchase orders
+    const posRes = await fetch(`/api/purchasing/orders?dealershipId=${encodeURIComponent(dealershipId)}&workOrderId=${id}`);
+    if (posRes.ok) {
+      const { orders } = await posRes.json() as { orders?: LinkedPO[] };
+      setLinkedPOs(orders ?? []);
+    }
     // Check if the linked invoice has already been paid
     if (data.order?.invoice_id) {
       const res = await fetch(`/api/invoice/by-id?id=${encodeURIComponent(data.order.invoice_id)}&dealershipId=${encodeURIComponent(dealershipId)}`);
@@ -366,6 +387,10 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
         .then((j: { technicians?: { name: string }[] }) => {
           setTechList((j.technicians ?? []).map(tc => tc.name).filter(Boolean));
         })
+        .catch(() => {});
+      fetch(`/api/vendors?dealershipId=${encodeURIComponent(did_)}`)
+        .then(r => r.json())
+        .then((j: { vendors?: { name: string; email: string | null }[] }) => setVendors(j.vendors ?? []))
         .catch(() => {});
     }
   }, [load, router]);
@@ -497,6 +522,7 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         dealershipId: did(), workOrderId: Number(id), vendor: poVendor.trim(),
+        eta: poEta || null,
         items: neededParts.map(p => ({
           workOrderPartId: p.id, articleNumber: p.part_number ?? '',
           name: p.name, quantity: p.quantity, unitCost: p.unit_cost,
@@ -507,7 +533,7 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
     if (res.ok) {
       const { order: po } = await res.json();
       toast.success(t('orderDetail.toasts.orderCreated', { id: po.id }));
-      setShowPOForm(false); setPoVendor('');
+      setShowPOForm(false); setPoVendor(''); setPoEta('');
       load();
     } else {
       const j = await res.json();
@@ -670,11 +696,42 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
                 {t('orderDetail.po.title', { count: parts.filter(p => p.status === 'needed').length })}
               </p>
               <div className="flex gap-3 items-end flex-wrap">
-                <div className="flex-1 min-w-48">
+                {/* Vendor combobox */}
+                <div className="flex-1 min-w-48 relative">
                   <label className="block text-[10px] text-blue-600 mb-1 font-bold uppercase tracking-wide">{t('orderDetail.po.vendor')}</label>
                   <input
-                    value={poVendor} onChange={e => setPoVendor(e.target.value)}
+                    value={poVendor}
+                    onChange={e => {
+                      setPoVendor(e.target.value);
+                      const q = e.target.value.toLowerCase();
+                      const matches = q.length > 0
+                        ? vendors.filter(v => v.name.toLowerCase().includes(q)).slice(0, 6)
+                        : [];
+                      setVendorSug(matches);
+                      setShowVendorSug(matches.length > 0);
+                    }}
+                    onBlur={() => setTimeout(() => setShowVendorSug(false), 150)}
                     placeholder={t('orderDetail.po.vendorPlaceholder')}
+                    className="w-full px-3 py-2 text-sm border border-blue-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400/30 bg-white"
+                  />
+                  {showVendorSug && vendorSug.length > 0 && (
+                    <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-48 overflow-y-auto">
+                      {vendorSug.map(v => (
+                        <button key={v.name} type="button"
+                          onMouseDown={() => { setPoVendor(v.name); setShowVendorSug(false); }}
+                          className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-blue-50 text-left border-b border-slate-50 last:border-0">
+                          <span className="font-medium text-slate-800">{v.name}</span>
+                          {v.email && <span className="text-[10px] text-slate-400 truncate ml-2">{v.email}</span>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {/* ETA date */}
+                <div className="min-w-36">
+                  <label className="block text-[10px] text-blue-600 mb-1 font-bold uppercase tracking-wide">Bev. leverans</label>
+                  <input type="date"
+                    value={poEta} onChange={e => setPoEta(e.target.value)}
                     className="w-full px-3 py-2 text-sm border border-blue-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400/30 bg-white"
                   />
                 </div>
@@ -804,8 +861,18 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
                             {partStatusLabel(p.status)}
                           </span>
                           {p.status === 'needed' && (
+                            <button onClick={() => { setShowPOForm(true); }}
+                              className="text-blue-600 font-semibold hover:underline">+ IO</button>
+                          )}
+                          {p.status === 'needed' && (
                             <button onClick={() => updatePartStatus(p.id, 'ordered')}
                               className="text-orange-600 font-semibold hover:underline">{t('orderDetail.items.markOrdered')}</button>
+                          )}
+                          {p.status === 'ordered' && p.purchase_order_id && (
+                            <Link href="/purchase-orders"
+                              className="font-mono text-[10px] text-blue-600 hover:underline px-1.5 py-0.5 bg-blue-50 rounded">
+                              {p.purchase_order_id}
+                            </Link>
                           )}
                           {p.status === 'ordered' && (
                             <button onClick={() => updatePartStatus(p.id, 'received')}
@@ -846,6 +913,47 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
                   dealershipId={did()}
                   t={t}
                 />
+              )}
+
+              {/* Linked purchase orders */}
+              {linkedPOs.length > 0 && (
+                <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+                  <div className="px-5 py-3 bg-slate-50 border-b border-slate-100">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      Inköpsordrar ({linkedPOs.length})
+                    </p>
+                  </div>
+                  {linkedPOs.map((po, i) => {
+                    const items    = po.purchase_order_items ?? [];
+                    const received = items.filter(it => it.status === 'received').length;
+                    const total    = items.length;
+                    const badge =
+                      po.status === 'Reviewed' ? 'bg-emerald-100 text-emerald-700'
+                      : po.status === 'Ordered'  ? 'bg-blue-100 text-blue-700'
+                      : po.status === 'Partial'  ? 'bg-amber-100 text-amber-700'
+                      : po.status === 'Cancelled'? 'bg-red-100 text-red-500'
+                      : 'bg-slate-100 text-slate-500';
+                    return (
+                      <div key={po.id} className={`flex items-center justify-between px-5 py-3.5 ${i > 0 ? 'border-t border-slate-50' : ''}`}>
+                        <div>
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="text-sm font-bold text-slate-900">{po.id}</span>
+                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${badge}`}>{po.status}</span>
+                          </div>
+                          <p className="text-xs text-slate-500">
+                            {po.vendor}
+                            {po.eta && ` · Leverans: ${new Date(po.eta).toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' })}`}
+                            {total > 0 && ` · ${received}/${total} mottagna`}
+                          </p>
+                        </div>
+                        <Link href="/purchase-orders"
+                          className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 shrink-0">
+                          Visa →
+                        </Link>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
 
               {isLocked && order.invoice_id && (
