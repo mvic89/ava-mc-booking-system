@@ -18,6 +18,8 @@ const FEATURE_META = [
   { icon: '🔔', color: '#ef4444', bg: '#fef2f2', bgDark: 'rgba(239,68,68,0.12)' },
   { icon: '👥', color: '#0891b2', bg: '#f0f9ff', bgDark: 'rgba(8,145,178,0.12)' },
   { icon: '🔧', color: '#16a34a', bg: '#f0fdf4', bgDark: 'rgba(22,163,74,0.12)' },
+  { icon: '🛠️', color: '#7c3aed', bg: '#f5f3ff', bgDark: 'rgba(124,58,237,0.12)' },
+  { icon: '📦', color: '#0369a1', bg: '#f0f9ff', bgDark: 'rgba(3,105,161,0.12)' },
 ] as const;
 
 const STEP_META = [
@@ -34,12 +36,14 @@ const TESTIMONIAL_META = [
 ] as const;
 
 const LOGOS = [
-  { name: 'Klarna', abbr: 'K', color: '#ffb3c7', text: '#1a0010' },
-  { name: 'Swish', abbr: 'S', color: '#dbeafe', text: '#1e40af' },
-  { name: 'BankID', abbr: 'BID', color: '#e0f2fe', text: '#0369a1' },
-  { name: 'Svea', abbr: 'SV', color: '#fef9c3', text: '#713f12' },
-  { name: 'Fortnox', abbr: 'FX', color: '#dcfce7', text: '#14532d' },
-  { name: 'Trustly', abbr: 'T', color: '#f3e8ff', text: '#6b21a8' },
+  { name: 'Klarna',   abbr: 'K',   color: '#ffb3c7', text: '#1a0010' },
+  { name: 'Swish',   abbr: 'S',   color: '#dbeafe', text: '#1e40af' },
+  { name: 'BankID',  abbr: 'BID', color: '#e0f2fe', text: '#0369a1' },
+  { name: 'Svea',    abbr: 'SV',  color: '#fef9c3', text: '#713f12' },
+  { name: 'Fortnox', abbr: 'FX',  color: '#dcfce7', text: '#14532d' },
+  { name: 'Trustly', abbr: 'T',   color: '#f3e8ff', text: '#6b21a8' },
+  { name: 'Vonage',  abbr: 'V',   color: '#fce7f3', text: '#9d174d' },
+  { name: 'Resend',  abbr: 'RS',  color: '#fef3c7', text: '#92400e' },
 ];
 
 const STAT_ICONS = ['⚡', '📈', '📄', '🛡️'];
@@ -400,8 +404,9 @@ export default function LandingPage() {
               {[
                 { icon: '✅', title: 'Deal signed — 342 800 kr', sub: 'Erik Lindström · Moto Stockholm', color: '#10b981', time: '2m ago' },
                 { icon: '🪪', title: 'BankID verified instantly', sub: 'Anna Svensson · Göteborg', color: '#3b82f6', time: 'just now' },
-                { icon: '💰', title: 'Payment received · Klarna', sub: '189 000 kr · Malmö MC', color: '#FF6B2C', time: '5m ago' },
-                { icon: '📄', title: 'Agreement auto-generated', sub: 'Marcus N. · 1 click', color: '#8b5cf6', time: '8m ago' },
+                { icon: '🛠️', title: 'Service order completed', sub: 'Kawasaki Z900 · Work order #AO-284', color: '#7c3aed', time: '4m ago' },
+                { icon: '💰', title: 'Payment received · Klarna', sub: '189 000 kr · Malmö MC', color: '#FF6B2C', time: '6m ago' },
+                { icon: '💬', title: 'Customer replied via email', sub: 'Marcus N. → Moto Stockholm', color: '#0891b2', time: '9m ago' },
               ].map((a, i) => (
                 <div key={i} className="flex items-center gap-3 px-4 py-3.5 rounded-2xl"
                   style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)' }}>
@@ -474,10 +479,10 @@ export default function LandingPage() {
                 {/* KPI cards — 2×2 */}
                 <div className="grid grid-cols-2 gap-2.5">
                   {[
-                    { label: 'Pipeline value', value: '1.24M kr', color: '#FF6B2C', up: '+12%' },
-                    { label: 'Revenue (month)', value: '342 800 kr', color: '#10b981', up: '+8%' },
-                    { label: 'Active leads', value: '23', color: '#8b5cf6', up: '+5' },
-                    { label: 'Closing rate', value: '68%', color: '#f59e0b', up: '+3%' },
+                    { label: 'Pipeline value',  value: '1.24M kr',   color: '#FF6B2C', up: '+12%' },
+                    { label: 'Revenue (month)', value: '342 800 kr', color: '#10b981', up: '+8%'  },
+                    { label: 'Service orders',  value: '14',         color: '#7c3aed', up: '+3'   },
+                    { label: 'Closing rate',    value: '68%',        color: '#f59e0b', up: '+3%'  },
                   ].map(k => (
                     <div key={k.label} className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
                       <p className="text-[9px] text-slate-500 uppercase tracking-wider mb-1">{k.label}</p>
@@ -661,7 +666,7 @@ export default function LandingPage() {
             <h2 className="text-4xl md:text-5xl font-black text-[#0b1524] mb-4">{t('features.title')}</h2>
             <p className="text-slate-500 max-w-lg mx-auto leading-relaxed">{t('features.sub')}</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
             {FEATURES.map((f) => (
               <div key={f.title} className="group rounded-2xl border border-slate-200 bg-white p-6 hover:border-transparent hover:shadow-xl transition-all duration-300 cursor-default">
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mb-4 transition-all group-hover:scale-110" style={{ background: f.bgResolved }}>{f.icon}</div>
@@ -670,6 +675,104 @@ export default function LandingPage() {
                 <p className="text-xs text-slate-500 leading-relaxed">{f.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Service & Workshop deep-dive ─────────────────────────────────────── */}
+      <section className="py-0 overflow-hidden" style={{ background: 'linear-gradient(135deg, #070e1a 0%, #0f1d35 55%, #1a2f50 100%)' }}>
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-[55fr_45fr] items-stretch min-h-[560px]">
+
+            {/* Left — full-bleed photo */}
+            <div className="relative min-h-72 lg:min-h-full">
+              <img
+                src="/service.jpeg"
+                alt="Workshop service bay"
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ objectPosition: 'center' }}
+              />
+              {/* Dark overlay for readability */}
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(7,14,26,0.3) 0%, rgba(7,14,26,0.1) 60%, rgba(7,14,26,0.55) 100%)' }} />
+              {/* Floating KPI cards over the photo */}
+              <div className="absolute bottom-6 left-6 right-6 grid grid-cols-2 gap-2">
+                {[
+                  { label: 'Active orders',  value: '14', icon: '🔧', color: '#FF6B2C' },
+                  { label: 'Ready today',    value: '6',  icon: '✅', color: '#10b981' },
+                  { label: 'Waiting parts',  value: '3',  icon: '🔩', color: '#f59e0b' },
+                  { label: 'Earned (month)', value: '42 800 kr', icon: '💰', color: '#3b82f6' },
+                ].map(kpi => (
+                  <div key={kpi.label} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl"
+                    style={{ background: 'rgba(7,14,26,0.75)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)' }}>
+                    <span className="text-base shrink-0">{kpi.icon}</span>
+                    <div className="min-w-0">
+                      <p className="text-[9px] text-slate-400 uppercase tracking-wider truncate">{kpi.label}</p>
+                      <p className="text-sm font-black leading-tight" style={{ color: kpi.color }}>{kpi.value}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right — service feature list */}
+            <div className="px-8 md:px-12 py-14 flex flex-col justify-center">
+              <span className="inline-block text-xs font-black uppercase tracking-widest mb-4 px-3 py-1.5 rounded-full w-fit"
+                style={{ background: 'rgba(255,107,44,0.15)', color: '#FF6B2C', border: '1px solid rgba(255,107,44,0.3)' }}>
+                Service & Workshop
+              </span>
+              <h2 className="text-3xl md:text-4xl font-black text-white leading-tight mb-4">
+                Full workshop control.<br />
+                <span style={{ background: 'linear-gradient(90deg, #FF6B2C, #ffaa7a)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  From booking to invoice.
+                </span>
+              </h2>
+              <p className="text-slate-400 text-sm leading-relaxed mb-8 max-w-sm">
+                Manage every service job end-to-end — from the customer's first booking call to the signed invoice.
+                Technicians work from live work orders; customers get automatic status notifications.
+              </p>
+
+              <div className="space-y-3 mb-8">
+                {[
+                  { icon: '📅', title: 'Online & walk-in bookings',   desc: 'Schedule service appointments with duration, type, and technician. Avoid double-bookings.' },
+                  { icon: '🔧', title: 'Work orders with status flow', desc: 'Created → In progress → Waiting parts → Ready → Completed → Invoiced. Every step tracked.' },
+                  { icon: '🔩', title: 'Parts & labour tracking',      desc: 'Add parts, labour operations, and custom line items. Totals auto-calculate with VAT.' },
+                  { icon: '📧', title: 'Auto ready-for-pickup email',  desc: 'Customer receives an email automatically when the work order is marked ready.' },
+                  { icon: '💰', title: 'Service invoicing',            desc: 'Work orders become SRV- invoices on completion. Revenue feeds directly into live analytics.' },
+                  { icon: '🏍', title: 'Full vehicle service history', desc: 'Every work order is linked to a registration plate. Complete service timeline per bike.' },
+                ].map(item => (
+                  <div key={item.title} className="flex items-start gap-3 group">
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0 mt-0.5"
+                      style={{ background: 'rgba(255,107,44,0.12)', border: '1px solid rgba(255,107,44,0.2)' }}>
+                      {item.icon}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-white group-hover:text-[#FF6B2C] transition-colors">{item.title}</p>
+                      <p className="text-xs text-slate-500 leading-relaxed mt-0.5">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Status flow pill strip */}
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { label: 'Booked',        color: '#3b82f6' },
+                  { label: 'In progress',   color: '#f59e0b' },
+                  { label: 'Waiting parts', color: '#ef4444' },
+                  { label: 'Ready',         color: '#10b981' },
+                  { label: 'Invoiced',      color: '#8b5cf6' },
+                ].map((s, i, arr) => (
+                  <div key={s.label} className="flex items-center gap-1">
+                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full"
+                      style={{ background: `${s.color}18`, color: s.color, border: `1px solid ${s.color}30` }}>
+                      {s.label}
+                    </span>
+                    {i < arr.length - 1 && <span className="text-slate-700 text-xs">→</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
         </div>
       </section>

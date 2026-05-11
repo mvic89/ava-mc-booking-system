@@ -53,7 +53,9 @@
     "cancellations": "Annuleringen",
     "warranties": "Garanties",
     "nps": "NPS & Tevredenheid",
-    "commissions": "Commissies"
+    "commissions": "Commissies",
+    "serviceVehicles": "Voertuiggeschiedenis",
+    "serviceComms": "Communicatie"
   },
   "login": {
     "title": "Welkom terug",
@@ -1041,7 +1043,7 @@
     "colInvoice": "Factuur",
     "colDate": "Datum",
     "colCustomer": "Klant",
-    "colVehicle": "Voertuig",
+    "colVehicle": "Gekocht",
     "colAgreement": "Overeenkomst",
     "colMethod": "Betaling",
     "colAmount": "Bedrag",
@@ -1066,7 +1068,12 @@
     "printVat": "BTW 25%",
     "printTotal": "Totaal incl. BTW",
     "printStatus": "Status",
-    "printFooter": "{dealerName} • Org.nr {orgNr} • {city} • {email}"
+    "printFooter": "{dealerName} • Org.nr {orgNr} • {city} • {email}",
+    "typeVehicle": "Motor",
+    "typeService": "Service",
+    "typeAccessories": "Accessoires",
+    "typeSpareParts": "Reserveonderdelen",
+    "typeVehicleExtras": "Motor + accessoires"
   },
   "invite": {
     "title": "U bent uitgenodigd",
@@ -1754,7 +1761,780 @@
       "scheduling": "Minder tijd aan handmatige planning",
       "history": "Servicegeschiedenis altijd toegankelijk"
     },
-    "features": "Wat er komt"
+    "features": "Wat er komt",
+    "common": {
+      "loading": "Laden...",
+      "loadingBookings": "Boekingen laden...",
+      "loadingOrders": "Werkorders laden...",
+      "noVehicle": "Voertuig niet opgegeven",
+      "notAssigned": "Niet toegewezen",
+      "cancel": "Annuleren",
+      "save": "Opslaan",
+      "open": "Openen",
+      "back": "← Terug",
+      "all": "Alle",
+      "at": "om",
+      "booking": "boeking"
+    },
+    "status": {
+      "created": "Aangemaakt",
+      "in_progress": "In uitvoering",
+      "waiting_parts": "Wachten op onderdelen",
+      "ready": "Klaar",
+      "completed": "Voltooid",
+      "invoiced": "Gefactureerd"
+    },
+    "bookingStatus": {
+      "booked": "Geboekt",
+      "confirmed": "Bevestigd",
+      "checked_in": "Ingecheckt",
+      "in_progress": "In uitvoering",
+      "ready": "Klaar",
+      "completed": "Voltooid",
+      "cancelled": "Geannuleerd"
+    },
+    "serviceTypes": {
+      "maintenance": "Service / Onderhoud",
+      "repair": "Reparatie",
+      "inspection": "Inspectie",
+      "recall": "Terugroepactie",
+      "other": "Overig"
+    },
+    "priority": {
+      "low": "Laag",
+      "normal": "Normaal",
+      "high": "Hoog",
+      "urgent": "Dringend"
+    },
+    "partStatus": {
+      "needed": "Ontbreekt",
+      "reserved": "Gereserveerd",
+      "ordered": "Besteld",
+      "received": "Ontvangen",
+      "used": "Gebruikt"
+    },
+    "dashboard": {
+      "title": "Service & Werkplaats",
+      "subtitle": "Werkorders, boekingen en technicustijd in realtime",
+      "newBooking": "+ Nieuwe boeking",
+      "newOrder": "+ Nieuwe werkorder",
+      "kpi": {
+        "todayBookings": "Boekingen vandaag",
+        "activeOrders": "Actieve werkorders",
+        "waitingParts": "Wachten op onderdelen",
+        "doneToday": "Vandaag klaar",
+        "noBookings": "Geen boekingen vandaag",
+        "noOrders": "Geen actieve orders",
+        "allGood": "Alles op voorraad",
+        "noDone": "Vandaag nog niets klaar"
+      },
+      "schedule": {
+        "title": "Schema van vandaag",
+        "viewAll": "Alle →",
+        "noBookings": "Geen boekingen vandaag"
+      },
+      "orders": {
+        "title": "Actieve werkorders",
+        "viewAll": "Alle →",
+        "noOrders": "Geen actieve werkorders",
+        "createOrder": "Werkorder aanmaken →",
+        "ongoing": "{count} lopend"
+      },
+      "pickup": {
+        "title": "✅ Klaar voor ophalen ({count})"
+      },
+      "stats": {
+        "earned": "Totaal verdiend",
+        "pending": "Lopende waarde",
+        "readyPickup": "Klaar voor afhaling"
+      }
+    },
+    "bookings": {
+      "title": "Serviceboekingen",
+      "newBooking": "+ Nieuwe boeking",
+      "searchPlaceholder": "Klant, voertuig, kenteken zoeken...",
+      "total": "{count} boekingen totaal",
+      "loading": "Boekingen laden...",
+      "noResults": "Geen boekingen gevonden",
+      "createFirst": "Maak een boeking →",
+      "headers": {
+        "customer": "Klant / Voertuig",
+        "type": "Type",
+        "dateTime": "Datum & Tijd",
+        "technician": "Technicus",
+        "status": "Status"
+      },
+      "tabs": {
+        "all": "Alle",
+        "booked": "Geboekt",
+        "confirmed": "Bevestigd",
+        "checked_in": "Ingecheckt",
+        "in_progress": "In uitvoering",
+        "ready": "Klaar",
+        "completed": "Voltooid"
+      },
+      "actions": {
+        "confirm": "Bevestigen",
+        "toOrder": "→ Werkorder",
+        "open": "Openen",
+        "openWorkOrder": "Werkorder openen"
+      },
+      "toasts": {
+        "confirmed": "Boeking bevestigd",
+        "orderCreated": "Werkorder aangemaakt!",
+        "orderError": "Kon werkorder niet aanmaken"
+      }
+    },
+    "bookingDetail": {
+      "loading": "Laden...",
+      "notFound": "Boeking niet gevonden",
+      "sections": {
+        "customer": "Klant",
+        "vehicle": "Voertuig",
+        "appointment": "Afspraak",
+        "service": "Serviceverzoek"
+      },
+      "fields": {
+        "name": "Naam",
+        "phone": "Telefoon",
+        "email": "E-mail",
+        "model": "Model",
+        "regNr": "Kenteken",
+        "vin": "VIN",
+        "date": "Datum",
+        "time": "Tijd",
+        "duration": "Duur",
+        "technician": "Technicus",
+        "type": "Type",
+        "description": "Beschrijving",
+        "notes": "Interne notities"
+      },
+      "values": {
+        "minutes": "{n} minuten",
+        "notAssigned": "Niet toegewezen"
+      },
+      "actions": {
+        "createOrder": "Werkorder aanmaken",
+        "openOrder": "Werkorder #{id} openen"
+      },
+      "statusFlow": {
+        "confirmBooking": "Boeking bevestigen",
+        "checkIn": "Klant inchecken",
+        "startService": "Service starten",
+        "markReady": "Markeer klaar",
+        "complete": "Voltooien"
+      },
+      "toasts": {
+        "orderCreated": "Werkorder aangemaakt!",
+        "orderError": "Kon werkorder niet aanmaken"
+      }
+    },
+    "newBooking": {
+      "title": "Nieuwe serviceboeking",
+      "sections": {
+        "customer": "Klant",
+        "vehicle": "Voertuig",
+        "serviceInfo": "Servicedetails"
+      },
+      "fields": {
+        "searchCustomer": "Bestaande klant zoeken",
+        "searchPlaceholder": "Naam, telefoon of e-mail...",
+        "name": "Naam",
+        "namePlaceholder": "Voornaam Achternaam",
+        "phone": "Telefoon",
+        "email": "E-mail",
+        "serviceType": "Type service",
+        "description": "Probleembeschrijving / Verzoek",
+        "descriptionPlaceholder": "Beschrijf het probleem of wat uitgevoerd moet worden...",
+        "date": "Datum",
+        "time": "Tijd",
+        "duration": "Duur (min)",
+        "technician": "Toegewezen technicus",
+        "technicianPlaceholder": "Naam van technicus",
+        "notes": "Interne notities",
+        "notesPlaceholder": "Alleen intern zichtbaar..."
+      },
+      "vehicle": {
+        "noHistory": "Geen eerdere voertuigen gevonden voor deze klant. Zoek op kenteken:",
+        "walkIn": "Voer het kenteken in — alle voertuiginformatie wordt automatisch opgehaald.",
+        "select": "Voertuig selecteren",
+        "selectPlaceholder": "– Voertuig selecteren –",
+        "regLookup": "+ Zoek op ander kenteken",
+        "purchasedHere": "(hier gekocht)",
+        "serviced": "(onderhouden)",
+        "found": "✓ Voertuig gevonden",
+        "regNr": "Kenteken",
+        "model": "Model",
+        "vin": "VIN",
+        "color": "Kleur",
+        "fuel": "Brandstof",
+        "engine": "Motor",
+        "odometer": "Kilometerstand",
+        "nextInspection": "Volgende keuring",
+        "status": "Status",
+        "registered": "Geregistreerd",
+        "regPlaceholder": "ABC123 of VIN...",
+        "searchBtn": "Zoeken",
+        "notFound": "Voertuig niet gevonden. Controleer het kenteken en probeer opnieuw.",
+        "lookupFailed": "Opzoeking mislukt. Probeer opnieuw."
+      },
+      "actions": {
+        "cancel": "Annuleren",
+        "submit": "Boeking aanmaken",
+        "submitting": "Opslaan..."
+      },
+      "toasts": {
+        "created": "Boeking aangemaakt!",
+        "error": "Kon boeking niet aanmaken",
+        "noDealership": "Geen dealer gevonden",
+        "noDate": "Selecteer een datum"
+      },
+      "subtitle": "Vul de details in en sla de boeking op",
+      "preview": {
+        "heading": "Voorbeeld",
+        "subtitle": "Nieuwe boeking",
+        "vehicle": "Voertuig",
+        "service": "Service",
+        "date": "Datum",
+        "time": "Tijd",
+        "technician": "Technicus",
+        "matter": "Onderwerp",
+        "empty": "Vul het formulier in om een voorbeeld te zien"
+      },
+      "schedule": {
+        "title": "Schema van vandaag",
+        "count": "{n} boekingen",
+        "empty": "Geen boekingen vandaag",
+        "viewAll": "Bekijk alle boekingen"
+      }
+    },
+    "orders": {
+      "title": "Werkorders",
+      "total": "{count} totaal",
+      "newOrder": "+ Nieuwe werkorder",
+      "searchPlaceholder": "WO-nr., klant, kenteken zoeken...",
+      "loading": "Werkorders laden...",
+      "noResults": "Geen werkorders gevonden",
+      "createFirst": "Werkorder aanmaken →",
+      "noVehicle": "Voertuig niet opgegeven",
+      "tabs": {
+        "all": "Alle",
+        "created": "Aangemaakt",
+        "in_progress": "In uitvoering",
+        "waiting_parts": "Wacht op onderdelen",
+        "ready": "Klaar",
+        "completed": "Voltooid",
+        "invoiced": "Gefactureerd"
+      },
+      "card": {
+        "technician": "Technicus",
+        "total": "Totaal",
+        "notAssigned": "Niet toegewezen"
+      }
+    },
+    "newOrder": {
+      "title": "Nieuwe werkorder",
+      "subtitle": "Walk-in of zonder voorafgaande boeking",
+      "sections": {
+        "customer": "Klant",
+        "vehicle": "Voertuig",
+        "jobInfo": "Werkdetails"
+      },
+      "fields": {
+        "searchCustomer": "Bestaande klant zoeken",
+        "searchPlaceholder": "Naam of telefoon...",
+        "name": "Naam",
+        "phone": "Telefoon",
+        "description": "Probleembeschrijving / Verzoek",
+        "descriptionPlaceholder": "Beschrijf wat uitgevoerd moet worden...",
+        "priority": "Prioriteit",
+        "laborRate": "Uurtarief (€/u)",
+        "technician": "Toegewezen technicus",
+        "technicianPlaceholder": "Naam van technicus",
+        "model": "Voertuig / Model",
+        "modelPlaceholder": "Honda CB500F 2022",
+        "regNr": "Kenteken",
+        "regNrPlaceholder": "ABC123",
+        "vin": "VIN",
+        "vinPlaceholder": "Optioneel",
+        "odometer": "Kilometerstand (km)",
+        "vehicleSelect": "Voertuig selecteren",
+        "vehicleSelectPlaceholder": "– Voertuig selecteren –",
+        "vehicleOther": "Ander voertuig / Niet in systeem",
+        "noVehicleHistory": "Geen eerdere voertuigen gevonden voor deze klant.",
+        "purchasedHere": "(hier gekocht)",
+        "serviced": "(onderhouden)",
+        "namePlaceholder": "Naam van klant"
+      },
+      "vehicle": {
+        "regPlaceholder": "ABC123 of VIN...",
+        "searchBtn": "Zoeken",
+        "found": "✓ Voertuig gevonden",
+        "color": "Kleur",
+        "fuel": "Brandstof",
+        "engine": "Motor",
+        "odometer": "Kilometerstand",
+        "nextInspection": "Volgende keuring",
+        "status": "Status",
+        "registered": "Geregistreerd",
+        "notFound": "Voertuig niet gevonden. Controleer het kenteken en probeer opnieuw.",
+        "lookupFailed": "Opzoeking mislukt. Probeer opnieuw."
+      },
+      "actions": {
+        "cancel": "Annuleren",
+        "submit": "Werkorder aanmaken",
+        "submitting": "Aanmaken..."
+      },
+      "toasts": {
+        "created": "Werkorder aangemaakt!",
+        "error": "Kon werkorder niet aanmaken",
+        "noDealership": "Geen dealer gevonden"
+      },
+      "preview": {
+        "title": "Voorbeeld",
+        "orderNumber": "Ordernummer",
+        "pending": "Toegewezen bij aanmaken",
+        "statusNew": "Nieuw",
+        "emptyHint": "Vul het formulier in voor een voorbeeld van de werkorder",
+        "customer": "Klant",
+        "vehicle": "Voertuig",
+        "description": "Taakomschrijving",
+        "priorityLabel": "Prioriteit",
+        "technicianLabel": "Technicus",
+        "laborRateLabel": "Uurtarief",
+        "notSet": "–",
+        "unassigned": "Niet toegewezen"
+      },
+      "todaysOrders": {
+        "title": "Werkorders van vandaag",
+        "empty": "Geen actieve werkorders vandaag",
+        "viewAll": "Alle werkorders bekijken"
+      }
+    },
+    "orderDetail": {
+      "loading": "Laden...",
+      "notFound": "Werkorder niet gevonden",
+      "tabs": {
+        "items": "Artikelen & Prijzen ({count})",
+        "time": "Tijd ({count})",
+        "notes": "Notities",
+        "details": "Details"
+      },
+      "statusActions": {
+        "startWork": "Werk starten",
+        "markReady": "Markeer klaar voor ophalen",
+        "partsReceived": "Onderdelen ontvangen → Starten",
+        "completeAndInvoice": "Voltooien & Factureren",
+        "waitingParts": "⚠ Wachten op onderdelen",
+        "createPO": "📦 Inkooporder aanmaken",
+        "payInvoice": "💳 {id} betalen",
+        "goToPayment": "💳 Naar betaling — {id}"
+      },
+      "po": {
+        "title": "Inkooporder aanmaken voor {count} ontbrekende artikelen",
+        "vendor": "Leverancier",
+        "vendorPlaceholder": "bijv. Mekonomen, Biltema...",
+        "create": "IO aanmaken",
+        "creating": "Aanmaken...",
+        "cancel": "Annuleren"
+      },
+      "items": {
+        "type": "Type",
+        "name": "Benaming",
+        "artNr": "Art.nr",
+        "qty": "Aantal",
+        "unitPrice": "Stukprijs",
+        "total": "Totaal",
+        "status": "Status",
+        "emptyTitle": "Nog geen regels",
+        "emptySubtitle": "Voeg reserveonderdelen, arbeid of andere kosten hieronder toe",
+        "labor": "Arbeid",
+        "part": "Onderdeel",
+        "subtotal": "Subtotaal (excl. btw)",
+        "vat": "Btw 25%",
+        "grandTotal": "Totaal te betalen",
+        "partActions": "Voorraadstatus — acties",
+        "markOrdered": "Markeer besteld",
+        "markReceived": "Ontvangen",
+        "markUsed": "Gebruikt"
+      },
+      "taskStatus": {
+        "done": "Klaar",
+        "in_progress": "In uitvoering",
+        "pending": "Niet gestart"
+      },
+      "addLine": {
+        "label": "Regel toevoegen:",
+        "part": "🔧 Reserveonderdeel",
+        "labor": "⏱ Arbeid",
+        "other": "📋 Overig",
+        "artNr": "Art.nr",
+        "artNrPlaceholder": "Optioneel",
+        "nameLabelLabor": "Werkoperatie",
+        "nameLabelPart": "Onderdeel / Benaming",
+        "nameLabelOther": "Beschrijving",
+        "namePlaceholderPart": "Zoek in voorraad of voer vrije tekst in...",
+        "namePlaceholderLabor": "bijv. Olieverversing, Remrevisie",
+        "namePlaceholderOther": "Beschrijving",
+        "hours": "Uren",
+        "hourRate": "Uurtarief (€)",
+        "qty": "Aantal",
+        "unitPrice": "Stukprijs (€)",
+        "addBtn": "+ Toevoegen",
+        "inStock": "✓ {count} st op voorraad — automatisch gereserveerd",
+        "outOfStock": "⚠ Niet op voorraad — inkooporder vereist",
+        "hintPart": "Zoek op naam of art.nr om onderdelen in de voorraad te vinden. Als op voorraad, wordt automatisch gereserveerd.",
+        "hintLabor": "Laat uurtarief leeg om het tarief van de werkorder te gebruiken ({rate} €/u).",
+        "accessory": "Accessoire",
+        "sparePart": "Reserveonderdeel",
+        "stockLabel": "{count} op voorraad",
+        "outOfStockLabel": "Uitverkocht"
+      },
+      "time": {
+        "checkInTitle": "Technicus inchecken",
+        "techPlaceholder": "Naam technicus",
+        "checkInBtn": "Inchecken",
+        "activeEntry": "⏱ {name} is ingecheckt",
+        "since": "Sinds",
+        "checkOut": "Uitchecken",
+        "noEntries": "Nog geen tijdregistraties",
+        "header": "Tijdregistratie",
+        "totalLabel": "Totaal:",
+        "ongoing": "Bezig..."
+      },
+      "notes": {
+        "title": "Interne notities",
+        "placeholder": "Interne notities, klantcommunicatie, technische observaties...",
+        "save": "Notities opslaan"
+      },
+      "details": {
+        "customer": "Klant",
+        "vehicle": "Voertuig",
+        "matter": "Verzoek",
+        "timestamps": "Tijdstempels",
+        "name": "Naam",
+        "phone": "Telefoon",
+        "model": "Model",
+        "regNr": "Kenteken",
+        "vin": "VIN",
+        "odometer": "Kilometerstand",
+        "noDescription": "Geen beschrijving",
+        "created": "Aangemaakt",
+        "started": "Gestart",
+        "completed": "Voltooid",
+        "laborRate": "Uurtarief",
+        "openProfile": "Klantprofiel openen →"
+      },
+      "toasts": {
+        "laborAdded": "Arbeidsregel toegevoegd",
+        "partError": "Kon niet toevoegen",
+        "orderCreated": "Inkooporder {id} aangemaakt",
+        "poError": "Fout bij aanmaken IO",
+        "completedRedirect": "Voltooid! Betaling wordt geopend...",
+        "completeError": "Fout bij voltooien",
+        "notesSaved": "Notities opgeslagen",
+        "checkedOut": "Uitgecheckt",
+        "noTechName": "Voer naam technicus in"
+      }
+    },
+    "purchaseOrders": {
+      "title": "📦 Inkooporders — Service",
+      "subtitle": "Onderdelen & accessoires besteld bij externe leveranciers",
+      "loading": "Inkooporders laden...",
+      "noOrders": "Nog geen inkooporders",
+      "noOrdersHint": "Inkooporders worden automatisch aangemaakt vanuit werkorders als onderdelen niet op voorraad zijn.",
+      "status": {
+        "Draft": "Concept",
+        "Ordered": "Besteld",
+        "Partial": "Deels ontvangen",
+        "Reviewed": "Ontvangen",
+        "Cancelled": "Geannuleerd"
+      },
+      "table": {
+        "order": "Inkooporder / WO",
+        "vendor": "Leverancier",
+        "items": "Onderdelen",
+        "eta": "Levering (ETA)",
+        "total": "Totaal",
+        "status": "Status",
+        "actions": "Acties"
+      },
+      "progress": {
+        "draft": "Concept",
+        "ordered": "Besteld",
+        "partial": "Gedeeltelijk",
+        "reviewed": "Beoordeeld"
+      },
+      "actions": {
+        "send": "📧 Versturen",
+        "receive": "📦 Ontvangen",
+        "done": "✓ Klaar"
+      },
+      "send": {
+        "title": "Naar leverancier sturen",
+        "emailLabel": "E-mail leverancier (optioneel)",
+        "emailPlaceholder": "info@leverancier.nl",
+        "sendEmail": "Via e-mail sturen",
+        "sendEmailDesc": "Opent uw e-mailclient met de order ingevuld",
+        "print": "Afdrukken / Als PDF opslaan",
+        "printDesc": "Handmatig versturen per post of leveranciersportaal",
+        "markOrdered": "Markeer als besteld",
+        "markOrderedDesc": "Ik heb al handmatig besteld",
+        "total": "Totaal",
+        "toastOrdered": "gemarkeerd als besteld",
+        "toastError": "Kon status niet bijwerken"
+      },
+      "receive": {
+        "title": "Goederen ontvangen",
+        "instruction": "Vink de artikelen aan die met de levering zijn meegenomen:",
+        "allReceived": "Alle artikelen al ontvangen",
+        "selectAll": "Alles selecteren",
+        "clear": "Wissen",
+        "cancel": "Annuleren",
+        "saving": "Opslaan...",
+        "confirmBtn": "Ontvangst bevestigen ({n})",
+        "toastOk": "artikel(en) ontvangen",
+        "toastSelect": "Selecteer minstens één artikel",
+        "toastError": "Fout"
+      },
+      "eta": {
+        "set": "ETA instellen",
+        "tooltip": "Klik om leveringsdatum in te stellen"
+      },
+      "workOrder": "WO-{id}",
+      "itemsCount": "{count} artikelen",
+      "noEta": "Geen ETA",
+      "titleShort": "Inkooporders",
+      "section": "Inkoop",
+      "noResults": "Geen resultaten",
+      "backToService": "← Terug naar serviceoverzicht",
+      "searchPlaceholder": "Zoek IO, leverancier, onderdeel...",
+      "howItWorks": {
+        "title": "Zo werkt het",
+        "steps": [
+          {
+            "title": "Onderdeel toegevoegd aan WO",
+            "desc": "Niet op voorraad → status \"Nodig\""
+          },
+          {
+            "title": "Inkooporder aangemaakt",
+            "desc": "Vanuit werkorder → leverancier geselecteerd"
+          },
+          {
+            "title": "Verstuurd naar leverancier",
+            "desc": "Via e-mail of leveranciersportaal"
+          },
+          {
+            "title": "Goederen ontvangen → melding",
+            "desc": "WO wordt automatisch hervat"
+          }
+        ]
+      },
+      "stats": {
+        "total": "Totaal",
+        "active": "Actieve bestellingen",
+        "waiting": "Wacht op bestelling",
+        "done": "Voltooid"
+      },
+      "tabs": {
+        "all": "Alle",
+        "Draft": "Concept",
+        "Ordered": "Besteld",
+        "Partial": "Deels ontvangen",
+        "Reviewed": "Ontvangen",
+        "Cancelled": "Geannuleerd"
+      },
+      "subTable": {
+        "article": "Artikel",
+        "artNo": "Art.nr",
+        "qty": "Aantal",
+        "unitPrice": "Eenheidsprijs",
+        "total": "Totaal",
+        "status": "Status"
+      },
+      "itemStatus": {
+        "received": "✓ Ontvangen",
+        "pending": "· In behandeling"
+      },
+      "noItems": "Geen artikelen geregistreerd",
+      "notesLabel": "Notitie:",
+      "itemsReceived": "{r}/{t} ontvangen"
+    },
+    "payment": {
+      "loading": "Factuur laden...",
+      "notFound": "Werkorder niet gevonden",
+      "breadcrumb": "Betaling",
+      "title": "Servicefactuur — Betaling",
+      "backToOrder": "← Terug naar werkorder",
+      "methods": {
+        "swish": "Swish",
+        "card": "Kaart / Contactloos",
+        "bank_transfer": "Bankoverschrijving",
+        "klarna": "Klarna",
+        "cash": "Contant"
+      },
+      "success": {
+        "title": "Betaling bevestigd!",
+        "invoices": "Facturen",
+        "backBtn": "Terug naar WO →",
+        "invoice": "Factuur",
+        "amount": "Bedrag",
+        "method": "Methode",
+        "paid": "Betaald"
+      },
+      "summary": {
+        "title": "Facturatieoverzicht",
+        "labour": "Arbeid",
+        "parts": "Onderdelen & accessoires",
+        "labourTotal": "Totaal arbeid",
+        "partsTotal": "Totaal onderdelen",
+        "totalLabel": "Totaal te betalen (incl. btw)",
+        "kr": "kr",
+        "saving": "Opslaan...",
+        "vatLine": "waarvan btw (20%)",
+        "net": "netto",
+        "invoiceLabel": "Factuur",
+        "vehicle": "Voertuig"
+      },
+      "methodSelect": "Kies betaalmethode",
+      "swish": {
+        "amountLabel": "Te ontvangen bedrag",
+        "ref": "Ref:",
+        "merchantNum": "Swish handelsnummer",
+        "notConfigured": "Swish-nummer niet geconfigureerd.",
+        "configureLink": "Voeg het toe in",
+        "configureWhere": "Instellingen → Profiel",
+        "sendRequest": "Betalingsverzoek naar klant sturen",
+        "phonePlaceholder": "+31612345678",
+        "sendBtn": "Verzoek sturen",
+        "hint": "De klant ontvangt een Swish-melding en bevestigt de betaling.",
+        "waiting": "Wachten op betaling klant",
+        "waitHint": "Vraag de klant Swish te openen en te sturen",
+        "withRef": "met referentie",
+        "polls": "controles · Req-ID:",
+        "confirmBtn": "✓ Bevestigen — betaling ontvangen",
+        "cancelBtn": "✕ Annuleren",
+        "confirmed": "✅ Swish-betaling bevestigd",
+        "received": "ontvangen · Ref:",
+        "failed": "Betaling mislukt",
+        "retry": "Opnieuw proberen",
+        "errorPhone": "Voer telefoonnummer in",
+        "errorDeclined": "Swish geweigerd:"
+      },
+      "card": {
+        "title": "Contactloos & kaartbetaling",
+        "contactless": "Contactloos",
+        "terminalId": "Nets AXEPT · Terminal-ID:",
+        "ready": "KLAAR",
+        "approved": "GOEDGEKEURD",
+        "declined": "GEWEIGERD",
+        "active": "ACTIEF",
+        "tapHint": "Contactloos — houd kaart bij de terminal",
+        "tapSub": "Contactloos · Chip & PIN · Magneetstrip — alle kaarten geaccepteerd",
+        "screenTitle": "Terminalscherm",
+        "amountLabel": "Te betalen bedrag",
+        "sendBtn": "Bedrag naar terminal sturen →",
+        "waitSent": "Bedrag verstuurd — wachten op klant…",
+        "waitTap": "Klant: tap, steek in of veeg de kaart",
+        "authorising": "Autoriseren bij kaartnetwerk…",
+        "confirmed": "✅ Kaartbetaling goedgekeurd",
+        "authCode": "Auth-code",
+        "amount": "Bedrag",
+        "transaction": "Transactie",
+        "errorTitle": "❌ Kaart geweigerd",
+        "errorHint": "Vraag de klant een andere kaart of betaalmethode te proberen.",
+        "retry": "Opnieuw proberen"
+      },
+      "bank": {
+        "title": "Betalingsinstructies",
+        "bankgiro": "Bankgiro",
+        "iban": "IBAN",
+        "bic": "BIC/SWIFT",
+        "message": "Omschrijving",
+        "amount": "Bedrag",
+        "hint": "Laat de klant het factuurnummer",
+        "hintEnd": "als referentie opgeven",
+        "confirmBtn": "Bankoverschrijving bevestigen ontvangen",
+        "confirmed": "✓ Bevestigd"
+      },
+      "klarna": {
+        "title": "Klarna — Nu / later / gespreid betalen",
+        "subtitle": "De klant vult gegevens rechtstreeks in de Klarna-widget in",
+        "confirmed": "BEVESTIGD",
+        "creatingSession": "Klarna-sessie aanmaken…",
+        "loadingSdk": "Klarna SDK laden…",
+        "selectPlan": "Betalingsplan kiezen",
+        "payNow": "Nu betalen",
+        "payLater": "Over 30 dagen betalen",
+        "payOverTime": "Gespreide betaling",
+        "authorising": "Autoriseren…",
+        "placingOrder": "Bestelling aanmaken…",
+        "authoriseBtn": "Klarna-betaling autoriseren",
+        "paymentConfirmed": "✅ Klarna-betaling bevestigd",
+        "orderId": "Bestelling-ID:",
+        "errorTitle": "Klarna-fout",
+        "errorDeclined": "Klarna-autorisatie geweigerd. Vraag de klant het opnieuw te proberen.",
+        "errorShow": "Klarna kan deze optie niet tonen. Probeer een andere."
+      },
+      "cash": {
+        "label": "Contante betaling",
+        "confirmBtn": "Contant ontvangen — Bevestigen",
+        "confirmed": "✓ Contant ontvangen"
+      }
+    },
+    "vehicles": {
+      "title": "Voertuiggeschiedenis",
+      "subtitle": "Volledige servicegeschiedenis per motorfiets — doorzoekbaar op kenteken of VIN",
+      "searchPlaceholder": "Zoek kenteken, VIN of model...",
+      "searchBtn": "Zoeken",
+      "totalVehicles": "voertuigen geregistreerd",
+      "viewHistory": "Bekijk geschiedenis",
+      "orders": "Werkorders",
+      "spent": "totaal",
+      "lastService": "Laatste service",
+      "unknownModel": "Onbekend model",
+      "empty": "Geen voertuigen gevonden",
+      "emptyHint": "Maak een werkorder aan om voertuigen hier te zien",
+      "statsOrders": "Werkorders",
+      "statsSpent": "Totaal betaald",
+      "statsFirstSeen": "Eerste bezoek",
+      "statsLastSeen": "Laatste bezoek",
+      "workOrder": "Werkorder",
+      "jobDesc": "Taakomschrijving",
+      "labor": "Arbeid",
+      "parts": "Onderdelen",
+      "total": "Totaal",
+      "completedOn": "Voltooid op",
+      "noOrders": "Geen werkorders gevonden voor dit voertuig"
+    },
+    "comms": {
+      "title": "Klantcommunicatie",
+      "subtitle": "Stuur berichten en bekijk automatische statusupdates aan klanten",
+      "compose": "Nieuw bericht",
+      "newMessage": "Nieuw bericht",
+      "searchCustomer": "Klant zoeken",
+      "searchPlaceholder": "Naam, e-mail of telefoon...",
+      "recipientName": "Ontvanger",
+      "namePlaceholder": "Naam van ontvanger",
+      "email": "E-mailadres",
+      "phone": "Telefoonnummer",
+      "subject": "Onderwerp",
+      "subjectPlaceholder": "Voer onderwerp in...",
+      "message": "Bericht",
+      "messagePlaceholder": "Schrijf uw bericht hier...",
+      "cancel": "Annuleren",
+      "send": "Verzenden",
+      "sending": "Verzenden...",
+      "sent": "Bericht verzonden!",
+      "sendError": "Kon bericht niet verzenden",
+      "log": "Berichtenlogboek",
+      "messages": "berichten",
+      "empty": "Nog geen berichten verzonden",
+      "auto": "Auto",
+      "autoTitle": "Automatische statusberichten zijn ingeschakeld",
+      "autoDesc": "Klanten ontvangen automatisch een e-mail wanneer hun boeking is bevestigd en wanneer hun voertuig klaar is voor ophalen.",
+      "paymentNote": "Betalings-e-mails (bijv. overwijzingsinstructies) zijn te vinden bij elke lead in de verkooppipeline."
+    }
   },
   "settingsUsers": {
     "title": "Gebruikers & Rechten",
@@ -2741,7 +3521,7 @@
       "address": "Address",
       "contact": "Contact details",
       "banking": "Banking details",
-      "sms": "SMS (Twilio)",
+      "sms": "SMS (Vonage)",
       "notifEmails": "Notification Emails",
       "cover": "Cover image — Dashboard background",
       "logo": "Logo"
@@ -2772,12 +3552,6 @@
       "ibanHint": "International bank account number",
       "bic": "BIC / SWIFT",
       "bicHint": "Bank identifier code",
-      "twilioSid": "Account SID",
-      "twilioSidHint": "Starts with AC…",
-      "twilioToken": "Auth Token",
-      "twilioTokenHint": "Secret — never share with customers",
-      "twilioFrom": "Sender number",
-      "twilioFromHint": "E.164 format, e.g. +46701234567",
       "deliveryEmail": "Delivery Note Email",
       "deliveryEmailHint": "Receives email when a delivery note arrives.",
       "invoiceEmail": "Invoice Email",

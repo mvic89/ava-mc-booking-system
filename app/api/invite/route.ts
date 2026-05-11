@@ -35,6 +35,7 @@ interface Invitee {
 
 interface InviteBody {
   invitees:       Invitee[];
+  dealershipId:   string;
   dealershipName: string;
   inviterName:    string;
 }
@@ -42,11 +43,14 @@ interface InviteBody {
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as InviteBody;
-    const { invitees, dealershipName, inviterName } = body;
+    const { invitees, dealershipId, dealershipName, inviterName } = body;
 
-    if (!invitees?.length) {
-      return NextResponse.json({ error: 'No invitees provided' }, { status: 400 });
+    if (!invitees?.length || !dealershipId) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+
+    const REPLY_DOMAIN = process.env.POSTMARK_INBOUND_DOMAIN ?? 'inbound.bikeme.now';
+    const replyTo = `reply+${dealershipId}@${REPLY_DOMAIN}`;
 
     // Send one email per invitee (individual personalised messages)
     const results = await Promise.all(
@@ -54,6 +58,7 @@ export async function POST(req: NextRequest) {
         const { data, error } = await resend.emails.send({
           from:    FROM_ADDRESS,
           to:      [invitee.email],
+          replyTo: `"${dealershipName}" <${replyTo}>`,
           subject: `Du har bjudits in till ${dealershipName}`,
           react:   React.createElement(InviteEmail, {
             inviteeName:    invitee.name,

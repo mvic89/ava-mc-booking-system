@@ -50,7 +50,11 @@
       "f7t": "Customer Profiles",
       "f7d": "Full CRM with purchase history, vehicle ownership, GDPR exports and NPS scores.",
       "f8t": "Inventory Management",
-      "f8d": "New bikes, trade-ins, stock levels, reorder triggers. Every motorcycle tracked end to end."
+      "f8d": "New bikes, trade-ins, stock levels, reorder triggers. Every motorcycle tracked end to end.",
+      "f9t": "Service & Workshop",
+      "f9d": "Work orders, bookings, technician assignment, parts tracking, and service invoicing — all in one workshop view.",
+      "f10t": "Purchase & Procurement",
+      "f10d": "Purchase orders, supplier invoices via email, goods receipts with PDF parsing, and accounts payable tracking."
     },
     "how": {
       "badge": "The process",
@@ -206,6 +210,7 @@
     "dailyActions": "Daily Actions",
     "salesPipeline": "Sales Pipeline",
     "pipeline": "Pipeline",
+    "counterSale": "Counter Sale",
     "calendar": "Calendar",
     "tasks": "Tasks",
     "customers": "Customers",
@@ -230,8 +235,16 @@
     "groups": {
       "core": "CORE",
       "sales": "SALES",
+      "service": "SERVICE",
       "admin": "ADMIN"
-    }
+    },
+    "bookingCalendar": "Appointment Calendar",
+    "serviceBookings": "Bookings",
+    "serviceOrders": "Work Orders",
+    "serviceVehicles": "Vehicle History",
+    "serviceComms": "Communications",
+    "scheduling": "Tech Calendar",
+    "serviceReminders": "Service Reminders"
   },
   "login": {
     "title": "Welcome Back",
@@ -1220,7 +1233,7 @@
     "colInvoice": "Invoice",
     "colDate": "Date",
     "colCustomer": "Customer",
-    "colVehicle": "Vehicle",
+    "colVehicle": "Purchased",
     "colAgreement": "Agreement",
     "colMethod": "Payment",
     "colAmount": "Amount",
@@ -1245,7 +1258,12 @@
     "printVat": "VAT 25%",
     "printTotal": "Total incl. VAT",
     "printStatus": "Status",
-    "printFooter": "{dealerName} • Org.nr {orgNr} • {city} • {email}"
+    "printFooter": "{dealerName} • Org.nr {orgNr} • {city} • {email}",
+    "typeVehicle": "Motorcycle",
+    "typeService": "Service",
+    "typeAccessories": "Accessories",
+    "typeSpareParts": "Spare parts",
+    "typeVehicleExtras": "Motorcycle + accessories"
   },
   "invite": {
     "title": "You've been invited",
@@ -1755,7 +1773,783 @@
       "scheduling": "Less time on manual scheduling",
       "history": "Service history always accessible"
     },
-    "features": "What's coming"
+    "features": "What's coming",
+    "common": {
+      "loading": "Loading...",
+      "loadingBookings": "Loading bookings...",
+      "loadingOrders": "Loading work orders...",
+      "noVehicle": "Vehicle not specified",
+      "notAssigned": "Not assigned",
+      "cancel": "Cancel",
+      "save": "Save",
+      "open": "Open",
+      "back": "← Back",
+      "all": "All",
+      "at": "at",
+      "booking": "booking"
+    },
+    "status": {
+      "created": "Created",
+      "in_progress": "In progress",
+      "waiting_parts": "Waiting for parts",
+      "ready": "Ready",
+      "completed": "Completed",
+      "invoiced": "Invoiced"
+    },
+    "bookingStatus": {
+      "booked": "Booked",
+      "confirmed": "Confirmed",
+      "checked_in": "Checked in",
+      "in_progress": "In progress",
+      "ready": "Ready",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "serviceTypes": {
+      "maintenance": "Service / Maintenance",
+      "repair": "Repair",
+      "inspection": "Inspection",
+      "recall": "Recall",
+      "other": "Other"
+    },
+    "priority": {
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "partStatus": {
+      "needed": "Missing",
+      "reserved": "Reserved",
+      "ordered": "Ordered",
+      "received": "Received",
+      "used": "Used"
+    },
+    "dashboard": {
+      "title": "Service & Workshop",
+      "subtitle": "Work orders, bookings and technician time in real time",
+      "newBooking": "+ New booking",
+      "newOrder": "+ New work order",
+      "kpi": {
+        "todayBookings": "Today's bookings",
+        "activeOrders": "Active work orders",
+        "waitingParts": "Waiting for parts",
+        "doneToday": "Completed today",
+        "noBookings": "No bookings today",
+        "noOrders": "No active orders",
+        "allGood": "All parts in stock",
+        "noDone": "None completed today"
+      },
+      "schedule": {
+        "title": "Today's schedule",
+        "viewAll": "All →",
+        "noBookings": "No bookings today"
+      },
+      "orders": {
+        "title": "Active work orders",
+        "viewAll": "All →",
+        "noOrders": "No active work orders",
+        "createOrder": "Create work order →",
+        "ongoing": "{count} ongoing"
+      },
+      "pickup": {
+        "title": "✅ Ready for pickup ({count})"
+      },
+      "stats": {
+        "earned": "Total earned",
+        "pending": "Pending value",
+        "readyPickup": "Ready for pickup"
+      }
+    },
+    "bookings": {
+      "title": "Service bookings",
+      "newBooking": "+ New booking",
+      "searchPlaceholder": "Search customer, vehicle, reg.nr...",
+      "total": "{count} bookings total",
+      "loading": "Loading bookings...",
+      "noResults": "No bookings found",
+      "createFirst": "Create a booking →",
+      "headers": {
+        "customer": "Customer / Vehicle",
+        "type": "Type",
+        "dateTime": "Date & Time",
+        "technician": "Technician",
+        "status": "Status"
+      },
+      "tabs": {
+        "all": "All",
+        "booked": "Booked",
+        "confirmed": "Confirmed",
+        "checked_in": "Checked in",
+        "in_progress": "In progress",
+        "ready": "Ready",
+        "completed": "Completed"
+      },
+      "actions": {
+        "confirm": "Confirm",
+        "toOrder": "→ Work order",
+        "open": "Open",
+        "openWorkOrder": "Open work order"
+      },
+      "toasts": {
+        "confirmed": "Booking confirmed",
+        "orderCreated": "Work order created!",
+        "orderError": "Could not create work order"
+      }
+    },
+    "bookingDetail": {
+      "loading": "Loading...",
+      "notFound": "Booking not found",
+      "sections": {
+        "customer": "Customer",
+        "vehicle": "Vehicle",
+        "appointment": "Appointment",
+        "service": "Service matter"
+      },
+      "fields": {
+        "name": "Name",
+        "phone": "Phone",
+        "email": "Email",
+        "model": "Model",
+        "regNr": "Reg.nr",
+        "vin": "VIN",
+        "date": "Date",
+        "time": "Time",
+        "duration": "Duration",
+        "technician": "Technician",
+        "type": "Type",
+        "description": "Description",
+        "notes": "Internal notes"
+      },
+      "values": {
+        "minutes": "{n} minutes",
+        "notAssigned": "Not assigned"
+      },
+      "actions": {
+        "createOrder": "Create work order",
+        "openOrder": "Open work order #{id}"
+      },
+      "statusFlow": {
+        "confirmBooking": "Confirm booking",
+        "checkIn": "Check in customer",
+        "startService": "Start service",
+        "markReady": "Mark ready",
+        "complete": "Complete"
+      },
+      "toasts": {
+        "orderCreated": "Work order created!",
+        "orderError": "Could not create work order"
+      }
+    },
+    "newBooking": {
+      "title": "New service booking",
+      "sections": {
+        "customer": "Customer",
+        "vehicle": "Vehicle",
+        "serviceInfo": "Service details"
+      },
+      "fields": {
+        "searchCustomer": "Search existing customer",
+        "searchPlaceholder": "Name, phone or email...",
+        "name": "Name",
+        "namePlaceholder": "First Last",
+        "phone": "Phone",
+        "email": "Email",
+        "serviceType": "Type of service",
+        "description": "Problem description / Matter",
+        "descriptionPlaceholder": "Describe the problem or what needs to be done...",
+        "date": "Date",
+        "time": "Time",
+        "duration": "Duration (min)",
+        "technician": "Assigned technician",
+        "technicianPlaceholder": "Technician's name",
+        "notes": "Internal notes",
+        "notesPlaceholder": "Visible internally only..."
+      },
+      "vehicle": {
+        "noHistory": "No previous vehicles found for this customer. Search by registration number:",
+        "walkIn": "Enter the registration number — all vehicle information is fetched automatically.",
+        "select": "Select vehicle",
+        "selectPlaceholder": "– Select vehicle –",
+        "regLookup": "+ Search by another reg.nr",
+        "purchasedHere": "(bought here)",
+        "serviced": "(serviced)",
+        "found": "✓ Vehicle found",
+        "regNr": "Reg.nr",
+        "model": "Model",
+        "vin": "VIN",
+        "color": "Color",
+        "fuel": "Fuel",
+        "engine": "Engine",
+        "odometer": "Odometer",
+        "nextInspection": "Next inspection",
+        "status": "Status",
+        "registered": "Registered",
+        "regPlaceholder": "ABC123 or VIN...",
+        "searchBtn": "Search",
+        "notFound": "Vehicle not found. Check reg.nr and try again.",
+        "lookupFailed": "Lookup failed. Try again."
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "submit": "Create booking",
+        "submitting": "Saving..."
+      },
+      "toasts": {
+        "created": "Booking created!",
+        "error": "Could not create booking",
+        "noDealership": "No dealership found",
+        "noDate": "Select a date"
+      },
+      "subtitle": "Fill in the details and save the booking to the database",
+      "preview": {
+        "heading": "Preview",
+        "subtitle": "New booking",
+        "vehicle": "Vehicle",
+        "service": "Service",
+        "date": "Date",
+        "time": "Time",
+        "technician": "Technician",
+        "matter": "Issue",
+        "empty": "Fill in the form to see a preview"
+      },
+      "schedule": {
+        "title": "Today's schedule",
+        "count": "{n} bookings",
+        "empty": "No bookings today",
+        "viewAll": "View all bookings"
+      }
+    },
+    "orders": {
+      "title": "Work orders",
+      "total": "{count} total",
+      "newOrder": "+ New work order",
+      "searchPlaceholder": "Search WO#, customer, reg.nr...",
+      "loading": "Loading work orders...",
+      "noResults": "No work orders found",
+      "createFirst": "Create work order →",
+      "noVehicle": "Vehicle not specified",
+      "tabs": {
+        "all": "All",
+        "created": "Created",
+        "in_progress": "In progress",
+        "waiting_parts": "Waiting parts",
+        "ready": "Ready",
+        "completed": "Completed",
+        "invoiced": "Invoiced"
+      },
+      "card": {
+        "technician": "Technician",
+        "total": "Total",
+        "notAssigned": "Not assigned"
+      }
+    },
+    "newOrder": {
+      "title": "New work order",
+      "subtitle": "Walk-in or without prior booking",
+      "sections": {
+        "customer": "Customer",
+        "vehicle": "Vehicle",
+        "jobInfo": "Job details"
+      },
+      "fields": {
+        "searchCustomer": "Search existing customer",
+        "searchPlaceholder": "Name or phone...",
+        "name": "Name",
+        "phone": "Phone",
+        "description": "Problem description / Matter",
+        "descriptionPlaceholder": "Describe what needs to be done...",
+        "priority": "Priority",
+        "laborRate": "Hourly rate (kr/hr)",
+        "technician": "Assigned technician",
+        "technicianPlaceholder": "Technician's name",
+        "model": "Vehicle / Model",
+        "modelPlaceholder": "Honda CB500F 2022",
+        "regNr": "Reg.nr",
+        "regNrPlaceholder": "ABC123",
+        "vin": "VIN",
+        "vinPlaceholder": "Optional",
+        "odometer": "Odometer (km)",
+        "vehicleSelect": "Select vehicle",
+        "vehicleSelectPlaceholder": "– Select vehicle –",
+        "vehicleOther": "Other vehicle / Not in system",
+        "noVehicleHistory": "No previous vehicles found for this customer.",
+        "purchasedHere": "(bought here)",
+        "serviced": "(serviced)",
+        "namePlaceholder": "Customer name"
+      },
+      "vehicle": {
+        "regPlaceholder": "ABC123 or VIN...",
+        "searchBtn": "Search",
+        "found": "✓ Vehicle found",
+        "color": "Color",
+        "fuel": "Fuel",
+        "engine": "Engine",
+        "odometer": "Odometer",
+        "nextInspection": "Next inspection",
+        "status": "Status",
+        "registered": "Registered",
+        "notFound": "Vehicle not found. Check reg.nr and try again.",
+        "lookupFailed": "Lookup failed. Try again."
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "submit": "Create work order",
+        "submitting": "Creating..."
+      },
+      "toasts": {
+        "created": "Work order created!",
+        "error": "Could not create work order",
+        "noDealership": "No dealership found"
+      },
+      "preview": {
+        "title": "Preview",
+        "orderNumber": "Order number",
+        "pending": "Assigned on creation",
+        "statusNew": "New",
+        "emptyHint": "Fill in the form to see a live preview of the work order",
+        "customer": "Customer",
+        "vehicle": "Vehicle",
+        "description": "Job description",
+        "priorityLabel": "Priority",
+        "technicianLabel": "Technician",
+        "laborRateLabel": "Labour rate",
+        "notSet": "–",
+        "unassigned": "Unassigned"
+      },
+      "todaysOrders": {
+        "title": "Today's Work Orders",
+        "empty": "No active work orders today",
+        "viewAll": "View all work orders"
+      }
+    },
+    "orderDetail": {
+      "loading": "Loading...",
+      "notFound": "Work order not found",
+      "tabs": {
+        "items": "Items & Prices ({count})",
+        "time": "Time ({count})",
+        "notes": "Notes",
+        "details": "Details"
+      },
+      "statusActions": {
+        "startWork": "Start work",
+        "markReady": "Mark ready for pickup",
+        "partsReceived": "Parts received → Start",
+        "completeAndInvoice": "Complete & Invoice",
+        "waitingParts": "⚠ Waiting for parts",
+        "createPO": "📦 Create purchase order",
+        "payInvoice": "💳 Pay {id}",
+        "goToPayment": "💳 Go to payment — {id}",
+        "alreadyPaid": "Already paid"
+      },
+      "po": {
+        "title": "Create purchase order for {count} missing items",
+        "vendor": "Supplier",
+        "vendorPlaceholder": "E.g. Mekonomen, Biltema...",
+        "create": "Create PO",
+        "creating": "Creating...",
+        "cancel": "Cancel"
+      },
+      "items": {
+        "type": "Type",
+        "name": "Name",
+        "artNr": "Art.nr",
+        "qty": "Qty",
+        "unitPrice": "Unit price",
+        "total": "Total",
+        "status": "Status",
+        "emptyTitle": "No lines yet",
+        "emptySubtitle": "Add spare parts, labor or other charges below",
+        "labor": "Labor",
+        "part": "Part",
+        "subtotal": "Subtotal (excl. VAT)",
+        "vat": "VAT 25%",
+        "grandTotal": "Total to pay",
+        "partActions": "Stock status — actions",
+        "markOrdered": "Mark ordered",
+        "markReceived": "Received",
+        "markUsed": "Used",
+        "remove": "Remove line"
+      },
+      "taskStatus": {
+        "done": "Done",
+        "in_progress": "In progress",
+        "pending": "Not started"
+      },
+      "addLine": {
+        "label": "Add line:",
+        "part": "🔧 Spare part",
+        "labor": "⏱ Labor",
+        "other": "📋 Other",
+        "artNr": "Art.nr",
+        "artNrPlaceholder": "Optional",
+        "nameLabelLabor": "Work operation",
+        "nameLabelPart": "Part / Name",
+        "nameLabelOther": "Description",
+        "namePlaceholderPart": "Search inventory or enter free text...",
+        "namePlaceholderLabor": "E.g. Oil change, Brake service",
+        "namePlaceholderOther": "Description",
+        "hours": "Hours",
+        "hourRate": "Hourly rate (kr)",
+        "qty": "Qty",
+        "unitPrice": "Unit price (kr)",
+        "addBtn": "+ Add",
+        "inStock": "✓ {count} in stock — reserved automatically",
+        "outOfStock": "⚠ Out of stock — purchase order required",
+        "hintPart": "Search by name or art.nr to find parts in inventory. If in stock, it will be reserved automatically.",
+        "hintLabor": "Leave hourly rate blank to use the work order's rate ({rate} kr/hr).",
+        "accessory": "Accessory",
+        "sparePart": "Spare part",
+        "stockLabel": "{count} in stock",
+        "outOfStockLabel": "Out of stock"
+      },
+      "time": {
+        "checkInTitle": "Check in technician",
+        "techPlaceholder": "Technician name",
+        "checkInBtn": "Check in",
+        "activeEntry": "⏱ {name} is checked in",
+        "since": "Since",
+        "checkOut": "Check out",
+        "noEntries": "No time entries yet",
+        "header": "Time log",
+        "totalLabel": "Total:",
+        "ongoing": "Ongoing..."
+      },
+      "notes": {
+        "title": "Internal notes",
+        "placeholder": "Internal notes, customer communication, technical observations...",
+        "save": "Save notes"
+      },
+      "details": {
+        "customer": "Customer",
+        "vehicle": "Vehicle",
+        "matter": "Matter",
+        "timestamps": "Timestamps",
+        "name": "Name",
+        "phone": "Phone",
+        "model": "Model",
+        "regNr": "Reg.nr",
+        "vin": "VIN",
+        "odometer": "Odometer",
+        "noDescription": "No description",
+        "created": "Created",
+        "started": "Started",
+        "completed": "Completed",
+        "laborRate": "Hourly rate",
+        "openProfile": "Open customer profile →"
+      },
+      "toasts": {
+        "laborAdded": "Labor line added",
+        "partError": "Could not add part",
+        "orderCreated": "Purchase order {id} created",
+        "poError": "Error creating PO",
+        "completedRedirect": "Completed! Opening payment...",
+        "completeError": "Error completing order",
+        "notesSaved": "Notes saved",
+        "checkedOut": "Checked out",
+        "noTechName": "Enter technician name",
+        "lineRemoved": "Line removed"
+      }
+    },
+    "purchaseOrders": {
+      "title": "📦 Purchase Orders — Service",
+      "subtitle": "Parts & accessories ordered from external suppliers",
+      "loading": "Loading purchase orders...",
+      "noOrders": "No purchase orders yet",
+      "noOrdersHint": "Purchase orders are created automatically from work orders when parts are not in stock. Go to a work order and click \"Create PO\" for parts that need ordering.",
+      "status": {
+        "Draft": "Draft",
+        "Ordered": "Ordered",
+        "Partial": "Partial received",
+        "Reviewed": "Received",
+        "Cancelled": "Cancelled"
+      },
+      "table": {
+        "order": "Purchase Order / WO",
+        "vendor": "Supplier",
+        "items": "Items",
+        "eta": "Delivery (ETA)",
+        "total": "Total",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "progress": {
+        "draft": "Draft",
+        "ordered": "Ordered",
+        "partial": "Partial",
+        "reviewed": "Reviewed"
+      },
+      "actions": {
+        "send": "📧 Send",
+        "receive": "📦 Receive",
+        "done": "✓ Done"
+      },
+      "send": {
+        "title": "Send to Supplier",
+        "emailLabel": "Supplier email (optional)",
+        "emailPlaceholder": "info@supplier.com",
+        "sendEmail": "Send via email",
+        "sendEmailDesc": "Opens your email client with PO pre-filled",
+        "print": "Print / Save PDF",
+        "printDesc": "Send manually via post or supplier portal",
+        "markOrdered": "Mark as ordered",
+        "markOrderedDesc": "I have already ordered manually",
+        "total": "Total",
+        "toastOrdered": "marked as ordered",
+        "toastError": "Could not update status"
+      },
+      "receive": {
+        "title": "Receive Goods",
+        "instruction": "Check the items that arrived with the delivery:",
+        "allReceived": "All items already received",
+        "selectAll": "Select all",
+        "clear": "Clear",
+        "cancel": "Cancel",
+        "saving": "Saving...",
+        "confirmBtn": "Confirm receipt ({n})",
+        "toastOk": "item(s) received",
+        "toastSelect": "Select at least one item",
+        "toastError": "Error"
+      },
+      "eta": {
+        "set": "Set ETA",
+        "tooltip": "Click to set delivery date"
+      },
+      "workOrder": "WO-{id}",
+      "itemsCount": "{count} items",
+      "noEta": "No ETA",
+      "titleShort": "Purchase Orders",
+      "section": "Purchasing",
+      "noResults": "No results",
+      "backToService": "← Back to service overview",
+      "searchPlaceholder": "Search PO, supplier, part...",
+      "howItWorks": {
+        "title": "How it works",
+        "steps": [
+          {
+            "title": "Part added to WO",
+            "desc": "Not in stock → status \"Needed\""
+          },
+          {
+            "title": "Purchase order created",
+            "desc": "From work order → supplier selected"
+          },
+          {
+            "title": "Sent to supplier",
+            "desc": "Via email or supplier portal"
+          },
+          {
+            "title": "Goods received → notify",
+            "desc": "WO resumes automatically"
+          }
+        ]
+      },
+      "stats": {
+        "total": "Total",
+        "active": "Active orders",
+        "waiting": "Awaiting order",
+        "done": "Completed"
+      },
+      "tabs": {
+        "all": "All",
+        "Draft": "Draft",
+        "Ordered": "Ordered",
+        "Partial": "Partial",
+        "Reviewed": "Received",
+        "Cancelled": "Cancelled"
+      },
+      "subTable": {
+        "article": "Article",
+        "artNo": "Art. no",
+        "qty": "Qty",
+        "unitPrice": "Unit price",
+        "total": "Total",
+        "status": "Status"
+      },
+      "itemStatus": {
+        "received": "✓ Received",
+        "pending": "· Pending"
+      },
+      "noItems": "No items registered",
+      "notesLabel": "Note:",
+      "itemsReceived": "{r}/{t} received"
+    },
+    "payment": {
+      "loading": "Loading invoice...",
+      "notFound": "Work order not found",
+      "breadcrumb": "Payment",
+      "title": "Service Invoice — Payment",
+      "backToOrder": "← Back to work order",
+      "methods": {
+        "swish": "Swish",
+        "card": "Card / Tap",
+        "bank_transfer": "Bank Transfer",
+        "klarna": "Klarna",
+        "cash": "Cash"
+      },
+      "success": {
+        "title": "Payment confirmed!",
+        "invoices": "Invoices",
+        "backBtn": "Back to WO →",
+        "invoice": "Invoice",
+        "amount": "Amount",
+        "method": "Method",
+        "paid": "Paid"
+      },
+      "summary": {
+        "title": "Invoice summary",
+        "labour": "Labour",
+        "parts": "Parts & accessories",
+        "labourTotal": "Labour total",
+        "partsTotal": "Parts total",
+        "totalLabel": "Total to pay (incl. VAT)",
+        "kr": "kr",
+        "saving": "Saving...",
+        "vatLine": "of which VAT (25%)",
+        "net": "net",
+        "invoiceLabel": "Invoice",
+        "vehicle": "Vehicle"
+      },
+      "methodSelect": "Choose payment method",
+      "swish": {
+        "amountLabel": "Amount to receive",
+        "ref": "Ref:",
+        "merchantNum": "Swish Merchant Number",
+        "notConfigured": "Swish number not configured.",
+        "configureLink": "Add it in",
+        "configureWhere": "Settings → Profile",
+        "sendRequest": "Send payment request to customer",
+        "phonePlaceholder": "+46701234567 or 07XXXXXXXX",
+        "sendBtn": "Send request",
+        "hint": "The customer gets a Swish push notification and approves the payment.",
+        "waiting": "Waiting for customer payment",
+        "waitHint": "Ask the customer to open Swish and send",
+        "withRef": "with reference",
+        "polls": "checks · Req-ID:",
+        "confirmBtn": "✓ Confirm — payment received",
+        "cancelBtn": "✕ Cancel",
+        "confirmed": "✅ Swish payment confirmed",
+        "received": "received · Ref:",
+        "failed": "Payment failed",
+        "retry": "Try again",
+        "errorPhone": "Enter phone number",
+        "errorDeclined": "Swish declined:"
+      },
+      "card": {
+        "title": "Tap & Card Payment",
+        "contactless": "Contactless",
+        "terminalId": "Nets AXEPT · Terminal ID:",
+        "ready": "READY",
+        "approved": "APPROVED",
+        "declined": "DECLINED",
+        "active": "ACTIVE",
+        "tapHint": "Tap — hold card near the terminal",
+        "tapSub": "Contactless · Chip & PIN · Magnetic stripe — all cards accepted",
+        "screenTitle": "Terminal Screen",
+        "amountLabel": "Amount to pay",
+        "sendBtn": "Send amount to terminal — activate tap →",
+        "waitSent": "Amount sent — waiting for customer…",
+        "waitTap": "Customer: tap, insert or swipe card",
+        "authorising": "Authorising with card network…",
+        "confirmed": "✅ Card payment approved",
+        "authCode": "Auth code",
+        "amount": "Amount",
+        "transaction": "Transaction",
+        "errorTitle": "❌ Card declined",
+        "errorHint": "Ask the customer to try a different card or payment method.",
+        "retry": "Try again"
+      },
+      "bank": {
+        "title": "Payment instructions",
+        "bankgiro": "Bankgiro",
+        "iban": "IBAN",
+        "bic": "BIC/SWIFT",
+        "message": "Message",
+        "amount": "Amount",
+        "hint": "Tell the customer to enter the invoice number",
+        "hintEnd": "as reference",
+        "confirmBtn": "Confirm bank transfer received",
+        "confirmed": "✓ Confirmed"
+      },
+      "klarna": {
+        "title": "Klarna — Pay now / later / instalments",
+        "subtitle": "Customer enters details directly in the Klarna widget",
+        "confirmed": "CONFIRMED",
+        "creatingSession": "Creating Klarna session…",
+        "loadingSdk": "Loading Klarna SDK…",
+        "selectPlan": "Choose payment plan",
+        "payNow": "Pay now",
+        "payLater": "Pay in 30 days",
+        "payOverTime": "Split payments",
+        "authorising": "Authorising…",
+        "placingOrder": "Creating order…",
+        "authoriseBtn": "Authorise Klarna payment",
+        "paymentConfirmed": "✅ Klarna payment confirmed",
+        "orderId": "Order ID:",
+        "errorTitle": "Klarna error",
+        "errorDeclined": "Klarna authorisation declined. Ask the customer to try again.",
+        "errorShow": "Klarna cannot show this option. Try another."
+      },
+      "cash": {
+        "label": "Cash payment",
+        "confirmBtn": "Cash received — Confirm",
+        "confirmed": "✓ Cash received"
+      }
+    },
+    "vehicles": {
+      "title": "Vehicle History",
+      "subtitle": "Full service timeline per motorcycle — searchable by registration or VIN",
+      "searchPlaceholder": "Search reg. number, VIN or model...",
+      "searchBtn": "Search",
+      "totalVehicles": "vehicles on record",
+      "viewHistory": "View history",
+      "orders": "Work orders",
+      "spent": "total",
+      "lastService": "Last service",
+      "unknownModel": "Unknown model",
+      "empty": "No vehicles found",
+      "emptyHint": "Create a work order to see vehicles here",
+      "statsOrders": "Work orders",
+      "statsSpent": "Total spent",
+      "statsFirstSeen": "First visit",
+      "statsLastSeen": "Last visit",
+      "workOrder": "Work Order",
+      "jobDesc": "Job description",
+      "labor": "Labour",
+      "parts": "Parts",
+      "total": "Total",
+      "completedOn": "Completed on",
+      "noOrders": "No work orders found for this vehicle"
+    },
+    "comms": {
+      "title": "Customer Communication",
+      "subtitle": "Send messages and view automated status updates to customers",
+      "compose": "New message",
+      "newMessage": "New message",
+      "searchCustomer": "Search customer",
+      "searchPlaceholder": "Name, email or phone...",
+      "recipientName": "Recipient",
+      "namePlaceholder": "Recipient's name",
+      "email": "Email address",
+      "phone": "Phone number",
+      "subject": "Subject",
+      "subjectPlaceholder": "Enter subject...",
+      "message": "Message",
+      "messagePlaceholder": "Write your message here...",
+      "cancel": "Cancel",
+      "send": "Send",
+      "sending": "Sending...",
+      "sent": "Message sent!",
+      "sendError": "Could not send message",
+      "log": "Message log",
+      "messages": "messages",
+      "empty": "No messages sent yet",
+      "auto": "Auto",
+      "autoTitle": "Automated status messages are enabled",
+      "autoDesc": "Customers automatically receive an email when their booking is confirmed and when their vehicle is ready for pickup — provided an email address is on file.",
+      "paymentNote": "Payment emails (e.g. bank transfer instructions) can be found on each lead in the Sales pipeline."
+    }
   },
   "settingsUsers": {
     "title": "Users & Permissions",
@@ -2742,7 +3536,7 @@
       "address": "Address",
       "contact": "Contact details",
       "banking": "Banking details",
-      "sms": "SMS (Twilio)",
+      "sms": "SMS (Vonage)",
       "notifEmails": "Notification Emails",
       "cover": "Cover image — Dashboard background",
       "logo": "Logo"
@@ -2773,12 +3567,6 @@
       "ibanHint": "International bank account number",
       "bic": "BIC / SWIFT",
       "bicHint": "Bank identifier code",
-      "twilioSid": "Account SID",
-      "twilioSidHint": "Starts with AC…",
-      "twilioToken": "Auth Token",
-      "twilioTokenHint": "Secret — never share with customers",
-      "twilioFrom": "Sender number",
-      "twilioFromHint": "E.164 format, e.g. +46701234567",
       "deliveryEmail": "Delivery Note Email",
       "deliveryEmailHint": "Receives email when a delivery note arrives.",
       "invoiceEmail": "Invoice Email",
@@ -3110,62 +3898,177 @@
       "closeError": "Could not close lead"
     }
   },
-  "daily": {
-    "breadcrumbParent": "Purchase",
-    "breadcrumb": "Daily Actions",
-    "title": "Daily Action Dashboard",
-    "subtitle": "Everything that needs attention today.",
-    "viewAll": "View all →",
-    "noVendor": "No vendor",
-    "summary": {
-      "totalActions": "Total Actions",
-      "urgent": "Urgent",
-      "pendingApproval": "Pending Approval",
-      "lowStock": "Low Stock"
+  "counterSale": {
+    "breadcrumb": "Sales",
+    "title": "🛒 Counter Sale",
+    "subtitle": "Sell accessories & gear directly — no pipeline needed",
+    "viewReceipts": "View all receipts →",
+    "searchTitle": "Search item",
+    "searchHint": "↩ Enter to add",
+    "searchPlaceholder": "Helmet, jacket, gloves, part number…",
+    "inStock": "{n} in stock",
+    "outOfStock": "Out of stock",
+    "noResults": "No items for \"{q}\" — check spelling or part number",
+    "cartTitle": "Cart",
+    "clearAll": "Clear all",
+    "cartEmpty": "Cart is empty",
+    "cartEmptyHint": "Search and add items above",
+    "colItem": "Item",
+    "colQty": "Qty",
+    "colPrice": "Price",
+    "addDiscount": "+ discount",
+    "lineDiscount": "−{pct}% discount",
+    "discountOn": "Discount on {name}",
+    "noDiscount": "None",
+    "saving": "You save {amount} on this line",
+    "addOrderDiscount": "+ Add order discount",
+    "orderDiscount": "Order discount",
+    "removeDiscount": "Remove",
+    "originalPrice": "Original price",
+    "subtotal": "Subtotal",
+    "subtotalAfter": "Subtotal (after item discounts)",
+    "net": "Net (excl. VAT)",
+    "vat25": "VAT 25%",
+    "totalToPay": "Total to pay",
+    "perUnit": "/ ea",
+    "notesTitle": "Note (optional)",
+    "notesPlaceholder": "Internal note about the sale…",
+    "customerTitle": "Customer",
+    "customerSearch": "Search existing customer…",
+    "walkIn": "or walk-in customer",
+    "walkInName": "Name (optional)",
+    "paymentTitle": "Payment method",
+    "payCard": "Card",
+    "payCash": "Cash",
+    "paySwish": "Swish",
+    "items": "{count, plural, =1 {# item} other {# items}}",
+    "netSuffix": "net",
+    "totalSaving": "Total savings",
+    "toPay": "To pay",
+    "addItems": "Add items",
+    "complete": "Complete — {amount}",
+    "creating": "Creating receipt…",
+    "receiptTitle": "Receipt {id}",
+    "receiptCustomer": "Customer",
+    "receiptColItem": "Item",
+    "receiptColQty": "Qty",
+    "receiptColTotal": "Total",
+    "receiptOrderDiscount": "Order discount",
+    "receiptNet": "Net (excl. VAT)",
+    "receiptVat": "VAT 25%",
+    "receiptTotal": "Total",
+    "receiptPayment": "Payment method",
+    "receiptNote": "Note: ",
+    "receiptThanks": "Thank you for your purchase!",
+    "print": "Print",
+    "newSale": "New sale",
+    "toastAddItems": "Add at least one item",
+    "toastNotLoggedIn": "Not logged in",
+    "toastError": "Something went wrong"
+  },
+  "reminders": {
+    "title": "Service Reminders",
+    "subtitle": "Automatic reminders when vehicles are due for service",
+    "addReminder": "New Reminder",
+    "confirmDelete": "Are you sure you want to delete this reminder?",
+    "month": "mo",
+    "months": "mo",
+    "lastSent": "Last sent",
+    "daysOverdue": "days overdue",
+    "daysLeft": "days left",
+    "today": "Today",
+    "stats": {
+      "total": "Total",
+      "overdue": "Overdue",
+      "dueSoon": "Due soon"
     },
-    "allClear": "All clear — nothing needs attention today!",
-    "allClearHint": "Check back tomorrow or after new POs are placed.",
-    "sections": {
-      "followUp": {
-        "title": "Follow Up Now",
-        "empty": "No overdue follow-ups — all sent POs are within 5 business days."
-      },
-      "etaOverdue": {
-        "title": "ETA Overdue",
-        "empty": "No POs past their expected arrival date."
-      },
-      "arrivingToday": {
-        "title": "Arriving Today",
-        "empty": ""
-      },
-      "pendingApproval": {
-        "title": "POs Awaiting Approval",
-        "empty": "No POs waiting for approval."
-      },
-      "receiptsApprove": {
-        "title": "Receipts to Approve",
-        "empty": "No delivery notes waiting for approval."
-      },
-      "overdueInvoices": {
-        "title": "Overdue Invoices",
-        "empty": "No overdue supplier invoices."
-      },
-      "partialOrders": {
-        "title": "Partial Orders",
-        "empty": "No POs with outstanding backorders."
-      },
-      "lowStock": {
-        "title": "Low Stock — Reorder Needed",
-        "empty": "All items are above reorder level."
-      }
+    "filter": {
+      "all": "All",
+      "active": "Active",
+      "paused": "Paused",
+      "overdue": "Overdue",
+      "soon": "Within 7 days"
     },
-    "badges": {
-      "daysOverdue": "{days}d overdue",
-      "etaWas": "ETA was {date} ({days}d ago)",
-      "partial": "Partial",
-      "unitsDate": "{units} units · {date}",
-      "due": "Due {date}",
-      "stock": "Stock: {current} / Min: {min}"
+    "col": {
+      "customer": "Customer",
+      "vehicle": "Vehicle",
+      "interval": "Interval",
+      "lastService": "Last service",
+      "nextReminder": "Next reminder"
+    },
+    "actions": {
+      "edit": "Edit",
+      "pause": "Pause",
+      "resume": "Resume",
+      "delete": "Delete"
+    },
+    "empty": {
+      "title": "No reminders",
+      "subtitle": "Create your first service reminder to keep customers informed"
+    },
+    "toasts": {
+      "created": "Reminder created",
+      "updated": "Reminder updated",
+      "deleted": "Reminder deleted",
+      "paused": "Reminder paused",
+      "resumed": "Reminder resumed",
+      "error": "Something went wrong"
+    },
+    "form": {
+      "title": "New Service Reminder",
+      "customerName": "Customer name",
+      "customerEmail": "Email",
+      "customerPhone": "Phone",
+      "vehicleName": "Vehicle",
+      "plate": "Licence plate",
+      "vin": "VIN number",
+      "interval": "Service interval",
+      "month": "month",
+      "months": "months",
+      "lastServiceAt": "Last service date",
+      "nextWillBe": "Next reminder",
+      "notes": "Notes",
+      "notesPlaceholder": "Service type, customer preferences...",
+      "save": "Save reminder",
+      "saving": "Saving...",
+      "cancel": "Cancel"
+    },
+    "cronInfo": {
+      "title": "Automatic emails sent at 08:00 every day",
+      "body": "The system checks daily whether any vehicles are due for service and automatically emails the customer up to 7 days in advance. When a work order is completed, the reminder is updated automatically."
+    }
+  },
+  "scheduling": {
+    "title": "Tech Calendar",
+    "subtitle": "Plan and assign work across technicians",
+    "view": {
+      "day": "Day",
+      "week": "Week"
+    },
+    "today": "Today",
+    "newBooking": "New Booking",
+    "backlog": "Work Orders",
+    "backlogTitle": "Open Work Orders",
+    "backlogSubtitle": "Active, not yet completed",
+    "noOpenOrders": "No open work orders",
+    "viewAllOrders": "View all orders",
+    "unassigned": "Unassigned",
+    "bookingsCount": "bookings",
+    "noTechnicians": "No active technicians found",
+    "capacity": "booked",
+    "legend": "Legend",
+    "nowLine": "Now",
+    "statusUpdated": "Status updated",
+    "statusError": "Could not update status",
+    "modal": {
+      "tech": "Technician",
+      "type": "Type",
+      "description": "Description",
+      "notes": "Notes",
+      "changeStatus": "Change status",
+      "viewWorkOrder": "View work order",
+      "editBooking": "Edit booking",
+      "unassigned": "Unassigned"
     }
   }
 }

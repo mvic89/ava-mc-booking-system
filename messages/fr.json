@@ -231,7 +231,9 @@
     "cancellations": "Annulations",
     "warranties": "Garanties",
     "nps": "NPS & Satisfaction",
-    "commissions": "Commissions"
+    "commissions": "Commissions",
+    "serviceVehicles": "Historique véhicules",
+    "serviceComms": "Communication client"
   },
   "login": {
     "title": "Bon retour",
@@ -1219,7 +1221,7 @@
     "colInvoice": "Facture",
     "colDate": "Date",
     "colCustomer": "Client",
-    "colVehicle": "Véhicule",
+    "colVehicle": "Acheté",
     "colAgreement": "Contrat",
     "colMethod": "Paiement",
     "colAmount": "Montant",
@@ -1244,7 +1246,12 @@
     "printVat": "TVA 25%",
     "printTotal": "Total TVA incluse",
     "printStatus": "Statut",
-    "printFooter": "{dealerName} • Org.nr {orgNr} • {city} • {email}"
+    "printFooter": "{dealerName} • Org.nr {orgNr} • {city} • {email}",
+    "typeVehicle": "Moto",
+    "typeService": "Service",
+    "typeAccessories": "Accessoires",
+    "typeSpareParts": "Pièces détachées",
+    "typeVehicleExtras": "Moto + accessoires"
   },
   "invite": {
     "title": "Vous avez été invité",
@@ -1754,7 +1761,780 @@
       "scheduling": "Moins de temps sur la planification manuelle",
       "history": "Historique de service toujours accessible"
     },
-    "features": "Ce qui arrive"
+    "features": "Ce qui arrive",
+    "common": {
+      "loading": "Chargement...",
+      "loadingBookings": "Chargement des réservations...",
+      "loadingOrders": "Chargement des ordres de travail...",
+      "noVehicle": "Véhicule non spécifié",
+      "notAssigned": "Non assigné",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "open": "Ouvrir",
+      "back": "← Retour",
+      "all": "Tous",
+      "at": "à",
+      "booking": "réservation"
+    },
+    "status": {
+      "created": "Créé",
+      "in_progress": "En cours",
+      "waiting_parts": "En attente de pièces",
+      "ready": "Prêt",
+      "completed": "Terminé",
+      "invoiced": "Facturé"
+    },
+    "bookingStatus": {
+      "booked": "Réservé",
+      "confirmed": "Confirmé",
+      "checked_in": "Enregistré",
+      "in_progress": "En cours",
+      "ready": "Prêt",
+      "completed": "Terminé",
+      "cancelled": "Annulé"
+    },
+    "serviceTypes": {
+      "maintenance": "Service / Entretien",
+      "repair": "Réparation",
+      "inspection": "Inspection",
+      "recall": "Rappel",
+      "other": "Autre"
+    },
+    "priority": {
+      "low": "Faible",
+      "normal": "Normal",
+      "high": "Élevé",
+      "urgent": "Urgent"
+    },
+    "partStatus": {
+      "needed": "Manquant",
+      "reserved": "Réservé",
+      "ordered": "Commandé",
+      "received": "Reçu",
+      "used": "Utilisé"
+    },
+    "dashboard": {
+      "title": "Service & Atelier",
+      "subtitle": "Ordres de travail, réservations et temps technicien en temps réel",
+      "newBooking": "+ Nouvelle réservation",
+      "newOrder": "+ Nouvel ordre de travail",
+      "kpi": {
+        "todayBookings": "Réservations d'aujourd'hui",
+        "activeOrders": "Ordres de travail actifs",
+        "waitingParts": "En attente de pièces",
+        "doneToday": "Terminés aujourd'hui",
+        "noBookings": "Pas de réservations aujourd'hui",
+        "noOrders": "Aucune commande active",
+        "allGood": "Tout est en stock",
+        "noDone": "Aucune terminée aujourd'hui"
+      },
+      "schedule": {
+        "title": "Programme d'aujourd'hui",
+        "viewAll": "Tous →",
+        "noBookings": "Aucune réservation aujourd'hui"
+      },
+      "orders": {
+        "title": "Ordres de travail actifs",
+        "viewAll": "Tous →",
+        "noOrders": "Aucun ordre de travail actif",
+        "createOrder": "Créer un ordre de travail →",
+        "ongoing": "{count} en cours"
+      },
+      "pickup": {
+        "title": "✅ Prêt pour récupération ({count})"
+      },
+      "stats": {
+        "earned": "Total gagné",
+        "pending": "En cours",
+        "readyPickup": "Prêt pour retrait"
+      }
+    },
+    "bookings": {
+      "title": "Réservations de service",
+      "newBooking": "+ Nouvelle réservation",
+      "searchPlaceholder": "Rechercher client, véhicule, immat...",
+      "total": "{count} réservations au total",
+      "loading": "Chargement des réservations...",
+      "noResults": "Aucune réservation trouvée",
+      "createFirst": "Créer une réservation →",
+      "headers": {
+        "customer": "Client / Véhicule",
+        "type": "Type",
+        "dateTime": "Date & Heure",
+        "technician": "Technicien",
+        "status": "Statut"
+      },
+      "tabs": {
+        "all": "Tous",
+        "booked": "Réservé",
+        "confirmed": "Confirmé",
+        "checked_in": "Enregistré",
+        "in_progress": "En cours",
+        "ready": "Prêt",
+        "completed": "Terminé"
+      },
+      "actions": {
+        "confirm": "Confirmer",
+        "toOrder": "→ Ordre de travail",
+        "open": "Ouvrir",
+        "openWorkOrder": "Ouvrir ordre de travail"
+      },
+      "toasts": {
+        "confirmed": "Réservation confirmée",
+        "orderCreated": "Ordre de travail créé !",
+        "orderError": "Impossible de créer l'ordre de travail"
+      }
+    },
+    "bookingDetail": {
+      "loading": "Chargement...",
+      "notFound": "Réservation introuvable",
+      "sections": {
+        "customer": "Client",
+        "vehicle": "Véhicule",
+        "appointment": "Rendez-vous",
+        "service": "Demande de service"
+      },
+      "fields": {
+        "name": "Nom",
+        "phone": "Téléphone",
+        "email": "E-mail",
+        "model": "Modèle",
+        "regNr": "Immat.",
+        "vin": "VIN",
+        "date": "Date",
+        "time": "Heure",
+        "duration": "Durée",
+        "technician": "Technicien",
+        "type": "Type",
+        "description": "Description",
+        "notes": "Notes internes"
+      },
+      "values": {
+        "minutes": "{n} minutes",
+        "notAssigned": "Non assigné"
+      },
+      "actions": {
+        "createOrder": "Créer un ordre de travail",
+        "openOrder": "Ouvrir l'ordre de travail #{id}"
+      },
+      "statusFlow": {
+        "confirmBooking": "Confirmer la réservation",
+        "checkIn": "Enregistrer le client",
+        "startService": "Démarrer le service",
+        "markReady": "Marquer prêt",
+        "complete": "Terminer"
+      },
+      "toasts": {
+        "orderCreated": "Ordre de travail créé !",
+        "orderError": "Impossible de créer l'ordre de travail"
+      }
+    },
+    "newBooking": {
+      "title": "Nouvelle réservation de service",
+      "sections": {
+        "customer": "Client",
+        "vehicle": "Véhicule",
+        "serviceInfo": "Détails du service"
+      },
+      "fields": {
+        "searchCustomer": "Rechercher un client existant",
+        "searchPlaceholder": "Nom, téléphone ou e-mail...",
+        "name": "Nom",
+        "namePlaceholder": "Prénom Nom",
+        "phone": "Téléphone",
+        "email": "E-mail",
+        "serviceType": "Type de service",
+        "description": "Description du problème / Demande",
+        "descriptionPlaceholder": "Décrivez le problème ou ce qui doit être effectué...",
+        "date": "Date",
+        "time": "Heure",
+        "duration": "Durée (min)",
+        "technician": "Technicien assigné",
+        "technicianPlaceholder": "Nom du technicien",
+        "notes": "Notes internes",
+        "notesPlaceholder": "Visible en interne uniquement..."
+      },
+      "vehicle": {
+        "noHistory": "Aucun véhicule précédent trouvé pour ce client. Rechercher par numéro d'immatriculation :",
+        "walkIn": "Saisissez le numéro d'immatriculation — toutes les informations sur le véhicule sont récupérées automatiquement.",
+        "select": "Sélectionner un véhicule",
+        "selectPlaceholder": "– Sélectionner un véhicule –",
+        "regLookup": "+ Rechercher un autre immat.",
+        "purchasedHere": "(acheté ici)",
+        "serviced": "(entretenu)",
+        "found": "✓ Véhicule trouvé",
+        "regNr": "Immat.",
+        "model": "Modèle",
+        "vin": "VIN",
+        "color": "Couleur",
+        "fuel": "Carburant",
+        "engine": "Moteur",
+        "odometer": "Kilométrage",
+        "nextInspection": "Prochaine inspection",
+        "status": "Statut",
+        "registered": "Enregistré",
+        "regPlaceholder": "ABC123 ou VIN...",
+        "searchBtn": "Rechercher",
+        "notFound": "Véhicule introuvable. Vérifiez l'immatriculation et réessayez.",
+        "lookupFailed": "Recherche échouée. Réessayez."
+      },
+      "actions": {
+        "cancel": "Annuler",
+        "submit": "Créer la réservation",
+        "submitting": "Enregistrement..."
+      },
+      "toasts": {
+        "created": "Réservation créée !",
+        "error": "Impossible de créer la réservation",
+        "noDealership": "Aucun concessionnaire trouvé",
+        "noDate": "Sélectionnez une date"
+      },
+      "subtitle": "Remplissez les détails et enregistrez la réservation",
+      "preview": {
+        "heading": "Aperçu",
+        "subtitle": "Nouvelle réservation",
+        "vehicle": "Véhicule",
+        "service": "Service",
+        "date": "Date",
+        "time": "Heure",
+        "technician": "Technicien",
+        "matter": "Problème",
+        "empty": "Remplissez le formulaire pour voir un aperçu"
+      },
+      "schedule": {
+        "title": "Programme du jour",
+        "count": "{n} réservations",
+        "empty": "Aucune réservation aujourd'hui",
+        "viewAll": "Voir toutes les réservations"
+      }
+    },
+    "orders": {
+      "title": "Ordres de travail",
+      "total": "{count} au total",
+      "newOrder": "+ Nouvel ordre de travail",
+      "searchPlaceholder": "Rechercher OT#, client, immat...",
+      "loading": "Chargement des ordres de travail...",
+      "noResults": "Aucun ordre de travail trouvé",
+      "createFirst": "Créer un ordre de travail →",
+      "noVehicle": "Véhicule non spécifié",
+      "tabs": {
+        "all": "Tous",
+        "created": "Créé",
+        "in_progress": "En cours",
+        "waiting_parts": "En attente",
+        "ready": "Prêt",
+        "completed": "Terminé",
+        "invoiced": "Facturé"
+      },
+      "card": {
+        "technician": "Technicien",
+        "total": "Total",
+        "notAssigned": "Non assigné"
+      }
+    },
+    "newOrder": {
+      "title": "Nouvel ordre de travail",
+      "subtitle": "Walk-in ou sans réservation préalable",
+      "sections": {
+        "customer": "Client",
+        "vehicle": "Véhicule",
+        "jobInfo": "Détails du travail"
+      },
+      "fields": {
+        "searchCustomer": "Rechercher un client existant",
+        "searchPlaceholder": "Nom ou téléphone...",
+        "name": "Nom",
+        "phone": "Téléphone",
+        "description": "Description du problème / Demande",
+        "descriptionPlaceholder": "Décrivez ce qui doit être effectué...",
+        "priority": "Priorité",
+        "laborRate": "Taux horaire (€/h)",
+        "technician": "Technicien assigné",
+        "technicianPlaceholder": "Nom du technicien",
+        "model": "Véhicule / Modèle",
+        "modelPlaceholder": "Honda CB500F 2022",
+        "regNr": "Immat.",
+        "regNrPlaceholder": "ABC123",
+        "vin": "VIN",
+        "vinPlaceholder": "Optionnel",
+        "odometer": "Kilométrage (km)",
+        "vehicleSelect": "Sélectionner un véhicule",
+        "vehicleSelectPlaceholder": "– Sélectionner un véhicule –",
+        "vehicleOther": "Autre véhicule / Pas dans le système",
+        "noVehicleHistory": "Aucun véhicule précédent trouvé pour ce client.",
+        "purchasedHere": "(acheté ici)",
+        "serviced": "(entretenu)",
+        "namePlaceholder": "Nom du client"
+      },
+      "vehicle": {
+        "regPlaceholder": "ABC123 ou VIN...",
+        "searchBtn": "Rechercher",
+        "found": "✓ Véhicule trouvé",
+        "color": "Couleur",
+        "fuel": "Carburant",
+        "engine": "Moteur",
+        "odometer": "Kilométrage",
+        "nextInspection": "Prochaine inspection",
+        "status": "Statut",
+        "registered": "Enregistré",
+        "notFound": "Véhicule introuvable. Vérifiez l'immatriculation et réessayez.",
+        "lookupFailed": "Recherche échouée. Réessayez."
+      },
+      "actions": {
+        "cancel": "Annuler",
+        "submit": "Créer l'ordre de travail",
+        "submitting": "Création..."
+      },
+      "toasts": {
+        "created": "Ordre de travail créé !",
+        "error": "Impossible de créer l'ordre de travail",
+        "noDealership": "Aucun concessionnaire trouvé"
+      },
+      "preview": {
+        "title": "Aperçu",
+        "orderNumber": "Numéro de commande",
+        "pending": "Attribué à la création",
+        "statusNew": "Nouveau",
+        "emptyHint": "Remplissez le formulaire pour voir un aperçu du bon de travail",
+        "customer": "Client",
+        "vehicle": "Véhicule",
+        "description": "Description du travail",
+        "priorityLabel": "Priorité",
+        "technicianLabel": "Technicien",
+        "laborRateLabel": "Taux horaire",
+        "notSet": "–",
+        "unassigned": "Non attribué"
+      },
+      "todaysOrders": {
+        "title": "Bons de travail d'aujourd'hui",
+        "empty": "Aucun bon de travail actif aujourd'hui",
+        "viewAll": "Voir tous les bons de travail"
+      }
+    },
+    "orderDetail": {
+      "loading": "Chargement...",
+      "notFound": "Ordre de travail introuvable",
+      "tabs": {
+        "items": "Articles & Prix ({count})",
+        "time": "Temps ({count})",
+        "notes": "Notes",
+        "details": "Détails"
+      },
+      "statusActions": {
+        "startWork": "Démarrer le travail",
+        "markReady": "Marquer prêt pour récupération",
+        "partsReceived": "Pièces reçues → Démarrer",
+        "completeAndInvoice": "Terminer & Facturer",
+        "waitingParts": "⚠ En attente de pièces",
+        "createPO": "📦 Créer un bon de commande",
+        "payInvoice": "💳 Payer {id}",
+        "goToPayment": "💳 Aller au paiement — {id}"
+      },
+      "po": {
+        "title": "Créer un bon de commande pour {count} articles manquants",
+        "vendor": "Fournisseur",
+        "vendorPlaceholder": "Ex. Mekonomen, Biltema...",
+        "create": "Créer BC",
+        "creating": "Création...",
+        "cancel": "Annuler"
+      },
+      "items": {
+        "type": "Type",
+        "name": "Désignation",
+        "artNr": "Réf.",
+        "qty": "Qté",
+        "unitPrice": "Prix unit.",
+        "total": "Total",
+        "status": "Statut",
+        "emptyTitle": "Aucune ligne pour le moment",
+        "emptySubtitle": "Ajoutez des pièces détachées, de la main-d'œuvre ou d'autres frais ci-dessous",
+        "labor": "Main-d'œuvre",
+        "part": "Pièce",
+        "subtotal": "Sous-total (HT)",
+        "vat": "TVA 25%",
+        "grandTotal": "Total à payer",
+        "partActions": "État du stock — actions",
+        "markOrdered": "Marquer commandé",
+        "markReceived": "Reçu",
+        "markUsed": "Utilisé"
+      },
+      "taskStatus": {
+        "done": "Terminé",
+        "in_progress": "En cours",
+        "pending": "Non démarré"
+      },
+      "addLine": {
+        "label": "Ajouter une ligne :",
+        "part": "🔧 Pièce détachée",
+        "labor": "⏱ Main-d'œuvre",
+        "other": "📋 Autre",
+        "artNr": "Réf.",
+        "artNrPlaceholder": "Optionnel",
+        "nameLabelLabor": "Opération de travail",
+        "nameLabelPart": "Pièce / Désignation",
+        "nameLabelOther": "Description",
+        "namePlaceholderPart": "Rechercher dans l'inventaire ou saisir du texte libre...",
+        "namePlaceholderLabor": "Ex. Vidange, Révision des freins",
+        "namePlaceholderOther": "Description",
+        "hours": "Heures",
+        "hourRate": "Taux horaire (€)",
+        "qty": "Qté",
+        "unitPrice": "Prix unit. (€)",
+        "addBtn": "+ Ajouter",
+        "inStock": "✓ {count} en stock — réservé automatiquement",
+        "outOfStock": "⚠ Rupture de stock — bon de commande requis",
+        "hintPart": "Recherchez par nom ou réf. pour trouver des pièces en inventaire. Si en stock, elles seront réservées automatiquement.",
+        "hintLabor": "Laissez le taux horaire vide pour utiliser le taux de l'ordre de travail ({rate} €/h).",
+        "accessory": "Accessoire",
+        "sparePart": "Pièce détachée",
+        "stockLabel": "{count} en stock",
+        "outOfStockLabel": "Rupture"
+      },
+      "time": {
+        "checkInTitle": "Enregistrer le technicien",
+        "techPlaceholder": "Nom du technicien",
+        "checkInBtn": "Enregistrer",
+        "activeEntry": "⏱ {name} est enregistré",
+        "since": "Depuis",
+        "checkOut": "Déconnecter",
+        "noEntries": "Aucune saisie de temps pour le moment",
+        "header": "Journal de temps",
+        "totalLabel": "Total :",
+        "ongoing": "En cours..."
+      },
+      "notes": {
+        "title": "Notes internes",
+        "placeholder": "Notes internes, communication client, observations techniques...",
+        "save": "Enregistrer les notes"
+      },
+      "details": {
+        "customer": "Client",
+        "vehicle": "Véhicule",
+        "matter": "Demande",
+        "timestamps": "Horodatages",
+        "name": "Nom",
+        "phone": "Téléphone",
+        "model": "Modèle",
+        "regNr": "Immat.",
+        "vin": "VIN",
+        "odometer": "Kilométrage",
+        "noDescription": "Aucune description",
+        "created": "Créé",
+        "started": "Démarré",
+        "completed": "Terminé",
+        "laborRate": "Taux horaire",
+        "openProfile": "Ouvrir le profil client →"
+      },
+      "toasts": {
+        "laborAdded": "Ligne de main-d'œuvre ajoutée",
+        "partError": "Impossible d'ajouter",
+        "orderCreated": "Bon de commande {id} créé",
+        "poError": "Erreur lors de la création du BC",
+        "completedRedirect": "Terminé ! Ouverture du paiement...",
+        "completeError": "Erreur lors de la finalisation",
+        "notesSaved": "Notes enregistrées",
+        "checkedOut": "Déconnecté",
+        "noTechName": "Saisissez le nom du technicien"
+      }
+    },
+    "purchaseOrders": {
+      "title": "📦 Bons de commande — Service",
+      "subtitle": "Pièces & accessoires commandés auprès de fournisseurs externes",
+      "loading": "Chargement des bons de commande...",
+      "noOrders": "Aucun bon de commande pour l'instant",
+      "noOrdersHint": "Les bons de commande sont créés automatiquement depuis les bons de travail lorsque des pièces manquent en stock.",
+      "status": {
+        "Draft": "Brouillon",
+        "Ordered": "Commandé",
+        "Partial": "Partiellement reçu",
+        "Reviewed": "Reçu",
+        "Cancelled": "Annulé"
+      },
+      "table": {
+        "order": "Bon de commande / BT",
+        "vendor": "Fournisseur",
+        "items": "Articles",
+        "eta": "Livraison (ETA)",
+        "total": "Total",
+        "status": "Statut",
+        "actions": "Actions"
+      },
+      "progress": {
+        "draft": "Brouillon",
+        "ordered": "Commandé",
+        "partial": "Partiel",
+        "reviewed": "Examiné"
+      },
+      "actions": {
+        "send": "📧 Envoyer",
+        "receive": "📦 Réceptionner",
+        "done": "✓ Terminé"
+      },
+      "send": {
+        "title": "Envoyer au fournisseur",
+        "emailLabel": "Email du fournisseur (facultatif)",
+        "emailPlaceholder": "info@fournisseur.fr",
+        "sendEmail": "Envoyer par email",
+        "sendEmailDesc": "Ouvre votre client email avec le BC pré-rempli",
+        "print": "Imprimer / Enregistrer en PDF",
+        "printDesc": "Envoyer manuellement par courrier ou portail fournisseur",
+        "markOrdered": "Marquer comme commandé",
+        "markOrderedDesc": "J'ai déjà commandé manuellement",
+        "total": "Total",
+        "toastOrdered": "marqué comme commandé",
+        "toastError": "Impossible de mettre à jour le statut"
+      },
+      "receive": {
+        "title": "Réceptionner les marchandises",
+        "instruction": "Cochez les articles reçus avec la livraison :",
+        "allReceived": "Tous les articles déjà reçus",
+        "selectAll": "Tout sélectionner",
+        "clear": "Effacer",
+        "cancel": "Annuler",
+        "saving": "Enregistrement...",
+        "confirmBtn": "Confirmer la réception ({n})",
+        "toastOk": "article(s) reçu(s)",
+        "toastSelect": "Sélectionnez au moins un article",
+        "toastError": "Erreur"
+      },
+      "eta": {
+        "set": "Définir ETA",
+        "tooltip": "Cliquer pour définir la date de livraison"
+      },
+      "workOrder": "OT-{id}",
+      "itemsCount": "{count} articles",
+      "noEta": "Pas d'ETA",
+      "titleShort": "Bons de commande",
+      "section": "Achats",
+      "noResults": "Aucun résultat",
+      "backToService": "← Retour à la vue d'ensemble service",
+      "searchPlaceholder": "Rechercher BC, fournisseur, article...",
+      "howItWorks": {
+        "title": "Comment ça fonctionne",
+        "steps": [
+          {
+            "title": "Pièce ajoutée au BT",
+            "desc": "Rupture de stock → statut \"Requis\""
+          },
+          {
+            "title": "Bon de commande créé",
+            "desc": "Depuis le BT → fournisseur sélectionné"
+          },
+          {
+            "title": "Envoyé au fournisseur",
+            "desc": "Par email ou portail fournisseur"
+          },
+          {
+            "title": "Marchandises reçues → notif",
+            "desc": "BT reprend automatiquement"
+          }
+        ]
+      },
+      "stats": {
+        "total": "Total",
+        "active": "Commandes actives",
+        "waiting": "En attente de commande",
+        "done": "Terminées"
+      },
+      "tabs": {
+        "all": "Tous",
+        "Draft": "Brouillon",
+        "Ordered": "Commandé",
+        "Partial": "Partiel",
+        "Reviewed": "Reçu",
+        "Cancelled": "Annulé"
+      },
+      "subTable": {
+        "article": "Article",
+        "artNo": "Réf.",
+        "qty": "Qté",
+        "unitPrice": "Prix unitaire",
+        "total": "Total",
+        "status": "Statut"
+      },
+      "itemStatus": {
+        "received": "✓ Reçu",
+        "pending": "· En attente"
+      },
+      "noItems": "Aucun article enregistré",
+      "notesLabel": "Note :",
+      "itemsReceived": "{r}/{t} reçus"
+    },
+    "payment": {
+      "loading": "Chargement de la facture...",
+      "notFound": "Bon de travail introuvable",
+      "breadcrumb": "Paiement",
+      "title": "Facture de service — Paiement",
+      "backToOrder": "← Retour au bon de travail",
+      "methods": {
+        "swish": "Swish",
+        "card": "Carte / Sans contact",
+        "bank_transfer": "Virement bancaire",
+        "klarna": "Klarna",
+        "cash": "Espèces"
+      },
+      "success": {
+        "title": "Paiement confirmé !",
+        "invoices": "Factures",
+        "backBtn": "Retour au BT →",
+        "invoice": "Facture",
+        "amount": "Montant",
+        "method": "Méthode",
+        "paid": "Payé le"
+      },
+      "summary": {
+        "title": "Récapitulatif de facturation",
+        "labour": "Main-d'œuvre",
+        "parts": "Pièces & accessoires",
+        "labourTotal": "Total main-d'œuvre",
+        "partsTotal": "Total pièces",
+        "totalLabel": "Total à payer (TVA incluse)",
+        "kr": "kr",
+        "saving": "Enregistrement...",
+        "vatLine": "dont TVA (20%)",
+        "net": "net",
+        "invoiceLabel": "Facture",
+        "vehicle": "Véhicule"
+      },
+      "methodSelect": "Choisir le mode de paiement",
+      "swish": {
+        "amountLabel": "Montant à encaisser",
+        "ref": "Réf :",
+        "merchantNum": "Numéro marchand Swish",
+        "notConfigured": "Numéro Swish non configuré.",
+        "configureLink": "Ajoutez-le dans",
+        "configureWhere": "Paramètres → Profil",
+        "sendRequest": "Envoyer une demande de paiement au client",
+        "phonePlaceholder": "+33612345678",
+        "sendBtn": "Envoyer la demande",
+        "hint": "Le client reçoit une notification Swish et approuve le paiement.",
+        "waiting": "En attente du paiement du client",
+        "waitHint": "Demandez au client d'ouvrir Swish et d'envoyer",
+        "withRef": "avec la référence",
+        "polls": "vérifications · Req-ID :",
+        "confirmBtn": "✓ Confirmer — paiement reçu",
+        "cancelBtn": "✕ Annuler",
+        "confirmed": "✅ Paiement Swish confirmé",
+        "received": "reçu · Réf :",
+        "failed": "Échec du paiement",
+        "retry": "Réessayer",
+        "errorPhone": "Saisissez le numéro de téléphone",
+        "errorDeclined": "Swish refusé :"
+      },
+      "card": {
+        "title": "Paiement sans contact & carte",
+        "contactless": "Sans contact",
+        "terminalId": "Nets AXEPT · ID terminal :",
+        "ready": "PRÊT",
+        "approved": "APPROUVÉ",
+        "declined": "REFUSÉ",
+        "active": "ACTIF",
+        "tapHint": "Sans contact — approchez la carte du terminal",
+        "tapSub": "Sans contact · Puce & code · Bande magnétique — toutes cartes acceptées",
+        "screenTitle": "Écran terminal",
+        "amountLabel": "Montant à payer",
+        "sendBtn": "Envoyer le montant au terminal →",
+        "waitSent": "Montant envoyé — en attente du client…",
+        "waitTap": "Client : approchez, insérez ou glissez la carte",
+        "authorising": "Autorisation en cours…",
+        "confirmed": "✅ Paiement par carte approuvé",
+        "authCode": "Code d'auth",
+        "amount": "Montant",
+        "transaction": "Transaction",
+        "errorTitle": "❌ Carte refusée",
+        "errorHint": "Demandez au client d'essayer une autre carte ou méthode de paiement.",
+        "retry": "Réessayer"
+      },
+      "bank": {
+        "title": "Instructions de paiement",
+        "bankgiro": "Bankgiro",
+        "iban": "IBAN",
+        "bic": "BIC/SWIFT",
+        "message": "Message",
+        "amount": "Montant",
+        "hint": "Informez le client d'indiquer le numéro de facture",
+        "hintEnd": "en référence",
+        "confirmBtn": "Confirmer le virement reçu",
+        "confirmed": "✓ Confirmé"
+      },
+      "klarna": {
+        "title": "Klarna — Payer maintenant / plus tard / en plusieurs fois",
+        "subtitle": "Le client saisit ses informations directement dans le widget Klarna",
+        "confirmed": "CONFIRMÉ",
+        "creatingSession": "Création de la session Klarna…",
+        "loadingSdk": "Chargement du SDK Klarna…",
+        "selectPlan": "Choisir un plan de paiement",
+        "payNow": "Payer maintenant",
+        "payLater": "Payer dans 30 jours",
+        "payOverTime": "Payer en plusieurs fois",
+        "authorising": "Autorisation…",
+        "placingOrder": "Création de la commande…",
+        "authoriseBtn": "Autoriser le paiement Klarna",
+        "paymentConfirmed": "✅ Paiement Klarna confirmé",
+        "orderId": "ID commande :",
+        "errorTitle": "Erreur Klarna",
+        "errorDeclined": "Autorisation Klarna refusée. Demandez au client de réessayer.",
+        "errorShow": "Klarna ne peut pas afficher cette option. Essayez une autre."
+      },
+      "cash": {
+        "label": "Paiement en espèces",
+        "confirmBtn": "Espèces reçues — Confirmer",
+        "confirmed": "✓ Espèces reçues"
+      }
+    },
+    "vehicles": {
+      "title": "Historique des véhicules",
+      "subtitle": "Historique complet de service par moto — recherche par immatriculation ou VIN",
+      "searchPlaceholder": "Rechercher plaque, VIN ou modèle...",
+      "searchBtn": "Rechercher",
+      "totalVehicles": "véhicules enregistrés",
+      "viewHistory": "Voir l'historique",
+      "orders": "Bons de travail",
+      "spent": "au total",
+      "lastService": "Dernier service",
+      "unknownModel": "Modèle inconnu",
+      "empty": "Aucun véhicule trouvé",
+      "emptyHint": "Créez un bon de travail pour voir les véhicules ici",
+      "statsOrders": "Bons de travail",
+      "statsSpent": "Total dépensé",
+      "statsFirstSeen": "Première visite",
+      "statsLastSeen": "Dernière visite",
+      "workOrder": "Bon de travail",
+      "jobDesc": "Description du travail",
+      "labor": "Main-d'œuvre",
+      "parts": "Pièces",
+      "total": "Total",
+      "completedOn": "Terminé le",
+      "noOrders": "Aucun bon de travail trouvé pour ce véhicule"
+    },
+    "comms": {
+      "title": "Communication client",
+      "subtitle": "Envoyez des messages et consultez les mises à jour automatiques de statut",
+      "compose": "Nouveau message",
+      "newMessage": "Nouveau message",
+      "searchCustomer": "Rechercher un client",
+      "searchPlaceholder": "Nom, e-mail ou téléphone...",
+      "recipientName": "Destinataire",
+      "namePlaceholder": "Nom du destinataire",
+      "email": "Adresse e-mail",
+      "phone": "Numéro de téléphone",
+      "subject": "Objet",
+      "subjectPlaceholder": "Entrez l'objet...",
+      "message": "Message",
+      "messagePlaceholder": "Rédigez votre message ici...",
+      "cancel": "Annuler",
+      "send": "Envoyer",
+      "sending": "Envoi...",
+      "sent": "Message envoyé !",
+      "sendError": "Impossible d'envoyer le message",
+      "log": "Journal des messages",
+      "messages": "messages",
+      "empty": "Aucun message envoyé pour le moment",
+      "auto": "Auto",
+      "autoTitle": "Les messages de statut automatiques sont activés",
+      "autoDesc": "Les clients reçoivent automatiquement un e-mail quand leur réservation est confirmée et quand leur véhicule est prêt.",
+      "paymentNote": "Les e-mails de paiement (ex. instructions de virement) se trouvent sur chaque lead dans le pipeline de vente."
+    }
   },
   "settingsUsers": {
     "title": "Utilisateurs & Permissions",
@@ -2741,7 +3521,7 @@
       "address": "Address",
       "contact": "Contact details",
       "banking": "Banking details",
-      "sms": "SMS (Twilio)",
+      "sms": "SMS (Vonage)",
       "notifEmails": "Notification Emails",
       "cover": "Cover image — Dashboard background",
       "logo": "Logo"
@@ -2772,12 +3552,6 @@
       "ibanHint": "International bank account number",
       "bic": "BIC / SWIFT",
       "bicHint": "Bank identifier code",
-      "twilioSid": "Account SID",
-      "twilioSidHint": "Starts with AC…",
-      "twilioToken": "Auth Token",
-      "twilioTokenHint": "Secret — never share with customers",
-      "twilioFrom": "Sender number",
-      "twilioFromHint": "E.164 format, e.g. +46701234567",
       "deliveryEmail": "Delivery Note Email",
       "deliveryEmailHint": "Receives email when a delivery note arrives.",
       "invoiceEmail": "Invoice Email",

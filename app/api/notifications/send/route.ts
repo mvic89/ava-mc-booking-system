@@ -10,8 +10,8 @@
 // }
 //
 // Email: uses dealership SMTP config (smtp_user/pass/host/port on dealerships row)
-// SMS:   uses dealership Twilio config (twilio_account_sid/auth_token/from_number)
-//        + admin_phone as the recipient number
+// SMS:   uses shared BikeMeNow Vonage account (VONAGE_API_KEY/API_SECRET/FROM env vars)
+//        + admin_phone as the recipient number — dealership data stays isolated by dealership_id
 
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
@@ -20,17 +20,14 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 interface DealershipRow {
-  name:                string;
-  email:               string | null;
-  admin_email:         string | null;
-  admin_phone:         string | null;
-  smtp_user:           string | null;
-  smtp_pass:           string | null;
-  smtp_host:           string | null;
-  smtp_port:           number | null;
-  twilio_account_sid:  string | null;
-  twilio_auth_token:   string | null;
-  twilio_from_number:  string | null;
+  name:        string;
+  email:       string | null;
+  admin_email: string | null;
+  admin_phone: string | null;
+  smtp_user:   string | null;
+  smtp_pass:   string | null;
+  smtp_host:   string | null;
+  smtp_port:   number | null;
 }
 
 // ── Email HTML builder ─────────────────────────────────────────────────────────
@@ -105,31 +102,30 @@ async function sendEmail(
   });
 }
 
-// ── Send SMS via Twilio ────────────────────────────────────────────────────────
+// ── Send SMS via Vonage (shared BikeMeNow account) ────────────────────────────
 
 async function sendSms(
   dealer: DealershipRow,
   title: string,
   message: string,
 ): Promise<void> {
-  const { twilio_account_sid: sid, twilio_auth_token: token, twilio_from_number: from, admin_phone: to } = dealer;
-  if (!sid || !token || !from || !to) throw new Error('Twilio not configured or admin_phone missing');
+  const apiKey    = process.env.VONAGE_API_KEY;
+  const apiSecret = process.env.VONAGE_API_SECRET;
+  const from      = process.env.VONAGE_FROM ?? 'BikeMeNow';
+  const to        = dealer.admin_phone;
+  if (!apiKey || !apiSecret) throw new Error('Vonage not configured');
+  if (!to) throw new Error('admin_phone missing — set it in Settings → Notifications');
 
-  const body = `[${dealer.name}] ${title}: ${message}`;
-  const url  = `https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`;
-
-  const res = await fetch(url, {
+  const text = `[${dealer.name}] ${title}: ${message}`;
+  const res  = await fetch('https://rest.nexmo.com/sms/json', {
     method:  'POST',
-    headers: {
-      'Content-Type':  'application/x-www-form-urlencoded',
-      'Authorization': `Basic ${Buffer.from(`${sid}:${token}`).toString('base64')}`,
-    },
-    body: new URLSearchParams({ From: from, To: to, Body: body }).toString(),
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ api_key: apiKey, api_secret: apiSecret, from, to, text }),
   });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({})) as { message?: string };
-    throw new Error(err.message ?? `Twilio ${res.status}`);
+  const json = await res.json() as { messages?: { status: string; 'error-text'?: string }[] };
+  const msg  = json.messages?.[0];
+  if (!msg || msg.status !== '0') {
+    throw new Error(msg?.['error-text'] ?? `Vonage error status ${msg?.status ?? 'unknown'}`);
   }
 }
 
@@ -153,7 +149,7 @@ export async function POST(req: NextRequest) {
   const sb = getSupabaseAdmin();
   const { data: dealer, error: fetchErr } = await sb
     .from('dealerships')
-    .select('name,email,admin_email,admin_phone,smtp_user,smtp_pass,smtp_host,smtp_port,twilio_account_sid,twilio_auth_token,twilio_from_number')
+    .select('name,email,admin_email,admin_phone,smtp_user,smtp_pass,smtp_host,smtp_port')
     .eq('id', dealershipId)
     .maybeSingle();
 

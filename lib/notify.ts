@@ -7,7 +7,7 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 
 export interface ServerNotification {
   dealershipId: string;
-  type: 'lead' | 'agreement' | 'payment' | 'customer' | 'system';
+  type: 'lead' | 'agreement' | 'payment' | 'customer' | 'system' | 'info' | 'warning' | 'success';
   title: string;
   message: string;
   href?: string;

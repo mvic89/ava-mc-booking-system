@@ -2,20 +2,29 @@
 import { getSupabaseBrowser } from './supabase';
 import { getDealershipId } from './tenant';
 
+export interface InvoicePart {
+  name:       string;
+  quantity:   number;
+  unit_cost:  number;
+  total_cost: number;
+  part_number?: string;
+}
+
 export interface Invoice {
-  id:            string;   // INV-YYYY-NNN
-  leadId:        string;   // URL param id of the originating lead
-  customerId?:   number;   // FK → customers.id  (set when lead converts to customer)
+  id:            string;   // INV-YYYY-NNN or SRV-YYYY-NNN
+  leadId:        string;
+  customerId?:   number;
   customerName:  string;
   vehicle:       string;
-  agreementRef:  string;   // AGR-YYYY-NNNN
-  totalAmount:   number;   // kr incl. 25% VAT
-  vatAmount:     number;   // kr
-  netAmount:     number;   // kr excl. VAT
+  agreementRef:  string;
+  totalAmount:   number;
+  vatAmount:     number;
+  netAmount:     number;
   paymentMethod: string;
   status:        'paid' | 'pending';
-  issueDate:     string;   // ISO
-  paidDate?:     string;   // ISO
+  issueDate:     string;
+  paidDate?:     string;
+  parts?:        InvoicePart[];   // spare parts / accessories (service invoices)
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -38,6 +47,7 @@ function mapDbToInvoice(row: Record<string, unknown>): Invoice {
     status:        (row.status         as 'paid' | 'pending') ?? 'pending',
     issueDate:     (row.issue_date     as string) ?? new Date().toISOString(),
     paidDate:      (row.paid_date      as string) ?? undefined,
+    parts:         Array.isArray(row.parts) ? (row.parts as InvoicePart[]) : undefined,
   };
 }
 
@@ -78,19 +88,13 @@ async function nextInvoiceId(_dealershipId: string): Promise<string> {
 export async function getInvoices(): Promise<Invoice[]> {
   const dealershipId = getDealershipId();
   if (!dealershipId) return [];
-  // Use the server-side route so the service-role key bypasses RLS on the invoices table.
-  try {
-    const res = await fetch(`/api/invoice/list?dealershipId=${encodeURIComponent(dealershipId)}`);
-    if (!res.ok) {
-      console.error('[invoices] getInvoices HTTP', res.status);
-      return [];
-    }
-    const json = await res.json() as { invoices?: unknown[] };
-    return (json.invoices ?? []).map((r) => mapDbToInvoice(r as Record<string, unknown>));
-  } catch (err) {
-    console.error('[invoices] getInvoices:', err);
-    return [];
-  }
+  const { data, error } = await db()
+    .from('invoices')
+    .select('*')
+    .eq('dealership_id', dealershipId)
+    .order('issue_date', { ascending: false });
+  if (error) { console.error('[invoices] getInvoices:', error.message); return []; }
+  return (data ?? []).map((r: Record<string, unknown>) => mapDbToInvoice(r));
 }
 
 /** Fetch all invoices for a specific customer (by customer_id FK). */
@@ -164,4 +168,16 @@ export async function markInvoicePaid(leadId: string, paymentMethod: string): Pr
     .eq('dealership_id', dealershipId)
     .eq('status', 'pending');
   if (error) console.error('[invoices] markInvoicePaid:', error.message);
+}
+
+/** Mark any invoice as paid directly by its ID (works for SRV-* service invoices too). */
+export async function markInvoicePaidById(invoiceId: string, paymentMethod: string): Promise<void> {
+  const dealershipId = getDealershipId();
+  if (!dealershipId) return;
+  const { error } = await db()
+    .from('invoices')
+    .update({ status: 'paid', paid_date: new Date().toISOString(), payment_method: paymentMethod } as any)
+    .eq('id', invoiceId)
+    .eq('dealership_id', dealershipId);
+  if (error) console.error('[invoices] markInvoicePaidById:', error.message);
 }

@@ -204,20 +204,17 @@ export const INTEGRATION_REGISTRY: IntegrationDef[] = [
   },
 
   {
-    id:          'twilio',
-    name:        'SMS (Twilio)',
-    description: 'Skicka SMS-notiser till handläggare när viktiga händelser inträffar. Kräver ett Twilio-konto.',
+    id:          'vonage',
+    name:        'SMS (Vonage)',
+    description: 'SMS-notiser via BikeMeNows delade Vonage-konto — inga dealer-egna inloggningsuppgifter krävs. Varje dealers data hålls åtskild via dealership_id.',
     icon:        '📱',
     category:    'communication',
     status:      'live',
     countries:   ['SE', 'NO', 'DK', 'AR'],
     requiredEnvVars: [
-      'TWILIO_ACCOUNT_SID',
-      'TWILIO_AUTH_TOKEN',
-      'TWILIO_FROM_NUMBER',
       'ADMIN_PHONE',
     ],
-    docsUrl: 'https://console.twilio.com/',
+    docsUrl: 'https://dashboard.nexmo.com/',
     apiRoutes: [
       { method: 'POST', path: '/api/notifications/send',   description: 'Send SMS notification' },
       { method: 'GET',  path: '/api/notifications/config', description: 'Get SMS configuration status' },

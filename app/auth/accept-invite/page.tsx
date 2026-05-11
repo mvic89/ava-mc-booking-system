@@ -5,8 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import BankIDModal from '@/components/bankIdModel';
-import { getInvite, consumeInvite } from '@/lib/invites';
-import { getSupabaseBrowser } from '@/lib/supabase';
+import { getInvite, consumeInvite, type PendingInvite } from '@/lib/invites';
 import type { BankIDResult } from '@/types';
 
 type PageState = 'loading' | 'invalid' | 'ready' | 'signing' | 'email' | 'success';
@@ -27,17 +26,18 @@ function AcceptInviteInner() {
   const t            = useTranslations('invite');
 
   const [state, setState]         = useState<PageState>('loading');
-  const [invite, setInvite]       = useState<ReturnType<typeof getInvite>>(null);
+  const [invite, setInvite]       = useState<PendingInvite | null>(null);
   const [emailValue, setEmailValue] = useState('');
   const [emailError, setEmailError] = useState('');
 
   useEffect(() => {
     const token = searchParams.get('token');
     if (!token) { setState('invalid'); return; }
-    const found = getInvite(token);
-    if (!found)  { setState('invalid'); return; }
-    setInvite(found);
-    setState('ready');
+    getInvite(token).then(found => {
+      if (!found) { setState('invalid'); return; }
+      setInvite(found);
+      setState('ready');
+    });
   }, [searchParams]);
 
   // ── Shared: write user + session after any verification ────────────────────
@@ -57,24 +57,29 @@ function AcceptInviteInner() {
 
     localStorage.setItem('user', JSON.stringify(userObj));
 
-    // Upsert into Supabase
+    // Upsert via server-side API (uses service-role key, bypasses RLS)
     if (invite.dealershipId) {
       try {
-        const db = getSupabaseBrowser();
-        await (db as any).from('staff_users').upsert(
-          {
-            dealership_id:   invite.dealershipId,
-            email:           invite.email,
-            name:            userObj.name,
-            role:            invite.role,
-            status:          'active',
-            bankid_verified: bankidVerified,
-            personal_number: personalNumber ?? null,
-            last_login:      new Date().toISOString(),
-          },
-          { onConflict: 'email' },
-        );
-      } catch { /* non-blocking */ }
+        const acceptRes = await fetch('/api/invite/accept', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            dealershipId:   invite.dealershipId,
+            email:          invite.email,
+            name:           userObj.name,
+            role:           invite.role,
+            bankidVerified,
+            personalNumber: personalNumber ?? null,
+            token:          invite.token,
+          }),
+        });
+        if (!acceptRes.ok) {
+          const body = await acceptRes.json().catch(() => ({})) as { error?: string };
+          console.error('[accept-invite] accept failed:', body.error);
+        }
+      } catch (err) {
+        console.error('[accept-invite] accept fetch error:', err);
+      }
     }
 
     // Create server-side session cookie

@@ -31,10 +31,6 @@ interface DealershipProfile {
   swish:                 string;
   iban:                  string;
   bic:                   string;
-  // SMS gateway (Twilio)
-  twilioAccountSid:      string;
-  twilioAuthToken:       string;
-  twilioFromNumber:      string;   // e.g. +46701234567
   deliveryNoteEmail:     string;   // who receives delivery note notifications
   invoiceEmail:          string;   // who receives purchase invoice notifications
   logoDataUrl:           string;
@@ -67,9 +63,6 @@ const DEFAULTS: DealershipProfile = {
   swish:             '',
   iban:              '',
   bic:               '',
-  twilioAccountSid:  '',
-  twilioAuthToken:   '',
-  twilioFromNumber:  '',
   deliveryNoteEmail: '',
   invoiceEmail:      '',
   logoDataUrl:       '',
@@ -195,9 +188,6 @@ async function fetchProfileFromSupabase(dealershipId: string): Promise<Partial<D
       swish:             data.swish                 ?? '',
       iban:              data.iban                  ?? '',
       bic:               data.bic                   ?? '',
-      twilioAccountSid:  data.twilio_account_sid    ?? '',
-      twilioAuthToken:   data.twilio_auth_token     ?? '',
-      twilioFromNumber:  data.twilio_from_number    ?? '',
       deliveryNoteEmail: data.delivery_note_email   ?? '',
       invoiceEmail:      data.invoice_email         ?? '',
       logoDataUrl:       data.logo_data_url         ?? '',
@@ -230,9 +220,6 @@ async function fetchProfileFromSupabase(dealershipId: string): Promise<Partial<D
     swish:             data.swish                 ?? '',
     iban:              data.iban                  ?? '',
     bic:               data.bic                   ?? '',
-    twilioAccountSid:  data.twilio_account_sid    ?? '',
-    twilioAuthToken:   data.twilio_auth_token     ?? '',
-    twilioFromNumber:  data.twilio_from_number    ?? '',
     deliveryNoteEmail: data.delivery_note_email   ?? '',
     invoiceEmail:      data.invoice_email         ?? '',
     logoDataUrl:       data.logo_data_url         ?? '',
@@ -263,9 +250,6 @@ async function saveProfileToSupabase(dealershipId: string, profile: DealershipPr
     swish:                profile.swish,
     iban:                 profile.iban              || null,
     bic:                  profile.bic               || null,
-    twilio_account_sid:   profile.twilioAccountSid  || null,
-    twilio_auth_token:    profile.twilioAuthToken   || null,
-    twilio_from_number:   profile.twilioFromNumber  || null,
     delivery_note_email:  profile.deliveryNoteEmail || null,
     invoice_email:        profile.invoiceEmail      || null,
     logo_data_url:        profile.logoDataUrl,
@@ -278,7 +262,7 @@ async function saveProfileToSupabase(dealershipId: string, profile: DealershipPr
   if (error) {
     // Strip columns that may not exist yet (migration not run) and retry
     const missingCol = (msg: string) =>
-      ['email_domain', 'twilio_account_sid', 'twilio_auth_token', 'twilio_from_number', 'iban', 'bic']
+      ['email_domain', 'iban', 'bic']
         .find(c => msg.includes(c));
     let retryError = error;
     while (retryError && missingCol(retryError.message ?? '')) {
@@ -303,9 +287,6 @@ async function saveProfileToSupabase(dealershipId: string, profile: DealershipPr
       email:         profile.email         || null,
       website:              profile.website           || null,
       logo_data_url:        profile.logoDataUrl       || null,
-      twilio_account_sid:   profile.twilioAccountSid  || null,
-      twilio_auth_token:    profile.twilioAuthToken   || null,
-      twilio_from_number:   profile.twilioFromNumber  || null,
     })
     .eq('id', dealershipId);
 
@@ -667,21 +648,21 @@ export default function DealershipProfilePage() {
               </Field>
             </SectionCard>
 
-            {/* ── SMS / Twilio ── */}
+            {/* ── SMS / Vonage ── */}
             <SectionCard title={t('sections.sms')} icon="📱">
-              <p className="text-xs text-slate-500 -mt-2 mb-1">
-                Krävs för att skicka SMS till kunder. Hämta dina uppgifter från{' '}
-                <a href="https://console.twilio.com" target="_blank" rel="noreferrer" className="text-[#FF6B2C] hover:underline">console.twilio.com</a>.
-              </p>
-              <Field label={t('fields.twilioSid')} hint={t('fields.twilioSidHint')}>
-                <Input value={profile.twilioAccountSid} onChange={set('twilioAccountSid')} placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" mono />
-              </Field>
-              <Field label={t('fields.twilioToken')} hint={t('fields.twilioTokenHint')}>
-                <Input value={profile.twilioAuthToken} onChange={set('twilioAuthToken')} placeholder="••••••••••••••••••••••••••••••••" mono type="password" />
-              </Field>
-              <Field label={t('fields.twilioFrom')} hint={t('fields.twilioFromHint')}>
-                <Input value={profile.twilioFromNumber} onChange={set('twilioFromNumber')} placeholder="+46701234567" mono />
-              </Field>
+              <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-xl p-3 -mt-1">
+                <span className="text-lg shrink-0">✅</span>
+                <div>
+                  <p className="text-xs font-bold text-emerald-800">SMS hanteras av BikeMeNow via Vonage</p>
+                  <p className="text-[11px] text-emerald-700 mt-0.5 leading-relaxed">
+                    Inga egna inloggningsuppgifter krävs. SMS skickas via BikeMeNows delade Vonage-konto och
+                    varje dealers data hålls åtskild i databasen via dealership-ID.
+                  </p>
+                  <p className="text-[11px] text-emerald-700 mt-1">
+                    Avsändare: <span className="font-mono font-bold">BikeMeNow</span>
+                  </p>
+                </div>
+              </div>
             </SectionCard>
 
             {/* ── Notification emails ── */}

@@ -50,7 +50,11 @@
       "f7t": "ملفات تعريف العملاء",
       "f7d": "نظام CRM كامل مع سجل المشتريات وملكية السيارات وتصدير GDPR ونقاط NPS.",
       "f8t": "إدارة المخزون",
-      "f8d": "دراجات جديدة ومقايضات ومستويات المخزون. كل دراجة نارية تُتبَّع من المستودع إلى التسليم."
+      "f8d": "دراجات جديدة ومقايضات ومستويات المخزون. كل دراجة نارية تُتبَّع من المستودع إلى التسليم.",
+      "f9t": "الخدمة والورشة",
+      "f9d": "أوامر العمل والحجوزات وتعيين الفنيين وتتبع قطع الغيار وفواتير الخدمة — كل ذلك في عرض ورشة العمل.",
+      "f10t": "المشتريات والتوريد",
+      "f10d": "أوامر الشراء وفواتير الموردين عبر البريد الإلكتروني واستلام البضائع مع تحليل PDF وتتبع الحسابات الدائنة."
     },
     "how": {
       "badge": "العملية",
@@ -206,6 +210,7 @@
     "dailyActions": "الإجراءات اليومية",
     "salesPipeline": "خط المبيعات",
     "pipeline": "خط الأنابيب",
+    "counterSale": "مبيعات المتجر",
     "calendar": "التقويم",
     "tasks": "المهام",
     "customers": "العملاء",
@@ -224,14 +229,22 @@
     "groups": {
       "core": "الأساسي",
       "sales": "المبيعات",
+      "service": "الخدمة",
       "admin": "الإدارة"
     },
+    "bookingCalendar": "تقويم المواعيد",
+    "serviceBookings": "الحجوزات",
+    "serviceOrders": "أوامر العمل",
     "reservations": "الحجوزات",
     "tradeIns": "المقايضات",
     "cancellations": "الإلغاءات",
     "warranties": "الضمانات",
     "nps": "NPS والرضا",
-    "commissions": "العمولات"
+    "commissions": "العمولات",
+    "serviceVehicles": "تاريخ المركبات",
+    "serviceComms": "التواصل مع العملاء",
+    "scheduling": "تقويم الفنيين",
+    "serviceReminders": "تذكيرات الصيانة"
   },
   "login": {
     "title": "مرحباً بعودتك",
@@ -1219,7 +1232,7 @@
     "colInvoice": "الفاتورة",
     "colDate": "التاريخ",
     "colCustomer": "العميل",
-    "colVehicle": "المركبة",
+    "colVehicle": "المشتريات",
     "colAgreement": "الاتفاقية",
     "colMethod": "الدفع",
     "colAmount": "المبلغ",
@@ -1244,7 +1257,12 @@
     "printVat": "ضريبة القيمة المضافة 25%",
     "printTotal": "الإجمالي شامل الضريبة",
     "printStatus": "الحالة",
-    "printFooter": "{dealerName} • Org.nr {orgNr} • {city} • {email}"
+    "printFooter": "{dealerName} • Org.nr {orgNr} • {city} • {email}",
+    "typeVehicle": "دراجة نارية",
+    "typeService": "خدمة",
+    "typeAccessories": "إكسسوارات",
+    "typeSpareParts": "قطع غيار",
+    "typeVehicleExtras": "دراجة نارية + إكسسوارات"
   },
   "invite": {
     "title": "لقد تمت دعوتك",
@@ -1754,7 +1772,783 @@
       "scheduling": "وقت أقل في الجدولة اليدوية",
       "history": "سجل الخدمة متاح دائماً"
     },
-    "features": "ما هو قادم"
+    "features": "ما هو قادم",
+    "common": {
+      "loading": "جارٍ التحميل...",
+      "loadingBookings": "جارٍ تحميل الحجوزات...",
+      "loadingOrders": "جارٍ تحميل أوامر العمل...",
+      "noVehicle": "لم يُحدَّد المركبة",
+      "notAssigned": "غير مُعيَّن",
+      "cancel": "إلغاء",
+      "save": "حفظ",
+      "open": "فتح",
+      "back": "← رجوع",
+      "all": "الكل",
+      "at": "الساعة",
+      "booking": "حجز"
+    },
+    "status": {
+      "created": "تم الإنشاء",
+      "in_progress": "قيد التنفيذ",
+      "waiting_parts": "في انتظار القطع",
+      "ready": "جاهز",
+      "completed": "مكتمل",
+      "invoiced": "تمت الفوترة"
+    },
+    "bookingStatus": {
+      "booked": "محجوز",
+      "confirmed": "مؤكد",
+      "checked_in": "تم تسجيل الوصول",
+      "in_progress": "قيد التنفيذ",
+      "ready": "جاهز",
+      "completed": "مكتمل",
+      "cancelled": "ملغى"
+    },
+    "serviceTypes": {
+      "maintenance": "خدمة / صيانة",
+      "repair": "إصلاح",
+      "inspection": "فحص",
+      "recall": "استدعاء",
+      "other": "أخرى"
+    },
+    "priority": {
+      "low": "منخفض",
+      "normal": "عادي",
+      "high": "عالٍ",
+      "urgent": "عاجل"
+    },
+    "partStatus": {
+      "needed": "مفقود",
+      "reserved": "محجوز",
+      "ordered": "مطلوب",
+      "received": "مستلم",
+      "used": "مُستخدَم"
+    },
+    "dashboard": {
+      "title": "الخدمة & الورشة",
+      "subtitle": "أوامر العمل والحجوزات ووقت الفني في الوقت الفعلي",
+      "newBooking": "+ حجز جديد",
+      "newOrder": "+ أمر عمل جديد",
+      "kpi": {
+        "todayBookings": "حجوزات اليوم",
+        "activeOrders": "أوامر العمل النشطة",
+        "waitingParts": "في انتظار القطع",
+        "doneToday": "مكتملة اليوم",
+        "noBookings": "لا حجوزات اليوم",
+        "noOrders": "لا طلبات نشطة",
+        "allGood": "كل القطع متوفرة",
+        "noDone": "لم يكتمل أي طلب اليوم"
+      },
+      "schedule": {
+        "title": "جدول اليوم",
+        "viewAll": "الكل →",
+        "noBookings": "لا توجد حجوزات اليوم"
+      },
+      "orders": {
+        "title": "أوامر العمل النشطة",
+        "viewAll": "الكل →",
+        "noOrders": "لا توجد أوامر عمل نشطة",
+        "createOrder": "إنشاء أمر عمل →",
+        "ongoing": "{count} جارية"
+      },
+      "pickup": {
+        "title": "✅ جاهز للاستلام ({count})"
+      },
+      "stats": {
+        "earned": "إجمالي المكتسب",
+        "pending": "القيمة الجارية",
+        "readyPickup": "جاهز للاستلام"
+      }
+    },
+    "bookings": {
+      "title": "حجوزات الخدمة",
+      "newBooking": "+ حجز جديد",
+      "searchPlaceholder": "البحث عن عميل أو مركبة...",
+      "total": "إجمالي {count} حجز",
+      "loading": "جارٍ تحميل الحجوزات...",
+      "noResults": "لم يتم العثور على حجوزات",
+      "createFirst": "إنشاء حجز →",
+      "headers": {
+        "customer": "العميل / المركبة",
+        "type": "النوع",
+        "dateTime": "التاريخ والوقت",
+        "technician": "الفني",
+        "status": "الحالة"
+      },
+      "tabs": {
+        "all": "الكل",
+        "booked": "محجوز",
+        "confirmed": "مؤكد",
+        "checked_in": "تم تسجيل الوصول",
+        "in_progress": "قيد التنفيذ",
+        "ready": "جاهز",
+        "completed": "مكتمل"
+      },
+      "actions": {
+        "confirm": "تأكيد",
+        "toOrder": "→ أمر عمل",
+        "open": "فتح",
+        "openWorkOrder": "فتح أمر العمل"
+      },
+      "toasts": {
+        "confirmed": "تم تأكيد الحجز",
+        "orderCreated": "تم إنشاء أمر العمل!",
+        "orderError": "تعذّر إنشاء أمر العمل"
+      }
+    },
+    "bookingDetail": {
+      "loading": "جارٍ التحميل...",
+      "notFound": "لم يتم العثور على الحجز",
+      "sections": {
+        "customer": "العميل",
+        "vehicle": "المركبة",
+        "appointment": "الموعد",
+        "service": "طلب الخدمة"
+      },
+      "fields": {
+        "name": "الاسم",
+        "phone": "الهاتف",
+        "email": "البريد الإلكتروني",
+        "model": "الطراز",
+        "regNr": "لوحة الترخيص",
+        "vin": "VIN",
+        "date": "التاريخ",
+        "time": "الوقت",
+        "duration": "المدة",
+        "technician": "الفني",
+        "type": "النوع",
+        "description": "الوصف",
+        "notes": "ملاحظات داخلية"
+      },
+      "values": {
+        "minutes": "{n} دقيقة",
+        "notAssigned": "غير مُعيَّن"
+      },
+      "actions": {
+        "createOrder": "إنشاء أمر عمل",
+        "openOrder": "فتح أمر العمل #{id}"
+      },
+      "statusFlow": {
+        "confirmBooking": "تأكيد الحجز",
+        "checkIn": "تسجيل وصول العميل",
+        "startService": "بدء الخدمة",
+        "markReady": "تعليم جاهز",
+        "complete": "إنهاء"
+      },
+      "toasts": {
+        "orderCreated": "تم إنشاء أمر العمل!",
+        "orderError": "تعذّر إنشاء أمر العمل"
+      }
+    },
+    "newBooking": {
+      "title": "حجز خدمة جديد",
+      "sections": {
+        "customer": "العميل",
+        "vehicle": "المركبة",
+        "serviceInfo": "تفاصيل الخدمة"
+      },
+      "fields": {
+        "searchCustomer": "البحث عن عميل موجود",
+        "searchPlaceholder": "الاسم أو الهاتف أو البريد...",
+        "name": "الاسم",
+        "namePlaceholder": "الاسم الأول الأخير",
+        "phone": "الهاتف",
+        "email": "البريد الإلكتروني",
+        "serviceType": "نوع الخدمة",
+        "description": "وصف المشكلة / الطلب",
+        "descriptionPlaceholder": "صف المشكلة أو ما يجب تنفيذه...",
+        "date": "التاريخ",
+        "time": "الوقت",
+        "duration": "المدة (دقيقة)",
+        "technician": "الفني المُعيَّن",
+        "technicianPlaceholder": "اسم الفني",
+        "notes": "ملاحظات داخلية",
+        "notesPlaceholder": "مرئية داخلياً فقط..."
+      },
+      "vehicle": {
+        "noHistory": "لم يتم العثور على مركبات سابقة لهذا العميل. البحث برقم التسجيل:",
+        "walkIn": "أدخل رقم التسجيل — يتم جلب جميع معلومات المركبة تلقائياً.",
+        "select": "اختر مركبة",
+        "selectPlaceholder": "– اختر مركبة –",
+        "regLookup": "+ البحث برقم تسجيل آخر",
+        "purchasedHere": "(مشتراة هنا)",
+        "serviced": "(تمت خدمتها)",
+        "found": "✓ تم العثور على المركبة",
+        "regNr": "رقم التسجيل",
+        "model": "الطراز",
+        "vin": "VIN",
+        "color": "اللون",
+        "fuel": "الوقود",
+        "engine": "المحرك",
+        "odometer": "عداد المسافة",
+        "nextInspection": "الفحص القادم",
+        "status": "الحالة",
+        "registered": "مسجلة",
+        "regPlaceholder": "ABC123 أو VIN...",
+        "searchBtn": "بحث",
+        "notFound": "لم يتم العثور على المركبة. تحقق من رقم التسجيل وحاول مرة أخرى.",
+        "lookupFailed": "فشل البحث. حاول مرة أخرى."
+      },
+      "actions": {
+        "cancel": "إلغاء",
+        "submit": "إنشاء الحجز",
+        "submitting": "جارٍ الحفظ..."
+      },
+      "toasts": {
+        "created": "تم إنشاء الحجز!",
+        "error": "تعذّر إنشاء الحجز",
+        "noDealership": "لم يتم العثور على وكالة",
+        "noDate": "اختر تاريخاً"
+      },
+      "subtitle": "املأ التفاصيل واحفظ الحجز",
+      "preview": {
+        "heading": "معاينة",
+        "subtitle": "حجز جديد",
+        "vehicle": "المركبة",
+        "service": "الخدمة",
+        "date": "التاريخ",
+        "time": "الوقت",
+        "technician": "الفني",
+        "matter": "الموضوع",
+        "empty": "املأ النموذج لرؤية معاينة"
+      },
+      "schedule": {
+        "title": "جدول اليوم",
+        "count": "{n} حجوزات",
+        "empty": "لا حجوزات اليوم",
+        "viewAll": "عرض كل الحجوزات"
+      }
+    },
+    "orders": {
+      "title": "أوامر العمل",
+      "total": "{count} إجمالاً",
+      "newOrder": "+ أمر عمل جديد",
+      "searchPlaceholder": "البحث عن رقم الأمر أو العميل...",
+      "loading": "جارٍ تحميل أوامر العمل...",
+      "noResults": "لم يتم العثور على أوامر عمل",
+      "createFirst": "إنشاء أمر عمل →",
+      "noVehicle": "لم يُحدَّد المركبة",
+      "tabs": {
+        "all": "الكل",
+        "created": "تم الإنشاء",
+        "in_progress": "قيد التنفيذ",
+        "waiting_parts": "انتظار قطع",
+        "ready": "جاهز",
+        "completed": "مكتمل",
+        "invoiced": "مُفوتَر"
+      },
+      "card": {
+        "technician": "الفني",
+        "total": "الإجمالي",
+        "notAssigned": "غير مُعيَّن"
+      }
+    },
+    "newOrder": {
+      "title": "أمر عمل جديد",
+      "subtitle": "زيارة مباشرة أو بدون حجز مسبق",
+      "sections": {
+        "customer": "العميل",
+        "vehicle": "المركبة",
+        "jobInfo": "تفاصيل العمل"
+      },
+      "fields": {
+        "searchCustomer": "البحث عن عميل موجود",
+        "searchPlaceholder": "الاسم أو الهاتف...",
+        "name": "الاسم",
+        "phone": "الهاتف",
+        "description": "وصف المشكلة / الطلب",
+        "descriptionPlaceholder": "صف ما يجب تنفيذه...",
+        "priority": "الأولوية",
+        "laborRate": "أجر الساعة",
+        "technician": "الفني المُعيَّن",
+        "technicianPlaceholder": "اسم الفني",
+        "model": "المركبة / الطراز",
+        "modelPlaceholder": "Honda CB500F 2022",
+        "regNr": "رقم التسجيل",
+        "regNrPlaceholder": "ABC123",
+        "vin": "VIN",
+        "vinPlaceholder": "اختياري",
+        "odometer": "عداد المسافة (كم)",
+        "vehicleSelect": "اختر مركبة",
+        "vehicleSelectPlaceholder": "– اختر مركبة –",
+        "vehicleOther": "مركبة أخرى / غير موجودة في النظام",
+        "noVehicleHistory": "لم يتم العثور على مركبات سابقة لهذا العميل.",
+        "purchasedHere": "(مشتراة هنا)",
+        "serviced": "(تمت خدمتها)",
+        "namePlaceholder": "اسم العميل"
+      },
+      "vehicle": {
+        "regPlaceholder": "ABC123 أو VIN...",
+        "searchBtn": "بحث",
+        "found": "✓ تم العثور على المركبة",
+        "color": "اللون",
+        "fuel": "الوقود",
+        "engine": "المحرك",
+        "odometer": "عداد المسافة",
+        "nextInspection": "الفحص القادم",
+        "status": "الحالة",
+        "registered": "مسجلة",
+        "notFound": "لم يتم العثور على المركبة. تحقق من رقم التسجيل وحاول مرة أخرى.",
+        "lookupFailed": "فشل البحث. حاول مرة أخرى."
+      },
+      "actions": {
+        "cancel": "إلغاء",
+        "submit": "إنشاء أمر العمل",
+        "submitting": "جارٍ الإنشاء..."
+      },
+      "toasts": {
+        "created": "تم إنشاء أمر العمل!",
+        "error": "تعذّر إنشاء أمر العمل",
+        "noDealership": "لم يتم العثور على وكالة"
+      },
+      "preview": {
+        "title": "معاينة",
+        "orderNumber": "رقم الأمر",
+        "pending": "يُعيَّن عند الإنشاء",
+        "statusNew": "جديد",
+        "emptyHint": "املأ النموذج لرؤية معاينة مباشرة لأمر العمل",
+        "customer": "العميل",
+        "vehicle": "المركبة",
+        "description": "وصف العمل",
+        "priorityLabel": "الأولوية",
+        "technicianLabel": "الفني",
+        "laborRateLabel": "سعر الساعة",
+        "notSet": "–",
+        "unassigned": "غير مخصص"
+      },
+      "todaysOrders": {
+        "title": "أوامر العمل اليوم",
+        "empty": "لا توجد أوامر عمل نشطة اليوم",
+        "viewAll": "عرض جميع أوامر العمل"
+      }
+    },
+    "orderDetail": {
+      "loading": "جارٍ التحميل...",
+      "notFound": "لم يتم العثور على أمر العمل",
+      "tabs": {
+        "items": "المقالات والأسعار ({count})",
+        "time": "الوقت ({count})",
+        "notes": "ملاحظات",
+        "details": "تفاصيل"
+      },
+      "statusActions": {
+        "startWork": "بدء العمل",
+        "markReady": "تعليم جاهز للاستلام",
+        "partsReceived": "تم استلام القطع → بدء",
+        "completeAndInvoice": "إتمام وإصدار فاتورة",
+        "waitingParts": "⚠ في انتظار القطع",
+        "createPO": "📦 إنشاء أمر شراء",
+        "payInvoice": "💳 دفع {id}",
+        "goToPayment": "💳 الانتقال إلى الدفع — {id}",
+        "alreadyPaid": "مدفوع بالفعل"
+      },
+      "po": {
+        "title": "إنشاء أمر شراء لـ {count} مقالة مفقودة",
+        "vendor": "المورد",
+        "vendorPlaceholder": "مثل: Mekonomen، Biltema...",
+        "create": "إنشاء أمر الشراء",
+        "creating": "جارٍ الإنشاء...",
+        "cancel": "إلغاء"
+      },
+      "items": {
+        "type": "النوع",
+        "name": "الاسم",
+        "artNr": "رقم المقال",
+        "qty": "الكمية",
+        "unitPrice": "سعر الوحدة",
+        "total": "الإجمالي",
+        "status": "الحالة",
+        "emptyTitle": "لا توجد بنود بعد",
+        "emptySubtitle": "أضف قطع الغيار أو العمالة أو الرسوم الأخرى أدناه",
+        "labor": "عمالة",
+        "part": "قطعة",
+        "subtotal": "المجموع الفرعي (بدون ضريبة)",
+        "vat": "ضريبة 25%",
+        "grandTotal": "الإجمالي للدفع",
+        "partActions": "حالة المخزون — إجراءات",
+        "markOrdered": "تعليم مطلوب",
+        "markReceived": "مستلم",
+        "markUsed": "مُستخدَم",
+        "remove": "إزالة السطر"
+      },
+      "taskStatus": {
+        "done": "مكتمل",
+        "in_progress": "قيد التنفيذ",
+        "pending": "لم يبدأ"
+      },
+      "addLine": {
+        "label": "إضافة بند:",
+        "part": "🔧 قطعة غيار",
+        "labor": "⏱ عمالة",
+        "other": "📋 أخرى",
+        "artNr": "رقم المقال",
+        "artNrPlaceholder": "اختياري",
+        "nameLabelLabor": "عملية العمل",
+        "nameLabelPart": "قطعة / اسم",
+        "nameLabelOther": "وصف",
+        "namePlaceholderPart": "البحث في المخزون أو إدخال نص حر...",
+        "namePlaceholderLabor": "مثل: تغيير الزيت، صيانة الفرامل",
+        "namePlaceholderOther": "وصف",
+        "hours": "ساعات",
+        "hourRate": "أجر الساعة",
+        "qty": "الكمية",
+        "unitPrice": "سعر الوحدة",
+        "addBtn": "+ إضافة",
+        "inStock": "✓ {count} في المخزون — تم الحجز تلقائياً",
+        "outOfStock": "⚠ غير متوفر في المخزون — يلزم أمر شراء",
+        "hintPart": "ابحث بالاسم أو رقم المقال للعثور على القطع في المخزون. إذا كانت متوفرة، سيتم حجزها تلقائياً.",
+        "hintLabor": "اترك أجر الساعة فارغاً لاستخدام أجر أمر العمل ({rate}).",
+        "accessory": "ملحق",
+        "sparePart": "قطعة غيار",
+        "stockLabel": "{count} في المخزون",
+        "outOfStockLabel": "نفد المخزون"
+      },
+      "time": {
+        "checkInTitle": "تسجيل وصول الفني",
+        "techPlaceholder": "اسم الفني",
+        "checkInBtn": "تسجيل الوصول",
+        "activeEntry": "⏱ {name} مسجل الوصول",
+        "since": "منذ",
+        "checkOut": "تسجيل المغادرة",
+        "noEntries": "لا توجد إدخالات وقت بعد",
+        "header": "سجل الوقت",
+        "totalLabel": "الإجمالي:",
+        "ongoing": "جارٍ..."
+      },
+      "notes": {
+        "title": "ملاحظات داخلية",
+        "placeholder": "ملاحظات داخلية، تواصل مع العميل، ملاحظات تقنية...",
+        "save": "حفظ الملاحظات"
+      },
+      "details": {
+        "customer": "العميل",
+        "vehicle": "المركبة",
+        "matter": "الطلب",
+        "timestamps": "الطوابع الزمنية",
+        "name": "الاسم",
+        "phone": "الهاتف",
+        "model": "الطراز",
+        "regNr": "رقم التسجيل",
+        "vin": "VIN",
+        "odometer": "عداد المسافة",
+        "noDescription": "لا يوجد وصف",
+        "created": "تم الإنشاء",
+        "started": "بدأ",
+        "completed": "مكتمل",
+        "laborRate": "أجر الساعة",
+        "openProfile": "فتح ملف العميل →"
+      },
+      "toasts": {
+        "laborAdded": "تمت إضافة بند العمالة",
+        "partError": "تعذّر الإضافة",
+        "orderCreated": "تم إنشاء أمر الشراء {id}",
+        "poError": "خطأ في إنشاء أمر الشراء",
+        "completedRedirect": "مكتمل! جارٍ فتح الدفع...",
+        "completeError": "خطأ في الإتمام",
+        "notesSaved": "تم حفظ الملاحظات",
+        "checkedOut": "تم تسجيل المغادرة",
+        "noTechName": "أدخل اسم الفني",
+        "lineRemoved": "تم حذف السطر"
+      }
+    },
+    "purchaseOrders": {
+      "title": "📦 أوامر الشراء — الخدمة",
+      "subtitle": "قطع الغيار والإكسسوارات المطلوبة من موردين خارجيين",
+      "loading": "جارٍ تحميل أوامر الشراء...",
+      "noOrders": "لا توجد أوامر شراء بعد",
+      "noOrdersHint": "تُنشأ أوامر الشراء تلقائياً من أوامر العمل عندما تكون القطع غير متوفرة في المخزون.",
+      "status": {
+        "Draft": "مسودة",
+        "Ordered": "مطلوب",
+        "Partial": "مستلم جزئياً",
+        "Reviewed": "مستلم",
+        "Cancelled": "ملغى"
+      },
+      "table": {
+        "order": "أمر الشراء / أمر العمل",
+        "vendor": "المورد",
+        "items": "المقالات",
+        "eta": "التسليم (ETA)",
+        "total": "الإجمالي",
+        "status": "الحالة",
+        "actions": "الإجراءات"
+      },
+      "progress": {
+        "draft": "مسودة",
+        "ordered": "مطلوب",
+        "partial": "جزئي",
+        "reviewed": "تمت المراجعة"
+      },
+      "actions": {
+        "send": "📧 إرسال",
+        "receive": "📦 استلام",
+        "done": "✓ تم"
+      },
+      "send": {
+        "title": "إرسال إلى المورد",
+        "emailLabel": "بريد المورد الإلكتروني (اختياري)",
+        "emailPlaceholder": "info@supplier.com",
+        "sendEmail": "إرسال عبر البريد الإلكتروني",
+        "sendEmailDesc": "يفتح عميل بريدك الإلكتروني مع أمر الشراء مملوءاً مسبقاً",
+        "print": "طباعة / حفظ PDF",
+        "printDesc": "إرسال يدوياً بالبريد أو عبر بوابة المورد",
+        "markOrdered": "تحديد كـ\"مطلوب\"",
+        "markOrderedDesc": "لقد قمت بالطلب يدوياً بالفعل",
+        "total": "الإجمالي",
+        "toastOrdered": "تم تحديده كـ\"مطلوب\"",
+        "toastError": "تعذّر تحديث الحالة"
+      },
+      "receive": {
+        "title": "استلام البضاعة",
+        "instruction": "ضع علامة على المقالات التي وصلت مع الشحنة:",
+        "allReceived": "جميع المقالات مستلمة بالفعل",
+        "selectAll": "تحديد الكل",
+        "clear": "مسح",
+        "cancel": "إلغاء",
+        "saving": "جارٍ الحفظ...",
+        "confirmBtn": "تأكيد الاستلام ({n})",
+        "toastOk": "مقالة/مقالات مستلمة",
+        "toastSelect": "اختر مقالة واحدة على الأقل",
+        "toastError": "خطأ"
+      },
+      "eta": {
+        "set": "تحديد ETA",
+        "tooltip": "انقر لتحديد تاريخ التسليم"
+      },
+      "workOrder": "AO-{id}",
+      "itemsCount": "{count} مقالة",
+      "noEta": "لا يوجد ETA",
+      "titleShort": "أوامر الشراء",
+      "section": "المشتريات",
+      "noResults": "لا توجد نتائج",
+      "backToService": "→ العودة إلى نظرة عامة على الخدمة",
+      "searchPlaceholder": "ابحث عن أمر، مورد، مقالة...",
+      "howItWorks": {
+        "title": "كيف يعمل",
+        "steps": [
+          {
+            "title": "إضافة قطعة إلى أمر العمل",
+            "desc": "غير متوفر في المخزون → الحالة \"مطلوب\""
+          },
+          {
+            "title": "إنشاء أمر الشراء",
+            "desc": "من أمر العمل → اختيار المورد"
+          },
+          {
+            "title": "إرسال إلى المورد",
+            "desc": "عبر البريد الإلكتروني أو بوابة المورد"
+          },
+          {
+            "title": "استلام البضاعة → إشعار",
+            "desc": "يستأنف أمر العمل تلقائياً"
+          }
+        ]
+      },
+      "stats": {
+        "total": "الإجمالي",
+        "active": "طلبات نشطة",
+        "waiting": "في انتظار الطلب",
+        "done": "مكتملة"
+      },
+      "tabs": {
+        "all": "الكل",
+        "Draft": "مسودة",
+        "Ordered": "مطلوب",
+        "Partial": "مستلم جزئياً",
+        "Reviewed": "مستلم",
+        "Cancelled": "ملغى"
+      },
+      "subTable": {
+        "article": "المقالة",
+        "artNo": "رقم المقالة",
+        "qty": "الكمية",
+        "unitPrice": "سعر الوحدة",
+        "total": "الإجمالي",
+        "status": "الحالة"
+      },
+      "itemStatus": {
+        "received": "✓ مستلم",
+        "pending": "· في الانتظار"
+      },
+      "noItems": "لا توجد مقالات مسجلة",
+      "notesLabel": "ملاحظة:",
+      "itemsReceived": "{r}/{t} مستلم"
+    },
+    "payment": {
+      "loading": "جارٍ تحميل الفاتورة...",
+      "notFound": "أمر العمل غير موجود",
+      "breadcrumb": "الدفع",
+      "title": "فاتورة الخدمة — الدفع",
+      "backToOrder": "→ العودة إلى أمر العمل",
+      "methods": {
+        "swish": "سويش",
+        "card": "بطاقة / لاتلامسي",
+        "bank_transfer": "تحويل بنكي",
+        "klarna": "كلارنا",
+        "cash": "نقداً"
+      },
+      "success": {
+        "title": "تم تأكيد الدفع!",
+        "invoices": "الفواتير",
+        "backBtn": "→ العودة إلى أمر العمل",
+        "invoice": "الفاتورة",
+        "amount": "المبلغ",
+        "method": "الطريقة",
+        "paid": "تاريخ الدفع"
+      },
+      "summary": {
+        "title": "ملخص الفاتورة",
+        "labour": "العمالة",
+        "parts": "قطع الغيار والإكسسوارات",
+        "labourTotal": "إجمالي العمالة",
+        "partsTotal": "إجمالي القطع",
+        "totalLabel": "الإجمالي للدفع (شامل الضريبة)",
+        "kr": "كرونة",
+        "saving": "جارٍ الحفظ...",
+        "vatLine": "منها ضريبة القيمة المضافة (25%)",
+        "net": "صافي",
+        "invoiceLabel": "الفاتورة",
+        "vehicle": "المركبة"
+      },
+      "methodSelect": "اختر طريقة الدفع",
+      "swish": {
+        "amountLabel": "المبلغ المراد استلامه",
+        "ref": "مرجع:",
+        "merchantNum": "رقم تاجر سويش",
+        "notConfigured": "رقم سويش غير مضبوط.",
+        "configureLink": "أضفه في",
+        "configureWhere": "الإعدادات → الملف الشخصي",
+        "sendRequest": "إرسال طلب دفع إلى العميل",
+        "phonePlaceholder": "+9665XXXXXXXX",
+        "sendBtn": "إرسال الطلب",
+        "hint": "يتلقى العميل إشعار سويش ويوافق على الدفع.",
+        "waiting": "في انتظار دفع العميل",
+        "waitHint": "اطلب من العميل فتح سويش وإرسال",
+        "withRef": "مع المرجع",
+        "polls": "فحص · Req-ID:",
+        "confirmBtn": "✓ تأكيد — تم استلام الدفع",
+        "cancelBtn": "✕ إلغاء",
+        "confirmed": "✅ تم تأكيد دفع سويش",
+        "received": "مستلم · مرجع:",
+        "failed": "فشل الدفع",
+        "retry": "إعادة المحاولة",
+        "errorPhone": "أدخل رقم الهاتف",
+        "errorDeclined": "رُفض سويش:"
+      },
+      "card": {
+        "title": "الدفع اللاتلامسي وبالبطاقة",
+        "contactless": "لاتلامسي",
+        "terminalId": "Nets AXEPT · معرّف الجهاز:",
+        "ready": "جاهز",
+        "approved": "مقبول",
+        "declined": "مرفوض",
+        "active": "نشط",
+        "tapHint": "لاتلامسي — قرّب البطاقة من الجهاز",
+        "tapSub": "لاتلامسي · شريحة ورمز · شريط مغناطيسي — جميع البطاقات مقبولة",
+        "screenTitle": "شاشة الجهاز",
+        "amountLabel": "المبلغ المراد دفعه",
+        "sendBtn": "إرسال المبلغ إلى الجهاز →",
+        "waitSent": "تم إرسال المبلغ — في انتظار العميل…",
+        "waitTap": "العميل: قرّب، أدخل أو مرّر البطاقة",
+        "authorising": "جارٍ التفويض مع شبكة البطاقات…",
+        "confirmed": "✅ تمت الموافقة على الدفع بالبطاقة",
+        "authCode": "رمز التفويض",
+        "amount": "المبلغ",
+        "transaction": "المعاملة",
+        "errorTitle": "❌ بطاقة مرفوضة",
+        "errorHint": "اطلب من العميل تجربة بطاقة أخرى أو طريقة دفع أخرى.",
+        "retry": "إعادة المحاولة"
+      },
+      "bank": {
+        "title": "تعليمات الدفع",
+        "bankgiro": "Bankgiro",
+        "iban": "IBAN",
+        "bic": "BIC/SWIFT",
+        "message": "المرجع",
+        "amount": "المبلغ",
+        "hint": "أخبر العميل بإدراج رقم الفاتورة",
+        "hintEnd": "كمرجع",
+        "confirmBtn": "تأكيد استلام التحويل البنكي",
+        "confirmed": "✓ مؤكد"
+      },
+      "klarna": {
+        "title": "كلارنا — الدفع الآن / لاحقاً / بالتقسيط",
+        "subtitle": "يُدخل العميل بياناته مباشرةً في عنصر كلارنا",
+        "confirmed": "مؤكد",
+        "creatingSession": "جارٍ إنشاء جلسة كلارنا…",
+        "loadingSdk": "جارٍ تحميل Klarna SDK…",
+        "selectPlan": "اختر خطة الدفع",
+        "payNow": "ادفع الآن",
+        "payLater": "ادفع بعد 30 يوماً",
+        "payOverTime": "تقسيط",
+        "authorising": "جارٍ التفويض…",
+        "placingOrder": "جارٍ إنشاء الطلب…",
+        "authoriseBtn": "تفويض دفع كلارنا",
+        "paymentConfirmed": "✅ تم تأكيد دفع كلارنا",
+        "orderId": "معرّف الطلب:",
+        "errorTitle": "خطأ كلارنا",
+        "errorDeclined": "رُفض تفويض كلارنا. اطلب من العميل المحاولة مجدداً.",
+        "errorShow": "لا يمكن لكلارنا عرض هذا الخيار. جرّب خياراً آخر."
+      },
+      "cash": {
+        "label": "دفع نقدي",
+        "confirmBtn": "تم استلام النقد — تأكيد",
+        "confirmed": "✓ تم استلام النقد"
+      }
+    },
+    "vehicles": {
+      "title": "تاريخ المركبات",
+      "subtitle": "سجل الصيانة الكامل لكل دراجة نارية — قابل للبحث برقم اللوحة أو VIN",
+      "searchPlaceholder": "ابحث برقم اللوحة أو VIN أو الموديل...",
+      "searchBtn": "بحث",
+      "totalVehicles": "مركبة مسجلة",
+      "viewHistory": "عرض السجل",
+      "orders": "أوامر العمل",
+      "spent": "إجمالي",
+      "lastService": "آخر صيانة",
+      "unknownModel": "موديل غير معروف",
+      "empty": "لم يتم العثور على مركبات",
+      "emptyHint": "أنشئ أمر عمل لرؤية المركبات هنا",
+      "statsOrders": "أوامر العمل",
+      "statsSpent": "إجمالي المدفوع",
+      "statsFirstSeen": "أول زيارة",
+      "statsLastSeen": "آخر زيارة",
+      "workOrder": "أمر عمل",
+      "jobDesc": "وصف العمل",
+      "labor": "عمالة",
+      "parts": "قطع غيار",
+      "total": "الإجمالي",
+      "completedOn": "اكتمل في",
+      "noOrders": "لم يتم العثور على أوامر عمل لهذه المركبة"
+    },
+    "comms": {
+      "title": "التواصل مع العملاء",
+      "subtitle": "أرسل رسائل واعرض التحديثات التلقائية للحالة للعملاء",
+      "compose": "رسالة جديدة",
+      "newMessage": "رسالة جديدة",
+      "searchCustomer": "البحث عن عميل",
+      "searchPlaceholder": "الاسم أو البريد أو الهاتف...",
+      "recipientName": "المستلم",
+      "namePlaceholder": "اسم المستلم",
+      "email": "البريد الإلكتروني",
+      "phone": "رقم الهاتف",
+      "subject": "الموضوع",
+      "subjectPlaceholder": "أدخل الموضوع...",
+      "message": "الرسالة",
+      "messagePlaceholder": "اكتب رسالتك هنا...",
+      "cancel": "إلغاء",
+      "send": "إرسال",
+      "sending": "جارٍ الإرسال...",
+      "sent": "تم إرسال الرسالة!",
+      "sendError": "تعذر إرسال الرسالة",
+      "log": "سجل الرسائل",
+      "messages": "رسالة",
+      "empty": "لم يتم إرسال أي رسائل بعد",
+      "auto": "تلقائي",
+      "autoTitle": "الرسائل التلقائية للحالة مفعّلة",
+      "autoDesc": "يتلقى العملاء بريداً إلكترونياً تلقائياً عند تأكيد حجزهم وعند جاهزية مركبتهم للاستلام.",
+      "paymentNote": "رسائل الدفع (مثل تعليمات التحويل البنكي) موجودة في كل صفقة ضمن خط مبيعات."
+    }
   },
   "settingsUsers": {
     "title": "المستخدمون والأذونات",
@@ -2741,7 +3535,7 @@
       "address": "Address",
       "contact": "Contact details",
       "banking": "Banking details",
-      "sms": "SMS (Twilio)",
+      "sms": "SMS (Vonage)",
       "notifEmails": "Notification Emails",
       "cover": "Cover image — Dashboard background",
       "logo": "Logo"
@@ -2772,12 +3566,6 @@
       "ibanHint": "International bank account number",
       "bic": "BIC / SWIFT",
       "bicHint": "Bank identifier code",
-      "twilioSid": "Account SID",
-      "twilioSidHint": "Starts with AC…",
-      "twilioToken": "Auth Token",
-      "twilioTokenHint": "Secret — never share with customers",
-      "twilioFrom": "Sender number",
-      "twilioFromHint": "E.164 format, e.g. +46701234567",
       "deliveryEmail": "Delivery Note Email",
       "deliveryEmailHint": "Receives email when a delivery note arrives.",
       "invoiceEmail": "Invoice Email",
@@ -3109,62 +3897,177 @@
       "closeError": "تعذر إغلاق العميل"
     }
   },
-  "daily": {
-    "breadcrumbParent": "المشتريات",
-    "breadcrumb": "الإجراءات اليومية",
-    "title": "لوحة الإجراءات اليومية",
-    "subtitle": "كل ما يحتاج إلى اهتمام اليوم.",
-    "viewAll": "عرض الكل →",
-    "noVendor": "بدون مورد",
-    "summary": {
-      "totalActions": "إجمالي الإجراءات",
-      "urgent": "عاجل",
-      "pendingApproval": "في انتظار الموافقة",
-      "lowStock": "مخزون منخفض"
+  "counterSale": {
+    "breadcrumb": "المبيعات",
+    "title": "🛒 مبيعات المتجر",
+    "subtitle": "بيع الملحقات والمعدات مباشرةً — بدون خط أنابيب",
+    "viewReceipts": "عرض جميع الإيصالات →",
+    "searchTitle": "بحث عن منتج",
+    "searchHint": "↩ Enter للإضافة",
+    "searchPlaceholder": "خوذة، جاكيت، قفازات، رقم القطعة…",
+    "inStock": "{n} في المخزون",
+    "outOfStock": "غير متوفر",
+    "noResults": "لا توجد منتجات لـ \"{q}\" — تحقق من الإملاء أو رقم القطعة",
+    "cartTitle": "سلة التسوق",
+    "clearAll": "مسح الكل",
+    "cartEmpty": "سلة التسوق فارغة",
+    "cartEmptyHint": "ابحث وأضف المنتجات أعلاه",
+    "colItem": "المنتج",
+    "colQty": "الكمية",
+    "colPrice": "السعر",
+    "addDiscount": "+ خصم",
+    "lineDiscount": "−{pct}% خصم",
+    "discountOn": "خصم على {name}",
+    "noDiscount": "لا خصم",
+    "saving": "توفر {amount} على هذا الصف",
+    "addOrderDiscount": "+ إضافة خصم على الطلب",
+    "orderDiscount": "خصم الطلب",
+    "removeDiscount": "إزالة",
+    "originalPrice": "السعر الأصلي",
+    "subtotal": "المجموع الفرعي",
+    "subtotalAfter": "المجموع الفرعي (بعد خصومات المنتجات)",
+    "net": "صافي (بدون ضريبة)",
+    "vat25": "ضريبة القيمة المضافة 25%",
+    "totalToPay": "الإجمالي للدفع",
+    "perUnit": "/ قطعة",
+    "notesTitle": "ملاحظة (اختياري)",
+    "notesPlaceholder": "ملاحظة داخلية حول البيع…",
+    "customerTitle": "العميل",
+    "customerSearch": "البحث عن عميل موجود…",
+    "walkIn": "أو عميل عابر",
+    "walkInName": "الاسم (اختياري)",
+    "paymentTitle": "طريقة الدفع",
+    "payCard": "بطاقة",
+    "payCash": "نقداً",
+    "paySwish": "Swish",
+    "items": "{count, plural, =1 {# منتج} other {# منتجات}}",
+    "netSuffix": "صافي",
+    "totalSaving": "إجمالي التوفير",
+    "toPay": "للدفع",
+    "addItems": "إضافة منتجات",
+    "complete": "إتمام — {amount}",
+    "creating": "جارٍ إنشاء الإيصال…",
+    "receiptTitle": "إيصال {id}",
+    "receiptCustomer": "العميل",
+    "receiptColItem": "المنتج",
+    "receiptColQty": "الكمية",
+    "receiptColTotal": "المجموع",
+    "receiptOrderDiscount": "خصم الطلب",
+    "receiptNet": "صافي (بدون ضريبة)",
+    "receiptVat": "ضريبة القيمة المضافة 25%",
+    "receiptTotal": "الإجمالي",
+    "receiptPayment": "طريقة الدفع",
+    "receiptNote": "ملاحظة: ",
+    "receiptThanks": "شكراً على شرائك!",
+    "print": "طباعة",
+    "newSale": "بيع جديد",
+    "toastAddItems": "أضف منتجاً واحداً على الأقل",
+    "toastNotLoggedIn": "غير مسجل الدخول",
+    "toastError": "حدث خطأ ما"
+  },
+  "reminders": {
+    "title": "تذكيرات الصيانة",
+    "subtitle": "تذكيرات تلقائية عند اقتراب موعد صيانة المركبات",
+    "addReminder": "تذكير جديد",
+    "confirmDelete": "هل أنت متأكد من حذف هذا التذكير؟",
+    "month": "شهر",
+    "months": "أشهر",
+    "lastSent": "آخر إرسال",
+    "daysOverdue": "أيام متأخرة",
+    "daysLeft": "أيام متبقية",
+    "today": "اليوم",
+    "stats": {
+      "total": "الإجمالي",
+      "overdue": "المتأخرة",
+      "dueSoon": "قريباً"
     },
-    "allClear": "كل شيء على ما يرام — لا يوجد شيء يحتاج اهتمامًا اليوم!",
-    "allClearHint": "تحقق مرة أخرى غدًا أو بعد إنشاء أوامر شراء جديدة.",
-    "sections": {
-      "followUp": {
-        "title": "متابعة الآن",
-        "empty": "لا متابعات متأخرة — جميع الطلبات المرسلة خلال 5 أيام عمل."
-      },
-      "etaOverdue": {
-        "title": "تأخر موعد الوصول",
-        "empty": "لا طلبات شراء تجاوزت تاريخ الوصول المتوقع."
-      },
-      "arrivingToday": {
-        "title": "وصول اليوم",
-        "empty": ""
-      },
-      "pendingApproval": {
-        "title": "طلبات شراء بانتظار الموافقة",
-        "empty": "لا طلبات شراء بانتظار الموافقة."
-      },
-      "receiptsApprove": {
-        "title": "إيصالات للموافقة",
-        "empty": "لا إشعارات تسليم بانتظار الموافقة."
-      },
-      "overdueInvoices": {
-        "title": "فواتير متأخرة",
-        "empty": "لا فواتير موردين متأخرة."
-      },
-      "partialOrders": {
-        "title": "طلبات جزئية",
-        "empty": "لا طلبات شراء بطلبات معلقة."
-      },
-      "lowStock": {
-        "title": "مخزون منخفض — يلزم إعادة الطلب",
-        "empty": "جميع الأصناف فوق مستوى إعادة الطلب."
-      }
+    "filter": {
+      "all": "الكل",
+      "active": "نشط",
+      "paused": "موقوف",
+      "overdue": "متأخر",
+      "soon": "خلال 7 أيام"
     },
-    "badges": {
-      "daysOverdue": "متأخر {days} يوم",
-      "etaWas": "كان الموعد {date} (منذ {days} يوم)",
-      "partial": "جزئي",
-      "unitsDate": "{units} وحدة · {date}",
-      "due": "يستحق {date}",
-      "stock": "المخزون: {current} / الحد: {min}"
+    "col": {
+      "customer": "العميل",
+      "vehicle": "المركبة",
+      "interval": "الفترة",
+      "lastService": "آخر صيانة",
+      "nextReminder": "التذكير القادم"
+    },
+    "actions": {
+      "edit": "تعديل",
+      "pause": "إيقاف",
+      "resume": "استئناف",
+      "delete": "حذف"
+    },
+    "empty": {
+      "title": "لا توجد تذكيرات",
+      "subtitle": "أنشئ أول تذكير صيانة لإبقاء العملاء على علم"
+    },
+    "toasts": {
+      "created": "تم إنشاء التذكير",
+      "updated": "تم تحديث التذكير",
+      "deleted": "تم حذف التذكير",
+      "paused": "تم إيقاف التذكير",
+      "resumed": "تم استئناف التذكير",
+      "error": "حدث خطأ ما"
+    },
+    "form": {
+      "title": "تذكير صيانة جديد",
+      "customerName": "اسم العميل",
+      "customerEmail": "البريد الإلكتروني",
+      "customerPhone": "الهاتف",
+      "vehicleName": "المركبة",
+      "plate": "رقم اللوحة",
+      "vin": "رقم VIN",
+      "interval": "فترة الصيانة",
+      "month": "شهر",
+      "months": "أشهر",
+      "lastServiceAt": "تاريخ آخر صيانة",
+      "nextWillBe": "التذكير القادم",
+      "notes": "ملاحظات",
+      "notesPlaceholder": "نوع الصيانة، تفضيلات العميل...",
+      "save": "حفظ التذكير",
+      "saving": "جارٍ الحفظ...",
+      "cancel": "إلغاء"
+    },
+    "cronInfo": {
+      "title": "إرسال تلقائي كل يوم الساعة 08:00",
+      "body": "يفحص النظام يومياً المركبات المستحقة للصيانة ويرسل بريداً إلكترونياً للعميل قبل 7 أيام. عند إتمام أمر عمل، يتحدث التذكير تلقائياً."
+    }
+  },
+  "scheduling": {
+    "title": "تقويم الفنيين",
+    "subtitle": "تخطيط وتوزيع العمل بين الفنيين",
+    "view": {
+      "day": "يوم",
+      "week": "أسبوع"
+    },
+    "today": "اليوم",
+    "newBooking": "حجز جديد",
+    "backlog": "أوامر العمل",
+    "backlogTitle": "أوامر العمل المفتوحة",
+    "backlogSubtitle": "نشطة، غير مكتملة",
+    "noOpenOrders": "لا توجد أوامر عمل مفتوحة",
+    "viewAllOrders": "عرض جميع الأوامر",
+    "unassigned": "غير مُعيَّن",
+    "bookingsCount": "حجوزات",
+    "noTechnicians": "لم يتم العثور على فنيين نشطين",
+    "capacity": "محجوز",
+    "legend": "مفتاح الرموز",
+    "nowLine": "الآن",
+    "statusUpdated": "تم تحديث الحالة",
+    "statusError": "تعذر تحديث الحالة",
+    "modal": {
+      "tech": "الفني",
+      "type": "النوع",
+      "description": "الوصف",
+      "notes": "ملاحظات",
+      "changeStatus": "تغيير الحالة",
+      "viewWorkOrder": "عرض أمر العمل",
+      "editBooking": "تعديل الحجز",
+      "unassigned": "غير مُعيَّن"
     }
   }
 }

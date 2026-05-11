@@ -17,6 +17,8 @@ import DocumentAttachments from '@/components/DocumentAttachments';
 type ProfileTab = 'overview' | 'vehicles' | 'purchases' | 'invoices' | 'documents' | 'timeline' | 'gdpr';
 type SourceKey = 'BankID' | 'Folkbokföring' | 'Manuell';
 
+type PurchaseType = 'motorcycle' | 'service' | 'accessories' | 'spare_parts' | 'mixed';
+
 interface PurchaseItem {
   invoiceId: string;
   date: string;
@@ -26,6 +28,7 @@ interface PurchaseItem {
   vehicleColor: string;
   accessories: { name: string; qty: number; itemType: 'accessory' | 'spare_part' }[];
   paymentMethod: string;
+  purchaseType: PurchaseType;
 }
 
 // ── localStorage cache ─────────────────────────────────────────────────────────
@@ -283,10 +286,11 @@ export default function CustomerProfilePage() {
     const leadIds = (leads ?? []).map((l: any) => l.id as number);
     const offerMap: Record<number, { vehicle: string; vehicleColor: string; accessories: string; accessoriesCost: number }> = {};
 
-    // Build a map of lead_items for accessories-only orders (lead_type === 'accessories')
-    // These orders have no offer — items are stored directly on the lead
+    // Build lead-type and lead-items maps
+    const leadTypeMap: Record<number, string | null> = {};
     const leadItemsMap: Record<number, { id: string; name?: string; brand?: string; qty: number; unitPrice?: number }[]> = {};
     for (const lead of (leads ?? [])) {
+      leadTypeMap[lead.id as number] = lead.lead_type ?? null;
       const isAccLead = lead.lead_type === 'accessories'
         || (lead.lead_type == null && (lead.bike ?? '').startsWith('Tillbehör:'));
       if (!isAccLead || !lead.lead_items) continue;
@@ -393,6 +397,35 @@ export default function CustomerProfilePage() {
         });
       }
 
+      // For service invoices, pull parts directly from the invoice parts list
+      const isServiceInvoice = inv.id.startsWith('SRV-');
+      if (isServiceInvoice && Array.isArray(inv.parts) && inv.parts.length > 0) {
+        for (const part of inv.parts) {
+          accItems.push({ name: part.name, qty: part.quantity, itemType: 'spare_part' });
+        }
+      }
+
+      // Determine purchase type
+      const leadType = inv.leadId ? (leadTypeMap[Number(inv.leadId)] ?? null) : null;
+      const isAccOnlyLead = leadType === 'accessories'
+        || (!isServiceInvoice && !offer?.vehicle && (inv.vehicle ?? '').startsWith('Tillbehör:'));
+      const hasVehicle = !!(offer?.vehicle || (!isAccOnlyLead && !isServiceInvoice && inv.vehicle && inv.vehicle !== '—'));
+      const allSpareParts = accItems.length > 0 && accItems.every(i => i.itemType === 'spare_part');
+      const allAccessories = accItems.length > 0 && accItems.every(i => i.itemType === 'accessory');
+
+      let purchaseType: PurchaseType;
+      if (isServiceInvoice) {
+        purchaseType = 'service';
+      } else if (isAccOnlyLead || (!hasVehicle && allAccessories)) {
+        purchaseType = 'accessories';
+      } else if (!hasVehicle && allSpareParts) {
+        purchaseType = 'spare_parts';
+      } else if (hasVehicle && accItems.length > 0) {
+        purchaseType = 'mixed';
+      } else {
+        purchaseType = 'motorcycle';
+      }
+
       purchases.push({
         invoiceId:     inv.id,
         date:          new Date(inv.issueDate).toLocaleDateString('sv-SE'),
@@ -402,6 +435,7 @@ export default function CustomerProfilePage() {
         vehicleColor:  offer?.vehicleColor ?? '',
         accessories:   accItems,
         paymentMethod: inv.paymentMethod ?? '',
+        purchaseType,
       });
     }
     setLivePurchases(purchases);
@@ -1079,141 +1113,214 @@ export default function CustomerProfilePage() {
           )}
 
           {/* ── PURCHASES ── */}
-          {tab === 'purchases' && (
-            <div className="space-y-5">
-              {/* Header row */}
-              <div className="flex items-center justify-between">
+          {tab === 'purchases' && (() => {
+            const totalSpend   = livePurchases.reduce((s, p) => s + p.amount, 0);
+            const paidCount    = livePurchases.filter(p => p.status === 'paid' || p.status === 'Betald').length;
+            const bikeCount    = livePurchases.filter(p => p.purchaseType === 'motorcycle' || p.purchaseType === 'mixed').length;
+            const serviceCount = livePurchases.filter(p => p.purchaseType === 'service').length;
+            const accCount     = livePurchases.filter(p => p.purchaseType === 'accessories' || p.purchaseType === 'spare_parts').length;
+            const typeConfig: Record<PurchaseType, { icon: string; accent: string; accentLight: string; badgeBg: string; badgeText: string; label: string; typeLabel: string }> = {
+              motorcycle:  { icon: '🏍️', accent: '#0b1524', accentLight: '#1a2a40', badgeBg: 'bg-slate-800',   badgeText: 'text-white',         label: '',           typeLabel: 'Motorcykel' },
+              mixed:       { icon: '🏍️', accent: '#0b1524', accentLight: '#1a2a40', badgeBg: 'bg-slate-800',   badgeText: 'text-white',         label: '',           typeLabel: 'Motorcykel + tillbehör' },
+              service:     { icon: '🛠️', accent: '#134e4a', accentLight: '#0f766e', badgeBg: 'bg-teal-700',    badgeText: 'text-white',         label: 'Service — ', typeLabel: 'Service' },
+              accessories: { icon: '🧰', accent: '#7c2d12', accentLight: '#c2410c', badgeBg: 'bg-orange-700',  badgeText: 'text-white',         label: '',           typeLabel: 'Tillbehör' },
+              spare_parts: { icon: '🔧', accent: '#1e3a5f', accentLight: '#1d4ed8', badgeBg: 'bg-blue-700',    badgeText: 'text-white',         label: '',           typeLabel: 'Reservdelar' },
+            };
+            const payMethodLabel = (m: string) => {
+              const map: Record<string, string> = {
+                cash: 'Kontant', financing: 'Finansiering', swish: 'Swish',
+                card: 'Kort / Blipp', bank_transfer: 'Banköverföring', klarna: 'Klarna',
+                'Kontant': 'Kontant', 'Kort / Blipp': 'Kort / Blipp', 'Kort': 'Kort / Blipp',
+              };
+              return map[m] ?? m;
+            };
+            return (
+            <div className="space-y-6">
+
+              {/* ── Top bar ── */}
+              <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
-                  <h2 className="text-base font-bold text-slate-900">Anskaffningshistorik</h2>
-                  <p className="text-sm text-slate-500 mt-0.5">Alla köpta motorcyklar, tillbehör och reservdelar</p>
+                  <h2 className="text-lg font-black text-slate-900">Anskaffningshistorik</h2>
+                  <p className="text-sm text-slate-400 mt-0.5">Alla köp, servicar och beställningar — live från systemet</p>
                 </div>
-                {syncing && (
-                  <span className="flex items-center gap-1.5 text-xs text-slate-400">
-                    <span className="w-3 h-3 border-2 border-slate-200 border-t-[#FF6B2C] rounded-full animate-spin" />
-                    Uppdaterar…
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  {syncing ? (
+                    <span className="flex items-center gap-1.5 text-xs text-slate-400 bg-white border border-slate-100 px-3 py-1.5 rounded-xl">
+                      <span className="w-3 h-3 border-2 border-slate-200 border-t-[#FF6B2C] rounded-full animate-spin" />
+                      Uppdaterar…
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-xl font-medium">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      Live
+                    </span>
+                  )}
+                  <button
+                    onClick={() => router.push(`/sales/leads/new?customerId=${c.id}&name=${encodeURIComponent(`${c.firstName} ${c.lastName}`)}`)}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#FF6B2C] hover:bg-[#e55a1f] px-4 py-2 rounded-xl transition-colors"
+                  >
+                    + Nytt köp
+                  </button>
+                </div>
               </div>
 
               {loadingLive ? (
-                <div className="grid gap-4">
-                  {[1,2].map(n => (
-                    <div key={n} className="bg-white rounded-2xl border border-slate-100 p-6 animate-pulse">
-                      <div className="h-4 bg-slate-100 rounded w-48 mb-4" />
-                      <div className="h-3 bg-slate-100 rounded w-64 mb-2" />
-                      <div className="h-3 bg-slate-100 rounded w-32" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[1,2,3,4].map(n => (
+                    <div key={n} className="bg-white rounded-2xl border border-slate-100 overflow-hidden animate-pulse">
+                      <div className="h-[72px] bg-slate-100" />
+                      <div className="p-5 space-y-2">
+                        <div className="h-3 bg-slate-100 rounded w-3/4" />
+                        <div className="h-3 bg-slate-100 rounded w-1/2" />
+                      </div>
                     </div>
                   ))}
                 </div>
               ) : livePurchases.length === 0 ? (
-                <div className="bg-white rounded-2xl border border-slate-100 py-20 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4 text-3xl">🏍️</div>
-                  <p className="text-slate-700 font-semibold">Inga anskaffningar ännu</p>
-                  <p className="text-sm text-slate-400 mt-1 mb-5">Genomförda köp dyker upp här</p>
+                <div className="bg-white rounded-2xl border border-slate-100 py-24 text-center">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center mx-auto mb-5 text-4xl shadow-inner">🛒</div>
+                  <p className="text-slate-800 font-bold text-base">Inga anskaffningar ännu</p>
+                  <p className="text-sm text-slate-400 mt-1 mb-6">Genomförda köp och servicar dyker upp här automatiskt</p>
                   <button
                     onClick={() => router.push(`/sales/leads/new?customerId=${c.id}&name=${encodeURIComponent(`${c.firstName} ${c.lastName}`)}`)}
-                    className="text-xs text-[#FF6B2C] border border-[#FF6B2C]/30 px-4 py-2 rounded-xl hover:bg-[#FF6B2C]/5 transition-colors font-medium"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-[#FF6B2C] hover:bg-[#e55a1f] px-6 py-2.5 rounded-xl transition-colors"
                   >
                     Skapa nytt lead →
                   </button>
                 </div>
               ) : (
                 <>
-                  {/* Summary banner */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    <div className="bg-white rounded-2xl border border-slate-100 p-4">
-                      <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Antal köp</p>
-                      <p className="text-2xl font-bold text-slate-900">{livePurchases.length}</p>
-                    </div>
-                    <div className="bg-white rounded-2xl border border-slate-100 p-4">
-                      <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Total summa</p>
-                      <p className="text-2xl font-bold text-[#FF6B2C]">
-                        {livePurchases.reduce((s, p) => s + p.amount, 0).toLocaleString('sv-SE')} kr
-                      </p>
-                    </div>
-                    <div className="bg-white rounded-2xl border border-slate-100 p-4 col-span-2 sm:col-span-1">
-                      <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Tillbehör totalt</p>
-                      <p className="text-2xl font-bold text-slate-900">
-                        {livePurchases.reduce((s, p) => s + p.accessories.reduce((a, i) => a + i.qty, 0), 0)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Purchase cards */}
-                  <div className="grid gap-4">
-                    {livePurchases.map((purchase, idx) => (
-                      <div key={idx} className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                        {/* Card header — motorcycle */}
-                        <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-[#0b1524] to-[#1a2a40]">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-xl shrink-0">🏍️</div>
-                            <div>
-                              <p className="text-white font-bold text-base leading-tight">{purchase.vehicle || '—'}</p>
-                              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                {purchase.vehicleColor && (
-                                  <span className="text-[11px] bg-white/15 text-white/80 px-2 py-0.5 rounded-full">{purchase.vehicleColor}</span>
-                                )}
-                                <span className="text-[11px] text-white/60">{purchase.date}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <p className="text-white font-bold text-lg">{purchase.amount.toLocaleString('sv-SE')} kr</p>
-                            <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${
-                              purchase.status === 'paid' || purchase.status === 'Betald'
-                                ? 'bg-emerald-400/20 text-emerald-300'
-                                : 'bg-amber-400/20 text-amber-300'
-                            }`}>
-                              {purchase.status === 'paid' ? '✓ Betald' : purchase.status === 'Betald' ? '✓ Betald' : '⏳ Väntande'}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Accessories / spare parts */}
-                        {purchase.accessories.length > 0 ? (
-                          <div className="px-6 py-3 border-t border-slate-100">
-                            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Tillbehör & Reservdelar</p>
-                            <div className="divide-y divide-slate-50">
-                              {purchase.accessories.map((item, i) => (
-                                <div key={i} className="flex items-center gap-3 py-2">
-                                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm shrink-0 ${
-                                    item.itemType === 'spare_part' ? 'bg-blue-50' : 'bg-orange-50'
-                                  }`}>
-                                    {item.itemType === 'spare_part' ? '🔧' : '🧰'}
-                                  </div>
-                                  <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-medium text-slate-800 truncate">{item.name}</p>
-                                    <p className="text-[11px] text-slate-400">{item.itemType === 'spare_part' ? 'Reservdel' : 'Tillbehör'}</p>
-                                  </div>
-                                  <span className="text-xs font-bold text-slate-500 shrink-0 bg-slate-100 px-2 py-0.5 rounded-full">×{item.qty}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="px-6 py-3 border-t border-slate-50">
-                            <p className="text-xs text-slate-400 italic">Inga tillbehör inkluderade</p>
-                          </div>
-                        )}
-
-                        {/* Footer */}
-                        <div className="px-6 py-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                          <span className="text-xs font-mono text-slate-400">{purchase.invoiceId}</span>
-                          <div className="flex items-center gap-2">
-                            {purchase.paymentMethod && (
-                              <span className="text-xs text-slate-500 bg-white border border-slate-200 px-2.5 py-0.5 rounded-lg font-medium capitalize">
-                                {purchase.paymentMethod === 'cash' ? 'Kontant' : purchase.paymentMethod === 'financing' ? 'Finansiering' : purchase.paymentMethod}
-                              </span>
-                            )}
-                          </div>
+                  {/* ── KPI strip ── */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    {[
+                      { label: 'Total spend', value: `${totalSpend.toLocaleString('sv-SE')} kr`, sub: `${paidCount}/${livePurchases.length} betald`, color: 'text-[#FF6B2C]', icon: '💰' },
+                      { label: 'Motorcyklar',  value: String(bikeCount),    sub: 'köpta fordon',    color: 'text-slate-900', icon: '🏍️' },
+                      { label: 'Servicar',     value: String(serviceCount), sub: 'genomförda',      color: 'text-teal-700',  icon: '🛠️' },
+                      { label: 'Tillbehör/delar', value: String(accCount), sub: 'beställningar',   color: 'text-blue-700',  icon: '🧰' },
+                    ].map(s => (
+                      <div key={s.label} className="bg-white rounded-2xl border border-slate-100 p-4 flex items-center gap-3">
+                        <div className="text-2xl shrink-0">{s.icon}</div>
+                        <div className="min-w-0">
+                          <p className={`text-xl font-extrabold leading-tight ${s.color}`}>{s.value}</p>
+                          <p className="text-[11px] text-slate-400 font-medium mt-0.5">{s.label}</p>
+                          <p className="text-[10px] text-slate-300">{s.sub}</p>
                         </div>
                       </div>
                     ))}
                   </div>
+
+                  {/* ── Purchase cards — 2-column grid on large screens ── */}
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                    {livePurchases.map((purchase, idx) => {
+                      const cfg = typeConfig[purchase.purchaseType];
+                      const isPaid = purchase.status === 'paid' || purchase.status === 'Betald';
+
+                      const headerTitle =
+                        purchase.purchaseType === 'accessories' || purchase.purchaseType === 'spare_parts'
+                          ? (purchase.accessories.length > 0
+                              ? purchase.accessories.slice(0, 2).map(a => a.name).join(', ') + (purchase.accessories.length > 2 ? ` +${purchase.accessories.length - 2}` : '')
+                              : cfg.typeLabel)
+                          : cfg.label + (purchase.vehicle || '—');
+
+                      return (
+                        <div key={idx} className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 group">
+
+                          {/* ── Card header with coloured accent ── */}
+                          <div className="relative px-5 py-4 flex items-start justify-between gap-3"
+                            style={{ background: `linear-gradient(135deg, ${cfg.accent} 0%, ${cfg.accentLight} 100%)` }}>
+                            {/* Type badge */}
+                            <span className={`absolute top-3 right-3 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${cfg.badgeBg} ${cfg.badgeText} opacity-70`}>
+                              {cfg.typeLabel}
+                            </span>
+
+                            <div className="flex items-start gap-3 min-w-0 flex-1 pr-16">
+                              <div className="w-11 h-11 rounded-xl bg-white/12 flex items-center justify-center text-2xl shrink-0 mt-0.5"
+                                style={{ background: 'rgba(255,255,255,0.12)' }}>
+                                {cfg.icon}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-white font-bold text-sm leading-tight truncate">{headerTitle}</p>
+                                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                  {purchase.vehicleColor && purchase.purchaseType !== 'accessories' && purchase.purchaseType !== 'spare_parts' && (
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                                      style={{ background: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.85)' }}>
+                                      {purchase.vehicleColor}
+                                    </span>
+                                  )}
+                                  <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.55)' }}>{purchase.date}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* ── Amount + status row ── */}
+                          <div className="flex items-center justify-between px-5 py-3 border-b border-slate-50">
+                            <div>
+                              <p className="text-xs text-slate-400 font-medium">Belopp</p>
+                              <p className="text-xl font-extrabold text-slate-900 leading-tight">
+                                {purchase.amount > 0 ? `${purchase.amount.toLocaleString('sv-SE')} kr` : <span className="text-slate-300">—</span>}
+                              </p>
+                            </div>
+                            <div className="flex flex-col items-end gap-1.5">
+                              <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full ${
+                                isPaid ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                              }`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${isPaid ? 'bg-emerald-500' : 'bg-amber-400'}`} />
+                                {isPaid ? 'Betald' : 'Väntande'}
+                              </span>
+                              {purchase.paymentMethod && (
+                                <span className="text-[10px] text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-lg font-medium">
+                                  {payMethodLabel(purchase.paymentMethod)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* ── Line items ── */}
+                          {purchase.accessories.length > 0 ? (
+                            <div className="px-5 py-3">
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                                {purchase.purchaseType === 'service' ? 'Använda delar' : 'Ingående artiklar'}
+                              </p>
+                              <div className="space-y-1.5">
+                                {purchase.accessories.map((item, i) => (
+                                  <div key={i} className="flex items-center gap-2.5">
+                                    <div className={`w-6 h-6 rounded-md flex items-center justify-center text-xs shrink-0 ${
+                                      item.itemType === 'spare_part' ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'
+                                    }`}>
+                                      {item.itemType === 'spare_part' ? '🔧' : '🧰'}
+                                    </div>
+                                    <p className="text-xs text-slate-700 font-medium truncate flex-1">{item.name}</p>
+                                    <span className="text-[10px] font-bold text-slate-400 shrink-0 bg-slate-100 px-1.5 py-0.5 rounded-full">×{item.qty}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="px-5 py-3">
+                              <p className="text-[11px] text-slate-300 italic">Inga tilläggsartiklar</p>
+                            </div>
+                          )}
+
+                          {/* ── Footer ── */}
+                          <div className="px-5 py-2.5 bg-slate-50/60 border-t border-slate-100 flex items-center justify-between">
+                            <span className="text-[10px] font-mono text-slate-400 tracking-wide">{purchase.invoiceId}</span>
+                            <Link
+                              href={`/invoices?highlight=${purchase.invoiceId}`}
+                              className="text-[10px] font-semibold text-[#FF6B2C] hover:underline opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              Visa faktura →
+                            </Link>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </>
               )}
             </div>
-          )}
+            );
+          })()}
 
           {/* ── INVOICES ── */}
           {tab === 'invoices' && (

@@ -26,7 +26,7 @@ export interface SessionPayload {
   dealershipName: string;
   name:         string;
   email:        string;
-  role:         'admin' | 'sales' | 'service' | 'platform_admin';
+  role:         'admin' | 'sales' | 'service' | 'sales_manager' | 'accountant' | 'technician' | 'platform_admin';
   exp:          number; // Unix ms timestamp
 }
 

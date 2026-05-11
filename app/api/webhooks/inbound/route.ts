@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
-import { ServerClient } from 'postmark'
 
 /**
  * Postmark Inbound Email Webhook
@@ -19,90 +18,50 @@ interface PostmarkAttachment {
 }
 
 interface PostmarkInboundPayload {
-    From:        string
-    To:          string
-    Subject:     string
-    TextBody:    string
-    HtmlBody:    string
-    Attachments: PostmarkAttachment[]
-}
-
-async function notifyDealer(opts: {
-    db:            ReturnType<typeof getSupabaseAdmin>
-    dealershipId:  string
-    vendorName:    string
-    receiptResult: Record<string, unknown>
-    pdfBase64?:    string
-    pdfName?:      string
-    subject?:      string
-}) {
-    const postmarkApiKey = process.env.POSTMARK_API_KEY
-    const fromEmail      = process.env.POSTMARK_FROM_EMAIL ?? 'invoice@bikeme.now'
-    if (!postmarkApiKey) return
-
-    const { data: settings } = await opts.db
-        .from('dealership_settings')
-        .select('email, delivery_note_email')
-        .eq('dealership_id', opts.dealershipId)
-        .maybeSingle()
-
-    const dealerEmail = settings?.delivery_note_email || settings?.email
-    if (!dealerEmail) {
-        console.warn(`[notifyDealer] No email in dealership_settings for ${opts.dealershipId} — set Delivery Note Email in Settings`)
-        return
-    }
-
-    const receiptId = (opts.receiptResult.receipt_id as string) ?? 'GR-NEW'
-    const poId      = (opts.receiptResult.po_id      as string) ?? ''
-
-    const client = new ServerClient(postmarkApiKey)
-    await client.sendEmail({
-        From:    `BikeMeNow Inventory <${fromEmail}>`,
-        To:      dealerEmail,
-        Subject: `[Delivery Received] ${receiptId} — ${opts.vendorName}${poId ? ` · ${poId}` : ''}`,
-        HtmlBody: `
-            <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
-                <div style="background:#16a34a;padding:20px 28px;border-radius:8px 8px 0 0;">
-                    <p style="margin:0;color:#bbf7d0;font-size:11px;letter-spacing:2px;text-transform:uppercase;">Goods Receipt</p>
-                    <h2 style="margin:4px 0 0;color:#fff;font-family:monospace;">${receiptId}</h2>
-                </div>
-                <div style="background:#fff;padding:24px 28px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;">
-                    <p style="color:#374151;">Delivery note received from <strong>${opts.vendorName}</strong>${poId ? ` for PO <strong>${poId}</strong>` : ''}.</p>
-                    <p style="color:#6b7280;font-size:13px;">This delivery is pending your approval — stock will not update until you approve it. The original PDF is attached.</p>
-                    <p style="color:#6b7280;font-size:12px;margin-top:24px;">Log in to BikeMeNow → Goods Receipts to review and approve.</p>
-                </div>
-            </div>`,
-        Attachments: opts.pdfBase64 ? [{
-            Name:        opts.pdfName ?? 'delivery-note.pdf',
-            Content:     opts.pdfBase64,
-            ContentType: 'application/pdf',
-            ContentID:   '',
-        }] : [],
-    })
+    From:               string
+    To:                 string
+    Subject:            string
+    TextBody:           string
+    HtmlBody:           string
+    StrippedTextReply?: string
+    // Postmark sets MailboxHash to the token after '+' in plus-addressed emails
+    // e.g. reply+abc123@domain → MailboxHash = "abc123"
+    MailboxHash?:       string
+    // The exact inbound address that received the email (most reliable for routing)
+    OriginalRecipient?: string
+    Attachments:        PostmarkAttachment[]
 }
 
 export async function POST(req: NextRequest) {
     // Postmark inbound does not send auth headers.
     // Secure via secret query param: /api/webhooks/inbound?secret=xxx
     const secret = req.nextUrl.searchParams.get('secret')
-    if (process.env.POSTMARK_INBOUND_TOKEN && secret !== process.env.POSTMARK_INBOUND_TOKEN) {
+    const expectedSecret = process.env.POSTMARK_INBOUND_TOKEN
+
+    if (expectedSecret && secret !== expectedSecret) {
+        console.warn(`[inbound] Unauthorized: secret mismatch. Expected "${expectedSecret}", got "${secret}"`)
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     let payload: PostmarkInboundPayload
     try {
         payload = await req.json()
-    } catch {
+    } catch (e) {
+        console.error('[inbound] Failed to parse Postmark payload:', e)
         return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
     }
 
     const { From, To, Subject, TextBody, Attachments = [] } = payload
-    const toAddress = To?.toLowerCase() ?? ''
+    const toAddress          = To?.toLowerCase() ?? ''
+    const originalRecipient  = (payload.OriginalRecipient ?? '').toLowerCase()
+    const mailboxHash        = payload.MailboxHash ?? ''
+    console.log(`[inbound] Received: from=${From} | to=${To} | original=${payload.OriginalRecipient ?? ''} | hash=${mailboxHash} | subject=${Subject}`)
+
     const db = getSupabaseAdmin()
 
     // ── Extract PO reference early — needed for dealership resolution ─────────
     // Priority: Subject → TextBody → PDF attachment (fresh emails with no text body)
-    const PO_BODY_RE = /(?:er\s*referens|ordernummer|po\s*(?:no|#|number)?|purchase\s*order)[:\s#]*([A-Z0-9][A-Z0-9\-\/]*)/i
+    const PO_BODY_RE = /(?:er\s*referens|ordernummer|order\s*nr|po\s*(?:no|#|number)?|purchase\s*order)[:\s#]*([A-Z0-9][A-Z0-9\-\/]*)/i
 
     const subjectPoMatch = (Subject ?? '').match(/\bPO[-\s][\w\-]+/i)
     const bodyPoMatch    = (TextBody  ?? '').match(PO_BODY_RE)
@@ -135,57 +94,93 @@ export async function POST(req: NextRequest) {
         }
     }
 
-    // ── Dealership resolution (most → least reliable) ────────────────────────
-    //
-    // 1. Plus-address in To: delivery+{uuid}@inbound.bikeme.now  (most reliable)
-    // 2. PO number lookup   — unambiguous when delivery note has a known PO ref
-    // 3. Vendor email match — scoped to resolved dealership if already known
-    // 4. Single-dealership  — last resort, only safe when there is exactly 1 tenant
-
-    const plusMatch = toAddress.match(/\+([a-f0-9\-]{36})@/)
-    let resolvedDealershipId: string | null = plusMatch?.[1] ?? null
-
-    // 2. PO reference → purchase_orders.dealership_id
-    if (!resolvedDealershipId && poRefEarly) {
-        const { data: poRow } = await db
-            .from('purchase_orders')
-            .select('dealership_id')
-            .ilike('id', `%${poRefEarly}%`)
-            .maybeSingle()
-        if (poRow?.dealership_id) {
-            resolvedDealershipId = poRow.dealership_id
-            console.log(`[inbound] Dealership resolved from PO ${poRefEarly} → ${resolvedDealershipId}`)
-        }
-    }
-
-    // 3. Vendor email lookup — scoped to resolved dealership when known
+    // ── Extract email addresses ───────────────────────────────────────────────
+    const toEmail    = toAddress.match(/<(.+?)>/)?.[1] ?? toAddress.split(',')[0]?.trim() ?? toAddress
+    const plusMatch  = toEmail.match(/\+([^@\s>]+)@/)
     const senderEmail  = From.match(/<(.+?)>/)?.[1] ?? From.trim()
     const senderDomain = senderEmail.split('@')[1]?.toLowerCase()
 
-    async function lookupVendor(emailFilter: string) {
-        const q = db.from('vendors').select('dealership_id, name').ilike('email', emailFilter)
-        return resolvedDealershipId
-            ? q.eq('dealership_id', resolvedDealershipId).maybeSingle()
-            : q.limit(1).maybeSingle()
+    // ── Customer reply — detect and parse FIRST before anything else ──────────
+    // reply+{dealershipId}@domain             (legacy, no lead ID)
+    // reply+{dealershipId}_l_{leadId}@domain  (current format)
+    //
+    // Detection priority:
+    //   1. OriginalRecipient starts with reply+  (most reliable — exact inbound address)
+    //   2. MailboxHash present + To/OriginalRecipient contains reply  (Postmark hash field)
+    //   3. toEmail parsed from To header starts with reply+            (fallback)
+    const isCustomerReply =
+        originalRecipient.startsWith('reply+') ||
+        (mailboxHash !== '' && (originalRecipient.includes('reply') || toAddress.includes('reply+'))) ||
+        toEmail.startsWith('reply+') ||
+        toAddress.includes('reply+')
+
+    let replyLeadId: string | null = null
+    let resolvedDealershipId: string | null = null
+
+    if (isCustomerReply) {
+        // MailboxHash is the cleanest source — Postmark strips the 'reply+' prefix
+        // so it contains only the token. Fall back to plus-match parsing from To header.
+        const token = mailboxHash || plusMatch?.[1] || null
+        if (token) {
+            const sep = token.indexOf('_l_')
+            if (sep !== -1) {
+                resolvedDealershipId = token.substring(0, sep)
+                replyLeadId          = token.substring(sep + 3)
+            } else {
+                resolvedDealershipId = token
+            }
+        }
+        console.log(`[inbound] Customer reply detected — dealer: ${resolvedDealershipId ?? 'unknown'} lead: ${replyLeadId ?? 'unknown'} (hash=${mailboxHash || 'none'})`)
+    } else {
+        // Non-reply — initialise from plus-address (may be corrected below)
+        resolvedDealershipId = plusMatch?.[1] ?? null
+        if (resolvedDealershipId) {
+            console.log(`[inbound] Dealership resolved from plus-address: ${resolvedDealershipId}`)
+        }
     }
 
-    const { data: vendorExact }  = await lookupVendor(senderEmail)
-    const { data: vendorDomain } = !vendorExact
-        ? await lookupVendor(`%@${senderDomain}`)
-        : { data: null }
+    // ── Dealership resolution for non-reply emails (most → least reliable) ────
+    if (!isCustomerReply) {
+        // 2. PO reference → purchase_orders.dealership_id
+        if (!resolvedDealershipId && poRefEarly) {
+            const { data: poRow } = await db
+                .from('purchase_orders')
+                .select('dealership_id')
+                .ilike('id', `%${poRefEarly}%`)
+                .maybeSingle()
+            if (poRow?.dealership_id) {
+                resolvedDealershipId = poRow.dealership_id
+                console.log(`[inbound] Dealership resolved from PO ${poRefEarly} → ${resolvedDealershipId}`)
+            }
+        }
 
-    const vendor = vendorExact ?? vendorDomain
-    if (!resolvedDealershipId && vendor?.dealership_id) {
-        resolvedDealershipId = vendor.dealership_id
-    }
+        // 3. Vendor email lookup — scoped to resolved dealership when known
+        async function lookupVendor(emailFilter: string) {
+            const q = db.from('vendors').select('dealership_id, name').ilike('email', emailFilter)
+            return resolvedDealershipId
+                ? q.eq('dealership_id', resolvedDealershipId).maybeSingle()
+                : q.limit(1).maybeSingle()
+        }
 
-    // 4. Last resort — only safe for single-tenant setups
-    if (!resolvedDealershipId) {
-        const { data: singleDealer } = await db
-            .from('dealerships').select('id').limit(1).maybeSingle()
-        if (singleDealer) {
-            resolvedDealershipId = singleDealer.id
-            console.warn(`[inbound] No dealership matched for From:${From} PO:${poRefEarly ?? 'none'} — falling back to first dealership. Check vendor email or plus-addressing.`)
+        const { data: vendorExact }  = await lookupVendor(senderEmail)
+        const { data: vendorDomain } = !vendorExact
+            ? await lookupVendor(`%@${senderDomain}`)
+            : { data: null }
+
+        const vendor = vendorExact ?? vendorDomain
+        if (!resolvedDealershipId && vendor?.dealership_id) {
+            resolvedDealershipId = vendor.dealership_id
+            console.log(`[inbound] Resolved dealership from vendor email lookup: ${resolvedDealershipId}`)
+        }
+
+        // 4. Last resort — only safe for single-tenant setups
+        if (!resolvedDealershipId) {
+            const { data: singleDealer } = await db
+                .from('dealerships').select('id').limit(1).maybeSingle()
+            if (singleDealer) {
+                resolvedDealershipId = singleDealer.id
+                console.warn(`[inbound] No dealership matched for From:${From} PO:${poRefEarly ?? 'none'} — falling back to first dealership.`)
+            }
         }
     }
 
@@ -193,12 +188,19 @@ export async function POST(req: NextRequest) {
     const inboundDomain  = process.env.POSTMARK_INBOUND_DOMAIN ?? ''
     const inboundAddress = process.env.POSTMARK_INBOUND_ADDRESS ?? ''
 
-    const isDeliveryInbox = toAddress.includes('delivery')
+    // Explicitly exclude reply+ addresses from delivery / invoice detection
+    const isDeliveryInbox = !isCustomerReply && (
+        toAddress.includes('delivery')
+        || toAddress.includes('följesedel')
         || toAddress.includes('inbound.postmarkapp.com')
         || (inboundAddress && toAddress.includes(inboundAddress.split('@')[0]))
+    )
 
-    const isInvoiceInbox = toAddress.includes('invoice')
-        && (inboundDomain ? toAddress.includes(inboundDomain) : true)
+    // inboundDomain match is intentionally removed — it caught all reply+ addresses
+    const isInvoiceInbox = !isCustomerReply && (
+        toAddress.includes('invoice')
+        || toAddress.includes('faktura')
+    )
 
     // Extract dealership from invoice plus-address: invoice+{uuid}@...
     if (!resolvedDealershipId && isInvoiceInbox) {
@@ -206,9 +208,24 @@ export async function POST(req: NextRequest) {
         if (invoicePlusMatch) resolvedDealershipId = invoicePlusMatch[1]
     }
 
-    console.log(`[inbound] To: "${toAddress}" | isDelivery: ${isDeliveryInbox} | isInvoice: ${isInvoiceInbox} | domain: "${inboundDomain}"`)
+    // Declare vendor so delivery/invoice handlers can reference it
+    let vendor: { dealership_id: string; name: string } | null = null
+    if (!isCustomerReply) {
+        const { data: ve } = await db.from('vendors').select('dealership_id, name')
+            .ilike('email', senderEmail).maybeSingle()
+        const { data: vd } = !ve
+            ? await db.from('vendors').select('dealership_id, name')
+                .ilike('email', `%@${senderDomain}`).maybeSingle()
+            : { data: null }
+        vendor = ve ?? vd
+    }
+
+    console.log(`[inbound] To: "${toEmail}" | isCustomerReply: ${isCustomerReply} | isDelivery: ${isDeliveryInbox} | isInvoice: ${isInvoiceInbox} | dealer: ${resolvedDealershipId ?? 'unknown'}`)
+
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (req.headers.get('host') ? `https://${req.headers.get('host')}` : 'http://localhost:3000');
 
     if (isDeliveryInbox) {
+        console.log(`[inbound] → routing to delivery/goods-receipt`)
         const pdfAttachment = Attachments.find(a =>
             a.ContentType === 'application/pdf' ||
             a.Name.toLowerCase().endsWith('.pdf')
@@ -232,9 +249,6 @@ export async function POST(req: NextRequest) {
 
         if (looksLikeInvoice) {
             console.log(`[inbound] Delivery reply looks like an invoice — re-routing. Subject: "${Subject}", File: "${pdfAttachment?.Name ?? ''}"`)
-            const baseUrl = process.env.NODE_ENV === 'development'
-                ? 'http://localhost:3000'
-                : `https://${req.headers.get('host')}`
             const invRes = await fetch(`${baseUrl}/api/purchase-invoice/process`, {
                 method:  'POST',
                 headers: {
@@ -257,9 +271,6 @@ export async function POST(req: NextRequest) {
 
         // Forward to goods-receipt handler
         // Use localhost for internal calls in dev to avoid SSL tunnel issues
-        const baseUrl = process.env.NODE_ENV === 'development'
-            ? 'http://localhost:3000'
-            : `https://${req.headers.get('host')}`
         const grRes = await fetch(`${baseUrl}/api/goods-receipt`, {
             method:  'POST',
             headers: {
@@ -326,7 +337,7 @@ export async function POST(req: NextRequest) {
             notifMessage = `${receiptId} · ${poRef ? `PO: ${poRef} · ` : ''}Pending your approval — review in Goods Receipts.`
         }
 
-        fetch(`${baseUrl}/api/notifications/add`, {
+        await fetch(`${baseUrl}/api/notifications/add`, {
             method:  'POST',
             headers: {
                 'Content-Type':     'application/json',
@@ -341,18 +352,6 @@ export async function POST(req: NextRequest) {
             }),
         }).catch((e) => console.warn('[inbound] in-app notify failed:', e))
 
-        // ── Notify dealer by email ─────────────────────────────────────────────
-        // Fire-and-forget: fetch dealer email from dealership_settings then send
-        notifyDealer({
-            db,
-            dealershipId:  resolvedDealershipId,
-            vendorName:    vendor?.name ?? senderDomain ?? 'Supplier',
-            receiptResult: result,
-            pdfBase64:     pdfAttachment?.Content,
-            pdfName:       pdfAttachment?.Name,
-            subject:       Subject,
-        }).catch((e) => console.warn('[inbound] notify dealer failed:', e))
-
         return NextResponse.json({ ok: true, routed_to: 'goods-receipt', ...result })
     }
 
@@ -366,10 +365,6 @@ export async function POST(req: NextRequest) {
         const pdfAttachment = Attachments.find(a =>
             a.ContentType === 'application/pdf' || a.Name.toLowerCase().endsWith('.pdf'),
         )
-
-        const baseUrl = process.env.NODE_ENV === 'development'
-            ? 'http://localhost:3000'
-            : `https://${req.headers.get('host')}`
 
         let result: Record<string, unknown> = {}
         try {
@@ -397,7 +392,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Push in-app notification
-        fetch(`${baseUrl}/api/notifications/add`, {
+        await fetch(`${baseUrl}/api/notifications/add`, {
             method:  'POST',
             headers: {
                 'Content-Type':     'application/json',
@@ -413,6 +408,90 @@ export async function POST(req: NextRequest) {
         }).catch((e) => console.warn('[inbound] invoice notify failed:', e))
 
         return NextResponse.json({ ok: true, routed_to: 'purchase-invoice', ...result })
+    }
+
+    // ── Customer reply ────────────────────────────────────────────────────────
+    if (isCustomerReply) {
+        if (!resolvedDealershipId) {
+            console.warn(`[inbound] Customer reply — no dealership resolved. From: ${From}`)
+            return NextResponse.json({ error: 'Dealer not identified' }, { status: 422 })
+        }
+
+        // Prefer the stripped reply text (Postmark strips quoted history)
+        const replyBody = payload.StrippedTextReply?.trim() || TextBody?.trim() || ''
+
+        // Look up lead name (and resolve lead ID if missing) for the notification
+        let leadName: string | null = null
+        if (replyLeadId) {
+            const { data: lead } = await db
+                .from('leads')
+                .select('name')
+                .eq('id', Number(replyLeadId))
+                .maybeSingle()
+            leadName = lead?.name ?? null
+        } else {
+            // Legacy format — try to find the lead via a recent outbound email to this address
+            const { data: prev } = await db
+                .from('communications')
+                .select('lead_id, recipient_name')
+                .eq('dealership_id', resolvedDealershipId)
+                .eq('direction', 'outbound')
+                .ilike('recipient_email', senderEmail)
+                .not('lead_id', 'is', null)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle()
+            if (prev?.lead_id) {
+                replyLeadId = String(prev.lead_id)
+                leadName    = prev.recipient_name ?? null
+                console.log(`[inbound] Resolved lead ${replyLeadId} from outbound history for ${senderEmail}`)
+            }
+        }
+
+        // Store in communications table as inbound
+        const { data: comm, error: commErr } = await db
+            .from('communications')
+            .insert({
+                dealership_id:   resolvedDealershipId,
+                lead_id:         replyLeadId ? Number(replyLeadId) : null,
+                channel:         'email',
+                direction:       'inbound',
+                subject:         Subject || null,
+                body:            replyBody,
+                status:          'received',
+                recipient_email: senderEmail,
+                recipient_name:  leadName ?? From,
+                sent_by:         senderEmail,
+            })
+            .select('id')
+            .single()
+
+        if (commErr) {
+            console.error('[inbound] Failed to store customer reply:', commErr)
+            return NextResponse.json({ error: 'Failed to store reply', detail: commErr.message }, { status: 500 })
+        }
+
+        const preview    = replyBody.length > 120 ? replyBody.slice(0, 120) + '…' : replyBody
+        const notifTitle = `💬 Customer reply — ${leadName ?? senderEmail}`
+        const href       = replyLeadId ? `/sales/leads/${replyLeadId}` : '/sales/leads'
+
+        await fetch(`${baseUrl}/api/notifications/add`, {
+            method:  'POST',
+            headers: {
+                'Content-Type':     'application/json',
+                'x-webhook-secret': process.env.GOODS_RECEIPT_WEBHOOK_SECRET ?? '',
+            },
+            body: JSON.stringify({
+                dealership_id: resolvedDealershipId,
+                type:    'lead',
+                title:   notifTitle,
+                message: preview,
+                href,
+            }),
+        }).catch(e => console.warn('[inbound] customer reply notify failed:', e))
+
+        console.log(`[inbound] Customer reply stored: id=${comm?.id} lead=${replyLeadId ?? 'unknown'} from=${senderEmail}`)
+        return NextResponse.json({ ok: true, routed_to: 'customer-reply', comm_id: comm?.id })
     }
 
     // Unrecognised To address — log and acknowledge

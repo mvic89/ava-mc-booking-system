@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 
 const languageOptions = [
@@ -21,6 +22,7 @@ interface LanguageSwitcherProps {
 
 export default function LanguageSwitcher({ variant = 'default' }: LanguageSwitcherProps) {
   const locale = useLocale();
+  const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
 
   const menuHandle = () => {
@@ -30,7 +32,7 @@ export default function LanguageSwitcher({ variant = 'default' }: LanguageSwitch
   const handleLanguageChange = (newLocale: string) => {
     document.cookie = `locale=${newLocale}; path=/; max-age=31536000`;
     setShowMenu(false);
-    window.location.reload();
+    router.refresh();
   };
 
   const currentLanguage = languageOptions.find(lang => lang.code === locale) || languageOptions[0];

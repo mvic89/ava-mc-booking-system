@@ -292,13 +292,22 @@ export default function UsersSettingsPage() {
     setInviteSending(true);
     const dealershipName = currentUser?.dealershipName ?? 'BikeMeNow';
     const dealershipId   = currentUser?.dealershipId   ?? '';
-    const invite = storeInvite({
-      email: inviteEmail.trim(),
-      name:  inviteName.trim(),
-      role:  inviteRole,
-      dealershipName,
-      dealershipId,
-    });
+    let invite;
+    try {
+      invite = await storeInvite({
+        email:          inviteEmail.trim(),
+        name:           inviteName.trim(),
+        role:           inviteRole,
+        dealershipName,
+        dealershipId,
+        invitedBy:      currentUser?.email ?? undefined,
+      });
+    } catch (err) {
+      toast.error('Kunde inte spara inbjudan — försök igen');
+      console.error('[invite] storeInvite failed:', err);
+      setInviteSending(false);
+      return;
+    }
     const url = `${window.location.origin}/auth/accept-invite?token=${invite.token}`;
     setInviteLink(url);
     const newUser: StaffUser = {
@@ -318,6 +327,7 @@ export default function UsersSettingsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           invitees: [{ email: inviteEmail.trim(), name: inviteName.trim(), role: inviteRole, inviteUrl: url }],
+          dealershipId,
           dealershipName,
           inviterName: currentUser?.name || currentUser?.givenName || 'Admin',
         }),
@@ -507,9 +517,9 @@ export default function UsersSettingsPage() {
                       onClick={e => e.stopPropagation()}
                       className="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#FF6B2C]/30 shrink-0"
                     >
-                      <option value="admin">Admin</option>
-                      <option value="sales">Försäljning</option>
-                      <option value="service">Service</option>
+                      {(Object.entries(ROLES) as [Role, typeof ROLES[Role]][]).map(([key, meta]) => (
+                        <option key={key} value={key}>{meta.label}</option>
+                      ))}
                     </select>
 
                     {/* Status toggle */}

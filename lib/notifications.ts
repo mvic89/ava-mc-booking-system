@@ -1,7 +1,7 @@
 // ─── Notification store ───────────────────────────────────────────────────────
 // Pure localStorage + CustomEvent bus — no server required.
 
-export type NotifType = 'lead' | 'agreement' | 'payment' | 'customer' | 'system';
+export type NotifType = 'lead' | 'agreement' | 'payment' | 'customer' | 'system' | 'info' | 'warning' | 'success';
 
 export interface AppNotification {
   id:        string;
@@ -130,7 +130,7 @@ export function savePreferences(prefs: NotificationPreferences): void {
 // ── Main notify() helper ──────────────────────────────────────────────────────
 // Call this at every action point. Respects the user's per-channel toggles.
 // Email and SMS are dispatched via POST /api/notifications/send using the
-// dealership's configured SMTP and Twilio credentials.
+// dealership's configured SMTP credentials. SMS uses the shared BikeMeNow Vonage account.
 
 export function notify(
   event: keyof NotificationPreferences,

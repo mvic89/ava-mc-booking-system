@@ -1,7 +1,7 @@
 // POST /api/payment/send-details
 // Sends bank transfer payment instructions to a customer via email or SMS.
 // Email is delivered through the existing invite/transactional email infrastructure.
-// SMS: if an SMS provider (Twilio, 46elks, etc.) is configured, it sends a text.
+// SMS: tries 46elks first, then falls back to shared BikeMeNow Vonage account.
 // Falls back gracefully — caller should show the bank details on screen regardless.
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -219,31 +219,25 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Twilio fallback
-    const twilioSid   = process.env.TWILIO_ACCOUNT_SID ?? '';
-    const twilioToken = process.env.TWILIO_AUTH_TOKEN  ?? '';
-    const twilioFrom  = process.env.TWILIO_FROM_NUMBER ?? '';
+    // Vonage fallback (shared BikeMeNow account)
+    const vonageKey    = process.env.VONAGE_API_KEY    ?? '';
+    const vonageSecret = process.env.VONAGE_API_SECRET ?? '';
+    const vonageFrom   = process.env.VONAGE_FROM       ?? 'BikeMeNow';
 
-    if (twilioSid && twilioToken && twilioFrom) {
+    if (vonageKey && vonageSecret) {
       try {
-        const params = new URLSearchParams({
-          From: twilioFrom,
-          To:   contact.startsWith('0') ? '+46' + contact.slice(1) : contact,
-          Body: smsText,
-        });
-        const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`, {
+        const to  = contact.startsWith('0') ? '+46' + contact.slice(1) : contact;
+        const res = await fetch('https://rest.nexmo.com/sms/json', {
           method:  'POST',
-          headers: {
-            'Authorization': 'Basic ' + Buffer.from(`${twilioSid}:${twilioToken}`).toString('base64'),
-            'Content-Type':  'application/x-www-form-urlencoded',
-          },
-          body: params,
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ api_key: vonageKey, api_secret: vonageSecret, from: vonageFrom, to, text: smsText }),
         });
-        const data = await res.json();
-        if (!res.ok) return NextResponse.json({ error: data.message ?? 'Twilio error' }, { status: 502 });
-        return NextResponse.json({ ok: true, provider: 'twilio', messageId: data.sid });
-      } catch (err: any) {
-        return NextResponse.json({ error: err.message }, { status: 502 });
+        const json = await res.json() as { messages?: { status: string; 'message-id'?: string; 'error-text'?: string }[] };
+        const msg  = json.messages?.[0];
+        if (!msg || msg.status !== '0') return NextResponse.json({ error: msg?.['error-text'] ?? 'Vonage error' }, { status: 502 });
+        return NextResponse.json({ ok: true, provider: 'vonage', messageId: msg['message-id'] });
+      } catch (err: unknown) {
+        return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 502 });
       }
     }
 
