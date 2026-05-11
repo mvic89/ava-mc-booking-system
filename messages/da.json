@@ -4111,5 +4111,39 @@
     "scheme25": "25 %",
     "marginalSuffix": "(margen)",
     "noInvoices": "Ingen betalte fakturaer i {period}"
+  },
+  "daily": {
+    "breadcrumbParent": "Indkøb",
+    "breadcrumb": "Daglige handlinger",
+    "title": "Daglige handlinger",
+    "subtitle": "Alt der kræver opmærksomhed i dag",
+    "viewAll": "Vis alle →",
+    "allClear": "Alt klart!",
+    "allClearHint": "Ingen afventende handlinger. Tjek igen i morgen.",
+    "noVendor": "Ingen leverandør",
+    "summary": {
+      "totalActions":    "Samlede handlinger",
+      "urgent":          "Akut",
+      "pendingApproval": "Afventer godkendelse",
+      "lowStock":        "Lavt lager"
+    },
+    "sections": {
+      "followUp":        { "title": "Følg op nu",                      "empty": "Ingen ordrer kræver opfølgning." },
+      "etaOverdue":      { "title": "ETA forsinket",                   "empty": "Ingen forsinkede ETA'er." },
+      "arrivingToday":   { "title": "Ankommer i dag",                  "empty": "Intet ankommer i dag." },
+      "pendingApproval": { "title": "Afventer PO-godkendelse",         "empty": "Ingen ordrer afventer godkendelse." },
+      "receiptsApprove": { "title": "Varemodtagelse til godkendelse",  "empty": "Ingen modtagelser afventer godkendelse." },
+      "overdueInvoices": { "title": "Forfaldne fakturaer",             "empty": "Ingen forfaldne fakturaer." },
+      "partialOrders":   { "title": "Restordrer",                      "empty": "Ingen restordrer." },
+      "lowStock":        { "title": "Lageradvarsler",                  "empty": "Alle lagerniveauer er OK." }
+    },
+    "badges": {
+      "daysOverdue": "{days}d forsinket",
+      "etaWas":      "ETA {date} (+{days}d)",
+      "unitsDate":   "{units} enheder · {date}",
+      "due":         "Forfalder {date}",
+      "partial":     "Restordre",
+      "stock":       "{current}/{min}"
+    }
   }
 }

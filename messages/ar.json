@@ -4111,5 +4111,39 @@
     "scheme25": "25 %",
     "marginalSuffix": "(هامش)",
     "noInvoices": "لا توجد فواتير مدفوعة في {period}"
+  },
+  "daily": {
+    "breadcrumbParent": "المشتريات",
+    "breadcrumb": "الإجراءات اليومية",
+    "title": "الإجراءات اليومية",
+    "subtitle": "كل ما يحتاج إلى اهتمام اليوم",
+    "viewAll": "عرض الكل ←",
+    "allClear": "كل شيء واضح!",
+    "allClearHint": "لا توجد إجراءات معلقة. تحقق غداً.",
+    "noVendor": "لا يوجد مورد",
+    "summary": {
+      "totalActions":    "إجمالي الإجراءات",
+      "urgent":          "عاجل",
+      "pendingApproval": "في انتظار الموافقة",
+      "lowStock":        "مخزون منخفض"
+    },
+    "sections": {
+      "followUp":        { "title": "متابعة الآن",                  "empty": "لا توجد طلبات تحتاج متابعة." },
+      "etaOverdue":      { "title": "تأخر موعد الوصول",             "empty": "لا يوجد تأخير في مواعيد الوصول." },
+      "arrivingToday":   { "title": "يصل اليوم",                    "empty": "لا يوجد شيء يصل اليوم." },
+      "pendingApproval": { "title": "في انتظار موافقة أمر الشراء",  "empty": "لا توجد طلبات في انتظار الموافقة." },
+      "receiptsApprove": { "title": "إيصالات بضاعة للموافقة",       "empty": "لا توجد إيصالات في انتظار الموافقة." },
+      "overdueInvoices": { "title": "فواتير متأخرة",                "empty": "لا توجد فواتير متأخرة." },
+      "partialOrders":   { "title": "طلبات جزئية",                  "empty": "لا توجد طلبات جزئية." },
+      "lowStock":        { "title": "تنبيهات المخزون",              "empty": "مستويات المخزون كلها جيدة." }
+    },
+    "badges": {
+      "daysOverdue": "متأخر {days} يوم",
+      "etaWas":      "الوصول {date} (+{days}د)",
+      "unitsDate":   "{units} وحدة · {date}",
+      "due":         "يستحق {date}",
+      "partial":     "طلب جزئي",
+      "stock":       "{current}/{min}"
+    }
   }
 }

@@ -4112,5 +4112,39 @@
     "scheme25": "25 %",
     "marginalSuffix": "(marginal)",
     "noInvoices": "Inga betalda fakturor under {period}"
+  },
+  "daily": {
+    "breadcrumbParent": "Inköp",
+    "breadcrumb": "Dagliga åtgärder",
+    "title": "Dagliga åtgärder",
+    "subtitle": "Allt som behöver uppmärksamhet idag",
+    "viewAll": "Visa alla →",
+    "allClear": "Allt klart!",
+    "allClearHint": "Inga väntande åtgärder. Kolla igen imorgon.",
+    "noVendor": "Ingen leverantör",
+    "summary": {
+      "totalActions":    "Totalt åtgärder",
+      "urgent":          "Brådskande",
+      "pendingApproval": "Väntar godkännande",
+      "lowStock":        "Lågt lager"
+    },
+    "sections": {
+      "followUp":        { "title": "Följ upp nu",                  "empty": "Inga ordrar behöver uppföljning." },
+      "etaOverdue":      { "title": "ETA försenad",                 "empty": "Inga försenade ETA." },
+      "arrivingToday":   { "title": "Anländer idag",                "empty": "Ingenting anländer idag." },
+      "pendingApproval": { "title": "Väntar PO-godkännande",        "empty": "Inga ordrar väntar godkännande." },
+      "receiptsApprove": { "title": "Godsmottagning att godkänna",  "empty": "Inga mottagningar väntar godkännande." },
+      "overdueInvoices": { "title": "Förfallna fakturor",           "empty": "Inga förfallna fakturor." },
+      "partialOrders":   { "title": "Restorder",                    "empty": "Inga restorder." },
+      "lowStock":        { "title": "Lagervarningar",               "empty": "Alla lagernivåer är OK." }
+    },
+    "badges": {
+      "daysOverdue": "{days}d försenad",
+      "etaWas":      "ETA {date} (+{days}d)",
+      "unitsDate":   "{units} enheter · {date}",
+      "due":         "Förfaller {date}",
+      "partial":     "Restorder",
+      "stock":       "{current}/{min}"
+    }
   }
 }

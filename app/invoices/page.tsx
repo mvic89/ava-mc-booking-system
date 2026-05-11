@@ -320,10 +320,10 @@ export default function InvoicesPage() {
 
   const fmtAmount = (n: number) => `${n.toLocaleString('sv-SE')} kr`;
 
-  const TABS: { id: FilterTab; label: string; count: number; tip: string }[] = [
-    { id: 'all',     label: t('filterAll'),     count: stats.total,   tip: 'Show all invoices regardless of payment status.' },
-    { id: 'paid',    label: t('filterPaid'),    count: stats.paid,    tip: 'Show only fully paid invoices.' },
-    { id: 'pending', label: t('filterPending'), count: stats.pending, tip: 'Show only invoices awaiting payment.' },
+  const TABS: { id: FilterTab; label: string; count: number }[] = [
+    { id: 'all',     label: t('filterAll'),     count: stats.total   },
+    { id: 'paid',    label: t('filterPaid'),    count: stats.paid    },
+    { id: 'pending', label: t('filterPending'), count: stats.pending },
   ];
 
   return (
@@ -396,23 +396,22 @@ export default function InvoicesPage() {
               {/* Tabs */}
               <div className="flex items-center gap-1">
                 {TABS.map(tab => (
-                  <Tip key={tab.id} text={tab.tip}>
-                    <button
-                      onClick={() => setFilter(tab.id)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                        filter === tab.id
-                          ? 'bg-[#FF6B2C] text-white shadow-sm'
-                          : 'text-slate-500 hover:bg-slate-100'
-                      }`}
-                    >
-                      {tab.label}
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                        filter === tab.id ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500'
-                      }`}>
-                        {tab.count}
-                      </span>
-                    </button>
-                  </Tip>
+                  <button
+                    key={tab.id}
+                    onClick={() => setFilter(tab.id)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      filter === tab.id
+                        ? 'bg-[#FF6B2C] text-white shadow-sm'
+                        : 'text-slate-500 hover:bg-slate-100'
+                    }`}
+                  >
+                    {tab.label}
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+                      filter === tab.id ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500'
+                    }`}>
+                      {tab.count}
+                    </span>
+                  </button>
                 ))}
               </div>
 

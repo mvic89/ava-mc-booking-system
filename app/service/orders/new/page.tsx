@@ -203,7 +203,8 @@ function NewOrderContent() {
   const [todaysOrders,   setTodaysOrders]   = useState<WorkOrder[]>([]);
   const [ordersLoading,  setOrdersLoading]  = useState(true);
 
-  const [saving, setSaving] = useState(false);
+  const [saving,     setSaving]     = useState(false);
+  const [migrateSql, setMigrateSql] = useState<string | null>(null);
 
   // ── Fetch helpers ────────────────────────────────────────────────────────────
 
@@ -335,7 +336,28 @@ function NewOrderContent() {
       toast.success(t('newOrder.toasts.created'));
       router.push(`/service/orders/${order.id}`);
     } else {
-      toast.error(t('newOrder.toasts.error'));
+      const json = await res.json().catch(() => ({})) as { error?: string };
+      const msg = json.error ?? '';
+      if (msg.includes('does not exist') || msg.includes('relation')) {
+        const mRes  = await fetch('/api/admin/migrate-service', { method: 'POST' });
+        const mJson = await mRes.json() as { ok: boolean; sql?: string };
+        if (mRes.ok && mJson.ok) {
+          toast.success('Database tables created — retrying…');
+          const retry = await fetch('/api/service/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ dealershipId, ...form.customerName && { customerName: form.customerName }, customerId: selected?.id ?? null, customerPhone: form.customerPhone, vehicleName: form.vehicleName, plate: form.plate, vin: form.vin, description: form.description, priority: form.priority, assignedTech: form.assignedTech, mileage: form.mileage ? Number(form.mileage) : null, laborRate: form.laborRate }),
+          });
+          if (retry.ok) {
+            const { order } = await retry.json();
+            router.push(`/service/orders/${order.id}`);
+            return;
+          }
+        }
+        setMigrateSql(mJson.sql ?? '-- Run supabase/migration_work_orders.sql in your Supabase SQL editor');
+      } else {
+        toast.error(msg || t('newOrder.toasts.error'));
+      }
     }
   }
 
@@ -354,6 +376,35 @@ function NewOrderContent() {
   return (
     <div className="flex min-h-screen bg-[#f5f7fa] dark:bg-slate-900">
       <Sidebar />
+
+      {migrateSql && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+              <div>
+                <p className="font-bold text-slate-900 dark:text-white">Database setup required</p>
+                <p className="text-xs text-slate-500 mt-0.5">Copy this SQL and run it in Supabase dashboard → SQL Editor</p>
+              </div>
+              <button onClick={() => setMigrateSql(null)} className="text-slate-400 hover:text-red-500 text-xl font-bold">✕</button>
+            </div>
+            <div className="p-4">
+              <textarea readOnly value={migrateSql} rows={14}
+                className="w-full text-[11px] font-mono bg-slate-900 text-green-300 rounded-xl p-4 resize-none focus:outline-none" />
+              <div className="flex gap-3 mt-3">
+                <button onClick={() => { navigator.clipboard.writeText(migrateSql); toast.success('SQL copied!'); }}
+                  className="flex-1 py-2.5 rounded-xl bg-[#FF6B2C] text-white text-sm font-bold hover:bg-[#e55a1f] transition-colors">
+                  📋 Copy SQL
+                </button>
+                <a href="https://supabase.com/dashboard/project/_/sql/new" target="_blank" rel="noopener noreferrer"
+                  className="flex-1 py-2.5 rounded-xl bg-slate-800 text-white text-sm font-bold text-center hover:bg-slate-700 transition-colors">
+                  🔗 Open Supabase SQL Editor
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="lg:ml-64 flex-1 flex flex-col min-w-0">
         <div className="brand-top-bar" />
 

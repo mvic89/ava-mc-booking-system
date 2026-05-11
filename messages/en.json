@@ -4112,5 +4112,39 @@
     "scheme25": "25 %",
     "marginalSuffix": "(margin)",
     "noInvoices": "No paid invoices in {period}"
+  },
+  "daily": {
+    "breadcrumbParent": "Purchasing",
+    "breadcrumb": "Daily Actions",
+    "title": "Daily Actions",
+    "subtitle": "Everything that needs attention today",
+    "viewAll": "View all →",
+    "allClear": "All clear!",
+    "allClearHint": "No pending actions. Check back tomorrow.",
+    "noVendor": "No vendor",
+    "summary": {
+      "totalActions":    "Total actions",
+      "urgent":          "Urgent",
+      "pendingApproval": "Pending approval",
+      "lowStock":        "Low stock"
+    },
+    "sections": {
+      "followUp":        { "title": "Follow Up Now",             "empty": "No orders needing follow-up." },
+      "etaOverdue":      { "title": "ETA Overdue",               "empty": "No overdue ETAs." },
+      "arrivingToday":   { "title": "Arriving Today",            "empty": "Nothing arriving today." },
+      "pendingApproval": { "title": "Pending PO Approval",       "empty": "No orders awaiting approval." },
+      "receiptsApprove": { "title": "Goods Receipts to Approve", "empty": "No receipts pending approval." },
+      "overdueInvoices": { "title": "Overdue Invoices",          "empty": "No overdue invoices." },
+      "partialOrders":   { "title": "Backorders",                "empty": "No backorders." },
+      "lowStock":        { "title": "Low Stock Alerts",          "empty": "All stock levels are healthy." }
+    },
+    "badges": {
+      "daysOverdue": "{days}d overdue",
+      "etaWas":      "ETA {date} (+{days}d)",
+      "unitsDate":   "{units} units · {date}",
+      "due":         "Due {date}",
+      "partial":     "Backorder",
+      "stock":       "{current}/{min}"
+    }
   }
 }
