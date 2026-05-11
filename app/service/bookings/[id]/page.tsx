@@ -18,8 +18,9 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   const router = useRouter();
   const t = useTranslations('service');
   const [booking, setBooking] = useState<ServiceBooking | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
+  const [loading,   setLoading]   = useState(true);
+  const [updating,  setUpdating]  = useState(false);
+  const [migrateSql, setMigrateSql] = useState<string | null>(null);
 
   // Status flow config built from translations
   const STATUS_FLOW: Partial<Record<BookingStatus, { next: BookingStatus; label: string; color: string }>> = {
@@ -80,7 +81,10 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
       toast.success(t('bookingDetail.toasts.orderCreated'));
       router.push(`/service/orders/${order.id}`);
     } else {
-      toast.error(t('bookingDetail.toasts.orderError'));
+      const json = await res.json().catch(() => ({})) as { error?: string; code?: string; hint?: string };
+      const msg = json.error ?? '';
+      console.error('[createWorkOrder] API error:', json);
+      toast.error(msg || t('bookingDetail.toasts.orderError'), { duration: 8000 });
     }
   }
 
@@ -105,6 +109,45 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
   return (
     <div className="flex min-h-screen bg-[#f5f7fa]">
       <Sidebar />
+
+      {/* Migration SQL modal */}
+      {migrateSql && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+              <div>
+                <p className="font-bold text-slate-900 dark:text-white">Database setup required</p>
+                <p className="text-xs text-slate-500 mt-0.5">Run this SQL in your Supabase dashboard → SQL Editor</p>
+              </div>
+              <button onClick={() => setMigrateSql(null)} className="text-slate-400 hover:text-red-500 text-xl font-bold">✕</button>
+            </div>
+            <div className="p-4">
+              <textarea
+                readOnly
+                value={migrateSql}
+                rows={14}
+                className="w-full text-[11px] font-mono bg-slate-900 text-green-300 rounded-xl p-4 resize-none focus:outline-none"
+              />
+              <div className="flex gap-3 mt-3">
+                <button
+                  onClick={() => { navigator.clipboard.writeText(migrateSql); toast.success('SQL copied!'); }}
+                  className="flex-1 py-2.5 rounded-xl bg-[#FF6B2C] text-white text-sm font-bold hover:bg-[#e55a1f] transition-colors"
+                >
+                  📋 Copy SQL
+                </button>
+                <a
+                  href="https://supabase.com/dashboard/project/_/sql/new"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 py-2.5 rounded-xl bg-slate-800 text-white text-sm font-bold text-center hover:bg-slate-700 transition-colors"
+                >
+                  🔗 Open Supabase SQL Editor
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="lg:ml-64 flex-1 flex flex-col min-w-0">
         <div className="brand-top-bar" />
 

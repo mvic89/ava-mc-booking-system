@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     const { data, error } = await sb()
       .from('work_orders')
       .insert({
-        dealership_id:  dealershipId,
+        dealership_id:  String(dealershipId),
         booking_id:     bookingId ?? null,
         customer_id:    customerId ?? null,
         customer_name:  customerName ?? '',
@@ -70,7 +70,10 @@ export async function POST(req: NextRequest) {
       .select()
       .single();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      console.error('[work_orders] insert error:', JSON.stringify(error));
+      return NextResponse.json({ error: error.message, code: error.code, details: error.details, hint: error.hint }, { status: 500 });
+    }
 
     // If created from a booking, link it back
     if (bookingId) {

@@ -27,7 +27,6 @@ body {
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-<<<<<<< HEAD
 /* ── Page / layout backgrounds ───────────────────────── */
 html.dark .bg-\[\#f5f7fa\]    { background-color: #0d1117 !important; }
 html.dark .bg-\[\#f8fafc\]    { background-color: #0d1117 !important; }

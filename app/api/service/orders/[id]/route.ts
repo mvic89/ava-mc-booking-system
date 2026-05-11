@@ -78,7 +78,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     // Auto-email customer when vehicle is ready for pickup
     if (body.status === 'ready') {
-      // customer_email is not stored on work_orders — look it up from customers table
+      // customer_email stored on work_orders; fall back to customers table if null
       let customerEmail: string | null = data.customer_email ?? null;
       if (!customerEmail && data.customer_id) {
         const { data: cust } = await sb()
