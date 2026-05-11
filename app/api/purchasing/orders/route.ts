@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { dealershipId, workOrderId, vendorId, vendor, notes, items } = body;
+    const { dealershipId, workOrderId, vendorId, vendor, notes, eta, items } = body;
     if (!dealershipId || !vendor || !items?.length) {
       return NextResponse.json({ error: 'dealershipId, vendor, and items are required' }, { status: 400 });
     }
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
         vendor,
         work_order_id: workOrderId ? Number(workOrderId) : null,
         date:          new Date().toISOString(),
-        eta:           null,
+        eta:           eta ?? null,
         status:        'Draft',
         total_cost:    totalCost,
         notes:         notes ?? null,
