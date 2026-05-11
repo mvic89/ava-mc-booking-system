@@ -203,6 +203,7 @@
     "goodsReceipts": "Réceptions de marchandises",
     "suppliers": "Fournisseurs",
     "purchaseinvoices": "Factures d'achat",
+    "dailyActions": "Actions quotidiennes",
     "salesPipeline": "Pipeline commercial",
     "pipeline": "Pipeline",
     "calendar": "Calendrier",
@@ -1268,79 +1269,175 @@
     "tabs": {
       "motorcycles": "Motos",
       "spareParts": "Pièces détachées",
-      "accessories": "Accessoires"
+      "accessories": "Accessoires",
+      "lowStock": "Stock faible"
     },
     "search": "Rechercher dans le stock...",
+    "lowStockBadge": "{n} stock faible",
+    "importBtn": "Importer",
+    "downloadBtn": "Télécharger",
+    "addBtn": "+ Ajouter un article",
+    "filtersBtn": "Filtres",
+    "clearAll": "Tout effacer",
+    "items": "articles",
+    "listed": "Listé",
+    "unlisted": "Non listé",
+    "listTitle": "Cliquer pour lister sur le site",
+    "unlistTitle": "Cliquer pour retirer du site",
+    "decreaseStock": "Diminuer le stock",
+    "increaseStock": "Augmenter le stock",
     "stats": {
-      "totalSkus": "Total SKUs",
+      "totalSkus": "Total des références",
       "unitsInStock": "Unités en stock",
-      "lowStock": "Alertes stock bas",
-      "stockValue": "Valeur du stock"
+      "lowStock": "Alertes stock faible",
+      "stockValue": "Valeur du stock (vente)"
     },
     "table": {
       "id": "ID",
       "name": "Nom / Marque",
-      "articleNo": "N° article",
+      "articleNo": "Réf. article",
       "vin": "NIV",
       "year": "Année",
       "engine": "Moteur",
       "color": "Couleur",
-      "mcType": "Type moto",
+      "mcType": "Type de moto",
       "warehouse": "Entrepôt",
+      "location": "Emplacement",
       "stock": "Stock",
-      "reorderQty": "Qté réapprovisionnement",
+      "reorder": "Seuil de réapprovisionnement",
       "cost": "Coût",
       "sellPrice": "Prix de vente",
       "margin": "Marge",
-      "vendor": "Fournisseur"
+      "vendor": "Fournisseur",
+      "website": "Site web",
+      "category": "Catégorie",
+      "subType": "Sous-type",
+      "type": "Type",
+      "style": "Style",
+      "colour": "Couleur",
+      "size": "Taille"
+    },
+    "filter": {
+      "website": "Site web",
+      "brand": "Marque",
+      "stockStatus": "État du stock",
+      "priceMin": "Prix min (SEK)",
+      "priceMax": "Prix max (SEK)",
+      "mcType": "Type de moto",
+      "warehouse": "Entrepôt",
+      "colour": "Couleur",
+      "category": "Catégorie",
+      "type": "Type",
+      "size": "Taille",
+      "allProducts": "Tous les produits",
+      "listedOnly": "Listés seulement",
+      "unlistedOnly": "Non listés seulement",
+      "allBrands": "Toutes les marques",
+      "all": "Tous",
+      "inStock": "En stock",
+      "lowStock": "Stock faible",
+      "outOfStock": "Rupture de stock",
+      "allTypes": "Tous les types",
+      "allWarehouses": "Tous les entrepôts",
+      "allCategories": "Toutes les catégories",
+      "allSizes": "Toutes les tailles"
     },
     "empty": "Aucun stock pour l'instant",
-    "noMatch": "Aucun article ne correspond à votre recherche",
-    "hint": "Survolez une ligne pour ajuster le stock",
-    "import": "Importer depuis Excel ou ajouter manuellement",
+    "noMatch": "Aucun article ne correspond à la recherche",
+    "hint": "Passez la souris sur une ligne pour ajuster le stock",
+    "import": "Importer depuis Excel ou ajouter des articles un par un",
+    "importBtn2": "⬆ Importer depuis Excel",
     "export": {
       "pdf": "PDF",
       "excel": "Excel (.xlsx)",
-      "spreadsheet": "Tableur",
-      "print": "Format impression"
+      "spreadsheet": "Format tableur",
+      "print": "Prêt à imprimer"
+    },
+    "download": {
+      "excelLabel": "Excel (.xlsx)",
+      "excelHint": "Format tableur",
+      "pdfLabel": "PDF",
+      "pdfHint": "Prêt à imprimer"
     }
   },
   "goodsReceipts": {
     "title": "Bons de réception",
     "breadcrumb": "Bons de réception",
     "subtitle": "Enregistrer les articles reçus — le stock se met à jour automatiquement",
+    "newReceipt": "Nouvelle réception",
+    "search": "Rechercher par ID, fournisseur, BC...",
     "stats": {
       "total": "Total des réceptions",
+      "totalTip": "Nombre total de bons de réception créés pour votre concession.",
       "units": "Unités reçues",
-      "items": "Articles reçus",
-      "pending": "En attente d'approbation"
+      "unitsTip": "Nombre total d'unités physiquement reçues sur toutes les réceptions.",
+      "pending": "En attente d'approbation",
+      "pendingTip": "Réceptions soumises mais pas encore approuvées ou rejetées."
     },
-    "table": {
+    "source": {
+      "auto": "⚡ Auto",
+      "manual": "✏️ Manuel"
+    },
+    "statusBadge": {
+      "approved": "✓ Approuvé",
+      "rejected": "✕ Rejeté",
+      "pending": "⏳ En attente d'approbation"
+    },
+    "cols": {
       "receiptId": "ID réception",
-      "po": "Bon de commande #",
+      "vendor": "Fournisseur",
+      "po": "BC #",
       "deliveryNote": "Bon de livraison",
+      "receivedDate": "Date de réception",
+      "lines": "Lignes",
+      "units": "Unités",
+      "source": "Source",
+      "status": "Statut"
+    },
+    "detail": {
+      "prefix": "Réception ·",
+      "awaitingApproval": "En attente d'approbation administrateur",
+      "approvalNote": "Le stock ne sera pas mis à jour avant que vous approuviez cette livraison.",
+      "reject": "Rejeter",
+      "approve": "Approuver et mettre à jour le stock",
+      "poFullyReceived": "BC déjà entièrement reçu",
+      "relinkPo": "Relier à un autre BC",
+      "selectPoPrompt": "Sélectionnez un BC ouvert pour cette livraison :",
+      "noOpenPos": "Aucun BC ouvert trouvé pour ce fournisseur.",
+      "cancel": "Annuler",
+      "confirmLink": "Confirmer la liaison",
+      "linking": "Liaison…",
+      "poIncomplete": "BC incomplet — en attente de reliquat",
+      "receivedDate": "Date de réception",
+      "itemsReceived": "Articles reçus",
+      "matchedToStock": "Correspondance avec le stock",
+      "damaged": "Endommagé",
+      "deliveryNoteLabel": "Bon de livraison #:",
       "item": "Article",
-      "artNo": "N° art.",
-      "lineItems": "Lignes",
+      "artNo": "Réf.",
       "ordered": "Commandé",
       "received": "Reçu",
-      "status": "Statut",
-      "source": "Source",
-      "notes": "Notes"
+      "backorder": "Reliquat",
+      "stock": "Stock",
+      "damagedBadge": "{n} endommagé",
+      "pendingBadge": "{n} en attente",
+      "backordered": "⏳ Reliquat",
+      "matched": "✓ Correspondant",
+      "unmatched": "? Non correspondant",
+      "viewPdf": "📄 Voir PDF",
+      "close": "Fermer",
+      "notes": "Remarques",
+      "backorderBanner": "Certains articles sont en reliquat — le fournisseur livrera les quantités restantes ultérieurement."
     },
-    "newReceipt": "Nouvelle réception",
-    "search": "Rechercher des réceptions...",
     "empty": "Aucune réception pour l'instant",
-    "noMatch": "Aucune réception ne correspond à votre recherche",
+    "emptyHint": "Créer une entrée manuelle ou attendre un e-mail de livraison entrant",
+    "noMatch": "Aucun résultat ne correspond à votre recherche",
+    "noMatchHint": "Essayez un autre terme de recherche",
     "approve": "Approuver",
     "pending": "En attente",
     "approved": "Approuvé",
     "rejected": "Rejeté",
-    "backorder": "Commande en souffrance",
-    "linkPo": "Lier à un bon de commande (optionnel)",
-    "deliveryNoteLabel": "N° bon de livraison (optionnel)",
-    "receivedBy": "Reçu par",
-    "noOpenPos": "Aucun bon de commande ouvert trouvé"
+    "backorder": "Reliquat"
   },
   "accounting": {
     "title": "Comptabilité",
@@ -1377,20 +1474,22 @@
     "title": "Fournisseurs",
     "breadcrumb": "Fournisseurs",
     "subtitle": "Cliquez sur une ligne pour afficher ou modifier les détails du fournisseur.",
-    "addBtn": "Ajouter un fournisseur",
-    "importBtn": "Importer Excel",
-    "search": "Rechercher des fournisseurs...",
-    "empty": "Aucun fournisseur pour l'instant",
-    "noMatch": "Aucun fournisseur ne correspond à votre recherche",
+    "addBtn": "+ Ajouter un fournisseur",
+    "importBtn": "⬆ Importer Excel",
+    "search": "Rechercher fournisseur, catégorie...",
     "stats": {
       "total": "Total fournisseurs",
+      "totalTip": "Nombre total de fournisseurs actifs chez votre concessionnaire.",
       "withContact": "Avec coordonnées",
-      "lowStock": "Alertes stock bas",
-      "totalSkus": "Total SKUs fournis"
+      "withContactTip": "Fournisseurs ayant un e-mail ou un numéro de téléphone enregistré.",
+      "lowStock": "Alertes stock faible",
+      "lowStockTip": "Fournisseurs avec des articles sous le niveau de réapprovisionnement.",
+      "totalSkus": "Total SKUs",
+      "totalSkusTip": "Nombre total de lignes de produits uniques chez tous les fournisseurs."
     },
     "cols": {
       "no": "N° fournisseur",
-      "name": "Nom du fournisseur",
+      "name": "Nom fournisseur",
       "address": "Adresse",
       "phone": "Téléphone",
       "orgNo": "N° SIRET",
@@ -1398,36 +1497,223 @@
       "categories": "Catégories",
       "status": "Statut stock"
     },
+    "stock": {
+      "noInventory": "Aucun stock",
+      "lowStock": "{n} stock faible",
+      "allStocked": "Tout en stock"
+    },
     "poModal": {
       "title": "Bons de commande",
-      "noPo": "Aucun bon de commande pour ce fournisseur"
-    }
+      "found": "{n} BC trouvé(s)",
+      "noPo": "Aucun bon de commande pour ce fournisseur",
+      "close": "Fermer"
+    },
+    "empty": "Aucun fournisseur pour l'instant",
+    "noMatch": "Aucun fournisseur ne correspond à votre recherche"
   },
   "purchaseInvoices": {
-    "title": "Factures fournisseurs",
-    "breadcrumb": "Factures fournisseurs",
+    "title": "Factures d'achat",
+    "topbar": "Factures d'achat",
+    "breadcrumb": "Factures d'achat",
     "subtitle": "Suivre et gérer les factures reçues des fournisseurs",
-    "newBtn": "Nouvelle facture",
-    "search": "Rechercher commande, fournisseur, facture #...",
-    "empty": "Aucune facture fournisseur pour l'instant",
-    "noMatch": "Aucune facture ne correspond à votre filtre",
-    "cols": {
-      "supplierInvoice": "Facture fournisseur #",
-      "systemRef": "Réf. système #",
-      "po": "Bon de commande (optionnel)",
-      "amount": "Montant",
-      "invoiceDate": "Date de facture",
-      "dueDate": "Date d'échéance",
-      "vendor": "Fournisseur",
-      "status": "Statut",
-      "notes": "Notes"
+    "search": "Rechercher BC, fournisseur, facture #...",
+    "importBtn": "Importer Excel",
+    "downloadBtn": "Télécharger",
+    "addInvoiceBtn": "Créer une nouvelle facture",
+    "addCreditNoteBtn": "Ajouter un avoir",
+    "viewMode": {
+      "invoices": "Factures",
+      "creditNotes": "Avoirs"
     },
     "status": {
+      "all": "Tous",
       "pending": "En attente",
+      "awaitingApproval": "En attente d'approbation",
       "paid": "Payée",
       "overdue": "En retard",
       "disputed": "Contestée"
-    }
+    },
+    "statusTip": {
+      "all": "Afficher toutes les factures quelle que soit leur statut.",
+      "pending": "Factures reçues mais pas encore traitées.",
+      "awaitingApproval": "Factures soumises pour approbation interne.",
+      "paid": "Factures entièrement payées.",
+      "overdue": "Factures dont la date d'échéance est dépassée et non payées.",
+      "disputed": "Factures avec un litige en cours."
+    },
+    "alert": {
+      "overdueTitle": "{n} facture en retard",
+      "overdueTitle_p": "{n} factures en retard",
+      "overdueBody": "{vendors} — total {amount}. Action immédiate requise.",
+      "dueTitle": "{n} facture due dans 7 jours",
+      "dueTitle_p": "{n} factures dues dans 7 jours",
+      "dueBody": "{vendors} — total {amount}. Planifier le paiement bientôt.",
+      "disputedTitle": "{n} facture en litige",
+      "disputedTitle_p": "{n} factures en litige",
+      "disputedBody": "{vendors} — résolution fournisseur en attente. Ne pas payer avant résolution."
+    },
+    "aging": {
+      "title": "Rapport d'ancienneté des impayés",
+      "bucket30": "1–30 jours",
+      "bucket60": "31–60 jours",
+      "bucket61": "61+ jours"
+    },
+    "spend": {
+      "title": "Dépenses par fournisseur",
+      "hide": "▲ Masquer",
+      "show": "▼ Afficher"
+    },
+    "creditNoteList": {
+      "empty": "Aucun avoir reçu pour l'instant",
+      "emptyHint": "Les avoirs arrivent automatiquement quand les fournisseurs les envoient par e-mail",
+      "totalCredit": "Total du crédit disponible"
+    },
+    "cols": {
+      "systemRef": "Réf. système #",
+      "supplierInvoice": "Facture fournisseur #",
+      "po": "BC #",
+      "vendor": "Fournisseur",
+      "invoiceDate": "Date de facture",
+      "dueDate": "Date d'échéance",
+      "amount": "Montant",
+      "status": "Statut"
+    },
+    "cnCols": {
+      "systemRef": "Réf. système #",
+      "supplierCredit": "Avoir fournisseur #",
+      "vendor": "Fournisseur",
+      "linkedInvoice": "Facture liée",
+      "creditDate": "Date d'avoir",
+      "creditAmount": "Montant de l'avoir",
+      "remaining": "Restant",
+      "status": "Statut",
+      "reason": "Raison"
+    },
+    "cnStatus": {
+      "unmatched": "Non associé",
+      "pending": "En attente",
+      "partiallyApplied": "Partiellement appliqué",
+      "applied": "Appliqué"
+    },
+    "filter": {
+      "label": "Filtrer",
+      "vendor": "Fournisseur",
+      "date": "Date de facture",
+      "clearAll": "Tout effacer",
+      "allVendors": "Tous les fournisseurs"
+    },
+    "empty": "Aucune facture d'achat pour l'instant",
+    "emptyHint": "Importer depuis Excel ou créer une facture manuellement",
+    "noMatch": "Aucune facture ne correspond au filtre",
+    "tfoot": {
+      "netTotal": "Total net (HT)",
+      "vatTotal": "Total TVA",
+      "grossTotal": "Total brut"
+    },
+    "bulk": {
+      "selected": "{n} sélectionné(s)",
+      "markPaid": "Marquer comme payée",
+      "export": "Exporter"
+    },
+    "detail": {
+      "header": "Facture d'achat",
+      "poFullyReceived": "BC entièrement reçu",
+      "invoiceDate": "Date de facture",
+      "dueDate": "Date d'échéance",
+      "linkedPO": "BC lié",
+      "supplierInv": "Facture fournisseur #",
+      "creditBannerTitle": "Crédit disponible de {vendor}",
+      "creditBannerBody": "{n} avoir · SEK {amount} disponible.",
+      "creditBannerBody_p": "{n} avoirs · SEK {amount} disponibles.",
+      "applyCredit": "Appliquer le crédit",
+      "creditApplied": "Crédit appliqué :",
+      "netPayable": "Net à payer :",
+      "lineItems": "Lignes de facture",
+      "loading": "Chargement…",
+      "noItems": "Aucune ligne extraite de ce PDF de facture.",
+      "colDesc": "Description",
+      "colArt": "Art. #",
+      "colQty": "Qté",
+      "colGrossPrice": "Prix brut",
+      "colDisc": "Remise %",
+      "colNetPrice": "Prix net",
+      "colVAT": "TVA 25%",
+      "colTotal": "Total ligne",
+      "totalInclVAT": "Total (TVA incluse)",
+      "notes": "Notes",
+      "viewPdf": "Voir PDF",
+      "sendApproval": "Envoyer pour approbation",
+      "approve": "Approuver",
+      "markPaid": "Marquer comme payée",
+      "dispute": "Contester",
+      "edit": "Modifier",
+      "close": "Fermer"
+    },
+    "form": {
+      "createTitle": "Créer une nouvelle facture",
+      "editTitle": "Modifier la facture",
+      "systemRefHint": "La réf. système sera :",
+      "poLink": "Lier à un bon de commande (facultatif)",
+      "noPO": "— Aucun BC lié —",
+      "poHint": "Choisir un BC remplit automatiquement le fournisseur et le montant",
+      "supplierInv": "Facture fournisseur #",
+      "vendor": "Fournisseur",
+      "invoiceDate": "Date de facture",
+      "dueDate": "Date d'échéance",
+      "gross": "Montant brut (SEK)",
+      "vatRate": "Taux de TVA",
+      "status": "Statut",
+      "notes": "Notes",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "create": "Créer la facture",
+      "netExVat": "Net (HT)",
+      "vatPct": "TVA",
+      "grossTotal": "Total brut"
+    },
+    "cnForm": {
+      "title": "Ajouter un avoir",
+      "vendor": "Fournisseur",
+      "supplierCredit": "Avoir fournisseur #",
+      "creditDate": "Date d'avoir",
+      "linkInvoice": "Lier à une facture",
+      "noInvoiceLinked": "— Aucune facture liée —",
+      "creditAmount": "Montant de l'avoir (SEK)",
+      "reason": "Raison",
+      "cancel": "Annuler",
+      "save": "Enregistrer l'avoir"
+    },
+    "applyCredit": {
+      "title": "Appliquer un avoir",
+      "invoiceAmount": "Montant de la facture",
+      "alreadyCredited": "Déjà crédité",
+      "netPayable": "Net à payer",
+      "selectCredit": "Sélectionner l'avoir à appliquer",
+      "available": "Disponible :",
+      "amountToApply": "Montant à appliquer",
+      "leaveBlank": "(laisser vide pour appliquer le crédit total)",
+      "afterApplying": "Après application :",
+      "creditApplied": "Crédit appliqué",
+      "newNetPayable": "Nouveau net à payer",
+      "fullySled": "✓ Entièrement réglé",
+      "cancel": "Annuler",
+      "apply": "Appliquer le crédit"
+    },
+    "dispute": {
+      "title": "Contester la facture",
+      "reason": "Raison du litige",
+      "cancel": "Annuler",
+      "submit": "Marquer comme contestée"
+    },
+    "download": {
+      "excelLabel": "Excel (.xlsx)",
+      "excelHint": "Format tableur",
+      "pdfLabel": "PDF",
+      "pdfHint": "Format prêt à imprimer",
+      "currentView": "{n} facture (vue actuelle)",
+      "currentView_p": "{n} factures (vue actuelle)"
+    },
+    "newBtn": "Nouvelle facture"
   },
   "purchaseOrders": {
     "title": "Bons de commande",
@@ -1697,37 +1983,110 @@
     "avgPipeline": "Pipeline moy."
   },
   "purchase": {
-    "title": "Bons de commande",
-    "subtitle": "Cliquez sur une ligne pour ouvrir le bon de commande complet. Les BC automatiques se mettent à jour en direct.",
-    "breadcrumb": "Bons de commande",
-    "search": "Rechercher BC, fournisseur, article...",
-    "importBtn": "Importer Excel",
-    "createBtn": "Créer BC",
-    "importFromExcel": "Importer depuis Excel",
-    "allGoodBanner": "Tous les {n} articles en stock sont au-dessus de leurs points de réapprovisionnement — aucun BC nécessaire.",
-    "autoPOBanner": "{n} bon{s} de commande auto-généré depuis le stock bas",
-    "autoPOHide": "▲ masquer",
-    "autoPOShow": "▼ afficher",
-    "autoPODesc": "Ces bons de commande sont auto-générés et se mettent à jour en direct lors des changements de stock.",
-    "empty": "Aucun bon de commande pour l'instant",
-    "emptyHint": "Importez depuis Excel ou créez un BC manuellement",
-    "noMatch": "Aucun bon de commande ne correspond à votre filtre",
-    "tabAll": "Tous",
-    "statusDraft": "Brouillon",
-    "statusReviewed": "Examiné",
-    "statusSent": "Envoyé",
-    "statusReceived": "Reçu",
-    "cardTotal": "Total BC",
-    "cardDraft": "Brouillon",
-    "cardSent": "Envoyés",
-    "cardValue": "Valeur affichée",
-    "colPO": "Numéro BC",
-    "colVendor": "Fournisseur",
-    "colDate": "Date",
-    "colItems": "Articles",
-    "colCost": "Coût total",
-    "colETA": "Arrivée estimée",
-    "colStatus": "Statut"
+    "page": {
+      "title": "Achats",
+      "description": "Alerte stock bas → Créer BC → le système attribue un Réf. → utiliser ce Réf. sur le portail fournisseur."
+    },
+    "topbar": {
+      "title": "Bons de commande",
+      "searchPlaceholder": "Rechercher BC, fournisseur, article..."
+    },
+    "buttons": {
+      "dailyActions": "📋 Actions quotidiennes",
+      "importExcel": "⬆ Importer Excel",
+      "createPo": "+ Créer BC",
+      "importFromExcel": "⬆ Importer depuis Excel"
+    },
+    "filter": {
+      "label": "Filtrer fournisseur :",
+      "allSuppliers": "Tous les fournisseurs"
+    },
+    "status": {
+      "draft": "Brouillon",
+      "reviewed": "Révisé",
+      "sent": "Envoyé",
+      "received": "Reçu",
+      "partial": "Partiel",
+      "followUp": "⚠ Relance — {days}j"
+    },
+    "approval": {
+      "pendingApproval": "🔐 Approbation en attente",
+      "approved": "✓ Approuvé",
+      "rejected": "✗ Rejeté"
+    },
+    "summary": {
+      "totalPos": "Total BC",
+      "draft": "Brouillon",
+      "sent": "Envoyé",
+      "displayedValue": "Valeur affichée",
+      "tips": {
+        "totalPos": "Tous les bons de commande créés pour votre concession, quel que soit le statut.",
+        "draft": "BC créés mais pas encore révisés ni envoyés à un fournisseur.",
+        "sent": "BC envoyés au fournisseur, en attente de livraison ou de confirmation.",
+        "displayedValue": "Coût total des BC visibles dans le tableau ci-dessous — se met à jour lorsque vous changez l'onglet de statut ou le filtre fournisseur."
+      }
+    },
+    "metrics": {
+      "openPoValue": "Valeur BC ouverts",
+      "openPoInProgress": "{count, plural, one {# BC en cours} other {# BC en cours}}",
+      "thisMonthSpend": "Dépenses du mois",
+      "posReceived": "{count, plural, one {# BC reçu} other {# BC reçus}}",
+      "outstandingClaims": "Réclamations en suspens",
+      "claimsOpen": "{count, plural, one {# réclamation ouverte} other {# réclamations ouvertes}}",
+      "tips": {
+        "openPoValue": "Coût total de tous les BC en attente — Brouillon, Révisé, Envoyé et Partiel. Il s'agit de votre engagement financier actuel envers les fournisseurs.",
+        "thisMonthSpend": "Coût total des BC marqués comme Reçus dans le mois civil en cours.",
+        "outstandingClaims": "Valeur totale des réclamations fournisseurs non résolues — marchandises endommagées, livraisons incomplètes ou mauvais articles — encore ouvertes ou soumises."
+      }
+    },
+    "tabs": {
+      "all": "Tous",
+      "tips": {
+        "all": "Afficher tous les bons de commande quel que soit leur statut.",
+        "draft": "BC créés mais pas encore révisés ni envoyés à un fournisseur.",
+        "reviewed": "BC révisés en interne et prêts à être passés auprès du fournisseur.",
+        "sent": "BC envoyés au fournisseur, en attente de livraison ou de confirmation.",
+        "received": "BC dont toutes les marchandises commandées ont été entièrement réceptionnées en stock."
+      }
+    },
+    "cols": {
+      "poNumber": "N° de BC",
+      "refNo": "Réf.",
+      "vendor": "Fournisseur",
+      "date": "Date",
+      "items": "Articles",
+      "totalCost": "Coût total",
+      "eta": "Arrivée prévue",
+      "status": "Statut"
+    },
+    "scorecard": {
+      "title": "Performance fournisseurs",
+      "period": "— 365 derniers jours",
+      "hide": "▲ Masquer",
+      "show": "▼ Afficher",
+      "loading": "Chargement…",
+      "noData": "Pas encore de données — les statistiques apparaissent une fois que les BC atteignent le statut Envoyé/Reçu.",
+      "cols": {
+        "supplier": "Fournisseur",
+        "pos": "BC",
+        "onTime": "À temps %",
+        "backorder": "Rupture %",
+        "damage": "Dommages %",
+        "leadTime": "Délai moy."
+      }
+    },
+    "lowStock": {
+      "alert": "{count, plural, one {# article sous le seuil de réapprovisionnement} other {# articles sous le seuil de réapprovisionnement}}",
+      "hint": "— cliquez pour voir et créer des BC",
+      "viewButton": "Voir stock bas →"
+    },
+    "empty": {
+      "title": "Aucun bon de commande pour l'instant",
+      "description": "Importez depuis Excel ou créez un BC manuellement",
+      "importButton": "⬆ Importer depuis Excel",
+      "filtered": "Aucun bon de commande ne correspond à votre filtre"
+    },
+    "items": "{count, plural, one {# article} other {# articles}}"
   },
   "documents": {
     "breadcrumb": "Archives",
@@ -2748,6 +3107,64 @@
       "reactivateError": "Impossible de réactiver le lead",
       "closedLost": "Lead clôturé comme perdu",
       "closeError": "Impossible de clôturer le lead"
+    }
+  },
+  "daily": {
+    "breadcrumbParent": "Achats",
+    "breadcrumb": "Actions du jour",
+    "title": "Tableau de bord des actions quotidiennes",
+    "subtitle": "Tout ce qui nécessite une attention aujourd'hui.",
+    "viewAll": "Voir tout →",
+    "noVendor": "Sans fournisseur",
+    "summary": {
+      "totalActions": "Actions totales",
+      "urgent": "Urgent",
+      "pendingApproval": "En attente d'approbation",
+      "lowStock": "Stock faible"
+    },
+    "allClear": "Tout est à jour — rien ne nécessite d'attention aujourd'hui !",
+    "allClearHint": "Revenez demain ou après la création de nouveaux BC.",
+    "sections": {
+      "followUp": {
+        "title": "Relancer maintenant",
+        "empty": "Aucune relance en retard — tous les BC envoyés sont dans les 5 jours ouvrés."
+      },
+      "etaOverdue": {
+        "title": "ETA dépassé",
+        "empty": "Aucun BC après la date de livraison prévue."
+      },
+      "arrivingToday": {
+        "title": "Arrivée aujourd'hui",
+        "empty": ""
+      },
+      "pendingApproval": {
+        "title": "BC en attente d'approbation",
+        "empty": "Aucun BC en attente d'approbation."
+      },
+      "receiptsApprove": {
+        "title": "Réceptions à approuver",
+        "empty": "Aucun bon de livraison en attente d'approbation."
+      },
+      "overdueInvoices": {
+        "title": "Factures en retard",
+        "empty": "Aucune facture fournisseur en retard."
+      },
+      "partialOrders": {
+        "title": "Commandes partielles",
+        "empty": "Aucun BC avec des reliquats en attente."
+      },
+      "lowStock": {
+        "title": "Stock faible — réapprovisionnement nécessaire",
+        "empty": "Tous les articles sont au-dessus du seuil de réapprovisionnement."
+      }
+    },
+    "badges": {
+      "daysOverdue": "{days}j de retard",
+      "etaWas": "ETA était {date} (il y a {days}j)",
+      "partial": "Partiel",
+      "unitsDate": "{units} unités · {date}",
+      "due": "Échéance {date}",
+      "stock": "Stock : {current} / Min : {min}"
     }
   }
 }

@@ -25,6 +25,7 @@
     "goodsReceipts": "Wareneingänge",
     "suppliers": "Lieferanten",
     "purchaseinvoices": "Eingangsrechnungen",
+    "dailyActions": "Tagesaufgaben",
     "salesPipeline": "Vertriebspipeline",
     "pipeline": "Pipeline",
     "calendar": "Kalender",
@@ -1268,79 +1269,175 @@
     "tabs": {
       "motorcycles": "Motorräder",
       "spareParts": "Ersatzteile",
-      "accessories": "Zubehör"
+      "accessories": "Zubehör",
+      "lowStock": "Niedriger Lagerbestand"
     },
     "search": "Lager durchsuchen...",
+    "lowStockBadge": "{n} niedriger Bestand",
+    "importBtn": "Importieren",
+    "downloadBtn": "Herunterladen",
+    "addBtn": "+ Artikel hinzufügen",
+    "filtersBtn": "Filter",
+    "clearAll": "Alle löschen",
+    "items": "Artikel",
+    "listed": "Gelistet",
+    "unlisted": "Nicht gelistet",
+    "listTitle": "Klicken zum Auflisten auf der Website",
+    "unlistTitle": "Klicken zum Entfernen von der Website",
+    "decreaseStock": "Bestand reduzieren",
+    "increaseStock": "Bestand erhöhen",
     "stats": {
-      "totalSkus": "Gesamt-SKUs",
-      "unitsInStock": "Lagereinheiten",
-      "lowStock": "Niedrige Lagerbestände",
-      "stockValue": "Lagerwert"
+      "totalSkus": "Gesamte SKUs",
+      "unitsInStock": "Einheiten auf Lager",
+      "lowStock": "Niedriger Bestand Warnungen",
+      "stockValue": "Lagerwert (Verkauf)"
     },
     "table": {
       "id": "ID",
       "name": "Name / Marke",
-      "articleNo": "Artikelnr.",
+      "articleNo": "Art.nr.",
       "vin": "FIN",
       "year": "Jahr",
       "engine": "Motor",
       "color": "Farbe",
-      "mcType": "MC-Typ",
+      "mcType": "Motorradtyp",
       "warehouse": "Lager",
+      "location": "Standort",
       "stock": "Bestand",
-      "reorderQty": "Nachbestellmenge",
+      "reorder": "Nachbestellpunkt",
       "cost": "Kosten",
       "sellPrice": "Verkaufspreis",
       "margin": "Marge",
-      "vendor": "Lieferant"
+      "vendor": "Lieferant",
+      "website": "Website",
+      "category": "Kategorie",
+      "subType": "Untertyp",
+      "type": "Typ",
+      "style": "Stil",
+      "colour": "Farbe",
+      "size": "Größe"
+    },
+    "filter": {
+      "website": "Website",
+      "brand": "Marke",
+      "stockStatus": "Lagerstatus",
+      "priceMin": "Mindestpreis (SEK)",
+      "priceMax": "Höchstpreis (SEK)",
+      "mcType": "Motorradtyp",
+      "warehouse": "Lager",
+      "colour": "Farbe",
+      "category": "Kategorie",
+      "type": "Typ",
+      "size": "Größe",
+      "allProducts": "Alle Produkte",
+      "listedOnly": "Nur gelistete",
+      "unlistedOnly": "Nur nicht gelistete",
+      "allBrands": "Alle Marken",
+      "all": "Alle",
+      "inStock": "Auf Lager",
+      "lowStock": "Niedriger Bestand",
+      "outOfStock": "Nicht vorrätig",
+      "allTypes": "Alle Typen",
+      "allWarehouses": "Alle Lager",
+      "allCategories": "Alle Kategorien",
+      "allSizes": "Alle Größen"
     },
     "empty": "Noch kein Lager",
-    "noMatch": "Keine Artikel entsprechen Ihrer Suche",
-    "hint": "Zeile überfahren, um Bestand anzupassen",
-    "import": "Aus Excel importieren oder manuell hinzufügen",
+    "noMatch": "Keine Artikel entsprechen der Suche",
+    "hint": "Fahren Sie mit der Maus über eine Zeile um den Bestand anzupassen",
+    "import": "Aus Excel importieren oder Artikel einzeln hinzufügen",
+    "importBtn2": "⬆ Aus Excel importieren",
     "export": {
       "pdf": "PDF",
       "excel": "Excel (.xlsx)",
-      "spreadsheet": "Tabelle",
-      "print": "Druckformat"
+      "spreadsheet": "Tabellenformat",
+      "print": "Druckfertig"
+    },
+    "download": {
+      "excelLabel": "Excel (.xlsx)",
+      "excelHint": "Tabellenformat",
+      "pdfLabel": "PDF",
+      "pdfHint": "Druckfertig"
     }
   },
   "goodsReceipts": {
     "title": "Wareneingänge",
     "breadcrumb": "Wareneingänge",
-    "subtitle": "Wareneingänge erfassen — Lager aktualisiert automatisch",
+    "subtitle": "Eingangswaren erfassen — Bestand wird automatisch aktualisiert",
+    "newReceipt": "Neuer Eingang",
+    "search": "Nach Eingangs-ID, Lieferant, Bestellung...",
     "stats": {
       "total": "Wareneingänge gesamt",
-      "units": "Eingegangene Einheiten",
-      "items": "Eingegangene Artikel",
-      "pending": "Ausstehende Genehmigung"
+      "totalTip": "Gesamtzahl der Wareneingangsbelege für Ihren Händler.",
+      "units": "Empfangene Einheiten",
+      "unitsTip": "Gesamtzahl der physisch empfangenen Einheiten über alle Belege.",
+      "pending": "Ausstehende Genehmigung",
+      "pendingTip": "Eingereichte Belege, die noch nicht genehmigt oder abgelehnt wurden."
     },
-    "table": {
+    "source": {
+      "auto": "⚡ Auto",
+      "manual": "✏️ Manuell"
+    },
+    "statusBadge": {
+      "approved": "✓ Genehmigt",
+      "rejected": "✕ Abgelehnt",
+      "pending": "⏳ Ausstehende Genehmigung"
+    },
+    "cols": {
       "receiptId": "Eingangs-ID",
+      "vendor": "Lieferant",
       "po": "Bestellung #",
       "deliveryNote": "Lieferschein",
-      "item": "Artikel",
-      "artNo": "Art.nr.",
-      "lineItems": "Positionen",
-      "ordered": "Bestellt",
-      "received": "Empfangen",
-      "status": "Status",
+      "receivedDate": "Eingangsdatum",
+      "lines": "Positionen",
+      "units": "Einheiten",
       "source": "Quelle",
-      "notes": "Notizen"
+      "status": "Status"
     },
-    "newReceipt": "Neuer Eingang",
-    "search": "Eingänge suchen...",
+    "detail": {
+      "prefix": "Wareneingang ·",
+      "awaitingApproval": "Warten auf Administratorgenehmigung",
+      "approvalNote": "Bestand wird erst aktualisiert, wenn Sie diese Lieferung genehmigen.",
+      "reject": "Ablehnen",
+      "approve": "Genehmigen & Bestand aktualisieren",
+      "poFullyReceived": "Bestellung bereits vollständig eingegangen",
+      "relinkPo": "Mit anderer Bestellung verknüpfen",
+      "selectPoPrompt": "Wählen Sie eine offene Bestellung für diese Lieferung:",
+      "noOpenPos": "Keine offenen Bestellungen für diesen Lieferanten gefunden.",
+      "cancel": "Abbrechen",
+      "confirmLink": "Verknüpfung bestätigen",
+      "linking": "Verknüpfe…",
+      "poIncomplete": "Bestellung unvollständig — Nachlieferung ausstehend",
+      "receivedDate": "Eingangsdatum",
+      "itemsReceived": "Erhaltene Artikel",
+      "matchedToStock": "Mit Bestand abgeglichen",
+      "damaged": "Beschädigt",
+      "deliveryNoteLabel": "Lieferschein #:",
+      "item": "Artikel",
+      "artNo": "Art.-Nr.",
+      "ordered": "Bestellt",
+      "received": "Erhalten",
+      "backorder": "Nachlieferung",
+      "stock": "Bestand",
+      "damagedBadge": "{n} beschädigt",
+      "pendingBadge": "{n} ausstehend",
+      "backordered": "⏳ Nachlieferung",
+      "matched": "✓ Abgeglichen",
+      "unmatched": "? Nicht abgeglichen",
+      "viewPdf": "📄 PDF anzeigen",
+      "close": "Schließen",
+      "notes": "Notizen",
+      "backorderBanner": "Einige Artikel haben Nachlieferungen — Lieferant liefert ausstehende Mengen später."
+    },
     "empty": "Noch keine Wareneingänge",
-    "noMatch": "Keine Eingänge entsprechen Ihrer Suche",
+    "emptyHint": "Manuellen Eintrag erstellen oder auf eingehende Liefer-E-Mail warten",
+    "noMatch": "Keine Ergebnisse für Ihre Suche",
+    "noMatchHint": "Versuchen Sie einen anderen Suchbegriff",
     "approve": "Genehmigen",
     "pending": "Ausstehend",
     "approved": "Genehmigt",
     "rejected": "Abgelehnt",
-    "backorder": "Nachlieferung",
-    "linkPo": "Bestellung verknüpfen (optional)",
-    "deliveryNoteLabel": "Lieferschein-Nr. (optional)",
-    "receivedBy": "Empfangen von",
-    "noOpenPos": "Keine offenen Bestellungen gefunden"
+    "backorder": "Nachlieferung"
   },
   "accounting": {
     "title": "Buchhaltung",
@@ -1377,57 +1474,246 @@
     "title": "Lieferanten",
     "breadcrumb": "Lieferanten",
     "subtitle": "Klicken Sie auf eine Zeile, um Lieferantendetails anzuzeigen oder zu bearbeiten.",
-    "addBtn": "Lieferant hinzufügen",
-    "importBtn": "Excel importieren",
-    "search": "Lieferanten suchen...",
-    "empty": "Noch keine Lieferanten",
-    "noMatch": "Keine Lieferanten entsprechen Ihrer Suche",
+    "addBtn": "+ Lieferant hinzufügen",
+    "importBtn": "⬆ Excel importieren",
+    "search": "Lieferant, Kategorie suchen...",
     "stats": {
       "total": "Lieferanten gesamt",
+      "totalTip": "Gesamtzahl der aktiven Lieferanten bei Ihrem Händler.",
       "withContact": "Mit Kontaktdaten",
-      "lowStock": "Niedrige Lagerbestände",
-      "totalSkus": "Gelieferte SKUs gesamt"
+      "withContactTip": "Lieferanten mit hinterlegter E-Mail oder Telefonnummer.",
+      "lowStock": "Niedrigbestand-Warnungen",
+      "lowStockTip": "Lieferanten mit Artikeln unter dem Nachbestellniveau.",
+      "totalSkus": "Gesamte SKUs",
+      "totalSkusTip": "Gesamtzahl eindeutiger Produktlinien aller Lieferanten."
     },
     "cols": {
-      "no": "Lieferantennr.",
+      "no": "Lief.-Nr.",
       "name": "Lieferantenname",
       "address": "Adresse",
       "phone": "Telefon",
       "orgNo": "Steuernummer",
       "skus": "SKUs",
       "categories": "Kategorien",
-      "status": "Lagerstatus"
+      "status": "Bestandsstatus"
+    },
+    "stock": {
+      "noInventory": "Kein Bestand",
+      "lowStock": "{n} Niedrigbestand",
+      "allStocked": "Alles vorrätig"
     },
     "poModal": {
       "title": "Bestellungen",
-      "noPo": "Keine Bestellungen für diesen Lieferanten"
-    }
+      "found": "{n} Bestellung(en) gefunden",
+      "noPo": "Keine Bestellungen für diesen Lieferanten",
+      "close": "Schließen"
+    },
+    "empty": "Noch keine Lieferanten",
+    "noMatch": "Keine Lieferanten entsprechen Ihrer Suche"
   },
   "purchaseInvoices": {
     "title": "Eingangsrechnungen",
+    "topbar": "Eingangsrechnungen",
     "breadcrumb": "Eingangsrechnungen",
     "subtitle": "Rechnungen von Lieferanten verfolgen und verwalten",
-    "newBtn": "Neue Rechnung",
-    "search": "Bestellung, Lieferant, Rechnungsnr. suchen...",
-    "empty": "Noch keine Eingangsrechnungen",
-    "noMatch": "Keine Rechnungen entsprechen Ihrem Filter",
-    "cols": {
-      "supplierInvoice": "Lieferantenrechnung #",
-      "systemRef": "Systemreferenz #",
-      "po": "Bestellung (optional)",
-      "amount": "Betrag",
-      "invoiceDate": "Rechnungsdatum",
-      "dueDate": "Fälligkeitsdatum",
-      "vendor": "Lieferant",
-      "status": "Status",
-      "notes": "Notizen"
+    "search": "Suche Bestellung, Lieferant, Rechnungs-Nr. #...",
+    "importBtn": "Excel importieren",
+    "downloadBtn": "Herunterladen",
+    "addInvoiceBtn": "Neue Rechnung erstellen",
+    "addCreditNoteBtn": "Gutschrift hinzufügen",
+    "viewMode": {
+      "invoices": "Rechnungen",
+      "creditNotes": "Gutschriften"
     },
     "status": {
+      "all": "Alle",
       "pending": "Ausstehend",
+      "awaitingApproval": "Wartet auf Genehmigung",
       "paid": "Bezahlt",
       "overdue": "Überfällig",
-      "disputed": "Streitig"
-    }
+      "disputed": "Bestritten"
+    },
+    "statusTip": {
+      "all": "Alle Rechnungen unabhängig vom Status anzeigen.",
+      "pending": "Erhaltene Rechnungen, noch nicht bearbeitet.",
+      "awaitingApproval": "Rechnungen zur internen Genehmigung eingereicht.",
+      "paid": "Vollständig bezahlte Rechnungen.",
+      "overdue": "Rechnungen nach Fälligkeitsdatum, noch unbezahlt.",
+      "disputed": "Rechnungen mit einem laufenden Streit."
+    },
+    "alert": {
+      "overdueTitle": "{n} Rechnung überfällig",
+      "overdueTitle_p": "{n} Rechnungen überfällig",
+      "overdueBody": "{vendors} — gesamt {amount}. Sofortiger Handlungsbedarf.",
+      "dueTitle": "{n} Rechnung fällig in 7 Tagen",
+      "dueTitle_p": "{n} Rechnungen fällig in 7 Tagen",
+      "dueBody": "{vendors} — gesamt {amount}. Zahlung bald einplanen.",
+      "disputedTitle": "{n} Rechnung im Streit",
+      "disputedTitle_p": "{n} Rechnungen im Streit",
+      "disputedBody": "{vendors} — wartet auf Lieferantenlösung. Nicht zahlen bis gelöst."
+    },
+    "aging": {
+      "title": "Fälligkeitsbericht",
+      "bucket30": "1–30 Tage",
+      "bucket60": "31–60 Tage",
+      "bucket61": "61+ Tage"
+    },
+    "spend": {
+      "title": "Ausgaben nach Lieferant",
+      "hide": "▲ Verbergen",
+      "show": "▼ Anzeigen"
+    },
+    "creditNoteList": {
+      "empty": "Noch keine Gutschriften erhalten",
+      "emptyHint": "Gutschriften kommen automatisch wenn Lieferanten sie per E-Mail senden",
+      "totalCredit": "Gesamt verfügbares Guthaben"
+    },
+    "cols": {
+      "systemRef": "System Ref #",
+      "supplierInvoice": "Lieferantenrechnungs-Nr.",
+      "po": "Bestellung #",
+      "vendor": "Lieferant",
+      "invoiceDate": "Rechnungsdatum",
+      "dueDate": "Fälligkeitsdatum",
+      "amount": "Betrag",
+      "status": "Status"
+    },
+    "cnCols": {
+      "systemRef": "System Ref #",
+      "supplierCredit": "Lieferantengutschrift #",
+      "vendor": "Lieferant",
+      "linkedInvoice": "Verknüpfte Rechnung",
+      "creditDate": "Gutschriftsdatum",
+      "creditAmount": "Gutschriftsbetrag",
+      "remaining": "Verbleibend",
+      "status": "Status",
+      "reason": "Grund"
+    },
+    "cnStatus": {
+      "unmatched": "Nicht zugeordnet",
+      "pending": "Ausstehend",
+      "partiallyApplied": "Teilweise angewendet",
+      "applied": "Angewendet"
+    },
+    "filter": {
+      "label": "Filter",
+      "vendor": "Lieferant",
+      "date": "Rechnungsdatum",
+      "clearAll": "Alle löschen",
+      "allVendors": "Alle Lieferanten"
+    },
+    "empty": "Noch keine Eingangsrechnungen",
+    "emptyHint": "Aus Excel importieren oder Rechnung manuell erstellen",
+    "noMatch": "Keine Rechnungen entsprechen dem Filter",
+    "tfoot": {
+      "netTotal": "Netto gesamt (exkl. MwSt.)",
+      "vatTotal": "MwSt. gesamt",
+      "grossTotal": "Brutto gesamt"
+    },
+    "bulk": {
+      "selected": "{n} ausgewählt",
+      "markPaid": "Als bezahlt markieren",
+      "export": "Exportieren"
+    },
+    "detail": {
+      "header": "Eingangsrechnung",
+      "poFullyReceived": "Bestellung vollständig erhalten",
+      "invoiceDate": "Rechnungsdatum",
+      "dueDate": "Fälligkeitsdatum",
+      "linkedPO": "Verknüpfte Bestellung",
+      "supplierInv": "Lieferantenrechnung #",
+      "creditBannerTitle": "Guthaben verfügbar von {vendor}",
+      "creditBannerBody": "{n} Gutschrift · SEK {amount} verfügbar.",
+      "creditBannerBody_p": "{n} Gutschriften · SEK {amount} verfügbar.",
+      "applyCredit": "Guthaben anwenden",
+      "creditApplied": "Angewendetes Guthaben:",
+      "netPayable": "Netto fällig:",
+      "lineItems": "Rechnungspositionen",
+      "loading": "Positionen werden geladen…",
+      "noItems": "Keine Positionen aus dieser Rechnung extrahiert.",
+      "colDesc": "Beschreibung",
+      "colArt": "Art.nr",
+      "colQty": "Menge",
+      "colGrossPrice": "Bruttopreis",
+      "colDisc": "Rabatt %",
+      "colNetPrice": "Nettopreis",
+      "colVAT": "MwSt. 25%",
+      "colTotal": "Zeilensumme",
+      "totalInclVAT": "Gesamt (inkl. MwSt.)",
+      "notes": "Notizen",
+      "viewPdf": "PDF anzeigen",
+      "sendApproval": "Zur Genehmigung senden",
+      "approve": "Genehmigen",
+      "markPaid": "Als bezahlt markieren",
+      "dispute": "Anfechten",
+      "edit": "Bearbeiten",
+      "close": "Schließen"
+    },
+    "form": {
+      "createTitle": "Neue Rechnung erstellen",
+      "editTitle": "Rechnung bearbeiten",
+      "systemRefHint": "System Ref # wird sein:",
+      "poLink": "Mit Bestellung verknüpfen (optional)",
+      "noPO": "— Keine Bestellung verknüpft —",
+      "poHint": "Bestellung auswählen füllt Lieferant und Betrag automatisch",
+      "supplierInv": "Lieferantenrechnung #",
+      "vendor": "Lieferant",
+      "invoiceDate": "Rechnungsdatum",
+      "dueDate": "Fälligkeitsdatum",
+      "gross": "Bruttobetrag (SEK)",
+      "vatRate": "MwSt.-Satz",
+      "status": "Status",
+      "notes": "Notizen",
+      "cancel": "Abbrechen",
+      "save": "Änderungen speichern",
+      "create": "Rechnung erstellen",
+      "netExVat": "Netto (exkl. MwSt.)",
+      "vatPct": "MwSt.",
+      "grossTotal": "Brutto gesamt"
+    },
+    "cnForm": {
+      "title": "Gutschrift hinzufügen",
+      "vendor": "Lieferant",
+      "supplierCredit": "Lieferantengutschrift #",
+      "creditDate": "Gutschriftsdatum",
+      "linkInvoice": "Mit Rechnung verknüpfen",
+      "noInvoiceLinked": "— Keine Rechnung verknüpft —",
+      "creditAmount": "Gutschriftsbetrag (SEK)",
+      "reason": "Grund",
+      "cancel": "Abbrechen",
+      "save": "Gutschrift speichern"
+    },
+    "applyCredit": {
+      "title": "Gutschrift anwenden",
+      "invoiceAmount": "Rechnungsbetrag",
+      "alreadyCredited": "Bereits gutgeschrieben",
+      "netPayable": "Netto fällig",
+      "selectCredit": "Gutschrift zum Anwenden auswählen",
+      "available": "Verfügbar:",
+      "amountToApply": "Anzuwendender Betrag",
+      "leaveBlank": "(leer lassen für vollen Betrag)",
+      "afterApplying": "Nach Anwendung:",
+      "creditApplied": "Angewendetes Guthaben",
+      "newNetPayable": "Neuer Nettobetrag",
+      "fullySled": "✓ Vollständig beglichen",
+      "cancel": "Abbrechen",
+      "apply": "Guthaben anwenden"
+    },
+    "dispute": {
+      "title": "Rechnung anfechten",
+      "reason": "Grund für Anfechtung",
+      "cancel": "Abbrechen",
+      "submit": "Als bestritten markieren"
+    },
+    "download": {
+      "excelLabel": "Excel (.xlsx)",
+      "excelHint": "Tabellenformat",
+      "pdfLabel": "PDF",
+      "pdfHint": "Druckfertiges Format",
+      "currentView": "{n} Rechnung (aktuelle Ansicht)",
+      "currentView_p": "{n} Rechnungen (aktuelle Ansicht)"
+    },
+    "newBtn": "Neue Rechnung"
   },
   "purchaseOrders": {
     "title": "Bestellungen",
@@ -1697,37 +1983,110 @@
     "avgPipeline": "Durchschn. Pipeline"
   },
   "purchase": {
-    "title": "Bestellungen",
-    "subtitle": "Klicken Sie auf eine Zeile, um die vollständige Bestellung zu öffnen. Auto-Bestellungen werden live aktualisiert.",
-    "breadcrumb": "Bestellungen",
-    "search": "Bestellung, Lieferant, Artikel suchen...",
-    "importBtn": "Excel importieren",
-    "createBtn": "Bestellung erstellen",
-    "importFromExcel": "Aus Excel importieren",
-    "allGoodBanner": "Alle {n} Lagerartikel liegen über ihren Nachbestellpunkten — keine Bestellungen erforderlich.",
-    "autoPOBanner": "{n} automatisch generierte Bestellung{s} aus Niedrigbestand",
-    "autoPOHide": "▲ ausblenden",
-    "autoPOShow": "▼ anzeigen",
-    "autoPODesc": "Diese Bestellungen werden automatisch generiert und aktualisieren sich live bei Lageränderungen.",
-    "empty": "Noch keine Bestellungen",
-    "emptyHint": "Importieren Sie aus Excel oder erstellen Sie manuell eine Bestellung",
-    "noMatch": "Keine Bestellungen entsprechen Ihrem Filter",
-    "tabAll": "Alle",
-    "statusDraft": "Entwurf",
-    "statusReviewed": "Geprüft",
-    "statusSent": "Gesendet",
-    "statusReceived": "Erhalten",
-    "cardTotal": "Bestellungen gesamt",
-    "cardDraft": "Entwurf",
-    "cardSent": "Gesendet",
-    "cardValue": "Angezeigter Wert",
-    "colPO": "Bestellnummer",
-    "colVendor": "Lieferant",
-    "colDate": "Datum",
-    "colItems": "Artikel",
-    "colCost": "Gesamtkosten",
-    "colETA": "Geschätzte Ankunft",
-    "colStatus": "Status"
+    "page": {
+      "title": "Einkauf",
+      "description": "Niedrigbestand → Bestellung erstellen → System weist Ref-Nr. zu → Ref-Nr. im Lieferantenportal verwenden."
+    },
+    "topbar": {
+      "title": "Bestellungen",
+      "searchPlaceholder": "Bestellung, Lieferant, Artikel suchen..."
+    },
+    "buttons": {
+      "dailyActions": "📋 Tagesaufgaben",
+      "importExcel": "⬆ Excel importieren",
+      "createPo": "+ Bestellung erstellen",
+      "importFromExcel": "⬆ Aus Excel importieren"
+    },
+    "filter": {
+      "label": "Lieferant filtern:",
+      "allSuppliers": "Alle Lieferanten"
+    },
+    "status": {
+      "draft": "Entwurf",
+      "reviewed": "Geprüft",
+      "sent": "Gesendet",
+      "received": "Empfangen",
+      "partial": "Teilweise",
+      "followUp": "⚠ Nachverfolgen — {days}d"
+    },
+    "approval": {
+      "pendingApproval": "🔐 Genehmigung ausstehend",
+      "approved": "✓ Genehmigt",
+      "rejected": "✗ Abgelehnt"
+    },
+    "summary": {
+      "totalPos": "Bestellungen gesamt",
+      "draft": "Entwurf",
+      "sent": "Gesendet",
+      "displayedValue": "Angezeigter Wert",
+      "tips": {
+        "totalPos": "Alle jemals für Ihren Händler erstellten Bestellungen, über alle Status hinweg.",
+        "draft": "Bestellungen erstellt, aber noch nicht geprüft oder an einen Lieferanten gesendet.",
+        "sent": "An den Lieferanten gesendete Bestellungen, die auf Lieferung oder Bestätigung warten.",
+        "displayedValue": "Gesamtkosten der in der Tabelle unten sichtbaren Bestellungen — aktualisiert sich bei Änderung des Statusreiters oder Lieferantenfilters."
+      }
+    },
+    "metrics": {
+      "openPoValue": "Offener Bestellwert",
+      "openPoInProgress": "{count, plural, one {# Bestellung in Bearbeitung} other {# Bestellungen in Bearbeitung}}",
+      "thisMonthSpend": "Ausgaben diesen Monat",
+      "posReceived": "{count, plural, one {# Bestellung empfangen} other {# Bestellungen empfangen}}",
+      "outstandingClaims": "Ausstehende Reklamationen",
+      "claimsOpen": "{count, plural, one {# Reklamation offen} other {# Reklamationen offen}}",
+      "tips": {
+        "openPoValue": "Gesamtkosten aller ausstehenden Bestellungen — Entwurf, Geprüft, Gesendet und Teilweise. Dies ist Ihre aktuelle finanzielle Verpflichtung gegenüber Lieferanten.",
+        "thisMonthSpend": "Gesamtkosten der im laufenden Kalendermonat als Empfangen markierten Bestellungen.",
+        "outstandingClaims": "Gesamtwert ungelöster Lieferantenreklamationen — beschädigte Waren, Unterlieferungen oder falsche Artikel — die noch offen oder eingereicht sind."
+      }
+    },
+    "tabs": {
+      "all": "Alle",
+      "tips": {
+        "all": "Alle Bestellungen unabhängig vom Status anzeigen.",
+        "draft": "Bestellungen erstellt, aber noch nicht geprüft oder an einen Lieferanten gesendet.",
+        "reviewed": "Intern geprüfte Bestellungen, bereit zur Aufgabe beim Lieferanten.",
+        "sent": "An den Lieferanten gesendete Bestellungen, die auf Lieferung oder Bestätigung warten.",
+        "received": "Bestellungen, bei denen alle bestellten Waren vollständig ins Lager eingegangen sind."
+      }
+    },
+    "cols": {
+      "poNumber": "Bestellnummer",
+      "refNo": "Ref-Nr.",
+      "vendor": "Lieferant",
+      "date": "Datum",
+      "items": "Artikel",
+      "totalCost": "Gesamtkosten",
+      "eta": "Voraus. Ankunft",
+      "status": "Status"
+    },
+    "scorecard": {
+      "title": "Lieferantenleistung",
+      "period": "— letzte 365 Tage",
+      "hide": "▲ Ausblenden",
+      "show": "▼ Einblenden",
+      "loading": "Wird geladen…",
+      "noData": "Noch keine Daten — Statistiken erscheinen, sobald Bestellungen den Status Gesendet/Empfangen erreichen.",
+      "cols": {
+        "supplier": "Lieferant",
+        "pos": "Bestell.",
+        "onTime": "Pünktlich %",
+        "backorder": "Rückstand %",
+        "damage": "Schäden %",
+        "leadTime": "Ø Lieferzeit"
+      }
+    },
+    "lowStock": {
+      "alert": "{count, plural, one {# Artikel unter Mindestbestand} other {# Artikel unter Mindestbestand}}",
+      "hint": "— klicken zum Anzeigen und Bestellungen erstellen",
+      "viewButton": "Niedrigen Bestand anzeigen →"
+    },
+    "empty": {
+      "title": "Noch keine Bestellungen",
+      "description": "Aus Excel importieren oder Bestellung manuell erstellen",
+      "importButton": "⬆ Aus Excel importieren",
+      "filtered": "Keine Bestellungen entsprechen Ihrem Filter"
+    },
+    "items": "{count, plural, one {# Artikel} other {# Artikel}}"
   },
   "documents": {
     "breadcrumb": "Archiv",
@@ -2748,6 +3107,64 @@
       "reactivateError": "Lead konnte nicht reaktiviert werden",
       "closedLost": "Lead als verloren geschlossen",
       "closeError": "Lead konnte nicht geschlossen werden"
+    }
+  },
+  "daily": {
+    "breadcrumbParent": "Einkauf",
+    "breadcrumb": "Tägliche Aktionen",
+    "title": "Tägliches Aktions-Dashboard",
+    "subtitle": "Alles, was heute Aufmerksamkeit erfordert.",
+    "viewAll": "Alle anzeigen →",
+    "noVendor": "Kein Lieferant",
+    "summary": {
+      "totalActions": "Aktionen gesamt",
+      "urgent": "Dringend",
+      "pendingApproval": "Ausstehende Genehmigung",
+      "lowStock": "Niedriger Bestand"
+    },
+    "allClear": "Alles erledigt — heute gibt es nichts zu tun!",
+    "allClearHint": "Morgen wieder nachschauen oder nach neuen Bestellungen.",
+    "sections": {
+      "followUp": {
+        "title": "Jetzt nachfassen",
+        "empty": "Keine überfälligen Nachfassungen — alle gesendeten Bestellungen sind innerhalb von 5 Werktagen."
+      },
+      "etaOverdue": {
+        "title": "ETA überschritten",
+        "empty": "Keine Bestellungen nach dem erwarteten Lieferdatum."
+      },
+      "arrivingToday": {
+        "title": "Heute erwartet",
+        "empty": ""
+      },
+      "pendingApproval": {
+        "title": "Bestellungen warten auf Genehmigung",
+        "empty": "Keine Bestellungen warten auf Genehmigung."
+      },
+      "receiptsApprove": {
+        "title": "Wareneingänge zu genehmigen",
+        "empty": "Keine Lieferscheine warten auf Genehmigung."
+      },
+      "overdueInvoices": {
+        "title": "Überfällige Rechnungen",
+        "empty": "Keine überfälligen Lieferantenrechnungen."
+      },
+      "partialOrders": {
+        "title": "Teillieferungen",
+        "empty": "Keine Bestellungen mit ausstehenden Nachlieferungen."
+      },
+      "lowStock": {
+        "title": "Niedriger Bestand — Nachbestellung erforderlich",
+        "empty": "Alle Artikel liegen über dem Nachbestellniveau."
+      }
+    },
+    "badges": {
+      "daysOverdue": "{days}T überfällig",
+      "etaWas": "ETA war {date} (vor {days}T)",
+      "partial": "Teillieferung",
+      "unitsDate": "{units} Einh. · {date}",
+      "due": "Fällig {date}",
+      "stock": "Bestand: {current} / Min: {min}"
     }
   }
 }

@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { useColumnState, ColTh } from '@/components/ResizableTable';
 import { PurchaseInvoice, PurchaseInvoiceStatus, CreditNote, CreditNoteStatus } from '@/utils/types';
 import { supabase } from '@/lib/supabase';
 import { getDealershipId, getDealershipProfile, tagFromName } from '@/lib/tenant';
 import { ImportInvoiceModal } from '@/components/ImportInvoiceModal';
 import Sidebar from '@/components/Sidebar';
+import { Tip } from '@/components/Tip';
 
 // ── Download helpers ────────────────────────────────────────────────────────
 
@@ -165,6 +167,7 @@ interface InvoiceItem {
 }
 
 export default function PurchaseInvoicePage() {
+  const t = useTranslations('purchaseInvoices');
   const [invoices,      setInvoices]      = useState<PurchaseInvoice[]>([]);
   const [showModal,     setShowModal]     = useState(false);
   const [showImport,    setShowImport]    = useState(false);
@@ -553,11 +556,11 @@ export default function PurchaseInvoicePage() {
 
   // ── Aging buckets (overdue only) ──────────────────────────────────────────────
   const today = new Date();
-  const agingBuckets = {
-    '1–30 days':  invoices.filter(i => { if (i.status !== 'Overdue') return false; const d = (today.getTime() - new Date(i.dueDate).getTime()) / 86400000; return d >= 1  && d <= 30 }),
-    '31–60 days': invoices.filter(i => { if (i.status !== 'Overdue') return false; const d = (today.getTime() - new Date(i.dueDate).getTime()) / 86400000; return d >= 31 && d <= 60 }),
-    '61+ days':   invoices.filter(i => { if (i.status !== 'Overdue') return false; const d = (today.getTime() - new Date(i.dueDate).getTime()) / 86400000; return d > 60 }),
-  };
+  const agingBuckets = [
+    { label: t('aging.bucket30'), items: invoices.filter(i => { if (i.status !== 'Overdue') return false; const d = (today.getTime() - new Date(i.dueDate).getTime()) / 86400000; return d >= 1  && d <= 30 }) },
+    { label: t('aging.bucket60'), items: invoices.filter(i => { if (i.status !== 'Overdue') return false; const d = (today.getTime() - new Date(i.dueDate).getTime()) / 86400000; return d >= 31 && d <= 60 }) },
+    { label: t('aging.bucket61'), items: invoices.filter(i => { if (i.status !== 'Overdue') return false; const d = (today.getTime() - new Date(i.dueDate).getTime()) / 86400000; return d > 60 }) },
+  ];
 
   // ── Vendor spend summary ──────────────────────────────────────────────────────
   const vendorSpend = Object.entries(
@@ -581,26 +584,26 @@ export default function PurchaseInvoicePage() {
     overdue.length > 0 && {
       color: 'bg-red-50 border-red-200 text-red-700',
       icon: '🚨',
-      title: `${overdue.length} invoice${overdue.length > 1 ? 's' : ''} overdue`,
-      body: `${overdue.map(i => i.vendor.split(' ')[0]).join(', ')} — total ${overdue.reduce((a, i) => a + i.amount, 0).toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}. Action required immediately.`,
+      title: overdue.length > 1 ? t('alert.overdueTitle_p', { n: overdue.length }) : t('alert.overdueTitle', { n: overdue.length }),
+      body: t('alert.overdueBody', { vendors: overdue.map(i => i.vendor.split(' ')[0]).join(', '), amount: overdue.reduce((a, i) => a + i.amount, 0).toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' }) }),
     },
     dueThisWeek.length > 0 && {
       color: 'bg-amber-50 border-amber-200 text-amber-800',
       icon: '⏰',
-      title: `${dueThisWeek.length} invoice${dueThisWeek.length > 1 ? 's' : ''} due within 7 days`,
-      body: `${dueThisWeek.map(i => i.vendor.split(' ')[0]).join(', ')} — total ${dueThisWeek.reduce((a, i) => a + i.amount, 0).toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}. Schedule payment soon.`,
+      title: dueThisWeek.length > 1 ? t('alert.dueTitle_p', { n: dueThisWeek.length }) : t('alert.dueTitle', { n: dueThisWeek.length }),
+      body: t('alert.dueBody', { vendors: dueThisWeek.map(i => i.vendor.split(' ')[0]).join(', '), amount: dueThisWeek.reduce((a, i) => a + i.amount, 0).toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' }) }),
     },
     disputed.length > 0 && {
       color: 'bg-purple-50 border-purple-200 text-purple-800',
       icon: '⚠️',
-      title: `${disputed.length} invoice${disputed.length > 1 ? 's' : ''} under dispute`,
-      body: `${disputed.map(i => i.vendor.split(' ')[0]).join(', ')} — awaiting supplier resolution. Do not pay until resolved.`,
+      title: disputed.length > 1 ? t('alert.disputedTitle_p', { n: disputed.length }) : t('alert.disputedTitle', { n: disputed.length }),
+      body: t('alert.disputedBody', { vendors: disputed.map(i => i.vendor.split(' ')[0]).join(', ') }),
     },
   ].filter(Boolean) as { color: string; icon: string; title: string; body: string }[];
 
   // ── Column state: credit notes (9 draggable cols) ─────────────────────────────
   const CN_DEFAULT_WIDTHS = [150, 160, 160, 170, 120, 140, 140, 130, 160]
-  const CN_LABELS = ['System Ref #', 'Supplier Credit #', 'Vendor', 'Linked Invoice', 'Credit Date', 'Credit Amount', 'Remaining', 'Status', 'Reason']
+  const CN_LABELS = [t('cnCols.systemRef'), t('cnCols.supplierCredit'), t('cnCols.vendor'), t('cnCols.linkedInvoice'), t('cnCols.creditDate'), t('cnCols.creditAmount'), t('cnCols.remaining'), t('cnCols.status'), t('cnCols.reason')]
   const cnColState = useColumnState(CN_DEFAULT_WIDTHS)
   const cnTotalW   = cnColState.widths.reduce((a, b) => a + b, 0)
 
@@ -643,7 +646,7 @@ export default function PurchaseInvoicePage() {
 
   // ── Column state: invoices (8 draggable cols; checkbox + actions are fixed) ────
   const INV_DEFAULT_WIDTHS = [150, 160, 110, 160, 120, 110, 140, 130]
-  const INV_LABELS = ['System Ref #', 'Supplier Invoice #', 'PO #', 'Vendor', 'Invoice Date', 'Due Date', 'Amount', 'Status']
+  const INV_LABELS = [t('cols.systemRef'), t('cols.supplierInvoice'), t('cols.po'), t('cols.vendor'), t('cols.invoiceDate'), t('cols.dueDate'), t('cols.amount'), t('cols.status')]
   const invColState = useColumnState(INV_DEFAULT_WIDTHS)
   const invTotalW   = 40 + invColState.widths.reduce((a, b) => a + b, 0) + 80 // checkbox + cols + actions
 
@@ -692,12 +695,12 @@ export default function PurchaseInvoicePage() {
 
       {/* Top bar */}
       <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 shrink-0">
-        <span className="text-sm text-gray-500 font-medium">Purchase Invoices</span>
+        <span className="text-sm text-gray-500 font-medium">{t('topbar')}</span>
         <div className="relative">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
           <input
             type="text"
-            placeholder="Search PO, vendor, invoice #..."
+            placeholder={t('search')}
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="pl-8 pr-4 py-1.5 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-400 w-60"
@@ -711,8 +714,8 @@ export default function PurchaseInvoicePage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Purchase Invoices</h1>
-          <p className="text-sm text-gray-400 mt-0.5">Track and manage invoices received from suppliers</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
+          <p className="text-sm text-gray-400 mt-0.5">{t('subtitle')}</p>
         </div>
         <div className="flex gap-2">
           {/* View toggle */}
@@ -721,13 +724,13 @@ export default function PurchaseInvoicePage() {
               onClick={() => setViewMode('invoices')}
               className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'invoices' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
-              Invoices
+              {t('viewMode.invoices')}
             </button>
             <button
               onClick={() => setViewMode('creditnotes')}
               className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 ${viewMode === 'creditnotes' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
-              Credit Notes
+              {t('viewMode.creditNotes')}
               {creditNotes.filter(c => c.status !== 'Applied').length > 0 && (
                 <span className="bg-emerald-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                   {creditNotes.filter(c => c.status !== 'Applied').length}
@@ -740,7 +743,7 @@ export default function PurchaseInvoicePage() {
             onClick={() => setShowImport(true)}
             className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
           >
-            ⬆ Import Excel
+            ⬆ {t('importBtn')}
           </button>
 
           {/* Download dropdown */}
@@ -749,7 +752,7 @@ export default function PurchaseInvoicePage() {
               onClick={() => setShowDownload(v => !v)}
               className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
             >
-              ⬇ Download
+              ⬇ {t('downloadBtn')}
               <span className="text-gray-400 text-xs">▾</span>
             </button>
             {showDownload && (
@@ -791,14 +794,14 @@ export default function PurchaseInvoicePage() {
               onClick={() => setShowCNForm(true)}
               className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
             >
-              + Add Credit Note
+              + {t('addCreditNoteBtn')}
             </button>
           ) : (
             <button
               onClick={openCreate}
               className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
             >
-              + Create New Invoice
+              + {t('addInvoiceBtn')}
             </button>
           )}
         </div>
@@ -822,25 +825,27 @@ export default function PurchaseInvoicePage() {
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-5">
         {([
-          { label: 'Pending',            color: 'border-l-amber-400',   icon: '🕐' },
-          { label: 'Awaiting Approval',  color: 'border-l-blue-400',    icon: '👁️' },
-          { label: 'Paid',               color: 'border-l-emerald-400', icon: '✅' },
-          { label: 'Overdue',            color: 'border-l-red-400',     icon: '🚨' },
-          { label: 'Disputed',           color: 'border-l-purple-400',  icon: '⚠️' },
-        ] as { label: PurchaseInvoiceStatus; color: string; icon: string }[]).map(({ label, color, icon }) => {
+          { label: 'Pending'            as PurchaseInvoiceStatus, color: 'border-l-amber-400',   icon: '🕐', tip: t('statusTip.pending')          },
+          { label: 'Awaiting Approval'  as PurchaseInvoiceStatus, color: 'border-l-blue-400',    icon: '👁️', tip: t('statusTip.awaitingApproval') },
+          { label: 'Paid'               as PurchaseInvoiceStatus, color: 'border-l-emerald-400', icon: '✅', tip: t('statusTip.paid')             },
+          { label: 'Overdue'            as PurchaseInvoiceStatus, color: 'border-l-red-400',     icon: '🚨', tip: t('statusTip.overdue')          },
+          { label: 'Disputed'           as PurchaseInvoiceStatus, color: 'border-l-purple-400',  icon: '⚠️', tip: t('statusTip.disputed')         },
+        ] as { label: PurchaseInvoiceStatus; color: string; icon: string; tip: string }[]).map(({ label, color, icon, tip }) => {
           const count = invoices.filter(i => i.status === label).length;
           const total = invoices.filter(i => i.status === label).reduce((a, i) => a + i.amount, 0);
           return (
-            <div key={label} className={`bg-white border border-gray-200 border-l-4 ${color} rounded-xl p-4 shadow-sm`}>
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{label}</p>
-                <span>{icon}</span>
+            <Tip key={label} text={tip}>
+              <div className={`bg-white border border-gray-200 border-l-4 ${color} rounded-xl p-4 shadow-sm`}>
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{label === 'Pending' ? t('status.pending') : label === 'Awaiting Approval' ? t('status.awaitingApproval') : label === 'Paid' ? t('status.paid') : label === 'Overdue' ? t('status.overdue') : t('status.disputed')}</p>
+                  <span>{icon}</span>
+                </div>
+                <p className="text-2xl font-bold text-gray-900">{count}</p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {total.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}
+                </p>
               </div>
-              <p className="text-2xl font-bold text-gray-900">{count}</p>
-              <p className="text-xs text-gray-400 mt-0.5">
-                {total.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}
-              </p>
-            </div>
+            </Tip>
           );
         })}
       </div>
@@ -848,9 +853,9 @@ export default function PurchaseInvoicePage() {
       {/* Aging report — only shown when there are overdue invoices */}
       {invoices.some(i => i.status === 'Overdue') && (
         <div className="bg-red-50 border border-red-200 rounded-2xl px-5 py-4 mb-5">
-          <p className="text-xs font-bold text-red-700 uppercase tracking-wide mb-3">Overdue Aging Report</p>
+          <p className="text-xs font-bold text-red-700 uppercase tracking-wide mb-3">{t('aging.title')}</p>
           <div className="grid grid-cols-3 gap-3">
-            {(Object.entries(agingBuckets) as [string, PurchaseInvoice[]][]).map(([label, items]) => (
+            {agingBuckets.map(({ label, items }) => (
               <div key={label} className={`rounded-xl px-4 py-3 border ${items.length > 0 ? 'bg-white border-red-200' : 'bg-white/50 border-red-100'}`}>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-red-400 mb-1">{label}</p>
                 <p className={`text-xl font-bold ${items.length > 0 ? 'text-red-700' : 'text-gray-300'}`}>{items.length}</p>
@@ -872,8 +877,8 @@ export default function PurchaseInvoicePage() {
             onClick={() => setShowSpend(v => !v)}
             className="w-full flex items-center justify-between px-5 py-3 hover:bg-gray-50 transition-colors"
           >
-            <p className="text-xs font-bold text-gray-600 uppercase tracking-wide">Spend by Supplier</p>
-            <span className="text-gray-400 text-xs">{showSpend ? '▲ Hide' : '▼ Show'}</span>
+            <p className="text-xs font-bold text-gray-600 uppercase tracking-wide">{t('spend.title')}</p>
+            <span className="text-gray-400 text-xs">{showSpend ? t('spend.hide') : t('spend.show')}</span>
           </button>
           {showSpend && (
             <div className="border-t border-gray-100 divide-y divide-gray-50">
@@ -903,8 +908,8 @@ export default function PurchaseInvoicePage() {
           {creditNotes.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-48 gap-3">
               <span className="text-4xl">🧾</span>
-              <p className="text-gray-500 text-sm font-medium">No credit notes received yet</p>
-              <p className="text-gray-400 text-xs">Credit notes arrive automatically when suppliers send them by email</p>
+              <p className="text-gray-500 text-sm font-medium">{t('creditNoteList.empty')}</p>
+              <p className="text-gray-400 text-xs">{t('creditNoteList.emptyHint')}</p>
             </div>
           ) : (
             <div className="table-scroll overflow-x-auto">
@@ -936,7 +941,7 @@ export default function PurchaseInvoicePage() {
                 <tfoot>
                   <tr className="bg-gray-50 border-t border-gray-200">
                     <td colSpan={CN_LABELS.length - 1} className="px-4 py-3 text-xs text-gray-500 font-semibold">
-                      Total credit available
+                      {t('creditNoteList.totalCredit')}
                     </td>
                     <td className="px-4 py-3 text-right font-bold text-emerald-700 text-sm">
                       − {creditNotes.filter(c => c.status !== 'Applied').reduce((s, c) => s + c.remainingAmount, 0).toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}
@@ -955,23 +960,40 @@ export default function PurchaseInvoicePage() {
       <div className="flex gap-1 overflow-x-auto mb-4 pb-1">
         {(['All', ...statuses] as const).map(s => {
           const count = s === 'All' ? invoices.length : invoices.filter(i => i.status === s).length;
+          const tabTips: Record<string, string> = {
+            'All':               t('statusTip.all'),
+            'Pending':           t('statusTip.pending'),
+            'Awaiting Approval': t('statusTip.awaitingApproval'),
+            'Paid':              t('statusTip.paid'),
+            'Overdue':           t('statusTip.overdue'),
+            'Disputed':          t('statusTip.disputed'),
+          };
+          const tabLabels: Record<string, string> = {
+            'All':               t('status.all'),
+            'Pending':           t('status.pending'),
+            'Awaiting Approval': t('status.awaitingApproval'),
+            'Paid':              t('status.paid'),
+            'Overdue':           t('status.overdue'),
+            'Disputed':          t('status.disputed'),
+          };
           return (
-            <button
-              key={s}
-              onClick={() => setFilterStatus(s)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                filterStatus === s
-                  ? 'bg-orange-500 text-white'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              {s}
-              <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
-                filterStatus === s ? 'bg-white/25 text-white' : 'bg-gray-200 text-gray-500'
-              }`}>
-                {count}
-              </span>
-            </button>
+            <Tip key={s} text={tabTips[s] ?? s}>
+              <button
+                onClick={() => setFilterStatus(s)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                  filterStatus === s
+                    ? 'bg-orange-500 text-white'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                {tabLabels[s] ?? s}
+                <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
+                  filterStatus === s ? 'bg-white/25 text-white' : 'bg-gray-200 text-gray-500'
+                }`}>
+                  {count}
+                </span>
+              </button>
+            </Tip>
           );
         })}
       </div>
@@ -983,14 +1005,14 @@ export default function PurchaseInvoicePage() {
           <svg className={`w-3.5 h-3.5 ${hasActiveFilters ? 'text-orange-500' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 4h18M6 8h12M10 12h4" />
           </svg>
-          <span className={`text-xs font-bold uppercase tracking-wider ${hasActiveFilters ? 'text-orange-600' : 'text-gray-400'}`}>Filter</span>
+          <span className={`text-xs font-bold uppercase tracking-wider ${hasActiveFilters ? 'text-orange-600' : 'text-gray-400'}`}>{t('filter.label')}</span>
         </div>
 
         <div className="w-px h-5 bg-gray-300" />
 
         {/* Vendor filter combobox */}
         <div className="flex items-center gap-1.5">
-          <span className="text-xs text-gray-500 font-semibold whitespace-nowrap">Vendor</span>
+          <span className="text-xs text-gray-500 font-semibold whitespace-nowrap">{t('filter.vendor')}</span>
           <FilterVendorComboBox
             value={filterVendor}
             vendorNames={Array.from(new Set(invoices.map(i => i.vendor))).sort()}
@@ -1002,7 +1024,7 @@ export default function PurchaseInvoicePage() {
 
         {/* Date range */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500 font-semibold whitespace-nowrap">Invoice Date</span>
+          <span className="text-xs text-gray-500 font-semibold whitespace-nowrap">{t('filter.date')}</span>
           <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-2 py-1 shadow-sm">
             <input
               type="date"
@@ -1044,7 +1066,7 @@ export default function PurchaseInvoicePage() {
                 onClick={() => { setFilterVendor(''); setFilterDateFrom(''); setFilterDateTo(''); }}
                 className="text-xs text-gray-400 hover:text-red-500 font-semibold px-2 py-1 rounded-lg hover:bg-red-50 transition-colors ml-1"
               >
-                Clear all
+                {t('filter.clearAll')}
               </button>
             </div>
           </>
@@ -1058,8 +1080,8 @@ export default function PurchaseInvoicePage() {
             <div className="flex flex-col items-center justify-center h-64 gap-4">
               <span className="text-5xl">🧾</span>
               <div className="text-center">
-                <p className="text-gray-700 font-semibold">No purchase invoices yet</p>
-                <p className="text-gray-400 text-sm mt-1">Import from Excel or create an invoice manually</p>
+                <p className="text-gray-700 font-semibold">{t('empty')}</p>
+                <p className="text-gray-400 text-sm mt-1">{t('emptyHint')}</p>
               </div>
               <button
                 onClick={() => setShowImport(true)}
@@ -1071,7 +1093,7 @@ export default function PurchaseInvoicePage() {
           ) : (
             <div className="py-16 text-center">
               <p className="text-4xl mb-3">🧾</p>
-              <p className="text-gray-500 text-sm font-medium">No invoices match your filter</p>
+              <p className="text-gray-500 text-sm font-medium">{t('noMatch')}</p>
             </div>
           )
         ) : (
@@ -1133,7 +1155,7 @@ export default function PurchaseInvoicePage() {
               <tfoot>
                 <tr className="bg-gray-50 border-t border-gray-200">
                   <td colSpan={1 + INV_LABELS.length} className="px-4 py-2 text-[10px] text-gray-400 font-semibold text-right uppercase tracking-wide">
-                    Net Total (ex-VAT)
+                    {t('tfoot.netTotal')}
                   </td>
                   <td className="px-4 py-2 text-gray-600 font-semibold text-xs whitespace-nowrap text-right">
                     {totalNet.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 })}
@@ -1141,7 +1163,7 @@ export default function PurchaseInvoicePage() {
                 </tr>
                 <tr className="bg-gray-50">
                   <td colSpan={1 + INV_LABELS.length} className="px-4 py-2 text-[10px] text-gray-400 font-semibold text-right uppercase tracking-wide">
-                    VAT Total
+                    {t('tfoot.vatTotal')}
                   </td>
                   <td className="px-4 py-2 text-gray-500 font-semibold text-xs whitespace-nowrap text-right">
                     {totalVAT.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK', maximumFractionDigits: 0 })}
@@ -1149,7 +1171,7 @@ export default function PurchaseInvoicePage() {
                 </tr>
                 <tr className="bg-gray-50 border-t border-gray-300">
                   <td colSpan={1 + INV_LABELS.length} className="px-4 py-3 text-xs text-gray-600 font-bold text-right uppercase tracking-wide">
-                    Gross Total ({filtered.length} invoice{filtered.length !== 1 ? 's' : ''})
+                    {t('tfoot.grossTotal')} ({filtered.length > 1 ? t('download.currentView_p', { n: filtered.length }) : t('download.currentView', { n: filtered.length })})
                   </td>
                   <td className="px-4 py-3 text-gray-900 font-bold text-sm whitespace-nowrap text-right">
                     {totalAmount.toLocaleString('sv-SE', { style: 'currency', currency: 'SEK' })}
@@ -1171,7 +1193,7 @@ export default function PurchaseInvoicePage() {
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
               <div>
                 <h2 className="text-base font-bold text-gray-900">
-                  {editId ? `Edit — ${editId}` : 'Create New Invoice'}
+                  {editId ? t('form.editTitle') : t('form.createTitle')}
                 </h2>
                 {!editId && (
                   <p className="text-xs text-gray-400 mt-0.5">
@@ -1186,13 +1208,13 @@ export default function PurchaseInvoicePage() {
             <div className="px-6 py-5 space-y-4">
 
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Link to Purchase Order (optional)</label>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">{t('form.poLink')}</label>
                 <select
                   value={form.poId}
                   onChange={e => handlePoChange(e.target.value)}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#FF6B2C]"
                 >
-                  <option value="">— No PO linked —</option>
+                  <option value="">{t('form.noPO')}</option>
                   {dealerPOs.map(po => (
                     <option key={po.id} value={po.id}>{po.id} — {po.vendor}</option>
                   ))}
@@ -1297,12 +1319,12 @@ export default function PurchaseInvoicePage() {
             <div className="px-6 py-4 border-t border-gray-100 flex gap-3 justify-end sticky bottom-0 bg-white">
               <button onClick={() => setShowModal(false)}
                 className="px-4 py-2 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-800 text-sm transition-colors">
-                Cancel
+                {t('form.cancel')}
               </button>
               <button onClick={handleSave}
                 disabled={!form.vendor || !form.invoiceDate || !form.dueDate || !form.amount}
                 className="px-5 py-2 rounded-xl bg-[#FF6B2C] hover:bg-[#e55a1f] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors shadow-sm">
-                {editId ? 'Save Changes' : 'Create Invoice'}
+                {editId ? t('form.save') : t('form.create')}
               </button>
             </div>
           </div>
@@ -1315,15 +1337,15 @@ export default function PurchaseInvoicePage() {
       {/* Floating bulk action bar */}
       {selectedIds.size > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 bg-gray-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-gray-700">
-          <span className="text-sm font-semibold">{selectedIds.size} selected</span>
+          <span className="text-sm font-semibold">{t('bulk.selected', { n: selectedIds.size })}</span>
           <div className="w-px h-4 bg-gray-600" />
           <button onClick={handleBulkMarkPaid}
             className="text-sm font-semibold text-emerald-400 hover:text-emerald-300 transition-colors">
-            ✅ Mark as Paid
+            ✅ {t('bulk.markPaid')}
           </button>
           <button onClick={handleBulkExport}
             className="text-sm font-semibold text-blue-400 hover:text-blue-300 transition-colors">
-            ⬇ Export
+            ⬇ {t('bulk.export')}
           </button>
           <button onClick={() => setSelectedIds(new Set())}
             className="text-sm text-gray-400 hover:text-white transition-colors ml-1">
@@ -1364,7 +1386,7 @@ export default function PurchaseInvoicePage() {
                   </span>
                   {selectedInvoice.poFullyReceived && (
                     <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full border border-emerald-200">
-                      PO Fully Received
+                      {t('detail.poFullyReceived')}
                     </span>
                   )}
                 </div>
@@ -1378,10 +1400,10 @@ export default function PurchaseInvoicePage() {
             {/* Summary strip */}
             <div className="grid grid-cols-4 gap-3 px-6 py-4 border-b border-gray-100 bg-gray-50/50 shrink-0">
               {[
-                { label: 'Invoice Date', value: selectedInvoice.invoiceDate },
-                { label: 'Due Date',     value: selectedInvoice.dueDate },
-                { label: 'Linked PO',   value: selectedInvoice.poId || '—' },
-                { label: 'Supplier Inv #', value: selectedInvoice.supplierInvoiceNumber || '—' },
+                { label: t('detail.invoiceDate'), value: selectedInvoice.invoiceDate },
+                { label: t('detail.dueDate'),     value: selectedInvoice.dueDate },
+                { label: t('detail.linkedPO'),    value: selectedInvoice.poId || '—' },
+                { label: t('detail.supplierInv'), value: selectedInvoice.supplierInvoiceNumber || '—' },
               ].map(c => (
                 <div key={c.label} className="text-center">
                   <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">{c.label}</p>
@@ -1401,10 +1423,10 @@ export default function PurchaseInvoicePage() {
                 <div className="mx-6 mt-4 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-start justify-between gap-3">
                   <div>
                     <p className="text-sm font-bold text-emerald-800">
-                      Credit available from {selectedInvoice.vendor.split(' ')[0]}
+                      {t('detail.creditBannerTitle', { vendor: selectedInvoice.vendor.split(' ')[0] })}
                     </p>
                     <p className="text-xs text-emerald-700 mt-0.5">
-                      {vendorCredits.length} credit note{vendorCredits.length > 1 ? 's' : ''} · SEK {totalCredit.toLocaleString('sv-SE')} available. Apply to reduce what you owe on this invoice.
+                      {vendorCredits.length > 1 ? t('detail.creditBannerBody_p', { n: vendorCredits.length, amount: totalCredit.toLocaleString('sv-SE') }) : t('detail.creditBannerBody', { n: vendorCredits.length, amount: totalCredit.toLocaleString('sv-SE') })}
                     </p>
                   </div>
                   {selectedInvoice.status !== 'Paid' && (
@@ -1412,7 +1434,7 @@ export default function PurchaseInvoicePage() {
                       onClick={() => openApplyCredit(selectedInvoice)}
                       className="shrink-0 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors whitespace-nowrap"
                     >
-                      Apply Credit
+                      {t('detail.applyCredit')}
                     </button>
                   )}
                 </div>
@@ -1423,37 +1445,37 @@ export default function PurchaseInvoicePage() {
             {(selectedInvoice.creditedAmount ?? 0) > 0 && (
               <div className="mx-6 mt-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-2.5 flex items-center justify-between">
                 <p className="text-xs text-blue-700">
-                  <span className="font-bold">Credit applied:</span> − SEK {(selectedInvoice.creditedAmount ?? 0).toLocaleString('sv-SE')}
+                  <span className="font-bold">{t('detail.creditApplied')}</span> − SEK {(selectedInvoice.creditedAmount ?? 0).toLocaleString('sv-SE')}
                 </p>
                 <p className="text-xs font-bold text-blue-900">
-                  Net payable: SEK {(selectedInvoice.amount - (selectedInvoice.creditedAmount ?? 0)).toLocaleString('sv-SE')}
+                  {t('detail.netPayable')} SEK {(selectedInvoice.amount - (selectedInvoice.creditedAmount ?? 0)).toLocaleString('sv-SE')}
                 </p>
               </div>
             )}
 
             {/* Line items */}
             <div className="flex-1 overflow-y-auto px-6 py-4">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Line Items</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{t('detail.lineItems')}</p>
 
               {itemsLoading ? (
-                <p className="text-sm text-gray-400 text-center py-8">Loading items…</p>
+                <p className="text-sm text-gray-400 text-center py-8">{t('detail.loading')}</p>
               ) : invoiceItems.length === 0 ? (
                 <div className="text-center py-8 text-gray-400">
                   <p className="text-3xl mb-2">📄</p>
-                  <p className="text-sm">No line items extracted from this invoice PDF.</p>
+                  <p className="text-sm">{t('detail.noItems')}</p>
                 </div>
               ) : (
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="bg-gray-50 rounded-lg">
-                      <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider">Description</th>
-                      <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider">Art #</th>
-                      <th className="px-3 py-2 text-center font-semibold text-gray-500 uppercase tracking-wider">Qty</th>
-                      <th className="px-3 py-2 text-right font-semibold text-gray-500 uppercase tracking-wider">Gross Price</th>
-                      <th className="px-3 py-2 text-right font-semibold text-red-400 uppercase tracking-wider">Disc %</th>
-                      <th className="px-3 py-2 text-right font-semibold text-gray-500 uppercase tracking-wider">Net Price</th>
-                      <th className="px-3 py-2 text-right font-semibold text-gray-500 uppercase tracking-wider">VAT 25%</th>
-                      <th className="px-3 py-2 text-right font-semibold text-gray-900 uppercase tracking-wider">Line Total</th>
+                      <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider">{t('detail.colDesc')}</th>
+                      <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider">{t('detail.colArt')}</th>
+                      <th className="px-3 py-2 text-center font-semibold text-gray-500 uppercase tracking-wider">{t('detail.colQty')}</th>
+                      <th className="px-3 py-2 text-right font-semibold text-gray-500 uppercase tracking-wider">{t('detail.colGrossPrice')}</th>
+                      <th className="px-3 py-2 text-right font-semibold text-red-400 uppercase tracking-wider">{t('detail.colDisc')}</th>
+                      <th className="px-3 py-2 text-right font-semibold text-gray-500 uppercase tracking-wider">{t('detail.colNetPrice')}</th>
+                      <th className="px-3 py-2 text-right font-semibold text-gray-500 uppercase tracking-wider">{t('detail.colVAT')}</th>
+                      <th className="px-3 py-2 text-right font-semibold text-gray-900 uppercase tracking-wider">{t('detail.colTotal')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -1490,7 +1512,7 @@ export default function PurchaseInvoicePage() {
                   </tbody>
                   <tfoot>
                     <tr className="bg-orange-50 border-t-2 border-orange-200">
-                      <td colSpan={7} className="px-3 py-2.5 text-xs font-bold text-gray-600 uppercase tracking-wide text-right">Total (incl. VAT)</td>
+                      <td colSpan={7} className="px-3 py-2.5 text-xs font-bold text-gray-600 uppercase tracking-wide text-right">{t('detail.totalInclVAT')}</td>
                       <td className="px-3 py-2.5 text-right text-base font-bold text-gray-900">
                         {selectedInvoice.amount.toLocaleString('sv-SE')}
                       </td>
@@ -1501,7 +1523,7 @@ export default function PurchaseInvoicePage() {
 
               {selectedInvoice.notes && (
                 <div className="mt-4 bg-gray-50 rounded-xl px-4 py-3">
-                  <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">Notes</p>
+                  <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1">{t('detail.notes')}</p>
                   <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedInvoice.notes}</p>
                 </div>
               )}
@@ -1529,7 +1551,7 @@ export default function PurchaseInvoicePage() {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-semibold rounded-lg transition-colors"
                   >
-                    📄 View PDF
+                    📄 {t('detail.viewPdf')}
                   </a>
                 )}
               </div>
@@ -1538,39 +1560,38 @@ export default function PurchaseInvoicePage() {
                 {selectedInvoice.status === 'Pending' && (
                   <button onClick={() => handleSendForApproval(selectedInvoice)}
                     className="px-4 py-2 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
-                    Send for Approval
+                    {t('detail.sendApproval')}
                   </button>
                 )}
-                {/* Approve — Awaiting Approval only */}
                 {selectedInvoice.status === 'Awaiting Approval' && (
                   <button onClick={() => handleApprove(selectedInvoice)}
                     className="px-4 py-2 text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
-                    Approve
+                    {t('detail.approve')}
                   </button>
                 )}
                 {(['Pending', 'Awaiting Approval', 'Overdue'] as PurchaseInvoiceStatus[]).includes(selectedInvoice.status) && (
                   <button onClick={() => handleMarkPaid(selectedInvoice)}
                     className="px-4 py-2 text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors">
-                    Mark as Paid
+                    {t('detail.markPaid')}
                   </button>
                 )}
                 {(['Pending', 'Awaiting Approval'] as PurchaseInvoiceStatus[]).includes(selectedInvoice.status) && (
                   <button onClick={() => { setDisputeInvoice(selectedInvoice); setDisputeReason(''); }}
                     className="px-4 py-2 text-sm font-semibold text-purple-700 border border-purple-300 hover:bg-purple-50 rounded-lg transition-colors">
-                    Dispute
+                    {t('detail.dispute')}
                   </button>
                 )}
                 <button
                   onClick={() => { setSelectedInvoice(null); openEdit(selectedInvoice); }}
                   className="px-4 py-2 text-sm font-semibold text-[#FF6B2C] border border-[#FF6B2C]/30 hover:bg-orange-50 rounded-lg transition-colors"
                 >
-                  ✏️ Edit
+                  ✏️ {t('detail.edit')}
                 </button>
                 <button
                   onClick={() => setSelectedInvoice(null)}
                   className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg transition-colors"
                 >
-                  Close
+                  {t('detail.close')}
                 </button>
               </div>
             </div>
@@ -1584,7 +1605,7 @@ export default function PurchaseInvoicePage() {
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowCNForm(false)} />
           <div className="relative z-10 bg-white rounded-2xl shadow-2xl w-full max-w-lg border border-gray-200">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white">
-              <h3 className="text-base font-bold text-gray-900">Add Credit Note</h3>
+              <h3 className="text-base font-bold text-gray-900">{t('cnForm.title')}</h3>
               <button onClick={() => setShowCNForm(false)} className="text-gray-400 hover:text-gray-700 text-xl">✕</button>
             </div>
             <div className="px-6 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
@@ -1641,12 +1662,12 @@ export default function PurchaseInvoicePage() {
             <div className="px-6 py-4 border-t border-gray-100 flex gap-3 justify-end">
               <button onClick={() => setShowCNForm(false)}
                 className="px-4 py-2 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-800 text-sm transition-colors">
-                Cancel
+                {t('cnForm.cancel')}
               </button>
               <button onClick={handleSaveCreditNote}
                 disabled={!cnForm.vendor || !cnForm.creditDate || !cnForm.amount}
                 className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors">
-                Save Credit Note
+                {t('cnForm.save')}
               </button>
             </div>
           </div>
@@ -1662,7 +1683,7 @@ export default function PurchaseInvoicePage() {
             {/* Header */}
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-gray-900">Apply Credit Note</h3>
+                <h3 className="text-base font-bold text-gray-900">{t('applyCredit.title')}</h3>
                 <p className="text-xs text-gray-400 mt-0.5">
                   {applyCredit.invoice.vendor} · {applyCredit.invoice.id}
                 </p>
@@ -1778,13 +1799,13 @@ export default function PurchaseInvoicePage() {
             <div className="px-6 py-4 border-t border-gray-100 flex gap-3 justify-end">
               <button onClick={() => setApplyCredit(null)}
                 className="px-4 py-2 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-800 text-sm transition-colors">
-                Cancel
+                {t('applyCredit.cancel')}
               </button>
               <button
                 onClick={handleConfirmApplyCredit}
                 disabled={!applyCreditId}
                 className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors">
-                Apply Credit
+                {t('applyCredit.apply')}
               </button>
             </div>
           </div>
@@ -1798,7 +1819,7 @@ export default function PurchaseInvoicePage() {
           <div className="relative z-10 bg-white rounded-2xl shadow-2xl w-full max-w-md border border-gray-200">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-gray-900">Raise Dispute</h3>
+                <h3 className="text-base font-bold text-gray-900">{t('dispute.title')}</h3>
                 <p className="text-xs text-gray-400 mt-0.5">{disputeInvoice.vendor} · {disputeInvoice.id}</p>
               </div>
               <button onClick={() => setDisputeInvoice(null)} className="text-gray-400 hover:text-gray-700 text-xl">✕</button>
@@ -1818,12 +1839,12 @@ export default function PurchaseInvoicePage() {
             <div className="px-6 py-4 border-t border-gray-100 flex gap-3 justify-end">
               <button onClick={() => setDisputeInvoice(null)}
                 className="px-4 py-2 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-800 text-sm transition-colors">
-                Cancel
+                {t('dispute.cancel')}
               </button>
               <button onClick={handleSubmitDispute}
                 disabled={!disputeReason.trim()}
                 className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors">
-                Mark as Disputed
+                {t('dispute.submit')}
               </button>
             </div>
           </div>

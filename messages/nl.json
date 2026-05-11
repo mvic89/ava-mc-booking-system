@@ -25,6 +25,7 @@
     "goodsReceipts": "Goederenontvangsten",
     "suppliers": "Leveranciers",
     "purchaseinvoices": "Inkoopfacturen",
+    "dailyActions": "Dagelijkse acties",
     "salesPipeline": "Verkooppijplijn",
     "pipeline": "Pijplijn",
     "calendar": "Kalender",
@@ -1267,80 +1268,176 @@
     "breadcrumb": "Voorraad",
     "tabs": {
       "motorcycles": "Motorfietsen",
-      "spareParts": "Onderdelen",
-      "accessories": "Accessoires"
+      "spareParts": "Reserveonderdelen",
+      "accessories": "Accessoires",
+      "lowStock": "Lage voorraad"
     },
-    "search": "Voorraad doorzoeken...",
+    "search": "Zoek voorraad...",
+    "lowStockBadge": "{n} lage voorraad",
+    "importBtn": "Importeren",
+    "downloadBtn": "Downloaden",
+    "addBtn": "+ Artikel toevoegen",
+    "filtersBtn": "Filters",
+    "clearAll": "Alles wissen",
+    "items": "artikelen",
+    "listed": "Gelistet",
+    "unlisted": "Niet gelistet",
+    "listTitle": "Klik om te listen op de website",
+    "unlistTitle": "Klik om te verwijderen van de website",
+    "decreaseStock": "Voorraad verlagen",
+    "increaseStock": "Voorraad verhogen",
     "stats": {
       "totalSkus": "Totaal SKU's",
       "unitsInStock": "Eenheden op voorraad",
       "lowStock": "Lage voorraadwaarschuwingen",
-      "stockValue": "Voorraadwaarde"
+      "stockValue": "Voorraadwaarde (verkoop)"
     },
     "table": {
       "id": "ID",
       "name": "Naam / Merk",
-      "articleNo": "Artikelnr.",
+      "articleNo": "Art.nr.",
       "vin": "VIN",
       "year": "Jaar",
       "engine": "Motor",
       "color": "Kleur",
-      "mcType": "MC-type",
+      "mcType": "Motortype",
       "warehouse": "Magazijn",
+      "location": "Locatie",
       "stock": "Voorraad",
-      "reorderQty": "Nabestelhoeveelheid",
-      "cost": "Kosten",
+      "reorder": "Bestelpunt",
+      "cost": "Kostprijs",
       "sellPrice": "Verkoopprijs",
       "margin": "Marge",
-      "vendor": "Leverancier"
+      "vendor": "Leverancier",
+      "website": "Website",
+      "category": "Categorie",
+      "subType": "Subtype",
+      "type": "Type",
+      "style": "Stijl",
+      "colour": "Kleur",
+      "size": "Maat"
+    },
+    "filter": {
+      "website": "Website",
+      "brand": "Merk",
+      "stockStatus": "Voorraadstatus",
+      "priceMin": "Min prijs (SEK)",
+      "priceMax": "Max prijs (SEK)",
+      "mcType": "Motortype",
+      "warehouse": "Magazijn",
+      "colour": "Kleur",
+      "category": "Categorie",
+      "type": "Type",
+      "size": "Maat",
+      "allProducts": "Alle producten",
+      "listedOnly": "Alleen gelistete",
+      "unlistedOnly": "Alleen niet gelistete",
+      "allBrands": "Alle merken",
+      "all": "Alle",
+      "inStock": "Op voorraad",
+      "lowStock": "Lage voorraad",
+      "outOfStock": "Niet op voorraad",
+      "allTypes": "Alle types",
+      "allWarehouses": "Alle magazijnen",
+      "allCategories": "Alle categorieën",
+      "allSizes": "Alle maten"
     },
     "empty": "Nog geen voorraad",
-    "noMatch": "Geen artikelen komen overeen met uw zoekopdracht",
+    "noMatch": "Geen artikelen komen overeen met de zoekopdracht",
     "hint": "Beweeg de muis over een rij om de voorraad aan te passen",
-    "import": "Importeer vanuit Excel of voeg handmatig toe",
+    "import": "Importeren vanuit Excel of artikelen één voor één toevoegen",
+    "importBtn2": "⬆ Importeren vanuit Excel",
     "export": {
       "pdf": "PDF",
       "excel": "Excel (.xlsx)",
-      "spreadsheet": "Spreadsheet",
-      "print": "Afdrukindeling"
+      "spreadsheet": "Spreadsheet-formaat",
+      "print": "Drukklaar"
+    },
+    "download": {
+      "excelLabel": "Excel (.xlsx)",
+      "excelHint": "Spreadsheet-formaat",
+      "pdfLabel": "PDF",
+      "pdfHint": "Drukklaar"
     }
   },
   "goodsReceipts": {
     "title": "Goederenontvangsten",
     "breadcrumb": "Goederenontvangsten",
-    "subtitle": "Ontvangen artikelen vastleggen — voorraad wordt automatisch bijgewerkt",
+    "subtitle": "Ontvangen artikelen registreren — voorraad wordt automatisch bijgewerkt",
+    "newReceipt": "Nieuwe ontvangst",
+    "search": "Zoek op ontvangst-ID, leverancier, IO...",
     "stats": {
-      "total": "Totaal ontvangsten",
+      "total": "Totale ontvangsten",
+      "totalTip": "Totaal aantal goederenontvangstbonnen voor uw dealership.",
       "units": "Ontvangen eenheden",
-      "items": "Ontvangen artikelen",
-      "pending": "In afwachting van goedkeuring"
+      "unitsTip": "Totaal aantal fysiek ontvangen eenheden over alle ontvangsten.",
+      "pending": "In afwachting van goedkeuring",
+      "pendingTip": "Ingediende bonnen die nog niet zijn goedgekeurd of afgewezen."
     },
-    "table": {
+    "source": {
+      "auto": "⚡ Auto",
+      "manual": "✏️ Handmatig"
+    },
+    "statusBadge": {
+      "approved": "✓ Goedgekeurd",
+      "rejected": "✕ Afgewezen",
+      "pending": "⏳ In afwachting van goedkeuring"
+    },
+    "cols": {
       "receiptId": "Ontvangst-ID",
-      "po": "Inkooporder #",
+      "vendor": "Leverancier",
+      "po": "IO #",
       "deliveryNote": "Pakbon",
+      "receivedDate": "Ontvangstdatum",
+      "lines": "Regels",
+      "units": "Eenheden",
+      "source": "Bron",
+      "status": "Status"
+    },
+    "detail": {
+      "prefix": "Goederenontvangst ·",
+      "awaitingApproval": "In afwachting van beheerdergoedkeuring",
+      "approvalNote": "De voorraad wordt pas bijgewerkt nadat u deze levering heeft goedgekeurd.",
+      "reject": "Afwijzen",
+      "approve": "Goedkeuren en voorraad bijwerken",
+      "poFullyReceived": "IO al volledig ontvangen",
+      "relinkPo": "Opnieuw koppelen aan IO",
+      "selectPoPrompt": "Selecteer een open IO om deze levering aan te koppelen:",
+      "noOpenPos": "Geen open IO's gevonden voor deze leverancier.",
+      "cancel": "Annuleren",
+      "confirmLink": "Koppeling bevestigen",
+      "linking": "Koppelen…",
+      "poIncomplete": "IO onvolledig — wacht op nabestelling",
+      "receivedDate": "Ontvangstdatum",
+      "itemsReceived": "Ontvangen artikelen",
+      "matchedToStock": "Gekoppeld aan voorraad",
+      "damaged": "Beschadigd",
+      "deliveryNoteLabel": "Pakbon #:",
       "item": "Artikel",
       "artNo": "Art.nr.",
-      "lineItems": "Regels",
       "ordered": "Besteld",
       "received": "Ontvangen",
-      "status": "Status",
-      "source": "Bron",
-      "notes": "Opmerkingen"
+      "backorder": "Nabestelling",
+      "stock": "Voorraad",
+      "damagedBadge": "{n} beschadigd",
+      "pendingBadge": "{n} in behandeling",
+      "backordered": "⏳ Nabestelling",
+      "matched": "✓ Gekoppeld",
+      "unmatched": "? Niet gekoppeld",
+      "viewPdf": "📄 PDF bekijken",
+      "close": "Sluiten",
+      "notes": "Notities",
+      "backorderBanner": "Sommige artikelen hebben nabestellingen — leverancier levert uitstaande hoeveelheden later."
     },
-    "newReceipt": "Nieuwe ontvangst",
-    "search": "Ontvangsten doorzoeken...",
     "empty": "Nog geen goederenontvangsten",
-    "noMatch": "Geen ontvangsten komen overeen met uw zoekopdracht",
+    "emptyHint": "Maak een handmatige invoer of wacht op een inkomende leverings-e-mail",
+    "noMatch": "Geen resultaten gevonden voor uw zoekopdracht",
+    "noMatchHint": "Probeer een andere zoekterm",
     "approve": "Goedkeuren",
     "pending": "In behandeling",
     "approved": "Goedgekeurd",
     "rejected": "Afgewezen",
-    "backorder": "Nabestelling",
-    "linkPo": "Koppelen aan inkooporder (optioneel)",
-    "deliveryNoteLabel": "Pakbonnr. (optioneel)",
-    "receivedBy": "Ontvangen door",
-    "noOpenPos": "Geen openstaande inkooporders gevonden"
+    "backorder": "Nabestelling"
   },
   "accounting": {
     "title": "Boekhouding",
@@ -1376,21 +1473,23 @@
   "suppliers": {
     "title": "Leveranciers",
     "breadcrumb": "Leveranciers",
-    "subtitle": "Klik op een rij om leveranciersdetails te bekijken of te bewerken.",
-    "addBtn": "Leverancier toevoegen",
-    "importBtn": "Excel importeren",
-    "search": "Leveranciers doorzoeken...",
-    "empty": "Nog geen leveranciers",
-    "noMatch": "Geen leveranciers komen overeen met uw zoekopdracht",
+    "subtitle": "Klik op een rij om leveranciersgegevens te bekijken of te bewerken.",
+    "addBtn": "+ Leverancier toevoegen",
+    "importBtn": "⬆ Excel importeren",
+    "search": "Leverancier, categorie zoeken...",
     "stats": {
-      "total": "Totaal leveranciers",
+      "total": "Totale leveranciers",
+      "totalTip": "Totaal aantal actieve leveranciers bij uw dealership.",
       "withContact": "Met contactgegevens",
-      "lowStock": "Lage voorraadwaarschuwingen",
-      "totalSkus": "Totaal geleverde SKU's"
+      "withContactTip": "Leveranciers met een geregistreerd e-mailadres of telefoonnummer.",
+      "lowStock": "Laag voorraad meldingen",
+      "lowStockTip": "Leveranciers met artikelen onder het bestelniveau.",
+      "totalSkus": "Totale SKU's",
+      "totalSkusTip": "Totaal aantal unieke productlijnen van alle leveranciers."
     },
     "cols": {
-      "no": "Leveranciernr.",
-      "name": "Leveranciernaam",
+      "no": "Lev.nr.",
+      "name": "Leveranciersnaam",
       "address": "Adres",
       "phone": "Telefoon",
       "orgNo": "KVK-nummer",
@@ -1398,36 +1497,223 @@
       "categories": "Categorieën",
       "status": "Voorraadstatus"
     },
+    "stock": {
+      "noInventory": "Geen voorraad",
+      "lowStock": "{n} lage voorraad",
+      "allStocked": "Alles op voorraad"
+    },
     "poModal": {
       "title": "Inkooporders",
-      "noPo": "Geen inkooporders voor deze leverancier"
-    }
+      "found": "{n} IO gevonden",
+      "noPo": "Geen inkooporders voor deze leverancier",
+      "close": "Sluiten"
+    },
+    "empty": "Nog geen leveranciers",
+    "noMatch": "Geen leveranciers komen overeen met uw zoekopdracht"
   },
   "purchaseInvoices": {
     "title": "Inkoopfacturen",
+    "topbar": "Inkoopfacturen",
     "breadcrumb": "Inkoopfacturen",
-    "subtitle": "Facturen van leveranciers bijhouden en beheren",
-    "newBtn": "Nieuwe factuur",
-    "search": "Inkooporder, leverancier, factuurnr. zoeken...",
-    "empty": "Nog geen inkoopfacturen",
-    "noMatch": "Geen facturen komen overeen met uw filter",
-    "cols": {
-      "supplierInvoice": "Leveranciersfactuur #",
-      "systemRef": "Systeemreferentie #",
-      "po": "Inkooporder (optioneel)",
-      "amount": "Bedrag",
-      "invoiceDate": "Factuurdatum",
-      "dueDate": "Vervaldatum",
-      "vendor": "Leverancier",
-      "status": "Status",
-      "notes": "Opmerkingen"
+    "subtitle": "Facturen van leveranciers volgen en beheren",
+    "search": "Zoek IO, leverancier, factuur #...",
+    "importBtn": "Excel importeren",
+    "downloadBtn": "Downloaden",
+    "addInvoiceBtn": "Nieuwe factuur aanmaken",
+    "addCreditNoteBtn": "Creditnota toevoegen",
+    "viewMode": {
+      "invoices": "Facturen",
+      "creditNotes": "Creditnota's"
     },
     "status": {
+      "all": "Alle",
       "pending": "In behandeling",
+      "awaitingApproval": "Wacht op goedkeuring",
       "paid": "Betaald",
       "overdue": "Achterstallig",
       "disputed": "Betwist"
-    }
+    },
+    "statusTip": {
+      "all": "Alle facturen tonen ongeacht status.",
+      "pending": "Ontvangen facturen nog niet verwerkt.",
+      "awaitingApproval": "Facturen ingediend voor interne goedkeuring.",
+      "paid": "Volledig betaalde facturen.",
+      "overdue": "Facturen na vervaldatum die nog onbetaald zijn.",
+      "disputed": "Facturen met een lopend geschil."
+    },
+    "alert": {
+      "overdueTitle": "{n} factuur achterstallig",
+      "overdueTitle_p": "{n} facturen achterstallig",
+      "overdueBody": "{vendors} — totaal {amount}. Onmiddellijke actie vereist.",
+      "dueTitle": "{n} factuur vervalt binnen 7 dagen",
+      "dueTitle_p": "{n} facturen vervallen binnen 7 dagen",
+      "dueBody": "{vendors} — totaal {amount}. Betaling spoedig inplannen.",
+      "disputedTitle": "{n} factuur in geschil",
+      "disputedTitle_p": "{n} facturen in geschil",
+      "disputedBody": "{vendors} — wacht op leveranciersoplossing. Niet betalen totdat opgelost."
+    },
+    "aging": {
+      "title": "Vervalrapport achterstallig",
+      "bucket30": "1–30 dagen",
+      "bucket60": "31–60 dagen",
+      "bucket61": "61+ dagen"
+    },
+    "spend": {
+      "title": "Uitgaven per leverancier",
+      "hide": "▲ Verbergen",
+      "show": "▼ Tonen"
+    },
+    "creditNoteList": {
+      "empty": "Nog geen creditnota's ontvangen",
+      "emptyHint": "Creditnota's komen automatisch binnen als leveranciers ze per e-mail sturen",
+      "totalCredit": "Totaal beschikbaar krediet"
+    },
+    "cols": {
+      "systemRef": "Systeem Ref #",
+      "supplierInvoice": "Leveranciersfactuur #",
+      "po": "IO #",
+      "vendor": "Leverancier",
+      "invoiceDate": "Factuurdatum",
+      "dueDate": "Vervaldatum",
+      "amount": "Bedrag",
+      "status": "Status"
+    },
+    "cnCols": {
+      "systemRef": "Systeem Ref #",
+      "supplierCredit": "Leverancierscreditnota #",
+      "vendor": "Leverancier",
+      "linkedInvoice": "Gekoppelde factuur",
+      "creditDate": "Creditdatum",
+      "creditAmount": "Creditbedrag",
+      "remaining": "Resterend",
+      "status": "Status",
+      "reason": "Reden"
+    },
+    "cnStatus": {
+      "unmatched": "Niet gekoppeld",
+      "pending": "In behandeling",
+      "partiallyApplied": "Gedeeltelijk toegepast",
+      "applied": "Toegepast"
+    },
+    "filter": {
+      "label": "Filter",
+      "vendor": "Leverancier",
+      "date": "Factuurdatum",
+      "clearAll": "Alles wissen",
+      "allVendors": "Alle leveranciers"
+    },
+    "empty": "Nog geen inkoopfacturen",
+    "emptyHint": "Importeren vanuit Excel of handmatig factuur aanmaken",
+    "noMatch": "Geen facturen komen overeen met het filter",
+    "tfoot": {
+      "netTotal": "Netto totaal (excl. btw)",
+      "vatTotal": "Btw totaal",
+      "grossTotal": "Bruto totaal"
+    },
+    "bulk": {
+      "selected": "{n} geselecteerd",
+      "markPaid": "Markeren als betaald",
+      "export": "Exporteren"
+    },
+    "detail": {
+      "header": "Inkoopfactuur",
+      "poFullyReceived": "IO volledig ontvangen",
+      "invoiceDate": "Factuurdatum",
+      "dueDate": "Vervaldatum",
+      "linkedPO": "Gekoppelde IO",
+      "supplierInv": "Leveranciersfactuur #",
+      "creditBannerTitle": "Krediet beschikbaar van {vendor}",
+      "creditBannerBody": "{n} creditnota · SEK {amount} beschikbaar.",
+      "creditBannerBody_p": "{n} creditnota's · SEK {amount} beschikbaar.",
+      "applyCredit": "Krediet toepassen",
+      "creditApplied": "Krediet toegepast:",
+      "netPayable": "Netto te betalen:",
+      "lineItems": "Factuurregels",
+      "loading": "Items laden…",
+      "noItems": "Geen regels uit deze factuur PDF gehaald.",
+      "colDesc": "Omschrijving",
+      "colArt": "Art. #",
+      "colQty": "Aantal",
+      "colGrossPrice": "Brutopris",
+      "colDisc": "Korting %",
+      "colNetPrice": "Nettopris",
+      "colVAT": "Btw 25%",
+      "colTotal": "Regeltotaal",
+      "totalInclVAT": "Totaal (incl. btw)",
+      "notes": "Notities",
+      "viewPdf": "PDF bekijken",
+      "sendApproval": "Sturen ter goedkeuring",
+      "approve": "Goedkeuren",
+      "markPaid": "Markeren als betaald",
+      "dispute": "Betwisten",
+      "edit": "Bewerken",
+      "close": "Sluiten"
+    },
+    "form": {
+      "createTitle": "Nieuwe factuur aanmaken",
+      "editTitle": "Factuur bewerken",
+      "systemRefHint": "Systeem Ref # wordt:",
+      "poLink": "Koppelen aan inkooporder (optioneel)",
+      "noPO": "— Geen IO gekoppeld —",
+      "poHint": "IO selecteren vult automatisch leverancier en bedrag in",
+      "supplierInv": "Leveranciersfactuur #",
+      "vendor": "Leverancier",
+      "invoiceDate": "Factuurdatum",
+      "dueDate": "Vervaldatum",
+      "gross": "Brutobedrag (SEK)",
+      "vatRate": "Btw-tarief",
+      "status": "Status",
+      "notes": "Notities",
+      "cancel": "Annuleren",
+      "save": "Wijzigingen opslaan",
+      "create": "Factuur aanmaken",
+      "netExVat": "Netto (excl. btw)",
+      "vatPct": "Btw",
+      "grossTotal": "Bruto totaal"
+    },
+    "cnForm": {
+      "title": "Creditnota toevoegen",
+      "vendor": "Leverancier",
+      "supplierCredit": "Leverancierscreditnota #",
+      "creditDate": "Creditdatum",
+      "linkInvoice": "Koppelen aan factuur",
+      "noInvoiceLinked": "— Geen factuur gekoppeld —",
+      "creditAmount": "Creditbedrag (SEK)",
+      "reason": "Reden",
+      "cancel": "Annuleren",
+      "save": "Creditnota opslaan"
+    },
+    "applyCredit": {
+      "title": "Creditnota toepassen",
+      "invoiceAmount": "Factuurbedrag",
+      "alreadyCredited": "Al gecrediteerd",
+      "netPayable": "Netto te betalen",
+      "selectCredit": "Creditnota selecteren",
+      "available": "Beschikbaar:",
+      "amountToApply": "Toe te passen bedrag",
+      "leaveBlank": "(leeg laten voor volledig krediet)",
+      "afterApplying": "Na toepassing:",
+      "creditApplied": "Toegepast krediet",
+      "newNetPayable": "Nieuw netto te betalen",
+      "fullySled": "✓ Volledig voldaan",
+      "cancel": "Annuleren",
+      "apply": "Krediet toepassen"
+    },
+    "dispute": {
+      "title": "Factuur betwisten",
+      "reason": "Reden voor geschil",
+      "cancel": "Annuleren",
+      "submit": "Markeren als betwist"
+    },
+    "download": {
+      "excelLabel": "Excel (.xlsx)",
+      "excelHint": "Spreadsheet-formaat",
+      "pdfLabel": "PDF",
+      "pdfHint": "Drukklaar formaat",
+      "currentView": "{n} factuur (huidige weergave)",
+      "currentView_p": "{n} facturen (huidige weergave)"
+    },
+    "newBtn": "Nieuwe factuur"
   },
   "purchaseOrders": {
     "title": "Inkooporders",
@@ -1697,37 +1983,110 @@
     "avgPipeline": "Gem. pipeline"
   },
   "purchase": {
-    "title": "Inkooporders",
-    "subtitle": "Klik op een rij om de volledige inkooporder te openen. Auto-IO wordt live bijgewerkt.",
-    "breadcrumb": "Inkooporders",
-    "search": "Zoek IO, leverancier, artikel...",
-    "importBtn": "Excel importeren",
-    "createBtn": "IO aanmaken",
-    "importFromExcel": "Importeren uit Excel",
-    "allGoodBanner": "Alle {n} voorraaditems zijn boven hun bestelpunten — geen IO's nodig.",
-    "autoPOBanner": "{n} automatisch gegenereerde IO{s} door lage voorraad",
-    "autoPOHide": "▲ verbergen",
-    "autoPOShow": "▼ tonen",
-    "autoPODesc": "Deze IO's worden automatisch gegenereerd en worden live bijgewerkt bij voorraadwijzigingen.",
-    "empty": "Nog geen inkooporders",
-    "emptyHint": "Importeer uit Excel of maak handmatig een IO aan",
-    "noMatch": "Geen inkooporders komen overeen met uw filter",
-    "tabAll": "Alle",
-    "statusDraft": "Concept",
-    "statusReviewed": "Beoordeeld",
-    "statusSent": "Verzonden",
-    "statusReceived": "Ontvangen",
-    "cardTotal": "Totaal IO",
-    "cardDraft": "Concept",
-    "cardSent": "Verzonden",
-    "cardValue": "Weergegeven waarde",
-    "colPO": "IO-nummer",
-    "colVendor": "Leverancier",
-    "colDate": "Datum",
-    "colItems": "Artikelen",
-    "colCost": "Totale kosten",
-    "colETA": "Verwachte aankomst",
-    "colStatus": "Status"
+    "page": {
+      "title": "Inkoop",
+      "description": "Laag voorraad alert → Maak IO aan → systeem wijst Ref-nr. toe → gebruik Ref-nr. op leveranciersportaal."
+    },
+    "topbar": {
+      "title": "Inkooporders",
+      "searchPlaceholder": "Zoek IO, leverancier, artikel..."
+    },
+    "buttons": {
+      "dailyActions": "📋 Dagelijkse acties",
+      "importExcel": "⬆ Excel importeren",
+      "createPo": "+ IO aanmaken",
+      "importFromExcel": "⬆ Importeren uit Excel"
+    },
+    "filter": {
+      "label": "Filter leverancier:",
+      "allSuppliers": "Alle leveranciers"
+    },
+    "status": {
+      "draft": "Concept",
+      "reviewed": "Beoordeeld",
+      "sent": "Verzonden",
+      "received": "Ontvangen",
+      "partial": "Gedeeltelijk",
+      "followUp": "⚠ Opvolging — {days}d"
+    },
+    "approval": {
+      "pendingApproval": "🔐 Goedkeuring in behandeling",
+      "approved": "✓ Goedgekeurd",
+      "rejected": "✗ Afgewezen"
+    },
+    "summary": {
+      "totalPos": "Totaal IO",
+      "draft": "Concept",
+      "sent": "Verzonden",
+      "displayedValue": "Weergegeven waarde",
+      "tips": {
+        "totalPos": "Alle inkooporders ooit aangemaakt voor uw dealership, over alle statussen heen.",
+        "draft": "IO aangemaakt maar nog niet beoordeeld of verzonden naar een leverancier.",
+        "sent": "IO verzonden naar de leverancier, in afwachting van levering of bevestiging.",
+        "displayedValue": "Totale kosten van IO zichtbaar in de tabel hieronder — wordt bijgewerkt wanneer u het statustabblad of leveranciersfilter wijzigt."
+      }
+    },
+    "metrics": {
+      "openPoValue": "Waarde open IO",
+      "openPoInProgress": "{count, plural, one {# IO in behandeling} other {# IO in behandeling}}",
+      "thisMonthSpend": "Uitgaven deze maand",
+      "posReceived": "{count, plural, one {# IO ontvangen} other {# IO ontvangen}}",
+      "outstandingClaims": "Uitstaande claims",
+      "claimsOpen": "{count, plural, one {# claim open} other {# claims open}}",
+      "tips": {
+        "openPoValue": "Totale kosten van alle uitstaande IO — Concept, Beoordeeld, Verzonden en Gedeeltelijk. Dit is uw huidige financiële verplichting aan leveranciers.",
+        "thisMonthSpend": "Totale kosten van IO gemarkeerd als Ontvangen in de huidige kalendermaand.",
+        "outstandingClaims": "Totale waarde van onopgeloste leveranciersclaims — beschadigde goederen, kortleveringen of verkeerde artikelen — die nog open of ingediend zijn."
+      }
+    },
+    "tabs": {
+      "all": "Alle",
+      "tips": {
+        "all": "Toon alle inkooporders ongeacht de status.",
+        "draft": "IO aangemaakt maar nog niet beoordeeld of verzonden naar een leverancier.",
+        "reviewed": "Intern beoordeelde IO, klaar om bij de leverancier te worden geplaatst.",
+        "sent": "IO verzonden naar de leverancier, in afwachting van levering of bevestiging.",
+        "received": "IO waarbij alle bestelde goederen volledig zijn ontvangen in het magazijn."
+      }
+    },
+    "cols": {
+      "poNumber": "IO-nummer",
+      "refNo": "Ref-nr.",
+      "vendor": "Leverancier",
+      "date": "Datum",
+      "items": "Artikelen",
+      "totalCost": "Totale kosten",
+      "eta": "Verw. aankomst",
+      "status": "Status"
+    },
+    "scorecard": {
+      "title": "Leveranciersprestaties",
+      "period": "— laatste 365 dagen",
+      "hide": "▲ Verbergen",
+      "show": "▼ Tonen",
+      "loading": "Laden…",
+      "noData": "Nog geen gegevens — statistieken verschijnen zodra IO de status Verzonden/Ontvangen bereiken.",
+      "cols": {
+        "supplier": "Leverancier",
+        "pos": "IO",
+        "onTime": "Op tijd %",
+        "backorder": "Nalevering %",
+        "damage": "Schade %",
+        "leadTime": "Gem. doorlooptijd"
+      }
+    },
+    "lowStock": {
+      "alert": "{count, plural, one {# artikel onder bestelniveau} other {# artikelen onder bestelniveau}}",
+      "hint": "— klik om te bekijken en IO aan te maken",
+      "viewButton": "Laag voorraad bekijken →"
+    },
+    "empty": {
+      "title": "Nog geen inkooporders",
+      "description": "Importeer uit Excel of maak handmatig een IO aan",
+      "importButton": "⬆ Importeren uit Excel",
+      "filtered": "Geen inkooporders komen overeen met uw filter"
+    },
+    "items": "{count, plural, one {# artikel} other {# artikelen}}"
   },
   "documents": {
     "breadcrumb": "Archief",
@@ -2748,6 +3107,64 @@
       "reactivateError": "Lead kon niet worden gereactiveerd",
       "closedLost": "Lead gesloten als verloren",
       "closeError": "Lead kon niet worden gesloten"
+    }
+  },
+  "daily": {
+    "breadcrumbParent": "Inkoop",
+    "breadcrumb": "Dagelijkse acties",
+    "title": "Dagelijks actiedashboard",
+    "subtitle": "Alles wat vandaag aandacht nodig heeft.",
+    "viewAll": "Alles bekijken →",
+    "noVendor": "Geen leverancier",
+    "summary": {
+      "totalActions": "Totale acties",
+      "urgent": "Dringend",
+      "pendingApproval": "Wacht op goedkeuring",
+      "lowStock": "Laag voorraad"
+    },
+    "allClear": "Alles klaar — er is vandaag niets dat aandacht nodig heeft!",
+    "allClearHint": "Kom morgen terug of na het plaatsen van nieuwe inkooporders.",
+    "sections": {
+      "followUp": {
+        "title": "Nu opvolgen",
+        "empty": "Geen achterstallige opvolging — alle verzonden orders zijn binnen 5 werkdagen."
+      },
+      "etaOverdue": {
+        "title": "ETA overschreden",
+        "empty": "Geen orders na de verwachte aankomstdatum."
+      },
+      "arrivingToday": {
+        "title": "Arriveert vandaag",
+        "empty": ""
+      },
+      "pendingApproval": {
+        "title": "Orders wachten op goedkeuring",
+        "empty": "Geen orders wachten op goedkeuring."
+      },
+      "receiptsApprove": {
+        "title": "Ontvangsten goed te keuren",
+        "empty": "Geen pakbonnen wachten op goedkeuring."
+      },
+      "overdueInvoices": {
+        "title": "Achterstallige facturen",
+        "empty": "Geen achterstallige leveranciersfacturen."
+      },
+      "partialOrders": {
+        "title": "Gedeeltelijke orders",
+        "empty": "Geen orders met uitstaande nabestellingen."
+      },
+      "lowStock": {
+        "title": "Lage voorraad — bijbestellen nodig",
+        "empty": "Alle artikelen zijn boven het bestelniveau."
+      }
+    },
+    "badges": {
+      "daysOverdue": "{days}d achterstallig",
+      "etaWas": "ETA was {date} ({days}d geleden)",
+      "partial": "Gedeeltelijk",
+      "unitsDate": "{units} stuks · {date}",
+      "due": "Vervalt {date}",
+      "stock": "Voorraad: {current} / Min: {min}"
     }
   }
 }

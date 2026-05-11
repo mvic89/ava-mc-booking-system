@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import Sidebar from '@/components/Sidebar';
+import { Tip } from '@/components/Tip';
 
 const UPCOMING: { icon: string; title: string; desc: string; eta: string }[] = [
   {
@@ -44,9 +45,9 @@ const UPCOMING: { icon: string; title: string; desc: string; eta: string }[] = [
 ];
 
 const STATS = [
-  { value: '2×', label: 'Faster check-in with digital work orders' },
-  { value: '40%', label: 'Less time on manual scheduling' },
-  { value: '100%', label: 'Service history always accessible' },
+  { value: '2×',   label: 'Faster check-in with digital work orders', tip: 'Digital work orders cut check-in time in half versus paper.' },
+  { value: '40%',  label: 'Less time on manual scheduling',           tip: 'Automated scheduling saves 40% of admin time per week.' },
+  { value: '100%', label: 'Service history always accessible',        tip: 'Every vehicle\'s full service history available instantly.' },
 ];
 
 export default function ServicePage() {
@@ -102,10 +103,12 @@ export default function ServicePage() {
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4">
             {STATS.map(s => (
-              <div key={s.value} className="bg-white rounded-2xl border border-slate-100 p-5 text-center">
-                <p className="text-3xl font-black text-[#FF6B2C]">{s.value}</p>
-                <p className="text-xs text-slate-500 mt-1 leading-snug">{s.label}</p>
-              </div>
+              <Tip key={s.value} text={s.tip}>
+                <div className="bg-white rounded-2xl border border-slate-100 p-5 text-center">
+                  <p className="text-3xl font-black text-[#FF6B2C]">{s.value}</p>
+                  <p className="text-xs text-slate-500 mt-1 leading-snug">{s.label}</p>
+                </div>
+              </Tip>
             ))}
           </div>
 

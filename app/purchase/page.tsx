@@ -26,14 +26,16 @@ import { CreatePOModal, FlatInventoryItem } from '@/components/CreatePOModal'
 import { ImportPOModal } from '@/components/ImportPOModal'
 import { POLineItem, POLineItemStatus, POStatus, POApprovalStatus, POPlacementOutcome, PurchaseOrder, SupplierClaim } from '@/utils/types'
 import Sidebar from '@/components/Sidebar'
+import { Tip } from '@/components/Tip'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 
 const ALL_STATUSES: POStatus[] = ['Draft', 'Reviewed', 'Sent', 'Received']
 
-const APPROVAL_STYLE: Record<POApprovalStatus, { badge: string; label: string }> = {
-    pending_approval: { badge: 'bg-amber-100 text-amber-700 border border-amber-300',  label: '🔐 Pending Approval' },
-    approved:         { badge: 'bg-green-100 text-green-700 border border-green-300',   label: '✓ Approved'         },
-    rejected:         { badge: 'bg-red-100 text-red-700 border border-red-300',         label: '✗ Rejected'         },
+const APPROVAL_BADGE: Record<POApprovalStatus, string> = {
+    pending_approval: 'bg-amber-100 text-amber-700 border border-amber-300',
+    approved:         'bg-green-100 text-green-700 border border-green-300',
+    rejected:         'bg-red-100 text-red-700 border border-red-300',
 }
 
 // ─── PO number generator ──────────────────────────────────────────────────────
@@ -60,25 +62,28 @@ async function generateNextPOId(tag: string): Promise<string> {
 // ─── Summary cards ────────────────────────────────────────────────────────────
 
 function SummaryCards({ allPOs, filtered }: { allPOs: PurchaseOrder[]; filtered: PurchaseOrder[] }) {
+    const t          = useTranslations('purchase')
     const totalValue = filtered.reduce((s, p) => s + p.totalCost, 0)
     const draft      = allPOs.filter((p) => p.status === 'Draft').length
     const sent       = allPOs.filter((p) => p.status === 'Sent').length
 
     const cards = [
-        { label: 'Total POs',       value: String(allPOs.length),      icon: '📦', color: 'bg-blue-50 text-blue-700'  },
-        { label: 'Draft',           value: String(draft),              icon: '📝', color: 'bg-gray-100 text-gray-700' },
-        { label: 'Sent',            value: String(sent),               icon: '📤', color: 'bg-orange-50 text-orange-700' },
-        { label: 'Displayed Value', value: formatCurrency(totalValue), icon: '💰', color: 'bg-green-50 text-green-700' },
+        { label: t('summary.totalPos'),       value: String(allPOs.length),      icon: '📦', color: 'bg-blue-50 text-blue-700',     tip: t('summary.tips.totalPos') },
+        { label: t('summary.draft'),          value: String(draft),              icon: '📝', color: 'bg-gray-100 text-gray-700',   tip: t('summary.tips.draft') },
+        { label: t('summary.sent'),           value: String(sent),               icon: '📤', color: 'bg-orange-50 text-orange-700', tip: t('summary.tips.sent') },
+        { label: t('summary.displayedValue'), value: formatCurrency(totalValue), icon: '💰', color: 'bg-green-50 text-green-700',   tip: t('summary.tips.displayedValue') },
     ]
 
     return (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
             {cards.map((c) => (
-                <div key={c.label} className={`rounded-xl p-4 ${c.color}`}>
-                    <div className="text-xl mb-1">{c.icon}</div>
-                    <div className="text-xs font-medium opacity-70 mb-0.5">{c.label}</div>
-                    <div className="text-lg font-bold">{c.value}</div>
-                </div>
+                <Tip key={c.label} text={c.tip}>
+                    <div className={`rounded-xl p-4 cursor-default ${c.color}`}>
+                        <div className="text-xl mb-1">{c.icon}</div>
+                        <div className="text-xs font-medium opacity-70 mb-0.5">{c.label}</div>
+                        <div className="text-lg font-bold">{c.value}</div>
+                    </div>
+                </Tip>
             ))}
         </div>
     )
@@ -90,9 +95,203 @@ function poIdToRefNo(poId: string): string {
     return poId.replace(/^PO-/, 'REF-')
 }
 
+// ─── Financial summary ────────────────────────────────────────────────────────
+
+const OPEN_STATUSES = new Set(['Draft', 'Reviewed', 'Sent', 'Partial'])
+
+function FinancialMetrics({ dealershipId, allPOs }: { dealershipId: string; allPOs: PurchaseOrder[] }) {
+    const t = useTranslations('purchase')
+    const [claimsValue, setClaimsValue] = useState(0)
+    const [claimsCount, setClaimsCount] = useState(0)
+
+    useEffect(() => {
+        if (!dealershipId) return
+        supabase
+            .from('supplier_claims')
+            .select('claimed_amount')
+            .eq('dealership_id', dealershipId)
+            .in('status', ['open', 'submitted'])
+            .then(({ data }) => {
+                if (!data) return
+                setClaimsCount(data.length)
+                setClaimsValue(data.reduce((s, r) => s + (Number(r.claimed_amount) || 0), 0))
+            })
+    }, [dealershipId])
+
+    const thisMonthPrefix = new Date().toISOString().slice(0, 7) // "YYYY-MM"
+
+    const openPOs    = allPOs.filter(p => OPEN_STATUSES.has(p.status))
+    const monthlyPOs = allPOs.filter(p => p.status === 'Received' && p.date?.startsWith(thisMonthPrefix))
+
+    const openPoValue    = openPOs.reduce((s, p) => s + p.totalCost, 0)
+    const monthlySpend   = monthlyPOs.reduce((s, p) => s + p.totalCost, 0)
+
+    const cards = [
+        {
+            label:   t('metrics.openPoValue'),
+            sub:     t('metrics.openPoInProgress', { count: openPOs.length }),
+            value:   formatCurrency(openPoValue),
+            icon:    '📤',
+            bg:      'bg-orange-50',
+            border:  'border-orange-200',
+            text:    'text-orange-700',
+            subtext: 'text-orange-500',
+            tip:     t('metrics.tips.openPoValue'),
+        },
+        {
+            label:   t('metrics.thisMonthSpend'),
+            sub:     t('metrics.posReceived', { count: monthlyPOs.length }),
+            value:   formatCurrency(monthlySpend),
+            icon:    '📅',
+            bg:      'bg-green-50',
+            border:  'border-green-200',
+            text:    'text-green-700',
+            subtext: 'text-green-500',
+            tip:     t('metrics.tips.thisMonthSpend'),
+        },
+        {
+            label:   t('metrics.outstandingClaims'),
+            sub:     t('metrics.claimsOpen', { count: claimsCount }),
+            value:   formatCurrency(claimsValue),
+            icon:    '⚠️',
+            bg:      claimsCount ? 'bg-red-50'      : 'bg-gray-50',
+            border:  claimsCount ? 'border-red-200'  : 'border-gray-200',
+            text:    claimsCount ? 'text-red-700'    : 'text-gray-500',
+            subtext: claimsCount ? 'text-red-400'    : 'text-gray-400',
+            tip:     t('metrics.tips.outstandingClaims'),
+        },
+    ]
+
+    return (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 shrink-0">
+            {cards.map(c => (
+                <Tip key={c.label} text={c.tip}>
+                    <div className={`rounded-xl border ${c.border} ${c.bg} px-4 py-3 flex items-center gap-3 cursor-default`}>
+                        <span className="text-2xl shrink-0">{c.icon}</span>
+                        <div className="min-w-0">
+                            <p className={`text-[11px] font-semibold uppercase tracking-wide ${c.subtext}`}>{c.label}</p>
+                            <p className={`text-xl font-bold leading-tight ${c.text}`}>{c.value}</p>
+                            <p className={`text-[11px] ${c.subtext}`}>{c.sub}</p>
+                        </div>
+                    </div>
+                </Tip>
+            ))}
+        </div>
+    )
+}
+
+// ─── Supplier scorecard ───────────────────────────────────────────────────────
+
+type SupplierMetric = {
+    vendor_id:          number
+    vendor_name:        string
+    total_pos:          number
+    on_time_pct:        number | null
+    backorder_rate:     number | null
+    damage_rate:        number | null
+    avg_lead_time_days: number | null
+}
+
+function metricColor(value: number | null, thresholds: [number, number], invert = false): string {
+    if (value === null) return 'text-gray-400'
+    const [warn, bad] = thresholds
+    if (!invert) {
+        if (value >= warn) return 'text-green-600'
+        if (value >= bad)  return 'text-amber-500'
+        return 'text-red-500'
+    } else {
+        if (value <= warn) return 'text-green-600'
+        if (value <= bad)  return 'text-amber-500'
+        return 'text-red-500'
+    }
+}
+
+function SupplierScorecard({ dealershipId }: { dealershipId: string }) {
+    const t = useTranslations('purchase')
+    const [metrics, setMetrics]   = useState<SupplierMetric[]>([])
+    const [open,    setOpen]      = useState(false)
+    const [loading, setLoading]   = useState(false)
+
+    useEffect(() => {
+        if (!open || !dealershipId) return
+        setLoading(true)
+        supabase
+            .from('supplier_performance_mv')
+            .select('*')
+            .eq('dealership_id', dealershipId)
+            .then(({ data }) => {
+                setMetrics((data ?? []) as SupplierMetric[])
+                setLoading(false)
+            })
+    }, [open, dealershipId])
+
+    return (
+        <div className="shrink-0 mb-4 border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
+            <button
+                onClick={() => setOpen((v) => !v)}
+                className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+                <span className="flex items-center gap-2">
+                    <span>📊</span> {t('scorecard.title')}
+                    <span className="text-xs font-normal text-gray-400">{t('scorecard.period')}</span>
+                </span>
+                <span className="text-gray-400 text-xs">{open ? t('scorecard.hide') : t('scorecard.show')}</span>
+            </button>
+
+            {open && (
+                <div className="border-t border-gray-100 overflow-x-auto">
+                    {loading ? (
+                        <div className="flex items-center justify-center h-20 text-gray-400 text-sm">{t('scorecard.loading')}</div>
+                    ) : metrics.length === 0 ? (
+                        <div className="flex items-center justify-center h-20 text-gray-400 text-sm">
+                            {t('scorecard.noData')}
+                        </div>
+                    ) : (
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b border-gray-100 bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                                    <th className="text-left px-4 py-2 font-medium">{t('scorecard.cols.supplier')}</th>
+                                    <th className="text-center px-4 py-2 font-medium">{t('scorecard.cols.pos')}</th>
+                                    <th className="text-center px-4 py-2 font-medium">{t('scorecard.cols.onTime')}</th>
+                                    <th className="text-center px-4 py-2 font-medium">{t('scorecard.cols.backorder')}</th>
+                                    <th className="text-center px-4 py-2 font-medium">{t('scorecard.cols.damage')}</th>
+                                    <th className="text-center px-4 py-2 font-medium">{t('scorecard.cols.leadTime')}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {metrics.map((m) => (
+                                    <tr key={m.vendor_id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                                        <td className="px-4 py-2.5 font-medium text-gray-800 truncate max-w-[180px]">
+                                            {m.vendor_name}
+                                        </td>
+                                        <td className="px-4 py-2.5 text-center text-gray-500">{m.total_pos}</td>
+                                        <td className={`px-4 py-2.5 text-center font-semibold ${metricColor(m.on_time_pct, [90, 70])}`}>
+                                            {m.on_time_pct !== null ? `${m.on_time_pct}%` : '—'}
+                                        </td>
+                                        <td className={`px-4 py-2.5 text-center font-semibold ${metricColor(m.backorder_rate, [5, 15], true)}`}>
+                                            {m.backorder_rate !== null ? `${m.backorder_rate}%` : '—'}
+                                        </td>
+                                        <td className={`px-4 py-2.5 text-center font-semibold ${metricColor(m.damage_rate, [1, 5], true)}`}>
+                                            {m.damage_rate !== null ? `${m.damage_rate}%` : '—'}
+                                        </td>
+                                        <td className="px-4 py-2.5 text-center text-gray-600">
+                                            {m.avg_lead_time_days !== null ? `${m.avg_lead_time_days}d` : '—'}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+            )}
+        </div>
+    )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function PurchasePage() {
+    const t = useTranslations('purchase')
     const { lowStockAlerts, motorcycles, spareParts, accessories } = useInventory()
 
     const [activeStatus,      setActiveStatus]      = useState<POStatus | 'All'>('All')
@@ -117,6 +316,7 @@ export default function PurchasePage() {
         async function loadHistoricalPOs() {
             const dealershipId = getDealershipId()
             if (!dealershipId) return
+            setDealershipId(dealershipId)
             const { data: orders } = await supabase.from('purchase_orders').select('*').eq('dealership_id', dealershipId)
             // po_line_items are scoped via po_id FK; fetch only items for this dealer's POs
             const poIds = (orders ?? []).map((o) => o.id)
@@ -630,6 +830,7 @@ export default function PurchasePage() {
             .map(({ id, name, articleNumber, cost, size }) => ({ id, name, articleNumber, cost, size }))
     }, [selectedPO, allInventoryItems])
 
+    const [dealershipId, setDealershipId] = useState('')
     const [nextPOId, setNextPOId] = useState('')
     useEffect(() => {
         const id = getDealershipId()
@@ -637,18 +838,38 @@ export default function PurchasePage() {
         if (!id) return
         generateNextPOId(tag).then(setNextPOId)
     }, [historicalPOs, userPOs])
+    const TAB_TIPS: Record<string, string> = {
+        All:      t('tabs.tips.all'),
+        Draft:    t('tabs.tips.draft'),
+        Reviewed: t('tabs.tips.reviewed'),
+        Sent:     t('tabs.tips.sent'),
+        Received: t('tabs.tips.received'),
+    }
+    const statusLabel = (s: POStatus | 'All') => ({
+        All:      t('tabs.all'),
+        Draft:    t('status.draft'),
+        Reviewed: t('status.reviewed'),
+        Sent:     t('status.sent'),
+        Received: t('status.received'),
+    }[s] ?? s)
+    const approvalLabel: Record<POApprovalStatus, string> = {
+        pending_approval: t('approval.pendingApproval'),
+        approved:         t('approval.approved'),
+        rejected:         t('approval.rejected'),
+    }
+
     const tabs: (POStatus | 'All')[] = ['All', ...ALL_STATUSES]
 
     const poCols = useMemo<ColDef<PurchaseOrder>[]>(() => [
         {
-            label: 'PO Number',
+            label: t('cols.poNumber'),
             defaultWidth: 170,
             cell: po => (
                 <span className="font-mono text-sm font-semibold text-gray-800">{po.id}</span>
             ),
         },
         {
-            label: 'Ref No.',
+            label: t('cols.refNo'),
             defaultWidth: 170,
             cell: po => {
                 const ref = po.refNo ?? poIdToRefNo(po.id)
@@ -660,26 +881,26 @@ export default function PurchasePage() {
             },
         },
         {
-            label: 'Vendor',
+            label: t('cols.vendor'),
             defaultWidth: 180,
             cell: po => <span className="text-gray-700 text-sm truncate block">{po.vendor}</span>,
         },
         {
-            label: 'Date',
+            label: t('cols.date'),
             defaultWidth: 110,
             cell: po => <span className="text-gray-500 text-sm">{po.date}</span>,
         },
         {
-            label: 'Items',
+            label: t('cols.items'),
             defaultWidth: 100,
             cell: po => (
                 <span className="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full font-medium">
-                    {po.items.length} item{po.items.length !== 1 ? 's' : ''}
+                    {t('items', { count: po.items.length })}
                 </span>
             ),
         },
         {
-            label: 'Total Cost',
+            label: t('cols.totalCost'),
             defaultWidth: 130,
             cell: po => {
                 const effTotal = po.items.reduce((sum, li) => {
@@ -690,12 +911,12 @@ export default function PurchasePage() {
             },
         },
         {
-            label: 'ETA',
+            label: t('cols.eta'),
             defaultWidth: 110,
             cell: po => <span className="text-gray-500 text-sm">{po.eta}</span>,
         },
         {
-            label: 'Status',
+            label: t('cols.status'),
             defaultWidth: 160,
             cell: po => {
                 const displayStatus = poStatusOverrides[po.id] ?? po.status
@@ -711,19 +932,19 @@ export default function PurchasePage() {
                         </span>
                         {needsChaser && (
                             <span className="inline-flex items-center text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full animate-pulse">
-                                ⚠ Follow up — {chaserDays}d
+                                {t('status.followUp', { days: chaserDays })}
                             </span>
                         )}
                         {approvalSt && (
-                            <span className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full ${APPROVAL_STYLE[approvalSt].badge}`}>
-                                {APPROVAL_STYLE[approvalSt].label}
+                            <span className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full ${APPROVAL_BADGE[approvalSt]}`}>
+                                {approvalLabel[approvalSt]}
                             </span>
                         )}
                     </div>
                 )
             },
         },
-    ], [qtyOverrides, poStatusOverrides])
+    ], [qtyOverrides, poStatusOverrides, t, approvalLabel])
 
     const poDefaultWidths = useMemo(() => poCols.map(c => c.defaultWidth), [poCols])
 
@@ -733,12 +954,12 @@ export default function PurchasePage() {
         <div className="lg:ml-64 h-screen overflow-hidden flex flex-col bg-white w-full">
             {/* Top bar */}
             <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 shrink-0">
-                <span className="text-sm text-gray-500 font-medium">Purchase Orders</span>
+                <span className="text-sm text-gray-500 font-medium">{t('topbar.title')}</span>
                 <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
                     <input
                         type="text"
-                        placeholder="Search PO, vendor, item..."
+                        placeholder={t('topbar.searchPlaceholder')}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="pl-8 pr-4 py-1.5 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-400 w-60"
@@ -747,25 +968,23 @@ export default function PurchasePage() {
             </div>
 
             {/* Page body */}
-            <div className="flex-1 min-h-0 p-6 flex flex-col overflow-y-auto">
+            <div className="flex-1 overflow-y-auto p-6">
                 {/* Page header */}
                 <div className="flex items-start justify-between mb-5 shrink-0 gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Procurement</h1>
-                        <p className="text-sm text-gray-400 mt-0.5">
-                            Low stock alert → Create PO → system assigns Ref No. → use Ref No. on supplier portal.
-                        </p>
+                        <h1 className="text-2xl font-bold text-gray-900">{t('page.title')}</h1>
+                        <p className="text-sm text-gray-400 mt-0.5">{t('page.description')}</p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                         {/* Supplier filter — applies to both alerts and PO table */}
                         <div className="flex items-center gap-1.5">
-                            <span className="text-xs text-gray-500 font-medium whitespace-nowrap">Filter supplier:</span>
+                            <span className="text-xs text-gray-500 font-medium whitespace-nowrap">{t('filter.label')}</span>
                             <select
                                 value={supplierFilter}
                                 onChange={e => setSupplierFilter(e.target.value)}
                                 className="text-sm border border-gray-200 rounded-lg bg-gray-50 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-400"
                             >
-                                <option value="">All suppliers</option>
+                                <option value="">{t('filter.allSuppliers')}</option>
                                 {[...new Set([
                                     ...allPOs.map(p => p.vendor),
                                     ...dealerSuppliers,
@@ -774,17 +993,23 @@ export default function PurchasePage() {
                                 ))}
                             </select>
                         </div>
+                        <Link
+                            href="/purchase/daily"
+                            className="bg-white hover:bg-amber-50 border border-amber-200 text-amber-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+                        >
+                            {t('buttons.dailyActions')}
+                        </Link>
                         <button
                             onClick={() => setShowImportPO(true)}
                             className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
                         >
-                            ⬆ Import Excel
+                            {t('buttons.importExcel')}
                         </button>
                         <button
                             onClick={() => setShowCreatePO(true)}
                             className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
                         >
-                            + Create PO
+                            {t('buttons.createPo')}
                         </button>
                     </div>
                 </div>
@@ -799,64 +1024,67 @@ export default function PurchasePage() {
                             <span className="text-lg">⚠</span>
                             <div>
                                 <span className="text-sm font-semibold text-amber-800">
-                                    {lowStockAlerts.length} item{lowStockAlerts.length !== 1 ? 's' : ''} below reorder level
+                                    {t('lowStock.alert', { count: lowStockAlerts.length })}
                                 </span>
                                 <span className="text-xs text-amber-600 ml-2 hidden sm:inline">
-                                    — click to view and create POs
+                                    {t('lowStock.hint')}
                                 </span>
                             </div>
                         </div>
                         <span className="text-amber-600 text-sm font-medium group-hover:translate-x-0.5 transition-transform shrink-0">
-                            View Low Stock →
+                            {t('lowStock.viewButton')}
                         </span>
                     </Link>
                 )}
 
                 <div className="shrink-0"><SummaryCards allPOs={allPOsResolved} filtered={filtered} /></div>
+                {dealershipId && <FinancialMetrics dealershipId={dealershipId} allPOs={allPOsResolved} />}
+                {dealershipId && <SupplierScorecard dealershipId={dealershipId} />}
 
                 {/* Status tabs */}
                 <div className="flex gap-1 overflow-x-auto mb-4 pb-1 shrink-0">
                     {tabs.map((tab) => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveStatus(tab)}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                                activeStatus === tab
-                                    ? 'bg-orange-500 text-white'
-                                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                            }`}
-                        >
-                            {tab}
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
-                                activeStatus === tab ? 'bg-white/25 text-white' : 'bg-gray-200 text-gray-500'
-                            }`}>
-                                {statusCounts[tab] ?? 0}
-                            </span>
-                        </button>
+                        <Tip key={tab} text={TAB_TIPS[tab]}>
+                            <button
+                                onClick={() => setActiveStatus(tab)}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                                    activeStatus === tab
+                                        ? 'bg-orange-500 text-white'
+                                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                                }`}
+                            >
+                                {statusLabel(tab)}
+                                <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
+                                    activeStatus === tab ? 'bg-white/25 text-white' : 'bg-gray-200 text-gray-500'
+                                }`}>
+                                    {statusCounts[tab] ?? 0}
+                                </span>
+                            </button>
+                        </Tip>
                     ))}
                 </div>
 
                 {/* PO table */}
-                <div className="table-scroll bg-white rounded-xl border border-gray-200 shadow-sm overflow-auto flex-1 min-h-0">
+                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-x-auto">
                     {filtered.length === 0 ? (
                         allPOs.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-64 gap-4">
                                 <span className="text-5xl">📦</span>
                                 <div className="text-center">
-                                    <p className="text-gray-700 font-semibold">No purchase orders yet</p>
-                                    <p className="text-gray-400 text-sm mt-1">Import from Excel or create a PO manually</p>
+                                    <p className="text-gray-700 font-semibold">{t('empty.title')}</p>
+                                    <p className="text-gray-400 text-sm mt-1">{t('empty.description')}</p>
                                 </div>
                                 <button
                                     onClick={() => setShowImportPO(true)}
                                     className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors flex items-center gap-2"
                                 >
-                                    ⬆ Import from Excel
+                                    {t('empty.importButton')}
                                 </button>
                             </div>
                         ) : (
                             <div className="flex flex-col items-center justify-center h-40 text-gray-400">
                                 <span className="text-3xl mb-2">📭</span>
-                                <p className="text-sm">No purchase orders match your filter</p>
+                                <p className="text-sm">{t('empty.filtered')}</p>
                             </div>
                         )
                     ) : (

@@ -10,6 +10,7 @@ import Sidebar from '@/components/Sidebar';
 import CustomerImportModal from '@/components/CustomerImportModal';
 import { getCustomers, deleteCustomers, type Customer, type Tag } from '@/lib/customers';
 import { useAutoRefresh } from '@/lib/realtime';
+import { Tip } from '@/components/Tip';
 
 type Tab = 'all' | 'active' | 'vip' | 'bankid' | 'inactive';
 
@@ -218,53 +219,61 @@ export default function CustomersPage() {
 
           {/* KPI cards */}
           <div className="px-6 md:px-10 pb-5 grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="bg-[#f5f7fa] rounded-2xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('stats.totalCustomers')}</span>
-                <span className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-base">👥</span>
-              </div>
-              <div className="text-2xl font-bold text-slate-900">{customers.length}</div>
-              <div className="text-xs text-slate-400 mt-1">{totalValue > 0 ? `${(totalValue / 1000).toFixed(0)}k kr totalt värde` : 'Inga köp ännu'}</div>
-            </div>
-
-            <div className="bg-[#f5f7fa] rounded-2xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('stats.bankidVerified')}</span>
-                <span className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-base">🔐</span>
-              </div>
-              <div className="text-2xl font-bold text-[#235971]">{bankidCount}</div>
-              <div className="flex items-center gap-1.5 mt-1.5">
-                <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#235971] rounded-full" style={{ width: `${bankidPct}%` }} />
+            <Tip text="Total number of customers registered in the system.">
+              <div className="bg-[#f5f7fa] rounded-2xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('stats.totalCustomers')}</span>
+                  <span className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-base">👥</span>
                 </div>
-                <span className="text-xs text-slate-400 shrink-0">{bankidPct}%</span>
+                <div className="text-2xl font-bold text-slate-900">{customers.length}</div>
+                <div className="text-xs text-slate-400 mt-1">{totalValue > 0 ? `${(totalValue / 1000).toFixed(0)}k kr totalt värde` : 'Inga köp ännu'}</div>
               </div>
-            </div>
+            </Tip>
 
-            <div className="bg-[#f5f7fa] rounded-2xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('stats.protected')}</span>
-                <span className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-base">🛡️</span>
-              </div>
-              <div className="text-2xl font-bold text-amber-600">{protectedCount}</div>
-              <div className="text-xs text-slate-400 mt-1">Sekretessmarkerade</div>
-            </div>
-
-            <div className="bg-[#f5f7fa] rounded-2xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('stats.unverified')}</span>
-                <span className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-base">⚠️</span>
-              </div>
-              <div className="text-2xl font-bold text-[#FF6B2C]">{unverifiedCount}</div>
-              <div className="flex items-center gap-1.5 mt-1.5">
-                <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#FF6B2C] rounded-full" style={{ width: customers.length > 0 ? `${Math.round((unverifiedCount / customers.length) * 100)}%` : '0%' }} />
+            <Tip text="Customers with identity confirmed via BankID authentication.">
+              <div className="bg-[#f5f7fa] rounded-2xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('stats.bankidVerified')}</span>
+                  <span className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-base">🔐</span>
                 </div>
-                <span className="text-xs text-slate-400 shrink-0">
-                  {customers.length > 0 ? `${Math.round((unverifiedCount / customers.length) * 100)}%` : '—'}
-                </span>
+                <div className="text-2xl font-bold text-[#235971]">{bankidCount}</div>
+                <div className="flex items-center gap-1.5 mt-1.5">
+                  <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-[#235971] rounded-full" style={{ width: `${bankidPct}%` }} />
+                  </div>
+                  <span className="text-xs text-slate-400 shrink-0">{bankidPct}%</span>
+                </div>
               </div>
-            </div>
+            </Tip>
+
+            <Tip text="Customers flagged with a protected identity or confidentiality marker.">
+              <div className="bg-[#f5f7fa] rounded-2xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('stats.protected')}</span>
+                  <span className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-base">🛡️</span>
+                </div>
+                <div className="text-2xl font-bold text-amber-600">{protectedCount}</div>
+                <div className="text-xs text-slate-400 mt-1">Sekretessmarkerade</div>
+              </div>
+            </Tip>
+
+            <Tip text="Customers not yet verified with BankID — may need follow-up.">
+              <div className="bg-[#f5f7fa] rounded-2xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('stats.unverified')}</span>
+                  <span className="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-base">⚠️</span>
+                </div>
+                <div className="text-2xl font-bold text-[#FF6B2C]">{unverifiedCount}</div>
+                <div className="flex items-center gap-1.5 mt-1.5">
+                  <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-[#FF6B2C] rounded-full" style={{ width: customers.length > 0 ? `${Math.round((unverifiedCount / customers.length) * 100)}%` : '0%' }} />
+                  </div>
+                  <span className="text-xs text-slate-400 shrink-0">
+                    {customers.length > 0 ? `${Math.round((unverifiedCount / customers.length) * 100)}%` : '—'}
+                  </span>
+                </div>
+              </div>
+            </Tip>
           </div>
         </div>{/* end header */}
 
@@ -276,22 +285,29 @@ export default function CustomersPage() {
             {/* Tabs */}
             <div className="flex items-center border-b border-slate-100 px-2">
               {TABS.map(tabItem => (
-                <button
-                  key={tabItem.id}
-                  onClick={() => { setTab(tabItem.id); setSelected(new Set()); }}
-                  className={`px-4 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                    tab === tabItem.id
-                      ? 'border-[#FF6B2C] text-[#FF6B2C]'
-                      : 'border-transparent text-slate-500 hover:text-slate-700'
-                  }`}
-                >
-                  {tabItem.label}
-                  <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full font-bold ${
-                    tab === tabItem.id ? 'bg-[#FF6B2C]/10 text-[#FF6B2C]' : 'bg-slate-100 text-slate-500'
-                  }`}>
-                    {tabItem.count}
-                  </span>
-                </button>
+                <Tip key={tabItem.id} text={
+                  tabItem.id === 'all'      ? 'Show all customers in the system.' :
+                  tabItem.id === 'active'   ? 'Show only active and VIP customers.' :
+                  tabItem.id === 'vip'      ? 'Show only top-tier VIP customers.' :
+                  tabItem.id === 'bankid'   ? 'Show customers verified with BankID.' :
+                                             'Show inactive customers with no recent activity.'
+                }>
+                  <button
+                    onClick={() => { setTab(tabItem.id); setSelected(new Set()); }}
+                    className={`px-4 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                      tab === tabItem.id
+                        ? 'border-[#FF6B2C] text-[#FF6B2C]'
+                        : 'border-transparent text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    {tabItem.label}
+                    <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full font-bold ${
+                      tab === tabItem.id ? 'bg-[#FF6B2C]/10 text-[#FF6B2C]' : 'bg-slate-100 text-slate-500'
+                    }`}>
+                      {tabItem.count}
+                    </span>
+                  </button>
+                </Tip>
               ))}
             </div>
 

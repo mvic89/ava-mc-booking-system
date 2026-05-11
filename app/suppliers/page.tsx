@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { ReorderableTable, type ColDef } from '@/components/ResizableTable'
 import { useInventory }  from '@/context/InventoryContext'
 import { historicalPOs } from '@/data/purchaseOrders'
@@ -13,6 +14,7 @@ import { POLineItem, POStatus, PurchaseOrder } from '@/utils/types'
 import { supabase } from '@/lib/supabase'
 import { getDealershipId, getDealershipTag, tagFromName } from '@/lib/tenant'
 import Sidebar from '@/components/Sidebar'
+import { Tip } from '@/components/Tip'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -34,25 +36,28 @@ function supNum(existingNumbers: string[], dealershipId: string | null, dbName?:
 // ─── Summary cards ────────────────────────────────────────────────────────────
 
 function SummaryCards({ suppliers }: { suppliers: SupplierRow[] }) {
+    const t = useTranslations('suppliers')
     const withDetails  = suppliers.filter((s) => s.hasDetails).length
     const withLowStock = suppliers.filter((s) => s.lowStockCount > 0).length
     const totalSKUs    = suppliers.reduce((sum, s) => sum + s.itemCount, 0)
 
     const cards = [
-        { label: 'Total Suppliers',      value: suppliers.length, icon: '🏭', color: 'bg-blue-50 text-blue-700'    },
-        { label: 'With Contact Details', value: withDetails,      icon: '📋', color: 'bg-green-50 text-green-700'  },
-        { label: 'Low Stock Alerts',     value: withLowStock,     icon: '⚠️', color: 'bg-amber-50 text-amber-700'  },
-        { label: 'Total SKUs Supplied',  value: totalSKUs,        icon: '📦', color: 'bg-orange-50 text-orange-700' },
+        { label: t('stats.total'),       value: suppliers.length, icon: '🏭', color: 'bg-blue-50 text-blue-700',    tip: t('stats.totalTip')       },
+        { label: t('stats.withContact'), value: withDetails,      icon: '📋', color: 'bg-green-50 text-green-700',  tip: t('stats.withContactTip') },
+        { label: t('stats.lowStock'),    value: withLowStock,     icon: '⚠️', color: 'bg-amber-50 text-amber-700',  tip: t('stats.lowStockTip')    },
+        { label: t('stats.totalSkus'),   value: totalSKUs,        icon: '📦', color: 'bg-orange-50 text-orange-700', tip: t('stats.totalSkusTip')  },
     ]
 
     return (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {cards.map((c) => (
-                <div key={c.label} className={`rounded-xl p-4 ${c.color}`}>
-                    <div className="text-xl mb-1">{c.icon}</div>
-                    <div className="text-xs font-medium opacity-70 mb-0.5">{c.label}</div>
-                    <div className="text-lg font-bold">{c.value}</div>
-                </div>
+                <Tip key={c.label} text={c.tip}>
+                    <div className={`rounded-xl p-4 ${c.color}`}>
+                        <div className="text-xl mb-1">{c.icon}</div>
+                        <div className="text-xs font-medium opacity-70 mb-0.5">{c.label}</div>
+                        <div className="text-lg font-bold">{c.value}</div>
+                    </div>
+                </Tip>
             ))}
         </div>
     )
@@ -70,6 +75,7 @@ function SupplierPOListModal({
     onSelectPO: (po: PurchaseOrder) => void
     onClose:    () => void
 }) {
+    const t = useTranslations('suppliers')
     const sorted = [...pos].sort((a, b) => {
         const ai = STATUS_ORDER.indexOf(a.status)
         const bi = STATUS_ORDER.indexOf(b.status)
@@ -88,7 +94,7 @@ function SupplierPOListModal({
                 <div className="flex items-start justify-between px-7 pt-6 pb-4 border-b border-gray-100 shrink-0">
                     <div>
                         <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-1">
-                            Purchase Orders
+                            {t('poModal.title')}
                         </p>
                         <h2 className="text-xl font-bold text-gray-900">{supplier.name}</h2>
                         <span className="text-xs font-mono text-orange-600">{supplier.supplierNumber}</span>
@@ -103,13 +109,13 @@ function SupplierPOListModal({
 
                 <div className="flex-1 overflow-y-auto px-7 py-5">
                     <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-3">
-                        {pos.length} PO{pos.length !== 1 ? 's' : ''} found
+                        {t('poModal.found', { n: pos.length, s: pos.length !== 1 ? 's' : '' })}
                     </p>
 
                     {sorted.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-32 text-gray-400">
                             <span className="text-3xl mb-2">📭</span>
-                            <p className="text-sm">No purchase orders for this supplier</p>
+                            <p className="text-sm">{t('poModal.noPo')}</p>
                         </div>
                     ) : (
                         <div className="space-y-2">
@@ -153,7 +159,7 @@ function SupplierPOListModal({
                         onClick={onClose}
                         className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg transition-colors"
                     >
-                        Close
+                        {t('poModal.close')}
                     </button>
                 </div>
             </div>
@@ -164,6 +170,7 @@ function SupplierPOListModal({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function SuppliersPage() {
+    const t = useTranslations('suppliers')
     const { motorcycles, spareParts, accessories } = useInventory()
     // SKU counts per supplier (computed from inventory, not used to auto-generate rows)
     const inventoryItems = useMemo(
@@ -407,7 +414,7 @@ export default function SuppliersPage() {
 
     const supplierCols = useMemo<ColDef<SupplierRow>[]>(() => [
         {
-            label: 'Supplier No.',
+            label: t('cols.no'),
             defaultWidth: 140,
             cell: s => (
                 <span className="font-mono text-xs font-semibold text-orange-600 bg-orange-50 border border-orange-100 px-2 py-0.5 rounded">
@@ -416,7 +423,7 @@ export default function SuppliersPage() {
             ),
         },
         {
-            label: 'Supplier Name',
+            label: t('cols.name'),
             defaultWidth: 200,
             cell: s => {
                 const poCount = allPOs.filter(po => po.vendor === s.name).length
@@ -440,22 +447,22 @@ export default function SuppliersPage() {
             },
         },
         {
-            label: 'Address',
+            label: t('cols.address'),
             defaultWidth: 200,
             cell: s => <span title={s.address} className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{s.address}</span>,
         },
         {
-            label: 'Phone',
+            label: t('cols.phone'),
             defaultWidth: 130,
             cell: s => <span className="text-sm text-gray-600 whitespace-nowrap">{s.phone}</span>,
         },
         {
-            label: 'Org Number',
+            label: t('cols.orgNo'),
             defaultWidth: 130,
             cell: s => <span className="font-mono text-xs text-gray-500 whitespace-nowrap">{s.orgNumber}</span>,
         },
         {
-            label: 'SKUs',
+            label: t('cols.skus'),
             defaultWidth: 80,
             tdClass: 'text-center',
             cell: s => (
@@ -463,7 +470,7 @@ export default function SuppliersPage() {
             ),
         },
         {
-            label: 'Categories',
+            label: t('cols.categories'),
             defaultWidth: 180,
             cell: s => (
                 <div className="flex flex-wrap gap-1">
@@ -476,26 +483,26 @@ export default function SuppliersPage() {
             ),
         },
         {
-            label: 'Stock Status',
+            label: t('cols.status'),
             defaultWidth: 150,
             cell: s => s.itemCount === 0 ? (
                 <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-400 text-xs px-2.5 py-1 rounded-full font-medium">
                     <span className="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0" />
-                    No inventory
+                    {t('stock.noInventory')}
                 </span>
             ) : s.lowStockCount > 0 ? (
                 <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-medium">
                     <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-                    {s.lowStockCount} low stock
+                    {t('stock.lowStock', { n: s.lowStockCount })}
                 </span>
             ) : (
                 <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-xs px-2.5 py-1 rounded-full font-medium">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-                    All stocked
+                    {t('stock.allStocked')}
                 </span>
             ),
         },
-    ], [allPOs])
+    ], [allPOs, t])
 
     const supplierDefaultWidths = useMemo(() => supplierCols.map(c => c.defaultWidth), [supplierCols])
 
@@ -505,12 +512,12 @@ export default function SuppliersPage() {
         <div className="lg:ml-64 h-screen overflow-hidden flex flex-col bg-white w-full">
             {/* Top bar */}
             <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 shrink-0">
-                <span className="text-sm text-gray-500 font-medium">Suppliers</span>
+                <span className="text-sm text-gray-500 font-medium">{t('title')}</span>
                 <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
                     <input
                         type="text"
-                        placeholder="Search supplier, category..."
+                        placeholder={t('search')}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="pl-8 pr-4 py-1.5 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-400 w-64"
@@ -522,23 +529,21 @@ export default function SuppliersPage() {
             <div className="flex-1 min-h-0 p-6 flex flex-col">
                 <div className="flex items-center justify-between mb-5 shrink-0">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Suppliers</h1>
-                        <p className="text-sm text-gray-400 mt-0.5">
-                            Click any row to view or edit supplier details.
-                        </p>
+                        <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
+                        <p className="text-sm text-gray-400 mt-0.5">{t('subtitle')}</p>
                     </div>
                     <div className="flex gap-2">
                         <button
                             onClick={() => setShowImportModal(true)}
                             className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
                         >
-                            ⬆ Import Excel
+                            {t('importBtn')}
                         </button>
                         <button
                             onClick={() => setShowAddSupplier(true)}
                             className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
                         >
-                            + Add Supplier
+                            {t('addBtn')}
                         </button>
                     </div>
                 </div>
