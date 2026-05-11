@@ -1,15 +1,12 @@
 // POST /api/webhooks/inbound/test
-// Simulates a Postmark inbound customer reply without needing real email infrastructure.
-// Usage: POST with { dealershipId, leadId, senderEmail, senderName?, body?, subject? }
-// This calls the main inbound webhook internally with a synthetic Postmark payload.
+// Directly simulates a customer reply without going through Postmark.
+// Works both locally and in production for manual testing.
+// Usage: POST { dealershipId, leadId, senderEmail, senderName?, body?, subject? }
 
 import { NextRequest, NextResponse } from 'next/server'
+import { getSupabaseAdmin } from '@/lib/supabase'
 
 export async function POST(req: NextRequest) {
-    if (process.env.NODE_ENV === 'production') {
-        return NextResponse.json({ error: 'Test endpoint disabled in production' }, { status: 403 })
-    }
-
     const body = await req.json() as {
         dealershipId: string
         leadId:       number | string
@@ -23,31 +20,48 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Missing dealershipId, leadId, or senderEmail' }, { status: 400 })
     }
 
-    const REPLY_DOMAIN = process.env.POSTMARK_INBOUND_DOMAIN ?? 'inbound.bikeme.now'
-    const inboundAddress = `reply+${body.dealershipId}_l_${body.leadId}@${REPLY_DOMAIN}`
+    const db         = getSupabaseAdmin()
+    const leadId     = Number(body.leadId)
+    const replyBody  = body.body ?? 'Test reply from customer.'
 
-    // Build a synthetic Postmark inbound payload
-    const syntheticPayload = {
-        From:               `"${body.senderName ?? body.senderEmail}" <${body.senderEmail}>`,
-        To:                 inboundAddress,
-        OriginalRecipient:  inboundAddress,
-        MailboxHash:        `${body.dealershipId}_l_${body.leadId}`,
-        Subject:            body.subject ?? 'Re: Message from dealer',
-        TextBody:           body.body    ?? 'Test reply from customer.',
-        HtmlBody:           `<p>${body.body ?? 'Test reply from customer.'}</p>`,
-        StrippedTextReply:  body.body    ?? 'Test reply from customer.',
-        Attachments:        [],
+    // Resolve lead name
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: lead } = await (db as any)
+        .from('leads')
+        .select('name')
+        .eq('id', leadId)
+        .maybeSingle()
+
+    const leadName = lead?.name ?? null
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: comm, error } = await (db as any)
+        .from('communications')
+        .insert({
+            dealership_id:   body.dealershipId,
+            lead_id:         leadId,
+            channel:         'email',
+            direction:       'inbound',
+            subject:         body.subject ?? 'Re: Message from dealer',
+            body:            replyBody,
+            status:          'received',
+            recipient_email: body.senderEmail,
+            recipient_name:  leadName ?? body.senderName ?? body.senderEmail,
+            sent_by:         body.senderEmail,
+        })
+        .select('id')
+        .single()
+
+    if (error) {
+        console.error('[inbound/test] DB insert failed:', error)
+        return NextResponse.json({ ok: false, error: error.message, hint: error.hint }, { status: 500 })
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL
-        || (req.headers.get('host') ? `https://${req.headers.get('host')}` : 'http://localhost:3000')
-
-    const res = await fetch(`${baseUrl}/api/webhooks/inbound`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(syntheticPayload),
+    return NextResponse.json({
+        ok:          true,
+        comm_id:     comm?.id,
+        lead_name:   leadName,
+        routed_to:   'customer-reply (test)',
+        note:        'Check Supabase communications table for the new inbound row',
     })
-
-    const result = await res.json().catch(() => ({}))
-    return NextResponse.json({ simulated: true, webhook_status: res.status, ...result })
 }
