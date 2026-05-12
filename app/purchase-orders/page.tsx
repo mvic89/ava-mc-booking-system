@@ -11,7 +11,7 @@ import { useAutoRefresh } from '@/lib/realtime';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type POStatus = 'Draft' | 'Ordered' | 'Partial' | 'Reviewed' | 'Cancelled';
+type POStatus = 'Draft' | 'Ordered' | 'Partial' | 'Reviewed' | 'Cancelled' | 'Received';
 
 interface POItem {
   id:                 number;
@@ -62,6 +62,7 @@ const STATUS_BADGE: Record<POStatus, { badge: string; dot: string }> = {
   Partial:   { badge: 'bg-amber-100 text-amber-700',   dot: 'bg-amber-500' },
   Reviewed:  { badge: 'bg-green-100 text-green-700',   dot: 'bg-green-500' },
   Cancelled: { badge: 'bg-red-100 text-red-600',       dot: 'bg-red-400' },
+  Received:  { badge: 'bg-green-100 text-green-700',   dot: 'bg-green-500' },
 };
 
 const STEPS: POStatus[] = ['Draft', 'Ordered', 'Partial', 'Reviewed'];
@@ -270,7 +271,7 @@ function ReceiveGoodsModal({ po, onClose, onReceived, t }: {
                 className="px-5 py-2 text-sm font-bold text-white rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 transition-colors">
                 {saving
                   ? t('purchaseOrders.receive.saving')
-                  : t('purchaseOrders.receive.confirmBtn').replace('{n}', String(checked.size))}
+                  : t('purchaseOrders.receive.confirmBtn', { n: checked.size })}
               </button>
             </div>
           </>
@@ -369,7 +370,7 @@ function PORow({ po, dealershipId, onRefresh, t }: {
         {/* Items count */}
         <td className="px-4 py-3">
           <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-medium">
-            {t('purchaseOrders.itemsReceived').replace('{r}', String(receivedCnt)).replace('{t}', String(items.length))}
+            {t('purchaseOrders.itemsReceived', { r: receivedCnt, total: items.length })}
           </span>
         </td>
 

@@ -33,9 +33,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'dealershipId, vendor, and items are required' }, { status: 400 });
     }
 
-    // Compute total
+    // Compute total (frontend sends camelCase unitCost)
     const totalCost = items.reduce(
-      (sum: number, it: { quantity: number; unit_cost: number }) => sum + it.quantity * it.unit_cost,
+      (sum: number, it: { quantity: number; unitCost: number }) => sum + it.quantity * (it.unitCost ?? 0),
       0,
     );
 

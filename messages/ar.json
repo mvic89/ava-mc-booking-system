@@ -2263,7 +2263,8 @@
         "Ordered": "مطلوب",
         "Partial": "مستلم جزئياً",
         "Reviewed": "مستلم",
-        "Cancelled": "ملغى"
+        "Cancelled": "ملغى",
+        "Received": "مستلمة"
       },
       "table": {
         "order": "أمر الشراء / أمر العمل",
@@ -2373,7 +2374,7 @@
       },
       "noItems": "لا توجد مقالات مسجلة",
       "notesLabel": "ملاحظة:",
-      "itemsReceived": "{r}/{t} مستلم"
+      "itemsReceived": "{r}/{total} مستلم"
     },
     "payment": {
       "loading": "جارٍ تحميل الفاتورة...",
@@ -4122,28 +4123,52 @@
     "allClearHint": "لا توجد إجراءات معلقة. تحقق غداً.",
     "noVendor": "لا يوجد مورد",
     "summary": {
-      "totalActions":    "إجمالي الإجراءات",
-      "urgent":          "عاجل",
+      "totalActions": "إجمالي الإجراءات",
+      "urgent": "عاجل",
       "pendingApproval": "في انتظار الموافقة",
-      "lowStock":        "مخزون منخفض"
+      "lowStock": "مخزون منخفض"
     },
     "sections": {
-      "followUp":        { "title": "متابعة الآن",                  "empty": "لا توجد طلبات تحتاج متابعة." },
-      "etaOverdue":      { "title": "تأخر موعد الوصول",             "empty": "لا يوجد تأخير في مواعيد الوصول." },
-      "arrivingToday":   { "title": "يصل اليوم",                    "empty": "لا يوجد شيء يصل اليوم." },
-      "pendingApproval": { "title": "في انتظار موافقة أمر الشراء",  "empty": "لا توجد طلبات في انتظار الموافقة." },
-      "receiptsApprove": { "title": "إيصالات بضاعة للموافقة",       "empty": "لا توجد إيصالات في انتظار الموافقة." },
-      "overdueInvoices": { "title": "فواتير متأخرة",                "empty": "لا توجد فواتير متأخرة." },
-      "partialOrders":   { "title": "طلبات جزئية",                  "empty": "لا توجد طلبات جزئية." },
-      "lowStock":        { "title": "تنبيهات المخزون",              "empty": "مستويات المخزون كلها جيدة." }
+      "followUp": {
+        "title": "متابعة الآن",
+        "empty": "لا توجد طلبات تحتاج متابعة."
+      },
+      "etaOverdue": {
+        "title": "تأخر موعد الوصول",
+        "empty": "لا يوجد تأخير في مواعيد الوصول."
+      },
+      "arrivingToday": {
+        "title": "يصل اليوم",
+        "empty": "لا يوجد شيء يصل اليوم."
+      },
+      "pendingApproval": {
+        "title": "في انتظار موافقة أمر الشراء",
+        "empty": "لا توجد طلبات في انتظار الموافقة."
+      },
+      "receiptsApprove": {
+        "title": "إيصالات بضاعة للموافقة",
+        "empty": "لا توجد إيصالات في انتظار الموافقة."
+      },
+      "overdueInvoices": {
+        "title": "فواتير متأخرة",
+        "empty": "لا توجد فواتير متأخرة."
+      },
+      "partialOrders": {
+        "title": "طلبات جزئية",
+        "empty": "لا توجد طلبات جزئية."
+      },
+      "lowStock": {
+        "title": "تنبيهات المخزون",
+        "empty": "مستويات المخزون كلها جيدة."
+      }
     },
     "badges": {
       "daysOverdue": "متأخر {days} يوم",
-      "etaWas":      "الوصول {date} (+{days}د)",
-      "unitsDate":   "{units} وحدة · {date}",
-      "due":         "يستحق {date}",
-      "partial":     "طلب جزئي",
-      "stock":       "{current}/{min}"
+      "etaWas": "الوصول {date} (+{days}د)",
+      "unitsDate": "{units} وحدة · {date}",
+      "due": "يستحق {date}",
+      "partial": "طلب جزئي",
+      "stock": "{current}/{min}"
     }
   }
 }

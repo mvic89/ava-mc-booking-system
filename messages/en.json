@@ -2264,7 +2264,8 @@
         "Ordered": "Ordered",
         "Partial": "Partial received",
         "Reviewed": "Received",
-        "Cancelled": "Cancelled"
+        "Cancelled": "Cancelled",
+        "Received": "Received"
       },
       "table": {
         "order": "Purchase Order / WO",
@@ -2374,7 +2375,7 @@
       },
       "noItems": "No items registered",
       "notesLabel": "Note:",
-      "itemsReceived": "{r}/{t} received"
+      "itemsReceived": "{r}/{total} received"
     },
     "payment": {
       "loading": "Loading invoice...",
@@ -4123,28 +4124,52 @@
     "allClearHint": "No pending actions. Check back tomorrow.",
     "noVendor": "No vendor",
     "summary": {
-      "totalActions":    "Total actions",
-      "urgent":          "Urgent",
+      "totalActions": "Total actions",
+      "urgent": "Urgent",
       "pendingApproval": "Pending approval",
-      "lowStock":        "Low stock"
+      "lowStock": "Low stock"
     },
     "sections": {
-      "followUp":        { "title": "Follow Up Now",             "empty": "No orders needing follow-up." },
-      "etaOverdue":      { "title": "ETA Overdue",               "empty": "No overdue ETAs." },
-      "arrivingToday":   { "title": "Arriving Today",            "empty": "Nothing arriving today." },
-      "pendingApproval": { "title": "Pending PO Approval",       "empty": "No orders awaiting approval." },
-      "receiptsApprove": { "title": "Goods Receipts to Approve", "empty": "No receipts pending approval." },
-      "overdueInvoices": { "title": "Overdue Invoices",          "empty": "No overdue invoices." },
-      "partialOrders":   { "title": "Backorders",                "empty": "No backorders." },
-      "lowStock":        { "title": "Low Stock Alerts",          "empty": "All stock levels are healthy." }
+      "followUp": {
+        "title": "Follow Up Now",
+        "empty": "No orders needing follow-up."
+      },
+      "etaOverdue": {
+        "title": "ETA Overdue",
+        "empty": "No overdue ETAs."
+      },
+      "arrivingToday": {
+        "title": "Arriving Today",
+        "empty": "Nothing arriving today."
+      },
+      "pendingApproval": {
+        "title": "Pending PO Approval",
+        "empty": "No orders awaiting approval."
+      },
+      "receiptsApprove": {
+        "title": "Goods Receipts to Approve",
+        "empty": "No receipts pending approval."
+      },
+      "overdueInvoices": {
+        "title": "Overdue Invoices",
+        "empty": "No overdue invoices."
+      },
+      "partialOrders": {
+        "title": "Backorders",
+        "empty": "No backorders."
+      },
+      "lowStock": {
+        "title": "Low Stock Alerts",
+        "empty": "All stock levels are healthy."
+      }
     },
     "badges": {
       "daysOverdue": "{days}d overdue",
-      "etaWas":      "ETA {date} (+{days}d)",
-      "unitsDate":   "{units} units · {date}",
-      "due":         "Due {date}",
-      "partial":     "Backorder",
-      "stock":       "{current}/{min}"
+      "etaWas": "ETA {date} (+{days}d)",
+      "unitsDate": "{units} units · {date}",
+      "due": "Due {date}",
+      "partial": "Backorder",
+      "stock": "{current}/{min}"
     }
   }
 }

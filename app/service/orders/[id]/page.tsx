@@ -328,6 +328,7 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
   const [poVendor,     setPoVendor]     = useState('');
   const [creatingPO,   setCreatingPO]   = useState(false);
   const [poEta,          setPoEta]          = useState('');
+  const [poPrices,       setPoPrices]       = useState<Record<number, number>>({});
   const [vendors,        setVendors]        = useState<{ name: string; email: string | null }[]>([]);
   const [vendorSug,      setVendorSug]      = useState<{ name: string; email: string | null }[]>([]);
   const [showVendorSug,  setShowVendorSug]  = useState(false);
@@ -525,7 +526,8 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
         eta: poEta || null,
         items: neededParts.map(p => ({
           workOrderPartId: p.id, articleNumber: p.part_number ?? '',
-          name: p.name, quantity: p.quantity, unitCost: p.unit_cost,
+          name: p.name, quantity: p.quantity,
+          unitCost: poPrices[p.id] ?? p.unit_cost ?? 0,
         })),
       }),
     });
@@ -533,7 +535,7 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
     if (res.ok) {
       const { order: po } = await res.json();
       toast.success(t('orderDetail.toasts.orderCreated', { id: po.id }));
-      setShowPOForm(false); setPoVendor(''); setPoEta('');
+      setShowPOForm(false); setPoVendor(''); setPoEta(''); setPoPrices({});
       load();
     } else {
       const j = await res.json();
@@ -705,8 +707,15 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
                       setPoVendor(e.target.value);
                       const q = e.target.value.toLowerCase();
                       const matches = q.length > 0
-                        ? vendors.filter(v => v.name.toLowerCase().includes(q)).slice(0, 6)
-                        : [];
+                        ? vendors.filter(v => v.name.toLowerCase().includes(q)).slice(0, 8)
+                        : vendors.slice(0, 8);
+                      setVendorSug(matches);
+                      setShowVendorSug(matches.length > 0);
+                    }}
+                    onFocus={() => {
+                      const matches = poVendor
+                        ? vendors.filter(v => v.name.toLowerCase().includes(poVendor.toLowerCase())).slice(0, 8)
+                        : vendors.slice(0, 8);
                       setVendorSug(matches);
                       setShowVendorSug(matches.length > 0);
                     }}
@@ -743,11 +752,43 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
                   {t('orderDetail.po.cancel')}
                 </button>
               </div>
-              <ul className="text-xs text-blue-700 list-disc list-inside space-y-0.5">
-                {parts.filter(p => p.status === 'needed').map(p => (
-                  <li key={p.id}>{p.name} × {p.quantity}</li>
-                ))}
-              </ul>
+              {/* Per-item price inputs */}
+              <div className="border border-blue-200 rounded-lg overflow-hidden">
+                <table className="w-full text-xs">
+                  <thead className="bg-blue-100">
+                    <tr>
+                      <th className="text-left px-3 py-1.5 text-blue-700 font-semibold">Part</th>
+                      <th className="text-center px-3 py-1.5 text-blue-700 font-semibold">Qty</th>
+                      <th className="text-right px-3 py-1.5 text-blue-700 font-semibold">Unit price (kr)</th>
+                      <th className="text-right px-3 py-1.5 text-blue-700 font-semibold">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-blue-100 bg-white">
+                    {parts.filter(p => p.status === 'needed').map(p => {
+                      const price = poPrices[p.id] ?? p.unit_cost ?? 0;
+                      return (
+                        <tr key={p.id}>
+                          <td className="px-3 py-2 text-slate-700 font-medium">{p.name}</td>
+                          <td className="px-3 py-2 text-center text-slate-500">{p.quantity}</td>
+                          <td className="px-3 py-2 text-right">
+                            <input
+                              type="number"
+                              min="0"
+                              value={price === 0 ? '' : price}
+                              placeholder="0"
+                              onChange={e => setPoPrices(prev => ({ ...prev, [p.id]: Number(e.target.value) || 0 }))}
+                              className="w-24 text-right px-2 py-1 text-xs border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/30"
+                            />
+                          </td>
+                          <td className="px-3 py-2 text-right font-semibold text-slate-700">
+                            {(price * p.quantity).toLocaleString('sv-SE')} kr
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 
@@ -861,7 +902,13 @@ export default function WorkOrderDetailPage({ params }: { params: Promise<{ id: 
                             {partStatusLabel(p.status)}
                           </span>
                           {p.status === 'needed' && (
-                            <button onClick={() => { setShowPOForm(true); }}
+                            <button onClick={() => {
+                              setShowPOForm(true);
+                              // pre-fill prices from existing part costs
+                              const init: Record<number, number> = {};
+                              parts.filter(x => x.status === 'needed').forEach(x => { if (x.unit_cost > 0) init[x.id] = x.unit_cost; });
+                              setPoPrices(init);
+                            }}
                               className="text-blue-600 font-semibold hover:underline">+ IO</button>
                           )}
                           {p.status === 'needed' && (

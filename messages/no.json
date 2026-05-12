@@ -2263,7 +2263,8 @@
         "Ordered": "Bestilt",
         "Partial": "Del-mottatt",
         "Reviewed": "Mottatt",
-        "Cancelled": "Avbrutt"
+        "Cancelled": "Avbrutt",
+        "Received": "Mottatt"
       },
       "table": {
         "order": "Innkjøpsordre / AO",
@@ -2373,7 +2374,7 @@
       },
       "noItems": "Ingen artikler registrert",
       "notesLabel": "Merknad:",
-      "itemsReceived": "{r}/{t} mottatt"
+      "itemsReceived": "{r}/{total} mottatt"
     },
     "payment": {
       "loading": "Laster faktura...",
@@ -4122,28 +4123,52 @@
     "allClearHint": "Ingen ventende oppgaver. Sjekk igjen i morgen.",
     "noVendor": "Ingen leverandør",
     "summary": {
-      "totalActions":    "Totale oppgaver",
-      "urgent":          "Haster",
+      "totalActions": "Totale oppgaver",
+      "urgent": "Haster",
       "pendingApproval": "Venter godkjenning",
-      "lowStock":        "Lavt lager"
+      "lowStock": "Lavt lager"
     },
     "sections": {
-      "followUp":        { "title": "Følg opp nå",                    "empty": "Ingen ordrer trenger oppfølging." },
-      "etaOverdue":      { "title": "ETA forsinket",                  "empty": "Ingen forsinkede ETA-er." },
-      "arrivingToday":   { "title": "Ankommer i dag",                 "empty": "Ingenting ankommer i dag." },
-      "pendingApproval": { "title": "Venter PO-godkjenning",          "empty": "Ingen ordrer venter godkjenning." },
-      "receiptsApprove": { "title": "Varemottak som skal godkjennes",  "empty": "Ingen mottak venter godkjenning." },
-      "overdueInvoices": { "title": "Forfalte fakturaer",             "empty": "Ingen forfalte fakturaer." },
-      "partialOrders":   { "title": "Restordrer",                     "empty": "Ingen restordrer." },
-      "lowStock":        { "title": "Lageradvarsler",                 "empty": "Alle lagernivåer er OK." }
+      "followUp": {
+        "title": "Følg opp nå",
+        "empty": "Ingen ordrer trenger oppfølging."
+      },
+      "etaOverdue": {
+        "title": "ETA forsinket",
+        "empty": "Ingen forsinkede ETA-er."
+      },
+      "arrivingToday": {
+        "title": "Ankommer i dag",
+        "empty": "Ingenting ankommer i dag."
+      },
+      "pendingApproval": {
+        "title": "Venter PO-godkjenning",
+        "empty": "Ingen ordrer venter godkjenning."
+      },
+      "receiptsApprove": {
+        "title": "Varemottak som skal godkjennes",
+        "empty": "Ingen mottak venter godkjenning."
+      },
+      "overdueInvoices": {
+        "title": "Forfalte fakturaer",
+        "empty": "Ingen forfalte fakturaer."
+      },
+      "partialOrders": {
+        "title": "Restordrer",
+        "empty": "Ingen restordrer."
+      },
+      "lowStock": {
+        "title": "Lageradvarsler",
+        "empty": "Alle lagernivåer er OK."
+      }
     },
     "badges": {
       "daysOverdue": "{days}d forsinket",
-      "etaWas":      "ETA {date} (+{days}d)",
-      "unitsDate":   "{units} enheter · {date}",
-      "due":         "Forfaller {date}",
-      "partial":     "Restordre",
-      "stock":       "{current}/{min}"
+      "etaWas": "ETA {date} (+{days}d)",
+      "unitsDate": "{units} enheter · {date}",
+      "due": "Forfaller {date}",
+      "partial": "Restordre",
+      "stock": "{current}/{min}"
     }
   }
 }
