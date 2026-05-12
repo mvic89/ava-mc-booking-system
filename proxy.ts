@@ -1,6 +1,5 @@
 /**
  * Next.js 16 proxy (replaces middleware.ts)
- *
  * Runs on every request.  Responsibilities:
  *   1. i18n — locale is handled via cookies (no URL segments), so this just passes through
  *   2. Auth guard — every page and API route is protected unless it is in PUBLIC_PREFIXES
