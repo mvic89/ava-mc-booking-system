@@ -1,5 +1,4 @@
 import { Motorcycle, SparePart, Accessory, LowStockAlert } from './types'
-
 /**
  * Scans all inventory for items at or below their reorder point and returns
  * one LowStockAlert per item, sorted by vendor then item name.
