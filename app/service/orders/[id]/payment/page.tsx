@@ -12,6 +12,7 @@ import { getDealershipId } from '@/lib/tenant';
 import { getDealerInfo } from '@/lib/dealer';
 import { markInvoicePaidById } from '@/lib/invoices';
 import { getWorkOrder, type WorkOrder, type WorkOrderTask, type WorkOrderPart } from '@/lib/service';
+import { emit } from '@/lib/realtime';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -649,6 +650,7 @@ function ServicePaymentContent({ id }: { id: string }) {
     if (invoiceId) {
       await saveAmount(amountInput);
       await markInvoicePaidById(invoiceId, METHODS.find(m => m.id === method)?.label ?? method);
+      emit({ type: 'invoice:paid', payload: { id: invoiceId, amount: invoice?.total_amount ?? 0 } });
       toast.success(`${invoiceId} ${t('payment.success.paid')}!`);
     }
     // Mark work order as invoiced (best-effort — never blocks the success screen)
@@ -660,7 +662,7 @@ function ServicePaymentContent({ id }: { id: string }) {
       }).catch(() => {});
     }
     setStep('success');
-  }, [invoiceId, method, amountInput, saveAmount, t, METHODS, id, dealershipId]);
+  }, [invoiceId, method, amountInput, saveAmount, t, METHODS, id, dealershipId, invoice]);
 
   if (loading || !order) return (
     <div className="flex min-h-screen bg-[#f5f7fa]"><Sidebar />

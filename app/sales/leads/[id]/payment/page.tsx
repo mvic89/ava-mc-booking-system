@@ -7,6 +7,7 @@ import Sidebar from '@/components/Sidebar';
 import { getDealerInfo } from '@/lib/dealer';
 import { maskPnr } from '@/lib/pnr';
 import { getSupabaseBrowser } from '@/lib/supabase';
+import { emit } from '@/lib/realtime';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -1896,7 +1897,11 @@ export default function PaymentPage() {
         paymentMethod: 'Bank Transfer',
         status:        'pending',
       }),
-    }).catch(() => { /* non-fatal */ });
+    }).then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.invoiceId) emit({ type: 'invoice:created', payload: { id: data.invoiceId, amount: order.totalAmount } });
+      })
+      .catch(() => { /* non-fatal */ });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, dealershipId, order.totalAmount]);
 
@@ -1945,6 +1950,7 @@ export default function PaymentPage() {
       });
       const data = await res.json();
       invoiceId = data.invoiceId ?? '';
+      if (invoiceId) emit({ type: 'invoice:paid', payload: { id: invoiceId, amount: order.totalAmount } });
     } catch (err) {
       console.error('[payment] invoice create failed:', err);
       // Non-fatal — navigate anyway so the dealer isn't stuck

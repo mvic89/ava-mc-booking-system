@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import Sidebar from '@/components/Sidebar';
 import { getDealershipId } from '@/lib/tenant';
 import { getCustomers, type Customer } from '@/lib/customers';
+import { emit } from '@/lib/realtime';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -326,6 +327,8 @@ export default function CounterSalePage() {
       });
       const json = await res.json() as { invoice?: { id: string }; error?: string };
       if (!res.ok) throw new Error(json.error ?? t('toastError'));
+
+      emit({ type: 'invoice:created', payload: { id: json.invoice!.id, amount: finalTotal } });
 
       setReceipt({
         id:           json.invoice!.id,
