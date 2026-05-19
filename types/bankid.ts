@@ -2,7 +2,6 @@
  * BankID Type Definitions
  * Shared types for BankID authentication and signing
  */
-
 export interface BankIDUser {
   personalNumber: string;
   name: string;
